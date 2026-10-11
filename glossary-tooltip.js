@@ -366,11 +366,16 @@
     const textNodes = [];
     const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
     let node;
-    const excludeTags = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'GLOSSARY-TERM', 'GLOSSARY-TOOLTIPS']);
+    // Table-structural tags are excluded: wrapping their whitespace text nodes in
+    // a <span> inserts an invalid child into the table, which the browser turns
+    // into a phantom cell and shifts every column. Glossary terms inside <th>/<td>
+    // are still marked (their parent is TH/TD, not a structural tag).
+    const excludeTags = new Set(['SCRIPT', 'STYLE', 'CODE', 'PRE', 'GLOSSARY-TERM', 'GLOSSARY-TOOLTIPS', 'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR', 'COLGROUP', 'COL']);
     while ((node = walker.nextNode())) {
       const p = node.parentNode;
       const gn = p.nodeName;
       if (excludeTags.has(gn) || gn === 'TEXTAREA' || gn === 'INPUT') continue;
+      if (!node.textContent.trim()) continue;
       if (p.closest('.gt-pop') || p.closest('.no-gt')) continue;
       textNodes.push(node);
     }
@@ -415,6 +420,10 @@
       }
 
       if (phMap.size) html = html.replace(NOPLACE_RE, m => phMap.get(m) ?? m);
+
+      // No glossary term in this text node — leave it untouched. Wrapping every
+      // text node in a <span> is unnecessary and corrupts table structure.
+      if (html.indexOf('<glossary-term') === -1) continue;
 
       const wrapper = document.createElement('span');
       wrapper.innerHTML = html;
