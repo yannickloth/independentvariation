@@ -7,8 +7,7 @@
     "text": "1 Software\nSoftware research and analysis. Software design is the broad concern; architecture is a part of design, but not all design is architecture.\nThis section is organized under the design concern:\n\nDesign — the design concern, containing architecture, languages, and principles.\n\nThe change-management account of module structure that informs the software analysis is published in the paper on the Independent Variation Principle (Loth 2026).\n\n\n\n\n\nReferences\n\nLoth, Yannick. 2026. The Independent Variation Principle. Zenodo. https://doi.org/10.5281/zenodo.20794332.",
     "crumbs": [
       "Home",
-      "Software",
-      "Overview"
+      "Software"
     ]
   },
   {
@@ -121,6 +120,141 @@
       "Design",
       "Principles",
       "Coupling"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "Design dashboards like one number per module. Complexity, coupling, cohesion — a single score, a colour, a flag. This page shows why, for cohesion, one number cannot decide whether an element is well placed. The failure is not a matter of precision or of a poorly chosen formula. It is structural, and it has four independent causes.\nA module can deviate from its rule in two opposite ways — it can hold elements that do not belong, or it can be missing elements that do. These two defects call for opposite repairs, and no single number can tell them apart. The rest of this page proves that claim and its companions.\n\n\nCohesion is correctness relative to a partitioning rule (Loth 2026). A rule PP sorts the element set EE into equivalence classes [e]P[e]_P — the elements that belong together. A module M⊆EM \\subseteq E complies when its boundary coincides with its class: M=[e]PM = [e]_P for every e∈Me \\in M. Otherwise it deviates in one of two ways:\n\nImpurity. MM contains elements from another class. The remedy is to remove them — to split.\nIncompleteness. Some element of the module’s class lies outside MM. The remedy is to add it — to merge.\n\nAssess a module MM against a class CC (the class it should realize). Write\npurity(M)=|M∩C||M|,completeness(M)=|M∩C||C|.\n\\text{purity}(M) = \\frac{|M \\cap C|}{|M|},\n\\qquad\n\\text{completeness}(M) = \\frac{|M \\cap C|}{|C|}.\n\nBoth values lie in [0,1][0,1]. Purity is 11 exactly when MM has no foreign element; completeness is 11 exactly when MM is missing no member of CC. A module is fully cohesive precisely when both are 11.\nThe question of this page: can a single real number s(M)s(M) stand in for this pair and decide placement — issue the statement “this element is incorrectly placed”?\nTwo notions make the question precise.\nPrincipled scalar. A function s(e,M,ℳ,E,R,P)→ℝs(e, M, \\mathcal{M}, E, R, P) \\to \\mathbb{R} that may consult the principle PP as well as the structure — but whose output is one real number.\nVerdict-deciding. ss decides placement iff there is an interpretation d:ℝ→{correct,incorrect}d: \\mathbb{R} \\to \\{\\text{correct}, \\text{incorrect}\\} with d(s(e,M))=VP(e,M)d(s(e,M)) = V_P(e,M) for every system and every element-module pair. (The module-level form s(M)s(M) is read the same way; the verdict is uniform across a module, so s(M)s(M) assigns one verdict to every element of MM.)\nFour failure modes follow. They run from the strongest restriction on the metric — it cannot even see the rule — to the weakest — it sees everything and still adds nothing.\n\n\n\nSuppose the number is computed from the structure alone: from EE, RR, and the module MM, with no access to PP. Then it cannot decide placement, whatever its formula and whatever its precision.\nExample. Let E={a,b}E = \\{a, b\\} and R=∅R = \\emptyset, and let the module under test be M={a}M = \\{a\\}.\n\nUnder P1P_1 with a single class {a,b}\\{a, b\\}, we have [a]P1={a,b}≠M[a]_{P_1} = \\{a,b\\} \\neq M, so aa is incorrectly placed (the module is missing bb).\nUnder P2P_2 with classes {a},{b}\\{a\\}, \\{b\\}, we have [a]P2={a}=M[a]_{P_2} = \\{a\\} = M, so aa is correctly placed.\n\nThe two systems present identical structural inputs — same EE, same RR, same MM — to any structural function, so such a function returns the same number for both. Yet the verdicts differ. No formula over the structure alone can be correct on both, at any level of precision.\nThis is the principle-blindness obstruction: the structure (E,R)(E,R) underdetermines PP, so “correct” — which is meaningless without PP — cannot be read off it. The constructive cell is also visible: give the metric access to PP and it can compare MM with [e]P[e]_P. But access alone is not enough, as the next three results show.\n\n\n\nGrant the metric full access to PP, but let it return one number per module, built from the two-axis pair: s(M)=g(purity(M),completeness(M))s(M) = g(\\text{purity}(M), \\text{completeness}(M)) for some g:[0,1]2→ℝg: [0,1]^2 \\to \\mathbb{R}.\n\nProposition (aggregation ambiguity). (a) If gg is symmetric — g(p,c)=g(c,p)g(p,c) = g(c,p) — there are two modules with opposite defects and opposite remedies whose scores are exactly equal. (b) If gg is continuous and strictly increasing in each argument, the two classes of defect are indistinguishable to any measurement precision, and no threshold on the score separates them.\n\nProof. Fix a rule PP with a class CC of size 44, and four foreign elements x1,…,x4x_1, \\dots, x_4 all belonging to another class.\n\nLet M1=C∪{x1,x2,x3,x4}M_1 = C \\cup \\{x_1, x_2, x_3, x_4\\}, so |M1|=8|M_1| = 8. Then purity(M1)=4/8=1/2\\text{purity}(M_1) = 4/8 = 1/2 and completeness(M1)=4/4=1\\text{completeness}(M_1) = 4/4 = 1: impure but complete — the remedy is to remove the four foreign elements.\nLet M2={a,b}M_2 = \\{a, b\\} for two elements a,b∈Ca, b \\in C. Then purity(M2)=2/2=1\\text{purity}(M_2) = 2/2 = 1 and completeness(M2)=2/4=1/2\\text{completeness}(M_2) = 2/4 = 1/2: pure but incomplete — the remedy is to add the two missing members.\n\nBoth modules can be realized in one system (E,R,P)(E, R, P).\n(a) By symmetry, s(M1)=g(1/2,1)=g(1,1/2)=s(M2)s(M_1) = g(1/2, 1) = g(1, 1/2) = s(M_2): the scores coincide exactly, while the defects and the required repairs are opposite. The geometric mean g(p,c)=pcg(p,c) = \\sqrt{pc} scores both modules at 1/21/\\sqrt{2}.\n(b) Consider the two boundary curves B1={(p,1):0&lt;p&lt;1}B_1 = \\{(p, 1) : 0 &lt; p &lt; 1\\} (impure-but-complete) and B2={(1,c):0&lt;c&lt;1}B_2 = \\{(1, c) : 0 &lt; c &lt; 1\\} (pure-but-incomplete). Because gg is strictly increasing, g(1,1)g(1,1) is the supremum of gg on both curves; because gg is continuous, each image g(B1)g(B_1), g(B2)g(B_2) is an interval with that same supremum. Two intervals with a common supremum overlap: there exist (p*,1)∈B1(p^*, 1) \\in B_1 and (1,c*)∈B2(1, c^*) \\in B_2 with g(p*,1)=g(1,c*)g(p^*, 1) = g(1, c^*). So an impure-but-complete module and a pure-but-incomplete module share the same score, and in their neighbourhood the two classes of module are indistinguishable to any finite precision. An interpretation that reads the failure mode off intervals of the score line therefore misclassifies achievable modules — there is no threshold that separates “remove foreign elements” from “add missing members.” ◼\\blacksquare\nThe single number says something is wrong. It cannot say what, and the two repairs point in opposite directions.\n\n\n\nEven a scalar that could read the defect from the score still could not say which element to move. Suppose ss is name-invariant: renaming the elements — carrying one system to another by a bijection σ\\sigma with R′=σ(R)R' = \\sigma(R), P′=σ∘P∘σ−1P' = \\sigma \\circ P \\circ \\sigma^{-1}, ℳ′=σ(ℳ)\\mathcal{M}' = \\sigma(\\mathcal{M}) — leaves the score unchanged, sS′(σ(M))=sS(M)s_{S'}(\\sigma(M)) = s_S(M). Any function deserving the name “measurement of the configuration” is name-invariant.\n\nProposition (no localization). A name-invariant module-level scalar cannot identify the repair target. There are two systems with the same element set, the same module MM, and the same score, whose minimal repairs move different elements.\n\nProof. Let E={a,b,c,x}E = \\{a, b, c, x\\}, let R=∅R = \\emptyset, and let M={a,b,x}M = \\{a, b, x\\}.\n\nSystem 1. P1P_1 induces classes {a,b}\\{a, b\\} and {c,x}\\{c, x\\}. Then MM is not a P1P_1-class, and the unique one-move repair is to remove xx: M\\{x}={a,b}M \\setminus \\{x\\} = \\{a, b\\} is a P1P_1-class, while no other single move produces one.\nSystem 2. P2P_2 induces classes {a,x}\\{a, x\\} and {c,b}\\{c, b\\}. Again MM is not a class, and the unique one-move repair is to remove bb: M\\{b}={a,x}M \\setminus \\{b\\} = \\{a, x\\}.\n\nNow take the transposition σ=(bx)\\sigma = (b\\ x), which exchanges bb and xx and fixes aa and cc. It carries system 1 to system 2: σ({a,b})={a,x}\\sigma(\\{a,b\\}) = \\{a,x\\}, σ({c,x})={c,b}\\sigma(\\{c,x\\}) = \\{c,b\\}, σ(R)=R\\sigma(R) = R, and σ(M)=M\\sigma(M) = M (the set {a,b,x}\\{a,b,x\\} is fixed as a set).\nBy name-invariance, sS2(M)=sS2(σ(M))=sS1(M)s_{S_2}(M) = s_{S_2}(\\sigma(M)) = s_{S_1}(M): the score is the same in both systems. But the repair targets differ — xx in system 1, bb in system 2. A designer observing only the score cannot tell the two configurations apart. And the obstruction is structural, not a matter of resolution: a score fine-grained enough to point at xx rather than bb would have to change under the transposition σ\\sigma — and would thereby cease to be name-invariant, that is, cease to measure the configuration. ◼\\blacksquare\n\n\n\nThe first three results say a measurement-like scalar fails. The fourth closes the other direction: a scalar that does decide placement adds nothing.\n\nProposition (degeneracy). Any scalar that decides placement is threshold-equivalent to the rule’s own binary verdict.\n\nProof. Suppose ss decides placement via dd, in either the element-level form s(e,M)s(e,M) or the module-level form s(M)s(M). Let T={x∈ℝ:d(x)=correct}T = \\{x \\in \\mathbb{R} : d(x) = \\text{correct}\\}, the preimage of the “correct” verdict. Then, using the definition of the verdict, s(e,M)∈T⇔d(s(e,M))=correct⇔VP(e,M)=correct⇔M=[e]P.\ns(e, M) \\in T \\iff d(s(e,M)) = \\text{correct} \\iff V_P(e,M) = \\text{correct} \\iff M = [e]_P .\n So the indicator 1[M=[e]P]1[M = [e]_P] is recovered from the scalar by a single threshold test. (For the module-level form, the same unfolding gives s(M)∈T⇔Ms(M) \\in T \\iff M is a PP-class, since the verdict is uniform across a module.)\nThe real-valued structure — magnitude, ordering, continuity, distance from the threshold — contributes nothing to the decision. Any two verdict-deciding scalars induce the same partition of element-module pairs, the partition the rule already defines: one scalar might use [0,1][0,1] with threshold 0.50.5, another ℝ\\mathbb{R} with threshold 00, but the partition is identical. ◼\\blacksquare\n\n\n\nThe results assemble into a trichotomy. Every scalar aimed at the placement verdict either lacks the principle, has it but fails to decide, or decides only degenerately.\n\nPrinciple-blind. No measurement without PP decides placement (failure mode 1).\nNon-deciding. With PP, a scalar may fail to decide. For the measurement-like classes the failure is provable: a scalar factoring through the purity/completeness pair cannot determine the failure mode (failure mode 2), and a name-invariant scalar cannot identify the repair target (failure mode 3).\nDegenerate. With PP, any scalar that decides placement is threshold-equivalent to the rule’s binary verdict (failure mode 4).\n\nIn every case the placement verdict originates in the partitioning rule, not in a number. A number can repeat the rule’s verdict on a module; only the rule can say what is wrong and which element must move.\n\n\n\nThe result is a limit on deciding. It does not by itself say that a scalar has no practical use — but the usual consolation is weaker than it sounds.\nThe consolation runs: even if a number cannot decide, it can rank modules for inspection — which to examine first, which grouping looks most suspect. But a ranking asks the scalar to do exactly what the proposition forbids: order modules by comparing an impurity defect with an incompleteness defect on a single line. Any such order presupposes an aggregate g(purity,completeness)g(\\text{purity}, \\text{completeness}) and, with it, an exchange rate between “an element that does not belong” and “a class member that is missing.” The two axes are independent and incommensurable; nothing in the rule or the domain fixes that rate. Change the aggregate — product, arithmetic mean, weighted sum — and the same modules are ordered differently: a designer ranking by pc\\sqrt{pc} and one ranking by 0.7p+0.3c0.7p + 0.3c will name different modules as most suspect, and the rule adjudicates nothing between them.\nSo even the attention-directing use rests on a convention, not on cohesion. What survives without arbitration is only the degenerate bit: whether a module sits at (1,1)(1,1) or below it — the rule’s own verdict, reproduced by a threshold. Everything finer is a chosen weighting. A scalar score can therefore flag that a module is not a class, and a designer may adopt a heuristic order to decide where to look first — but the order is not grounded in the theory, is not invariant across aggregates, and two defensible scores need not agree.\nA separate and weaker point concerns empirical use: structural scores have been reported to correlate with fault-proneness and maintenance effort, so they can serve as screening signals and change predictors. That is a statistical fact about a proxy for change, not a claim that the score measures cohesion — and it does not repair the arbitrariness of ranking by the score.\nThe impossibility still bites when the score is asked to issue the verdict — to declare an element misplaced from the number alone, without comparing the module against the rule. There, the score is not merely arbitrary; it is the rule in disguise.\n\n\n\nThe cohesion schema — correctness relative to a partitioning rule, and the (purity, completeness) pair — is defined and developed in On the Nature of Cohesion (Loth 2026). The constructive alternative it points to is the per-rule pair for diagnosis, and the rule PP itself for the verdict. The companion page Why two metrics are necessary proves that the pair is the minimal adequate output for a single rule.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#the-setting",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#the-setting",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "Cohesion is correctness relative to a partitioning rule (Loth 2026). A rule PP sorts the element set EE into equivalence classes [e]P[e]_P — the elements that belong together. A module M⊆EM \\subseteq E complies when its boundary coincides with its class: M=[e]PM = [e]_P for every e∈Me \\in M. Otherwise it deviates in one of two ways:\n\nImpurity. MM contains elements from another class. The remedy is to remove them — to split.\nIncompleteness. Some element of the module’s class lies outside MM. The remedy is to add it — to merge.\n\nAssess a module MM against a class CC (the class it should realize). Write\npurity(M)=|M∩C||M|,completeness(M)=|M∩C||C|.\n\\text{purity}(M) = \\frac{|M \\cap C|}{|M|},\n\\qquad\n\\text{completeness}(M) = \\frac{|M \\cap C|}{|C|}.\n\nBoth values lie in [0,1][0,1]. Purity is 11 exactly when MM has no foreign element; completeness is 11 exactly when MM is missing no member of CC. A module is fully cohesive precisely when both are 11.\nThe question of this page: can a single real number s(M)s(M) stand in for this pair and decide placement — issue the statement “this element is incorrectly placed”?\nTwo notions make the question precise.\nPrincipled scalar. A function s(e,M,ℳ,E,R,P)→ℝs(e, M, \\mathcal{M}, E, R, P) \\to \\mathbb{R} that may consult the principle PP as well as the structure — but whose output is one real number.\nVerdict-deciding. ss decides placement iff there is an interpretation d:ℝ→{correct,incorrect}d: \\mathbb{R} \\to \\{\\text{correct}, \\text{incorrect}\\} with d(s(e,M))=VP(e,M)d(s(e,M)) = V_P(e,M) for every system and every element-module pair. (The module-level form s(M)s(M) is read the same way; the verdict is uniform across a module, so s(M)s(M) assigns one verdict to every element of MM.)\nFour failure modes follow. They run from the strongest restriction on the metric — it cannot even see the rule — to the weakest — it sees everything and still adds nothing.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-1-the-metric-cannot-see-the-rule",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-1-the-metric-cannot-see-the-rule",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "Suppose the number is computed from the structure alone: from EE, RR, and the module MM, with no access to PP. Then it cannot decide placement, whatever its formula and whatever its precision.\nExample. Let E={a,b}E = \\{a, b\\} and R=∅R = \\emptyset, and let the module under test be M={a}M = \\{a\\}.\n\nUnder P1P_1 with a single class {a,b}\\{a, b\\}, we have [a]P1={a,b}≠M[a]_{P_1} = \\{a,b\\} \\neq M, so aa is incorrectly placed (the module is missing bb).\nUnder P2P_2 with classes {a},{b}\\{a\\}, \\{b\\}, we have [a]P2={a}=M[a]_{P_2} = \\{a\\} = M, so aa is correctly placed.\n\nThe two systems present identical structural inputs — same EE, same RR, same MM — to any structural function, so such a function returns the same number for both. Yet the verdicts differ. No formula over the structure alone can be correct on both, at any level of precision.\nThis is the principle-blindness obstruction: the structure (E,R)(E,R) underdetermines PP, so “correct” — which is meaningless without PP — cannot be read off it. The constructive cell is also visible: give the metric access to PP and it can compare MM with [e]P[e]_P. But access alone is not enough, as the next three results show.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-2-one-axis-collapses-two-opposite-defects",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-2-one-axis-collapses-two-opposite-defects",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "Grant the metric full access to PP, but let it return one number per module, built from the two-axis pair: s(M)=g(purity(M),completeness(M))s(M) = g(\\text{purity}(M), \\text{completeness}(M)) for some g:[0,1]2→ℝg: [0,1]^2 \\to \\mathbb{R}.\n\nProposition (aggregation ambiguity). (a) If gg is symmetric — g(p,c)=g(c,p)g(p,c) = g(c,p) — there are two modules with opposite defects and opposite remedies whose scores are exactly equal. (b) If gg is continuous and strictly increasing in each argument, the two classes of defect are indistinguishable to any measurement precision, and no threshold on the score separates them.\n\nProof. Fix a rule PP with a class CC of size 44, and four foreign elements x1,…,x4x_1, \\dots, x_4 all belonging to another class.\n\nLet M1=C∪{x1,x2,x3,x4}M_1 = C \\cup \\{x_1, x_2, x_3, x_4\\}, so |M1|=8|M_1| = 8. Then purity(M1)=4/8=1/2\\text{purity}(M_1) = 4/8 = 1/2 and completeness(M1)=4/4=1\\text{completeness}(M_1) = 4/4 = 1: impure but complete — the remedy is to remove the four foreign elements.\nLet M2={a,b}M_2 = \\{a, b\\} for two elements a,b∈Ca, b \\in C. Then purity(M2)=2/2=1\\text{purity}(M_2) = 2/2 = 1 and completeness(M2)=2/4=1/2\\text{completeness}(M_2) = 2/4 = 1/2: pure but incomplete — the remedy is to add the two missing members.\n\nBoth modules can be realized in one system (E,R,P)(E, R, P).\n(a) By symmetry, s(M1)=g(1/2,1)=g(1,1/2)=s(M2)s(M_1) = g(1/2, 1) = g(1, 1/2) = s(M_2): the scores coincide exactly, while the defects and the required repairs are opposite. The geometric mean g(p,c)=pcg(p,c) = \\sqrt{pc} scores both modules at 1/21/\\sqrt{2}.\n(b) Consider the two boundary curves B1={(p,1):0&lt;p&lt;1}B_1 = \\{(p, 1) : 0 &lt; p &lt; 1\\} (impure-but-complete) and B2={(1,c):0&lt;c&lt;1}B_2 = \\{(1, c) : 0 &lt; c &lt; 1\\} (pure-but-incomplete). Because gg is strictly increasing, g(1,1)g(1,1) is the supremum of gg on both curves; because gg is continuous, each image g(B1)g(B_1), g(B2)g(B_2) is an interval with that same supremum. Two intervals with a common supremum overlap: there exist (p*,1)∈B1(p^*, 1) \\in B_1 and (1,c*)∈B2(1, c^*) \\in B_2 with g(p*,1)=g(1,c*)g(p^*, 1) = g(1, c^*). So an impure-but-complete module and a pure-but-incomplete module share the same score, and in their neighbourhood the two classes of module are indistinguishable to any finite precision. An interpretation that reads the failure mode off intervals of the score line therefore misclassifies achievable modules — there is no threshold that separates “remove foreign elements” from “add missing members.” ◼\\blacksquare\nThe single number says something is wrong. It cannot say what, and the two repairs point in opposite directions.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-3-a-number-cannot-name-the-element",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-3-a-number-cannot-name-the-element",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "Even a scalar that could read the defect from the score still could not say which element to move. Suppose ss is name-invariant: renaming the elements — carrying one system to another by a bijection σ\\sigma with R′=σ(R)R' = \\sigma(R), P′=σ∘P∘σ−1P' = \\sigma \\circ P \\circ \\sigma^{-1}, ℳ′=σ(ℳ)\\mathcal{M}' = \\sigma(\\mathcal{M}) — leaves the score unchanged, sS′(σ(M))=sS(M)s_{S'}(\\sigma(M)) = s_S(M). Any function deserving the name “measurement of the configuration” is name-invariant.\n\nProposition (no localization). A name-invariant module-level scalar cannot identify the repair target. There are two systems with the same element set, the same module MM, and the same score, whose minimal repairs move different elements.\n\nProof. Let E={a,b,c,x}E = \\{a, b, c, x\\}, let R=∅R = \\emptyset, and let M={a,b,x}M = \\{a, b, x\\}.\n\nSystem 1. P1P_1 induces classes {a,b}\\{a, b\\} and {c,x}\\{c, x\\}. Then MM is not a P1P_1-class, and the unique one-move repair is to remove xx: M\\{x}={a,b}M \\setminus \\{x\\} = \\{a, b\\} is a P1P_1-class, while no other single move produces one.\nSystem 2. P2P_2 induces classes {a,x}\\{a, x\\} and {c,b}\\{c, b\\}. Again MM is not a class, and the unique one-move repair is to remove bb: M\\{b}={a,x}M \\setminus \\{b\\} = \\{a, x\\}.\n\nNow take the transposition σ=(bx)\\sigma = (b\\ x), which exchanges bb and xx and fixes aa and cc. It carries system 1 to system 2: σ({a,b})={a,x}\\sigma(\\{a,b\\}) = \\{a,x\\}, σ({c,x})={c,b}\\sigma(\\{c,x\\}) = \\{c,b\\}, σ(R)=R\\sigma(R) = R, and σ(M)=M\\sigma(M) = M (the set {a,b,x}\\{a,b,x\\} is fixed as a set).\nBy name-invariance, sS2(M)=sS2(σ(M))=sS1(M)s_{S_2}(M) = s_{S_2}(\\sigma(M)) = s_{S_1}(M): the score is the same in both systems. But the repair targets differ — xx in system 1, bb in system 2. A designer observing only the score cannot tell the two configurations apart. And the obstruction is structural, not a matter of resolution: a score fine-grained enough to point at xx rather than bb would have to change under the transposition σ\\sigma — and would thereby cease to be name-invariant, that is, cease to measure the configuration. ◼\\blacksquare",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-4-a-scalar-that-decides-is-the-rule-in-disguise",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#failure-mode-4-a-scalar-that-decides-is-the-rule-in-disguise",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "The first three results say a measurement-like scalar fails. The fourth closes the other direction: a scalar that does decide placement adds nothing.\n\nProposition (degeneracy). Any scalar that decides placement is threshold-equivalent to the rule’s own binary verdict.\n\nProof. Suppose ss decides placement via dd, in either the element-level form s(e,M)s(e,M) or the module-level form s(M)s(M). Let T={x∈ℝ:d(x)=correct}T = \\{x \\in \\mathbb{R} : d(x) = \\text{correct}\\}, the preimage of the “correct” verdict. Then, using the definition of the verdict, s(e,M)∈T⇔d(s(e,M))=correct⇔VP(e,M)=correct⇔M=[e]P.\ns(e, M) \\in T \\iff d(s(e,M)) = \\text{correct} \\iff V_P(e,M) = \\text{correct} \\iff M = [e]_P .\n So the indicator 1[M=[e]P]1[M = [e]_P] is recovered from the scalar by a single threshold test. (For the module-level form, the same unfolding gives s(M)∈T⇔Ms(M) \\in T \\iff M is a PP-class, since the verdict is uniform across a module.)\nThe real-valued structure — magnitude, ordering, continuity, distance from the threshold — contributes nothing to the decision. Any two verdict-deciding scalars induce the same partition of element-module pairs, the partition the rule already defines: one scalar might use [0,1][0,1] with threshold 0.50.5, another ℝ\\mathbb{R} with threshold 00, but the partition is identical. ◼\\blacksquare",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#the-four-modes-cover-every-scalar",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#the-four-modes-cover-every-scalar",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "The results assemble into a trichotomy. Every scalar aimed at the placement verdict either lacks the principle, has it but fails to decide, or decides only degenerately.\n\nPrinciple-blind. No measurement without PP decides placement (failure mode 1).\nNon-deciding. With PP, a scalar may fail to decide. For the measurement-like classes the failure is provable: a scalar factoring through the purity/completeness pair cannot determine the failure mode (failure mode 2), and a name-invariant scalar cannot identify the repair target (failure mode 3).\nDegenerate. With PP, any scalar that decides placement is threshold-equivalent to the rule’s binary verdict (failure mode 4).\n\nIn every case the placement verdict originates in the partitioning rule, not in a number. A number can repeat the rule’s verdict on a module; only the rule can say what is wrong and which element must move.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#what-the-scalar-is-still-good-for-and-what-it-is-not",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#what-the-scalar-is-still-good-for-and-what-it-is-not",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "The result is a limit on deciding. It does not by itself say that a scalar has no practical use — but the usual consolation is weaker than it sounds.\nThe consolation runs: even if a number cannot decide, it can rank modules for inspection — which to examine first, which grouping looks most suspect. But a ranking asks the scalar to do exactly what the proposition forbids: order modules by comparing an impurity defect with an incompleteness defect on a single line. Any such order presupposes an aggregate g(purity,completeness)g(\\text{purity}, \\text{completeness}) and, with it, an exchange rate between “an element that does not belong” and “a class member that is missing.” The two axes are independent and incommensurable; nothing in the rule or the domain fixes that rate. Change the aggregate — product, arithmetic mean, weighted sum — and the same modules are ordered differently: a designer ranking by pc\\sqrt{pc} and one ranking by 0.7p+0.3c0.7p + 0.3c will name different modules as most suspect, and the rule adjudicates nothing between them.\nSo even the attention-directing use rests on a convention, not on cohesion. What survives without arbitration is only the degenerate bit: whether a module sits at (1,1)(1,1) or below it — the rule’s own verdict, reproduced by a threshold. Everything finer is a chosen weighting. A scalar score can therefore flag that a module is not a class, and a designer may adopt a heuristic order to decide where to look first — but the order is not grounded in the theory, is not invariant across aggregates, and two defensible scores need not agree.\nA separate and weaker point concerns empirical use: structural scores have been reported to correlate with fault-proneness and maintenance effort, so they can serve as screening signals and change predictors. That is a statistical fact about a proxy for change, not a claim that the score measures cohesion — and it does not repair the arbitrariness of ranking by the score.\nThe impossibility still bites when the score is asked to issue the verdict — to declare an element misplaced from the number alone, without comparing the module against the rule. There, the score is not merely arbitrary; it is the rule in disguise.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/no-scalar-metric.html#where-this-comes-from",
+    "href": "software/design/principles/cohesion/no-scalar-metric.html#where-this-comes-from",
+    "title": "Why Cohesion Has No Scalar Metric",
+    "section": "",
+    "text": "The cohesion schema — correctness relative to a partitioning rule, and the (purity, completeness) pair — is defined and developed in On the Nature of Cohesion (Loth 2026). The constructive alternative it points to is the per-rule pair for diagnosis, and the rule PP itself for the verdict. The companion page Why two metrics are necessary proves that the pair is the minimal adequate output for a single rule.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Cohesion Has No Scalar Metric"
     ]
   },
   {
@@ -1957,8 +2091,7 @@
     "crumbs": [
       "Home",
       "Software",
-      "Design",
-      "Overview"
+      "Design"
     ]
   },
   {
@@ -2166,8 +2299,7 @@
       "Home",
       "Software",
       "Design",
-      "Architecture",
-      "Overview"
+      "Architecture"
     ]
   },
   {
@@ -2180,8 +2312,7 @@
       "Home",
       "Software",
       "Design",
-      "Architecture",
-      "Overview"
+      "Architecture"
     ]
   },
   {
@@ -2194,8 +2325,7 @@
       "Home",
       "Software",
       "Design",
-      "Architecture",
-      "Overview"
+      "Architecture"
     ]
   },
   {
@@ -2208,8 +2338,7 @@
       "Home",
       "Software",
       "Design",
-      "Architecture",
-      "Overview"
+      "Architecture"
     ]
   },
   {
@@ -2222,8 +2351,7 @@
       "Home",
       "Software",
       "Design",
-      "Architecture",
-      "Overview"
+      "Architecture"
     ]
   },
   {
@@ -2236,8 +2364,7 @@
       "Home",
       "Software",
       "Design",
-      "Architecture",
-      "Overview"
+      "Architecture"
     ]
   },
   {
@@ -4082,8 +4209,7 @@
     "text": "The Independent Variation Principle applied to software architecture: elements assigned to the same change driver belong in the same module; elements assigned to different drivers belong in different modules (Loth 2026).\nThis section covers the formal theory of IVP for software — the system tuple, change drivers, the Γ-equivalence partition, unit purity and completeness, and the axioms.\n\n\nThe theory is developed in detail in the core theory pages:\n\nThe software system tuple — the model the principle is stated over.\nChange drivers and assignment — what a change driver is and how elements are assigned to them.\nThe structural formulation of IVP — the statement of the principle and its four conditions.\nThe Γ-equivalence partition — the object the principle produces.\nThe partition theorem — the unique compliant module structure.\nConsequences and application — what follows, and the six-step procedure.\n\n\n\n\n\nHow to apply IVP — the six-step process and a fully worked example.\nSoftware clustering — how IVP dissolves the modularisation optimization problem.\n\nThe knowledge-embodiment theorem, which connects maximal cohesion to the embodiment of domain knowledge, is a result of the cohesion theory rather than of IVP itself. It is covered under cohesion.",
     "crumbs": [
       "Home",
-      "IVP Software",
-      "Overview"
+      "IVP Software"
     ]
   },
   {
@@ -4094,8 +4220,7 @@
     "text": "The theory is developed in detail in the core theory pages:\n\nThe software system tuple — the model the principle is stated over.\nChange drivers and assignment — what a change driver is and how elements are assigned to them.\nThe structural formulation of IVP — the statement of the principle and its four conditions.\nThe Γ-equivalence partition — the object the principle produces.\nThe partition theorem — the unique compliant module structure.\nConsequences and application — what follows, and the six-step procedure.",
     "crumbs": [
       "Home",
-      "IVP Software",
-      "Overview"
+      "IVP Software"
     ]
   },
   {
@@ -4106,8 +4231,7 @@
     "text": "How to apply IVP — the six-step process and a fully worked example.\nSoftware clustering — how IVP dissolves the modularisation optimization problem.\n\nThe knowledge-embodiment theorem, which connects maximal cohesion to the embodiment of domain knowledge, is a result of the cohesion theory rather than of IVP itself. It is covered under cohesion.",
     "crumbs": [
       "Home",
-      "IVP Software",
-      "Overview"
+      "IVP Software"
     ]
   },
   {
@@ -4223,8 +4347,7 @@
     "crumbs": [
       "Home",
       "IVP Software",
-      "Core Theory",
-      "Overview"
+      "Core Theory"
     ]
   },
   {
@@ -4624,7 +4747,7 @@
     "href": "ivp-software/software-clustering.html",
     "title": "Software Clustering",
     "section": "",
-    "text": "Software clustering is the problem of recovering or prescribing the modular structure of a software system. For three decades it was studied as an optimization problem over a dependency graph. IVP reframes it: the difficulty of the problem is not an intrinsic feature of modularisation, but a consequence of doing it without a semantic criterion.\nThis page explains what IVP concludes about software clustering — why the traditional problem is hard, how IVP dissolves that hardness, and what the shift costs.\n\n\nClassical software clustering treats modularisation as an optimization problem: given a dependency graph, find the partition of elements that maximises cohesion and minimises coupling.\nMitchell and Mancoridis established in 2006 that this problem is NP-complete (Mitchell and Mancoridis 2006). The field responded with metaheuristic search — hill-climbing, genetic algorithms, weighted graph partitioning — each searching for structurally good partitions that, in the worst case, cannot be found exactly in polynomial time.\nThe hardness is real, but it characterises the difficulty of partitioning without a semantic criterion, not an inherent difficulty of modularisation itself. Without knowing why elements change together, the optimiser cannot distinguish a well-motivated partition from a coincidental one. It must search exponentially many groupings, with no basis for preferring one structurally plausible partition over another.\n\n\n\nIVP provides the semantic criterion the traditional problem lacks.\nEvery element is governed by one or more change drivers: external conditions that, when they change, require the element to be modified. The change-driver assignment Γ:E→𝒫(C)\\Gamma : E \\to \\mathcal{P}(C) maps each element to its set of governing drivers. The IVP partition 𝒫Γ=E/Γ̃\\mathcal{P}_\\Gamma = E / \\tilde{\\Gamma} — grouping elements with identical driver assignments — is the modularisation that minimises both module-touch count per driver activation and within-module contamination cost.\n\n\n\nOnce Γ\\Gamma is in hand, no search is needed. Each element already carries its own module membership in Γ(e)\\Gamma(e): two elements belong to the same module precisely when they share the same driver-assignment set. The bound O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}) falls out of the mechanics of that grouping, not from any deep theorem — you can count the operations yourself.\nDeriving the cost, step by step, using the six-step application procedure:\n\nIdentify the elements (step 1). The analysis has n=|E|n = |E| elements to place. Every element appears once in the pass.\nMap drivers to elements (step 3). Each element ee carries its assignment set Γ(e)\\Gamma(e), of size |Γ(e)|≤dmax|\\Gamma(e)| \\le d_{\\max}. Set equality does not depend on the order of its members, so each element needs a canonical form before it can serve as a grouping key.\nCanonicalise each element’s key (step 5, preparation). Sorting the drivers inside each set makes every element’s key unambiguous: {a,b}\\{a, b\\} becomes the same key as {b,a}\\{b, a\\}. Sorting one set of size at most dmaxd_{\\max} costs at most dmaxlog⁡dmaxd_{\\max} \\log d_{\\max} operations. Across all nn elements this is O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}).\nGroup by identical key (step 5, main pass). Elements that share a driver-assignment set produce the same canonical key and therefore hash to the same bucket. Inserting one element costs O(dmax)O(d_{\\max}) — hashing the set and comparing it against the keys of existing buckets. Across all nn elements this is O(n⋅dmax)O(n \\cdot d_{\\max}).\nRead off the modules. Each bucket is one equivalence class — one module. The number of modules is the number of distinct keys, never more than nn. Emitting them costs O(n)O(n).\n\nStep 3 dominates the total: hashing (step 4) is O(n⋅dmax)O(n \\cdot d_{\\max}) and read-out (step 5) is O(n)O(n), while sorting is the only step carrying a log⁡dmax\\log d_{\\max} factor, so it sets the rate. So the whole pass is\nO(n⋅dmaxlog⁡dmax) O(n \\cdot d_{\\max} \\log d_{\\max}) \nWhen dmaxd_{\\max} is bounded by a constant — the practical case, where no element answers to more than a handful of drivers — each element’s work is one small sort and one hash, so step 3 costs O(n)O(n) and the whole pass simplifies to O(n)O(n).\nThe result is deterministic. Every module in the IVP partition satisfies maximal causal cohesion Hcausal(M)=(1,1)H_\\text{causal}(M) = (1, 1), and no other partition achieves (1,1)(1, 1) for all modules.\nThe same problem is strongly NP-complete over the dependency graph alone and polynomial when the driver assignment is supplied. The complexity class tracks the availability of the semantic criterion.\n\n\n\nThe classical imperative — “maximise cohesion, minimise coupling” — treats the two as a trade-off to be balanced with weights. Under IVP, the trade-off was an artifact of optimising without a criterion.\nOnce every module achieves maximal causal cohesion, the coupling that modularisation can eliminate is eliminated by the same construction that maximises cohesion. The normative decomposition simultaneously maximises cohesion and minimises avoidable coupling — one optimum, not two. The weights encoded a problem that a principled criterion removes rather than solves.\n\n\n\nThe polynomial result is conditional on Γ\\Gamma being known. The complexity of the modularisation problem depends on what information is available:\n\nΓ\\Gamma fully known — polynomial: O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}).\nΓ\\Gamma partially known — a mix: polynomial for the assigned elements, the traditional hard case for the rest.\nΓ\\Gamma entirely unknown — the NP-complete traditional case.\n\nThe polynomial advantage is therefore proportional to the completeness of the driver analysis. The hard part shifts from combinatorial search to driver identification — an epistemic problem that domain analysis must address.\nThe shift is an improvement, not a cost-shifting trick. Driver identification yields reusable knowledge about the domain. Partition search yields a configuration that is discarded on every requirements change.\n\n\n\nWhen change drivers resist identification, structural clustering does not vanish — it changes role. It is demoted from design criterion to hypothesis generator.\nTwo reasons drive identification difficulty:\n\nEpistemic. The change drivers exist and are well-defined, but the analyst cannot see them — missing domain expertise, absent artifacts, an inherited system with no design records. The drivers are there to be found.\nStructural. The domain itself resists a clean decomposition — dense driver overlap, single-authority greenfield systems, rapidly changing driver sets. No sharp partition exists to recover.\n\nStructural clustering helps with the first and not the second. In the epistemic case, dependency density and co-change history carry indirect evidence about the hidden driver structure and can be mined for it. A cluster the algorithm produces is a question worth asking: these elements are structurally close — is there an external condition whose activation would require all of them to change together? In the structural case, the underdetermination is real: no method recovers a sharp partition, because none exists.\n\n\n\nThe polynomial result holds when Γ\\Gamma is known. The IVP advantage narrows in three cases:\n\nSingle-authority greenfield systems — all elements governed by a single driver; the partition is one module, and the analysis is trivial.\nSystems with dense driver overlap — many elements with large, overlapping driver sets; the module count is genuinely large because the domain’s change structure is entangled.\nSystems in rapid-change domains — driver assignments change frequently; the partition must be recomputed, and while each update is polynomial, the cumulative cost may be non-trivial.\n\nDriver-equivalence does not put every element in its own module. Two elements share a module precisely when they share a driver assignment, and in any real system many elements do. The number of modules is the number of distinct driver-assignment sets, not the number of elements.\n\n\n\nThe claim that the Γ-equivalence partition is the unique partition achieving maximal causal cohesion for all modules, and that the cohesion-coupling tension dissolves, follows from the partition result proved in the published paper on the Independent Variation Principle (Loth 2026b), with the causal cohesion metric developed in the paper on causal cohesion (Loth 2026a) and the cost-minimum of the partition in the paper on change propagation and maintenance cost (Loth 2026c).",
+    "text": "Software clustering is the problem of recovering or prescribing the modular structure of a software system. For three decades it was studied as an optimization problem over a dependency graph. IVP reframes it: the difficulty of the problem is not an intrinsic feature of modularisation, but a consequence of doing it without a semantic criterion.\nThis page explains what IVP concludes about software clustering — why the traditional problem is hard, how IVP dissolves that hardness, and what the shift costs.\n\n\nClassical software clustering treats modularisation as an optimization problem: given a dependency graph, find the partition of elements that maximises cohesion and minimises coupling.\nMitchell and Mancoridis established in 2006 that this problem is NP-complete (Mitchell and Mancoridis 2006). The field responded with metaheuristic search — hill-climbing, genetic algorithms, weighted graph partitioning — each searching for structurally good partitions that, in the worst case, cannot be found exactly in polynomial time.\nThe hardness is real, but it characterises the difficulty of partitioning without a semantic criterion, not an inherent difficulty of modularisation itself. Without knowing why elements change together, the optimiser cannot distinguish a well-motivated partition from a coincidental one. It must search exponentially many groupings, with no basis for preferring one structurally plausible partition over another.\n\n\n\nClassical clustering does not define cohesion by intent. It defines it operationally, as the internal connectivity of a cluster.\nGiven the dependency graph and a candidate partition, count for each module the edges inside it (cohesion) and the edges that cross its boundary (coupling). Every objective in the field is built on those two counts:\n\nModularisation quality (MQ). The cluster factor CF(M) = μ / (μ + ½·ε) combines the counts, and MQ averages it over the modules. TurboMQ weights edges by shared source file for multi-file systems. (Mancoridis et al. 1998)\nModularity. The Newman–Girvan objective replaces the raw internal count with the excess of internal edge mass over a degree-preserving null model. (Newman and Girvan 2004) Optimising it is strongly NP-complete. (Brandes et al. 2008)\nPattern-based clustering. ACDC recognises a subsystem as a body that dominates a cluster, then adopts orphans by connectivity — no scalar, but the same criterion of internal connectivity. (Tzerpos and Holt 2000)\nAssociation-matrix clustering. Similarity is computed from shared data or calls, and cohesion is the sum of intra-cluster similarities. (Wiggerts 1997) (Anquetil and Lethbridge 1999)\nWithin-cluster compactness. Tools that borrow a data-clustering objective use the within-cluster sum of squares directly.\n\nCohesion and coupling therefore read the same graph. They differ only in which edges they count. A survey of the cohesion-metrics literature reaches the same conclusion from the metric side: cohesion metrics and coupling metrics examine the same graph and differ only in which partition of the edge set they report. (Loth 2026b)\n\n\n\nIVP provides the semantic criterion the traditional problem lacks.\nEvery element is governed by one or more change drivers: external conditions that, when they change, require the element to be modified. The change-driver assignment Γ:E→𝒫(C)\\Gamma : E \\to \\mathcal{P}(C) maps each element to its set of governing drivers. The IVP partition 𝒫Γ=E/Γ̃\\mathcal{P}_\\Gamma = E / \\tilde{\\Gamma} — grouping elements with identical driver assignments — is the modularisation that minimises both module-touch count per driver activation and within-module contamination cost.\n\n\n\nOnce Γ\\Gamma is in hand, no search is needed. Each element already carries its own module membership in Γ(e)\\Gamma(e): two elements belong to the same module precisely when they share the same driver-assignment set. The bound O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}) falls out of the mechanics of that grouping, not from any deep theorem — you can count the operations yourself.\nDeriving the cost, step by step, using the six-step application procedure:\n\nIdentify the elements (step 1). The analysis has n=|E|n = |E| elements to place. Every element appears once in the pass.\nMap drivers to elements (step 3). Each element ee carries its assignment set Γ(e)\\Gamma(e), of size |Γ(e)|≤dmax|\\Gamma(e)| \\le d_{\\max}. Set equality does not depend on the order of its members, so each element needs a canonical form before it can serve as a grouping key.\nCanonicalise each element’s key (step 5, preparation). Sorting the drivers inside each set makes every element’s key unambiguous: {a,b}\\{a, b\\} becomes the same key as {b,a}\\{b, a\\}. Sorting one set of size at most dmaxd_{\\max} costs at most dmaxlog⁡dmaxd_{\\max} \\log d_{\\max} operations. Across all nn elements this is O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}).\nGroup by identical key (step 5, main pass). Elements that share a driver-assignment set produce the same canonical key and therefore hash to the same bucket. Inserting one element costs O(dmax)O(d_{\\max}) — hashing the set and comparing it against the keys of existing buckets. Across all nn elements this is O(n⋅dmax)O(n \\cdot d_{\\max}).\nRead off the modules. Each bucket is one equivalence class — one module. The number of modules is the number of distinct keys, never more than nn. Emitting them costs O(n)O(n).\n\nStep 3 dominates the total: hashing (step 4) is O(n⋅dmax)O(n \\cdot d_{\\max}) and read-out (step 5) is O(n)O(n), while sorting is the only step carrying a log⁡dmax\\log d_{\\max} factor, so it sets the rate. So the whole pass is\nO(n⋅dmaxlog⁡dmax) O(n \\cdot d_{\\max} \\log d_{\\max}) \nWhen dmaxd_{\\max} is bounded by a constant — the practical case, where no element answers to more than a handful of drivers — each element’s work is one small sort and one hash, so step 3 costs O(n)O(n) and the whole pass simplifies to O(n)O(n).\nThe result is deterministic. Every module in the IVP partition satisfies maximal causal cohesion Hcausal(M)=(1,1)H_\\text{causal}(M) = (1, 1), and no other partition achieves (1,1)(1, 1) for all modules.\nThe same problem is strongly NP-complete over the dependency graph alone and polynomial when the driver assignment is supplied. The complexity class tracks the availability of the semantic criterion.\n\n\n\nThe output of clustering and the output of IVP share a shape: both partition the elements into modules. The relation that defines the partition differs, and the relation is the content.\n\nClustering partitions by graph connectivity (or by co-change similarity). Elements go together when they connect.\nIVP partitions by Γ-equality. Elements go together when they share the same change drivers.\n\nWhen dependencies track drivers, the two relations induce the same partition, and clustering acts as a search for the IVP partition. When they diverge, they diverge in both directions. An element that responds to two drivers is adjacent to both driver groups; a connectivity objective keeps it with one of them, while IVP isolates it. Two renderers for the same format that never call each other carry no edge between them; a connectivity objective separates them, while IVP joins them. Neither error is visible from the dependency graph, because both are defined relative to a Γ the graph does not carry.\nThis is why IVP does not derive from clustering, and does not replace it as a search method. IVP supplies the criterion the clustering objective lacks; clustering supplies a heuristic that approximates it when the criterion is not yet known. The clustering objective scores a partition by the same quantity it optimises — internal edge density — so it cannot say whether the partition is right. IVP is the independent criterion that the cohesion survey found missing from the literature. (Loth 2026b)\nOne clustering signal samples a different relation and is worth distinguishing, though it is not a better-measured one. Co-change groups elements that historical commits modified together. (Stana and Sora 2025) A call edge records a standing interaction that a change may never exercise; a co-change records an actual modification, so co-change bears on the same question a change driver answers — what varies together — where connectivity does not. That is an alignment of modality, not of accuracy. Co-change fires both when a shared condition forces two elements to change and when a change to one element propagates to a dependent element, and it also fires on commit batching and on refactoring churn. Its error runs in both directions, and its size is not measurable from the co-change data alone. Co-change is a different proxy, not an established better one.\nThe confound has a direction. Shared-driver pairs co-change symmetrically; change propagation is one-directional, from the element depended upon to the element that depends on it. The directed conditional frequencies therefore carry more than a symmetric co-change count — but only as a filter that rules pairs out. Symmetry is necessary for driver-equivalence, not sufficient (mutual dependencies and commit batching produce it for the wrong reason), and asymmetry alone cannot separate genuine propagation from one element carrying every driver of the other.\n\n\n\nThe classical imperative — “maximise cohesion, minimise coupling” — treats the two as a trade-off to be balanced with weights. Under IVP, the trade-off was an artifact of optimising without a criterion.\nOnce every module achieves maximal causal cohesion, the coupling that modularisation can eliminate is eliminated by the same construction that maximises cohesion. The normative decomposition simultaneously maximises cohesion and minimises avoidable coupling — one optimum, not two. The weights encoded a problem that a principled criterion removes rather than solves.\n\n\n\nThe polynomial result is conditional on Γ\\Gamma being known. The complexity of the modularisation problem depends on what information is available:\n\nΓ\\Gamma fully known — polynomial: O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}).\nΓ\\Gamma partially known — a mix: polynomial for the assigned elements, the traditional hard case for the rest.\nΓ\\Gamma entirely unknown — the NP-complete traditional case.\n\nThe polynomial advantage is therefore proportional to the completeness of the driver analysis. The hard part shifts from combinatorial search to driver identification — an epistemic problem that domain analysis must address.\nThe shift is an improvement, not a cost-shifting trick. Driver identification yields reusable knowledge about the domain. Partition search yields a configuration that is discarded on every requirements change.\n\n\n\nWhen change drivers resist identification, structural clustering does not vanish — it changes role. It is demoted from design criterion to hypothesis generator.\nTwo reasons drive identification difficulty:\n\nEpistemic. The change drivers exist and are well-defined, but the analyst cannot see them — missing domain expertise, absent artifacts, an inherited system with no design records. The drivers are there to be found.\nStructural. The domain itself resists a clean decomposition — dense driver overlap, single-authority greenfield systems, rapidly changing driver sets. No sharp partition exists to recover.\n\nStructural clustering helps with the first and not the second. In the epistemic case, dependency density and co-change history carry indirect evidence about the hidden driver structure and can be mined for it. A cluster the algorithm produces is a question worth asking: these elements are structurally close — is there an external condition whose activation would require all of them to change together? In the structural case, the underdetermination is real: no method recovers a sharp partition, because none exists.\n\n\n\nThe polynomial result holds when Γ\\Gamma is known. The IVP advantage narrows in three cases:\n\nSingle-authority greenfield systems — all elements governed by a single driver; the partition is one module, and the analysis is trivial.\nSystems with dense driver overlap — many elements with large, overlapping driver sets; the module count is genuinely large because the domain’s change structure is entangled.\nSystems in rapid-change domains — driver assignments change frequently; the partition must be recomputed, and while each update is polynomial, the cumulative cost may be non-trivial.\n\nDriver-equivalence does not put every element in its own module. Two elements share a module precisely when they share a driver assignment, and in any real system many elements do. The number of modules is the number of distinct driver-assignment sets, not the number of elements.\n\n\n\nThe claim that the Γ-equivalence partition is the unique partition achieving maximal causal cohesion for all modules, and that the cohesion-coupling tension dissolves, follows from the partition result proved in the published paper on the Independent Variation Principle (Loth 2026c), with the causal cohesion metric developed in the paper on causal cohesion (Loth 2026a) and the cost-minimum of the partition in the paper on change propagation and maintenance cost (Loth 2026d).",
     "crumbs": [
       "Home",
       "IVP Software",
@@ -4638,6 +4761,19 @@
     "title": "Software Clustering",
     "section": "",
     "text": "Classical software clustering treats modularisation as an optimization problem: given a dependency graph, find the partition of elements that maximises cohesion and minimises coupling.\nMitchell and Mancoridis established in 2006 that this problem is NP-complete (Mitchell and Mancoridis 2006). The field responded with metaheuristic search — hill-climbing, genetic algorithms, weighted graph partitioning — each searching for structurally good partitions that, in the worst case, cannot be found exactly in polynomial time.\nThe hardness is real, but it characterises the difficulty of partitioning without a semantic criterion, not an inherent difficulty of modularisation itself. Without knowing why elements change together, the optimiser cannot distinguish a well-motivated partition from a coincidental one. It must search exponentially many groupings, with no basis for preferring one structurally plausible partition over another.",
+    "crumbs": [
+      "Home",
+      "IVP Software",
+      "Applications & Consequences",
+      "Software Clustering"
+    ]
+  },
+  {
+    "objectID": "ivp-software/software-clustering.html#what-cohesion-means-in-clustering",
+    "href": "ivp-software/software-clustering.html#what-cohesion-means-in-clustering",
+    "title": "Software Clustering",
+    "section": "",
+    "text": "Classical clustering does not define cohesion by intent. It defines it operationally, as the internal connectivity of a cluster.\nGiven the dependency graph and a candidate partition, count for each module the edges inside it (cohesion) and the edges that cross its boundary (coupling). Every objective in the field is built on those two counts:\n\nModularisation quality (MQ). The cluster factor CF(M) = μ / (μ + ½·ε) combines the counts, and MQ averages it over the modules. TurboMQ weights edges by shared source file for multi-file systems. (Mancoridis et al. 1998)\nModularity. The Newman–Girvan objective replaces the raw internal count with the excess of internal edge mass over a degree-preserving null model. (Newman and Girvan 2004) Optimising it is strongly NP-complete. (Brandes et al. 2008)\nPattern-based clustering. ACDC recognises a subsystem as a body that dominates a cluster, then adopts orphans by connectivity — no scalar, but the same criterion of internal connectivity. (Tzerpos and Holt 2000)\nAssociation-matrix clustering. Similarity is computed from shared data or calls, and cohesion is the sum of intra-cluster similarities. (Wiggerts 1997) (Anquetil and Lethbridge 1999)\nWithin-cluster compactness. Tools that borrow a data-clustering objective use the within-cluster sum of squares directly.\n\nCohesion and coupling therefore read the same graph. They differ only in which edges they count. A survey of the cohesion-metrics literature reaches the same conclusion from the metric side: cohesion metrics and coupling metrics examine the same graph and differ only in which partition of the edge set they report. (Loth 2026b)",
     "crumbs": [
       "Home",
       "IVP Software",
@@ -4664,6 +4800,19 @@
     "title": "Software Clustering",
     "section": "",
     "text": "Once Γ\\Gamma is in hand, no search is needed. Each element already carries its own module membership in Γ(e)\\Gamma(e): two elements belong to the same module precisely when they share the same driver-assignment set. The bound O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}) falls out of the mechanics of that grouping, not from any deep theorem — you can count the operations yourself.\nDeriving the cost, step by step, using the six-step application procedure:\n\nIdentify the elements (step 1). The analysis has n=|E|n = |E| elements to place. Every element appears once in the pass.\nMap drivers to elements (step 3). Each element ee carries its assignment set Γ(e)\\Gamma(e), of size |Γ(e)|≤dmax|\\Gamma(e)| \\le d_{\\max}. Set equality does not depend on the order of its members, so each element needs a canonical form before it can serve as a grouping key.\nCanonicalise each element’s key (step 5, preparation). Sorting the drivers inside each set makes every element’s key unambiguous: {a,b}\\{a, b\\} becomes the same key as {b,a}\\{b, a\\}. Sorting one set of size at most dmaxd_{\\max} costs at most dmaxlog⁡dmaxd_{\\max} \\log d_{\\max} operations. Across all nn elements this is O(n⋅dmaxlog⁡dmax)O(n \\cdot d_{\\max} \\log d_{\\max}).\nGroup by identical key (step 5, main pass). Elements that share a driver-assignment set produce the same canonical key and therefore hash to the same bucket. Inserting one element costs O(dmax)O(d_{\\max}) — hashing the set and comparing it against the keys of existing buckets. Across all nn elements this is O(n⋅dmax)O(n \\cdot d_{\\max}).\nRead off the modules. Each bucket is one equivalence class — one module. The number of modules is the number of distinct keys, never more than nn. Emitting them costs O(n)O(n).\n\nStep 3 dominates the total: hashing (step 4) is O(n⋅dmax)O(n \\cdot d_{\\max}) and read-out (step 5) is O(n)O(n), while sorting is the only step carrying a log⁡dmax\\log d_{\\max} factor, so it sets the rate. So the whole pass is\nO(n⋅dmaxlog⁡dmax) O(n \\cdot d_{\\max} \\log d_{\\max}) \nWhen dmaxd_{\\max} is bounded by a constant — the practical case, where no element answers to more than a handful of drivers — each element’s work is one small sort and one hash, so step 3 costs O(n)O(n) and the whole pass simplifies to O(n)O(n).\nThe result is deterministic. Every module in the IVP partition satisfies maximal causal cohesion Hcausal(M)=(1,1)H_\\text{causal}(M) = (1, 1), and no other partition achieves (1,1)(1, 1) for all modules.\nThe same problem is strongly NP-complete over the dependency graph alone and polynomial when the driver assignment is supplied. The complexity class tracks the availability of the semantic criterion.",
+    "crumbs": [
+      "Home",
+      "IVP Software",
+      "Applications & Consequences",
+      "Software Clustering"
+    ]
+  },
+  {
+    "objectID": "ivp-software/software-clustering.html#clustering-is-not-ivp",
+    "href": "ivp-software/software-clustering.html#clustering-is-not-ivp",
+    "title": "Software Clustering",
+    "section": "",
+    "text": "The output of clustering and the output of IVP share a shape: both partition the elements into modules. The relation that defines the partition differs, and the relation is the content.\n\nClustering partitions by graph connectivity (or by co-change similarity). Elements go together when they connect.\nIVP partitions by Γ-equality. Elements go together when they share the same change drivers.\n\nWhen dependencies track drivers, the two relations induce the same partition, and clustering acts as a search for the IVP partition. When they diverge, they diverge in both directions. An element that responds to two drivers is adjacent to both driver groups; a connectivity objective keeps it with one of them, while IVP isolates it. Two renderers for the same format that never call each other carry no edge between them; a connectivity objective separates them, while IVP joins them. Neither error is visible from the dependency graph, because both are defined relative to a Γ the graph does not carry.\nThis is why IVP does not derive from clustering, and does not replace it as a search method. IVP supplies the criterion the clustering objective lacks; clustering supplies a heuristic that approximates it when the criterion is not yet known. The clustering objective scores a partition by the same quantity it optimises — internal edge density — so it cannot say whether the partition is right. IVP is the independent criterion that the cohesion survey found missing from the literature. (Loth 2026b)\nOne clustering signal samples a different relation and is worth distinguishing, though it is not a better-measured one. Co-change groups elements that historical commits modified together. (Stana and Sora 2025) A call edge records a standing interaction that a change may never exercise; a co-change records an actual modification, so co-change bears on the same question a change driver answers — what varies together — where connectivity does not. That is an alignment of modality, not of accuracy. Co-change fires both when a shared condition forces two elements to change and when a change to one element propagates to a dependent element, and it also fires on commit batching and on refactoring churn. Its error runs in both directions, and its size is not measurable from the co-change data alone. Co-change is a different proxy, not an established better one.\nThe confound has a direction. Shared-driver pairs co-change symmetrically; change propagation is one-directional, from the element depended upon to the element that depends on it. The directed conditional frequencies therefore carry more than a symmetric co-change count — but only as a filter that rules pairs out. Symmetry is necessary for driver-equivalence, not sufficient (mutual dependencies and commit batching produce it for the wrong reason), and asymmetry alone cannot separate genuine propagation from one element carrying every driver of the other.",
     "crumbs": [
       "Home",
       "IVP Software",
@@ -4728,7 +4877,7 @@
     "href": "ivp-software/software-clustering.html#where-the-proofs-live",
     "title": "Software Clustering",
     "section": "",
-    "text": "The claim that the Γ-equivalence partition is the unique partition achieving maximal causal cohesion for all modules, and that the cohesion-coupling tension dissolves, follows from the partition result proved in the published paper on the Independent Variation Principle (Loth 2026b), with the causal cohesion metric developed in the paper on causal cohesion (Loth 2026a) and the cost-minimum of the partition in the paper on change propagation and maintenance cost (Loth 2026c).",
+    "text": "The claim that the Γ-equivalence partition is the unique partition achieving maximal causal cohesion for all modules, and that the cohesion-coupling tension dissolves, follows from the partition result proved in the published paper on the Independent Variation Principle (Loth 2026c), with the causal cohesion metric developed in the paper on causal cohesion (Loth 2026a) and the cost-minimum of the partition in the paper on change propagation and maintenance cost (Loth 2026d).",
     "crumbs": [
       "Home",
       "IVP Software",
@@ -6802,14 +6951,13 @@
     "href": "software/design/principles/cohesion/index.html",
     "title": "Cohesion",
     "section": "",
-    "text": "The cohesion series reworks one of the oldest concepts in software design. Its core conclusions are developed on two pages.\n\nCohesion: core conclusions — cohesion is correctness relative to a partitioning rule; the (purity, completeness) pair and the cohesion profile; why structural proxies do not define cohesion; the Γ-equivalence rule and causal cohesion; the four necessary conditions.\nCohesion and knowledge embodiment — the knowledge-embodiment theorem: maximal cohesion is maximal embodiment of domain knowledge.\n\n\n\nCohesion and coupling are the two classical “quality” measures of modular structure. The cohesion series gives cohesion a principled definition: correctness relative to a partitioning rule (Loth 2026). The coupling page does the same for coupling — and shows that within any single dimension, coupling is a consequence of cohesion, not an independent objective.\nCohesion is distinct from IVP, though the two are related. IVP groups elements by change-driver assignment. Cohesion is the more general measure of correctness relative to any partitioning rule. The change-driver rule is one instance of that general idea — the instance IVP is built on.",
+    "text": "The cohesion series reworks one of the oldest concepts in software design. Its core conclusions are developed across this set of pages.\n\nCohesion: core conclusions — cohesion is correctness relative to a partitioning rule; the (purity, completeness) pair and the cohesion profile; why structural proxies do not define cohesion; the Γ-equivalence rule and causal cohesion; the four necessary conditions.\nCohesion and knowledge embodiment — the knowledge-embodiment theorem: maximal cohesion is maximal embodiment of domain knowledge.\nWhy cohesion has no scalar metric — four proved failure modes of any single-number cohesion score: it cannot see the rule, collapses two opposite defects, cannot name the repair target, and degenerates into the rule when it does decide.\nWhy two metrics are necessary — the two-axis proof: one axis cannot separate impurity from incompleteness, two axes can, and the pair is the minimal adequate output per rule.\n\n\n\nCohesion and coupling are the two classical “quality” measures of modular structure. The cohesion series gives cohesion a principled definition: correctness relative to a partitioning rule (Loth 2026). The coupling page does the same for coupling — and shows that within any single dimension, coupling is a consequence of cohesion, not an independent objective.\nCohesion is distinct from IVP, though the two are related. IVP groups elements by change-driver assignment. Cohesion is the more general measure of correctness relative to any partitioning rule. The change-driver rule is one instance of that general idea — the instance IVP is built on.",
     "crumbs": [
       "Home",
       "Software",
       "Design",
       "Principles",
-      "Cohesion",
-      "Overview"
+      "Cohesion"
     ]
   },
   {
@@ -6823,8 +6971,7 @@
       "Software",
       "Design",
       "Principles",
-      "Cohesion",
-      "Overview"
+      "Cohesion"
     ]
   },
   {
@@ -6918,6 +7065,111 @@
     ]
   },
   {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "Under a single partitioning rule, a module can deviate in exactly two ways: it can hold elements that do not belong, or it can be missing elements that do. These defects are independent — a module can have either, both, or neither — and they demand opposite repairs. That structure forces the answer to a natural question: how many numbers must a cohesion metric report?\nThis page proves that the answer is two. One axis cannot distinguish the two failure modes; two axes can; and no third axis adds anything for this purpose. The pair — purity and completeness — is the minimal adequate output for a rule.\n\n\nFix a partitioning rule PP (Loth 2026) and assess a module MM against the class CC it should realize.\n\nImpurity. MM contains an element outside CC. The remedy is to remove it — to split.\nIncompleteness. Some element of CC lies outside MM. The remedy is to add it — to merge.\n\nWrite the two axes as\npurity(M)=|M∩C||M|,completeness(M)=|M∩C||C|.\n\\text{purity}(M) = \\frac{|M \\cap C|}{|M|},\n\\qquad\n\\text{completeness}(M) = \\frac{|M \\cap C|}{|C|}.\n\nBoth lie in [0,1][0,1]. The two defects are independent in the strict sense: all four combinations occur.\n\n\n\npurity\ncompleteness\nstate\nremedy\n\n\n\n\n11\n11\nfully cohesive\nnone\n\n\n&lt;1&lt;1\n11\nimpure, complete\nremove foreign elements (split)\n\n\n11\n&lt;1&lt;1\npure, incomplete\nadd missing members (merge)\n\n\n&lt;1&lt;1\n&lt;1&lt;1\nimpure and incomplete\nboth\n\n\n\nThe two failure modes point in opposite directions. Merely knowing that “cohesion is low” is therefore of no help: the correct action could be to split or to merge, and the two actions are opposites.\n\n\n\n\nProposition (dimensional necessity). Let s(M)=g(purity(M),completeness(M))s(M) = g(\\text{purity}(M), \\text{completeness}(M)) be any scalar that factors through the pair. (a) If gg is symmetric, there are two modules of opposite defect whose scores are exactly equal. (b) If gg is continuous and strictly increasing in each argument, the two defect classes are indistinguishable to any finite precision, and no threshold on the score separates them.\n\nProof. Fix a rule with a class CC of size 44, and four foreign elements x1,…,x4x_1,\\dots,x_4 from another class.\n\nM1=C∪{x1,…,x4}M_1 = C \\cup \\{x_1,\\dots,x_4\\} has purity=4/8=1/2\\text{purity} = 4/8 = 1/2 and completeness=4/4=1\\text{completeness} = 4/4 = 1: impure but complete.\nM2={a,b}M_2 = \\{a,b\\} for a,b∈Ca,b \\in C has purity=2/2=1\\text{purity} = 2/2 = 1 and completeness=2/4=1/2\\text{completeness} = 2/4 = 1/2: pure but incomplete.\n\nBoth are realizable in one system.\n(a) A symmetric gg gives s(M1)=g(1/2,1)=g(1,1/2)=s(M2)s(M_1) = g(1/2, 1) = g(1, 1/2) = s(M_2) — exactly equal scores for opposite defects. The geometric mean pc\\sqrt{pc} scores both at 1/21/\\sqrt{2}; so does the arithmetic mean, and every other symmetric aggregate.\n(b) The impure-but-complete modules trace the curve B1={(p,1):0&lt;p&lt;1}B_1 = \\{(p,1) : 0&lt;p&lt;1\\}; the pure-but-incomplete modules trace B2={(1,c):0&lt;c&lt;1}B_2 = \\{(1,c) : 0&lt;c&lt;1\\}. Strict monotonicity makes g(1,1)g(1,1) the supremum of gg on both curves; continuity makes each image g(B1)g(B_1), g(B2)g(B_2) an interval with that same supremum. Two intervals with a common supremum overlap, so some (p*,1)∈B1(p^*,1) \\in B_1 and some (1,c*)∈B2(1,c^*) \\in B_2 satisfy g(p*,1)=g(1,c*)g(p^*,1) = g(1,c^*). An impure-complete module and a pure-incomplete module therefore share the same score, and their images approach one another without limit as either defect shrinks. No threshold on the score line can separate “split” from “merge.” ◼\\blacksquare\nThis is why “low cohesion” as a single graded quantity cannot guide a repair. The score is monotonically related to both faults, but it cannot tell the designer which of the two is present — the one thing the designer needs to act.\nA caveat keeps the claim honest. The impossibility is for scalars that behave as measurements — symmetric, or continuous and monotone in the two axes. A pathologically discontinuous injection could in principle pack the pair into one real number, but such a function is not a score: it carries no magnitude or ordering that corresponds to defect severity, and it does not arise from the purity/completeness semantics. Every actual cohesion score — a product, a mean, a weighted sum, a distance from the ideal — is continuous and monotone, and every one of them falls to the proposition.\n\n\n\nThe pair not only fails to lose information — it loses none that matters. It determines the failure mode exactly.\n\nProposition (sufficiency). The pair (purity(M),completeness(M))(\\text{purity}(M), \\text{completeness}(M)) determines which of the four states a module is in.\n\nProof. Two equivalences, immediate from the definitions.\n\npurity(M)=1⇔|M∩C|=|M|⇔M⊆C\\text{purity}(M) = 1 \\iff |M \\cap C| = |M| \\iff M \\subseteq C: no element of MM lies outside its class, i.e. MM is pure.\ncompleteness(M)=1⇔|M∩C|=|C|⇔C⊆M\\text{completeness}(M) = 1 \\iff |M \\cap C| = |C| \\iff C \\subseteq M: no member of the class lies outside MM, i.e. MM is complete.\n\nSo the pair (p,c)(p,c) reports, coordinate by coordinate, whether the module is impure (p&lt;1p&lt;1) and whether it is incomplete (c&lt;1c&lt;1) — the two booleans the remedy depends on. The four cases of the table are read off directly, and with them the correct action. ◼\\blacksquare\nTogether the two propositions give the result: one axis is insufficient; two axes are sufficient. For a single rule, two metrics are necessary and enough.\n\n\n\nTwo axes are the minimum, and they are also the maximum needed for the failure-mode question, because a partition admits exactly two failure modes.\nThe reasoning is a counting one. Relative to the class CC, each element of the module is either inside CC or outside it, and each member of CC is either inside MM or outside it. Two independent questions therefore arise — does MM hold foreign elements? and is MM missing class members? — and they are independent because all four combinations are achievable (the table above exhibits each). To determine the failure mode is to answer both booleans; two coordinates answer two independent booleans minimally. A third coordinate could describe the module more finely (which elements are foreign, how the class is scattered), but it would carry no additional information about which failure mode applies — the axis count the schema requires.\nThis is why a pairwise, two-axis reading is the correct working form, not a convenience: it is exactly the dimension at which the failure mode becomes visible and no further.\n\n\n\nA system is often assessed under several partitioning rules at once — logical structure, deployment, security, platform. Each rule is its own partition of the same element set, and each admits the same two failure modes, so each contributes its own (purity, completeness) pair. For kk rules the cohesion profile is the 2k2k-tuple of pairs (Loth 2026).\nThe necessity argument applies rule by rule: one number cannot serve a single rule, so one number certainly cannot serve the joint requirement. And the pairs are genuinely irreducible across rules. When two rules cross-cut — neither refines the other — placement under one carries no information about placement under the other. The same physical placement can be correct under one rule and wrong under another, and a repair that improves one pair can degrade another. Each rule must be read on its own terms.\nWhen one rule refines another, the pairs are still both needed: the coarse rule frames the fine one, and a clean finer-rule pair does not vouch for the coarser placement that contains it. The coarse pair is load-bearing and must be read first.\nThe general form, then: two axes per rule; 2k2k axes for kk rules. Collapsing across rules to a single scalar repeats, one level up, the error the proposition already rules out within a rule — it discards the distinction between defects that call for opposite actions.\n\n\n\nThe two-axis structure is Condition 4 (adequate dimensionality) of the cohesion metric conditions, and the 2k2k-tuple is the cohesion profile, both developed in On the Nature of Cohesion (Loth 2026). The companion page Why cohesion has no scalar metric extends the same obstruction from diagnosis to the placement verdict: a scalar cannot decide whether an element is misplaced, and any scalar that appears to is the rule in disguise.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html#one-rule-two-opposite-defects",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html#one-rule-two-opposite-defects",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "Fix a partitioning rule PP (Loth 2026) and assess a module MM against the class CC it should realize.\n\nImpurity. MM contains an element outside CC. The remedy is to remove it — to split.\nIncompleteness. Some element of CC lies outside MM. The remedy is to add it — to merge.\n\nWrite the two axes as\npurity(M)=|M∩C||M|,completeness(M)=|M∩C||C|.\n\\text{purity}(M) = \\frac{|M \\cap C|}{|M|},\n\\qquad\n\\text{completeness}(M) = \\frac{|M \\cap C|}{|C|}.\n\nBoth lie in [0,1][0,1]. The two defects are independent in the strict sense: all four combinations occur.\n\n\n\npurity\ncompleteness\nstate\nremedy\n\n\n\n\n11\n11\nfully cohesive\nnone\n\n\n&lt;1&lt;1\n11\nimpure, complete\nremove foreign elements (split)\n\n\n11\n&lt;1&lt;1\npure, incomplete\nadd missing members (merge)\n\n\n&lt;1&lt;1\n&lt;1&lt;1\nimpure and incomplete\nboth\n\n\n\nThe two failure modes point in opposite directions. Merely knowing that “cohesion is low” is therefore of no help: the correct action could be to split or to merge, and the two actions are opposites.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html#one-axis-is-not-enough",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html#one-axis-is-not-enough",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "Proposition (dimensional necessity). Let s(M)=g(purity(M),completeness(M))s(M) = g(\\text{purity}(M), \\text{completeness}(M)) be any scalar that factors through the pair. (a) If gg is symmetric, there are two modules of opposite defect whose scores are exactly equal. (b) If gg is continuous and strictly increasing in each argument, the two defect classes are indistinguishable to any finite precision, and no threshold on the score separates them.\n\nProof. Fix a rule with a class CC of size 44, and four foreign elements x1,…,x4x_1,\\dots,x_4 from another class.\n\nM1=C∪{x1,…,x4}M_1 = C \\cup \\{x_1,\\dots,x_4\\} has purity=4/8=1/2\\text{purity} = 4/8 = 1/2 and completeness=4/4=1\\text{completeness} = 4/4 = 1: impure but complete.\nM2={a,b}M_2 = \\{a,b\\} for a,b∈Ca,b \\in C has purity=2/2=1\\text{purity} = 2/2 = 1 and completeness=2/4=1/2\\text{completeness} = 2/4 = 1/2: pure but incomplete.\n\nBoth are realizable in one system.\n(a) A symmetric gg gives s(M1)=g(1/2,1)=g(1,1/2)=s(M2)s(M_1) = g(1/2, 1) = g(1, 1/2) = s(M_2) — exactly equal scores for opposite defects. The geometric mean pc\\sqrt{pc} scores both at 1/21/\\sqrt{2}; so does the arithmetic mean, and every other symmetric aggregate.\n(b) The impure-but-complete modules trace the curve B1={(p,1):0&lt;p&lt;1}B_1 = \\{(p,1) : 0&lt;p&lt;1\\}; the pure-but-incomplete modules trace B2={(1,c):0&lt;c&lt;1}B_2 = \\{(1,c) : 0&lt;c&lt;1\\}. Strict monotonicity makes g(1,1)g(1,1) the supremum of gg on both curves; continuity makes each image g(B1)g(B_1), g(B2)g(B_2) an interval with that same supremum. Two intervals with a common supremum overlap, so some (p*,1)∈B1(p^*,1) \\in B_1 and some (1,c*)∈B2(1,c^*) \\in B_2 satisfy g(p*,1)=g(1,c*)g(p^*,1) = g(1,c^*). An impure-complete module and a pure-incomplete module therefore share the same score, and their images approach one another without limit as either defect shrinks. No threshold on the score line can separate “split” from “merge.” ◼\\blacksquare\nThis is why “low cohesion” as a single graded quantity cannot guide a repair. The score is monotonically related to both faults, but it cannot tell the designer which of the two is present — the one thing the designer needs to act.\nA caveat keeps the claim honest. The impossibility is for scalars that behave as measurements — symmetric, or continuous and monotone in the two axes. A pathologically discontinuous injection could in principle pack the pair into one real number, but such a function is not a score: it carries no magnitude or ordering that corresponds to defect severity, and it does not arise from the purity/completeness semantics. Every actual cohesion score — a product, a mean, a weighted sum, a distance from the ideal — is continuous and monotone, and every one of them falls to the proposition.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html#two-axes-are-enough",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html#two-axes-are-enough",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "The pair not only fails to lose information — it loses none that matters. It determines the failure mode exactly.\n\nProposition (sufficiency). The pair (purity(M),completeness(M))(\\text{purity}(M), \\text{completeness}(M)) determines which of the four states a module is in.\n\nProof. Two equivalences, immediate from the definitions.\n\npurity(M)=1⇔|M∩C|=|M|⇔M⊆C\\text{purity}(M) = 1 \\iff |M \\cap C| = |M| \\iff M \\subseteq C: no element of MM lies outside its class, i.e. MM is pure.\ncompleteness(M)=1⇔|M∩C|=|C|⇔C⊆M\\text{completeness}(M) = 1 \\iff |M \\cap C| = |C| \\iff C \\subseteq M: no member of the class lies outside MM, i.e. MM is complete.\n\nSo the pair (p,c)(p,c) reports, coordinate by coordinate, whether the module is impure (p&lt;1p&lt;1) and whether it is incomplete (c&lt;1c&lt;1) — the two booleans the remedy depends on. The four cases of the table are read off directly, and with them the correct action. ◼\\blacksquare\nTogether the two propositions give the result: one axis is insufficient; two axes are sufficient. For a single rule, two metrics are necessary and enough.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html#why-exactly-two-not-three",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html#why-exactly-two-not-three",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "Two axes are the minimum, and they are also the maximum needed for the failure-mode question, because a partition admits exactly two failure modes.\nThe reasoning is a counting one. Relative to the class CC, each element of the module is either inside CC or outside it, and each member of CC is either inside MM or outside it. Two independent questions therefore arise — does MM hold foreign elements? and is MM missing class members? — and they are independent because all four combinations are achievable (the table above exhibits each). To determine the failure mode is to answer both booleans; two coordinates answer two independent booleans minimally. A third coordinate could describe the module more finely (which elements are foreign, how the class is scattered), but it would carry no additional information about which failure mode applies — the axis count the schema requires.\nThis is why a pairwise, two-axis reading is the correct working form, not a convenience: it is exactly the dimension at which the failure mode becomes visible and no further.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html#many-rules-many-pairs",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html#many-rules-many-pairs",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "A system is often assessed under several partitioning rules at once — logical structure, deployment, security, platform. Each rule is its own partition of the same element set, and each admits the same two failure modes, so each contributes its own (purity, completeness) pair. For kk rules the cohesion profile is the 2k2k-tuple of pairs (Loth 2026).\nThe necessity argument applies rule by rule: one number cannot serve a single rule, so one number certainly cannot serve the joint requirement. And the pairs are genuinely irreducible across rules. When two rules cross-cut — neither refines the other — placement under one carries no information about placement under the other. The same physical placement can be correct under one rule and wrong under another, and a repair that improves one pair can degrade another. Each rule must be read on its own terms.\nWhen one rule refines another, the pairs are still both needed: the coarse rule frames the fine one, and a clean finer-rule pair does not vouch for the coarser placement that contains it. The coarse pair is load-bearing and must be read first.\nThe general form, then: two axes per rule; 2k2k axes for kk rules. Collapsing across rules to a single scalar repeats, one level up, the error the proposition already rules out within a rule — it discards the distinction between defects that call for opposite actions.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
+    "objectID": "software/design/principles/cohesion/two-metrics-necessary.html#where-this-comes-from",
+    "href": "software/design/principles/cohesion/two-metrics-necessary.html#where-this-comes-from",
+    "title": "Why Two Metrics Are Necessary",
+    "section": "",
+    "text": "The two-axis structure is Condition 4 (adequate dimensionality) of the cohesion metric conditions, and the 2k2k-tuple is the cohesion profile, both developed in On the Nature of Cohesion (Loth 2026). The companion page Why cohesion has no scalar metric extends the same obstruction from diagnosis to the placement verdict: a scalar cannot decide whether an element is misplaced, and any scalar that appears to is the rule in disguise.",
+    "crumbs": [
+      "Home",
+      "Software",
+      "Design",
+      "Principles",
+      "Cohesion",
+      "Why Two Metrics Are Necessary"
+    ]
+  },
+  {
     "objectID": "software/design/principles/index.html",
     "href": "software/design/principles/index.html",
     "title": "Principles",
@@ -6927,8 +7179,7 @@
       "Home",
       "Software",
       "Design",
-      "Principles",
-      "Overview"
+      "Principles"
     ]
   }
 ]
