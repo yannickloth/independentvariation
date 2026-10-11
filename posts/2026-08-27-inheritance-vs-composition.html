@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-08-27">
+<meta name="description" content="IVP does not mandate composition over inheritance. It prescribes a module partition and diagnoses the accidental coupling a given mechanism creates. Here is what IVP actually says about the payment-processing example.">
+
+<title>Inheritance vs Composition: What the Independent Variation Principle Actually Tells Us – Independent Variation Principle</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-10d0073411f8e913cfafb7049c32841e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Inheritance vs Composition: What the Independent Variation Principle Actually Tells Us – Independent Variation Principle">
+<meta property="og:description" content="IVP does not mandate composition over inheritance. It prescribes a module partition and diagnoses the accidental coupling a given mechanism creates. Here is what IVP actually says about the payment-processing example.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Inheritance vs Composition: What the Independent Variation Principle Actually Tells Us – Independent Variation Principle">
+<meta name="twitter:description" content="IVP does not mandate composition over inheritance. It prescribes a module partition and diagnoses the accidental coupling a given mechanism creates. Here is what IVP actually says about the payment-processing example.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Inheritance vs Composition: What the Independent Variation Principle Actually Tells Us</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">IVP Software</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Core Theory</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/system-tuple.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Software System Tuple</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/change-drivers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Change Drivers and Assignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/structural-formulation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Structural Formulation of IVP</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/gamma-partition.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Γ-Equivalence Partition</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/partition-theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Partition Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/core-theory/consequences-application.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Consequences and Application</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Applications &amp; Consequences</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/applying-ivp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How to Apply IVP</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ivp-software/software-clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software Clustering</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Software</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Design</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Architecture</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/architecture/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Architecture Styles</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/architecture/hexagonal-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hexagonal Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/architecture/onion-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Onion Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/architecture/clean-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clean Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/architecture/layered-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Layered Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/architecture/vertical-slice-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vertical Slice Architecture</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Language Coupling — Synthesis &amp; Rankings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/objective-ivp-scoring-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Language Coupling — Scoring Model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Type System Powerhouses</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/type-system-powerhouses/fsharp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F# (9)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/type-system-powerhouses/haskell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell (GHC 9.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/type-system-powerhouses/purescript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PureScript (0.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/type-system-powerhouses/scala.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scala (3.8 / 3.3 LTS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/type-system-powerhouses/unison.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison (M5b)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Modern Mainstream</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/csharp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C# (13)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/eiffel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Eiffel (ECMA-367 / ISO/IEC 25436:2006)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/go.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Go (1.26)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/java.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 26)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/kotlin.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kotlin (2.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/rust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust (1.96 / 2024 edition)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/swift.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Swift (6.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/modern-mainstream/typescript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">TypeScript (6.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Systems and Performance</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/systems-performance/c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C (C23)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/systems-performance/cpp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C++ (C++23)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/systems-performance/nim.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nim (2.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/systems-performance/zig.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zig (0.16)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false">
+ <span class="menu-text">Dynamic and Scripting</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/d.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">D (2.112)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/groovy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groovy (5.x)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/javascript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JavaScript (ES2025)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/perl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Perl (5.42)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/php.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PHP (8.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/python.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Python (3.14)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/dynamic-scripting/ruby.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ruby (4.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false">
+ <span class="menu-text">Shells and Automation</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/bash.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bash (5.3)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/c-shell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C shell (csh 8.2 / tcsh)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/fish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fish (4.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/ksh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ksh (kSH 93u+)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/powershell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PowerShell (7.6)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/sh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sh (POSIX.1-2024)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/shells-automation/zsh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zsh (5.9)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false">
+ <span class="menu-text">Functional, Declarative, Legacy</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/ada.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ada (2022 / 2012)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/clojure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clojure (1.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/cobol.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">COBOL (ISO/IEC 1989:2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/common-lisp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Common Lisp (ANSI X3.226-1994)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/delphi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Delphi (12.3 Athens)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/fortran.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fortran (2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/lean-4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lean 4 (4.31)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/lua.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lua (5.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/objective-c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Objective-C (2.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/ocaml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OCaml (5.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/prolog.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prolog (SWI 9.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/racket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Racket (8.17)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/rocq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rocq (9.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/scheme.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scheme (R7RS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/smalltalk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Smalltalk (ANSI Smalltalk)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/spark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SPARK (Pro 25)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/tcl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tcl (9.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/turbo-pascal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Turbo Pascal (7.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/vbscript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">VBScript (6.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/functional-declarative-legacy/visual-basic-16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Basic 16 (.NET)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false">
+ <span class="menu-text">Domain-Specific Languages</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/domain-specific/matlab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MATLAB (R2026a)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/domain-specific/pl-sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PL/SQL (Oracle)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/domain-specific/r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">R (4.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/domain-specific/sas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SAS (9.4 / Viya)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/domain-specific/sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL (ANSI SQL:2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/domain-specific/transact-sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transact-SQL (SQL Server)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false">
+ <span class="menu-text">Educational and Special</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-16" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/educational-special/assembly.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assembly (x86-64, System V AMD64 ABI)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/educational-special/scratch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scratch (3.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false">
+ <span class="menu-text">Emerging and Specialty</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-17" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/emerging-specialty/crystal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Crystal (1.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/emerging-specialty/dart.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dart (3.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/emerging-specialty/elixir.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Elixir (1.20)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/emerging-specialty/erlang.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Erlang (OTP 29)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/emerging-specialty/julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Julia (1.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/languages/emerging-specialty/solidity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Solidity (0.8.x)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" role="navigation" aria-expanded="false">
+ <span class="menu-text">Principles</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-18" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-18" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/principles/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" role="navigation" aria-expanded="false">
+ <span class="menu-text">Cohesion</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-19" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-19" class="collapse list-unstyled sidebar-section depth4 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/principles/cohesion/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/principles/cohesion/core-conclusions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Core Conclusions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/principles/cohesion/knowledge-embodiment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Knowledge Embodiment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/principles/cohesion/metrics-survey.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metrics Survey</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../software/design/principles/coupling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Coupling</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../knowledge-gap-indicators/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Patterns &amp; Constructs as Knowledge-Gap Indicators</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-ivp-governs-and-what-it-does-not" id="toc-what-ivp-governs-and-what-it-does-not" class="nav-link active" data-scroll-target="#what-ivp-governs-and-what-it-does-not"><span class="header-section-number">1</span> What IVP governs — and what it does not</a></li>
+  <li><a href="#what-ivp-mandates-its-own-minimal-coupling" id="toc-what-ivp-mandates-its-own-minimal-coupling" class="nav-link" data-scroll-target="#what-ivp-mandates-its-own-minimal-coupling"><span class="header-section-number">2</span> What IVP mandates: its own minimal coupling</a></li>
+  <li><a href="#the-payment-example-what-ivp-diagnoses" id="toc-the-payment-example-what-ivp-diagnoses" class="nav-link" data-scroll-target="#the-payment-example-what-ivp-diagnoses"><span class="header-section-number">3</span> The payment example: what IVP diagnoses</a></li>
+  <li><a href="#why-composition-avoids-that-specific-defect" id="toc-why-composition-avoids-that-specific-defect" class="nav-link" data-scroll-target="#why-composition-avoids-that-specific-defect"><span class="header-section-number">4</span> Why composition avoids that specific defect</a></li>
+  <li><a href="#what-ivp-does-not-say" id="toc-what-ivp-does-not-say" class="nav-link" data-scroll-target="#what-ivp-does-not-say"><span class="header-section-number">5</span> What IVP does <em>not</em> say</a></li>
+  <li><a href="#the-takeaway" id="toc-the-takeaway" class="nav-link" data-scroll-target="#the-takeaway"><span class="header-section-number">6</span> The takeaway</a></li>
+  <li><a href="#learn-more" id="toc-learn-more" class="nav-link" data-scroll-target="#learn-more"><span class="header-section-number">7</span> Learn More</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Inheritance vs Composition: What the Independent Variation Principle Actually Tells Us</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">software-design</div>
+    <div class="quarto-category">ivp</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    IVP does not mandate composition over inheritance. It prescribes a module partition and diagnoses the accidental coupling a given mechanism creates. Here is what IVP actually says about the payment-processing example.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 27, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>“Favor composition over inheritance” is one of the most cited design guidelines in software engineering. It is tempting to read this as a rule IVP prescribes. It is not.</p>
+<p>The <strong>Independent Variation Principle (IVP)</strong> is precise about what it governs and what it leaves open. This post uses a payment-processing example to show what IVP actually tells us about inheritance and composition — and, just as importantly, what it does not.</p>
+<section id="what-ivp-governs-and-what-it-does-not" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="what-ivp-governs-and-what-it-does-not"><span class="header-section-number">1</span> What IVP governs — and what it does not</h2>
+<p>IVP’s normative content is a <strong>module partition</strong>, not a mechanism choice <span class="citation" data-cites="loth2026ivpgraph">(<a href="#ref-loth2026ivpgraph" role="doc-biblioref">Loth 2026d</a>)</span>. Given a system’s elements <span class="math inline">\(E\)</span> and its set of change drivers <span class="math inline">\(C\)</span>, IVP assigns each element <span class="math inline">\(e\)</span> a <em>set</em> of change drivers <span class="math inline">\(\Gamma(e)\)</span> — the change drivers whose state changes create a modification requirement for <span class="math inline">\(e\)</span> — and prescribes, in its structural formulation <span class="citation" data-cites="loth2026ivpgraph">(<a href="#ref-loth2026ivpgraph" role="doc-biblioref">Loth 2026d</a>)</span>:</p>
+<ol type="1">
+<li><strong>Admissibility</strong> — every element has at least one change driver: <span class="math inline">\(\forall e \in E,\ |\Gamma(e)| \geq 1\)</span>.</li>
+<li><strong>Element Form</strong> — every element is either pure (<span class="math inline">\(|\Gamma(e)| = 1\)</span>) or irreducibly composite: no proper subset of its driver set can achieve its purpose, and no decomposition into sub-elements with strictly smaller driver sets jointly preserves that purpose.</li>
+<li><strong>Separation</strong> — elements assigned different sets of change drivers reside in different modules: <span class="math inline">\(\Gamma(e_1) \neq \Gamma(e_2) \Rightarrow M(e_1) \neq M(e_2)\)</span>.</li>
+<li><strong>Unification</strong> — elements assigned the same set of change drivers reside in the same module: <span class="math inline">\(\Gamma(e_1) = \Gamma(e_2) \Rightarrow M(e_1) = M(e_2)\)</span>.</li>
+</ol>
+<p>Equivalently, the modules of an IVP-compliant system are the <span class="math inline">\(\Gamma\)</span>-equivalence classes of <span class="math inline">\(E\)</span> <span class="citation" data-cites="loth2026ivpgraph">(<a href="#ref-loth2026ivpgraph" role="doc-biblioref">Loth 2026d</a>)</span>. The first two clauses are the ones the composition-vs-inheritance discussion must not skip. <em>Admissibility</em> says every element answers to some change driver. <em>Element Form</em> ties the assignment to purpose and to the domain knowledge the element embodies: <span class="math inline">\(\Gamma(e)\)</span> is not an arbitrary label — <span class="math inline">\(e\)</span> embodies the knowledge governed by its drivers, so the assignment is grounded in what the element exists to realize <span class="citation" data-cites="loth2026cohesion">(<a href="#ref-loth2026cohesion" role="doc-biblioref">Loth 2026b</a>)</span>. Separation and Unification then say how those grounded assignments group elements into modules.</p>
+<p>Inheritance and composition are both such mechanisms. The theory treats inheritance — <code>class B extends A</code> — as a <strong>structural dependency</strong>: a relation observable directly in the artifact, like a function call or an import. IVP does not have a “composition directive” and an “inheritance directive.” What it does have is a coupling criterion, and that is where the real guidance lies.</p>
+</section>
+<section id="what-ivp-mandates-its-own-minimal-coupling" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="what-ivp-mandates-its-own-minimal-coupling"><span class="header-section-number">2</span> What IVP mandates: its own minimal coupling</h2>
+<p>IVP’s coupling criterion follows from its rule <span class="citation" data-cites="loth2026ivpgraph">(<a href="#ref-loth2026ivpgraph" role="doc-biblioref">Loth 2026d</a>)</span>. The partition induced by <span class="math inline">\(\Gamma\)</span>-equivalence is fixed by the change drivers; the coupling that survives a compliant partition is <strong>IVP’s minimal coupling</strong> — the necessary coupling: essential same-<span class="math inline">\(\Gamma\)</span> coupling inside a module, plus the essential cross-<span class="math inline">\(\Gamma\)</span> coupling between modules that is the irreducible cost of communication between <span class="math inline">\(\Gamma\)</span>-classes.</p>
+<p>One thing IVP’s minimal coupling forbids:</p>
+<ul>
+<li><strong>Accidental coupling</strong> — coupling not required by any domain artifact. Two elements are coupled when one depends on something the other defines or maintains; that dependency is <strong>essential</strong> when a domain artifact (a statute, contract, standard, specification) requires it, and <strong>accidental</strong> when no domain artifact mandates it — a framework convention, a language limitation, a deployment detail.</li>
+</ul>
+<p>The accidental coupling IVP is most concerned with is <strong>cross-<span class="math inline">\(\Gamma\)</span> accidental coupling</strong> — accidental coupling that connects elements assigned different sets of change drivers.</p>
+<p>IVP also leaves no room for accidental coupling between elements that should be apart. If two elements with <em>different</em> change-driver sets sit in the same module and are accidentally coupled, the module is impure: the partition has co-located elements that Separation would keep in different modules, and the system does not faithfully embody the domain’s change structure <span class="citation" data-cites="loth2026ivpgraph">(<a href="#ref-loth2026ivpgraph" role="doc-biblioref">Loth 2026d</a>)</span>. IVP’s Separation directive eliminates this case by construction — cross-<span class="math inline">\(\Gamma\)</span> elements are never co-located in a compliant partition. The only accidental coupling that can remain inside a module is the same-<span class="math inline">\(\Gamma\)</span> kind — a concrete reference where an abstraction would do — and that is a code-quality defect, not a failure to embody the domain.</p>
+<p>Because the coupling verdict is relative to the chosen rule, it is not a property of the code in the abstract — it is a property of the code <em>under a given partition</em>. IVP’s verdict is IVP’s because IVP picks <span class="math inline">\(\Gamma\)</span>-equivalence as its modularization rule. A different rule would classify the same dependencies differently.</p>
+</section>
+<section id="the-payment-example-what-ivp-diagnoses" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="the-payment-example-what-ivp-diagnoses"><span class="header-section-number">3</span> The payment example: what IVP diagnoses</h2>
+<p>Consider a payment-processing system designed with an inheritance hierarchy:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract</span> <span class="kw">class</span> Payment <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Infrastructure methods</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">logTransaction</span><span class="op">(</span><span class="bu">String</span> details<span class="op">)</span> <span class="op">{</span> <span class="co">/* ... */</span> <span class="op">}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">detectFraud</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* ... */</span> <span class="op">}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">sendNotification</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* ... */</span> <span class="op">}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Template method pattern</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">final</span> <span class="dt">void</span> <span class="fu">process</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">validate</span><span class="op">();</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">detectFraud</span><span class="op">();</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">executePayment</span><span class="op">();</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">logTransaction</span><span class="op">(</span><span class="st">"Payment processed"</span><span class="op">);</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sendNotification</span><span class="op">();</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="kw">abstract</span> <span class="dt">void</span> <span class="fu">validate</span><span class="op">();</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="kw">abstract</span> <span class="dt">void</span> <span class="fu">executePayment</span><span class="op">();</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CreditCardPayment <span class="kw">extends</span> Payment <span class="op">{</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">validate</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* credit card validation */</span> <span class="op">}</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">executePayment</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* credit card processing */</span> <span class="op">}</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PayPalPayment <span class="kw">extends</span> Payment <span class="op">{</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">validate</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* PayPal validation */</span> <span class="op">}</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">executePayment</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* PayPal processing */</span> <span class="op">}</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>IVP’s diagnosis of this structure is specific. Two different change drivers are at work:</p>
+<ul>
+<li><strong>Payment-method variety</strong> — the set of accepted payment methods (credit card, PayPal, crypto, bank transfer) varies as new providers, fee structures, and regulations emerge.</li>
+<li><strong>Payment infrastructure</strong> — logging, fraud detection, and notification vary with performance, security, and observability demands.</li>
+</ul>
+<p>These are not the same change driver. Under the interpretive claim that these two forcing conditions vary independently, IVP assigns <span class="math inline">\(\Gamma(\text{CreditCardPayment}) \neq \Gamma(\text{infrastructure})\)</span> — the payment-method element’s change-driver set differs from the infrastructure’s. A compliant partition therefore puts them in <strong>different modules</strong>.</p>
+<p>Now the mechanism matters. <code>class CreditCardPayment extends Payment</code> does not merely reuse code. It makes the subclass embody the base class’s knowledge: everything <code>Payment</code> references — the logging, fraud-detection, and notification services — becomes knowledge the subclass carries with it. That is the crux. Those knowledge pieces are <strong>not part of the payment-method’s causal domain knowledge</strong>. The payment-method domain does not require the element that validates a card and settles a charge to also embody how transactions are logged, fraud is screened, or notifications are sent. By inheriting them, <code>CreditCardPayment</code> embodies knowledge its causal domain does not mandate — <strong>accidental embodiment</strong> — and that embodiment drags with it coupling to infrastructure the domain never required it to share.</p>
+<p>That coupling connects elements assigned different sets of change drivers and is required by no domain artifact — it is <strong>cross-<span class="math inline">\(\Gamma\)</span> accidental coupling</strong>, which IVP’s minimal coupling forbids. This is the precise defect IVP identifies in the inheritance hierarchy. The verdict is not “you used inheritance” — it is “this mechanism made the element embody knowledge outside its causal domain, and that accidental embodiment became accidental coupling.”</p>
+<p>A mechanism choice is therefore a faithfulness check on domain knowledge. When the domain already dictates that payment-method knowledge and infrastructure knowledge are separate bodies of causal knowledge, the correct structure is derived directly from that structure: separate elements in separate modules. Inheritance that blurs the boundary adds nothing the domain had not already decided. If you cannot tell whether the <code>extends</code> coupling is domain-required, you have not found that inheritance is wrong — you have found that your causal domain knowledge is incomplete.</p>
+</section>
+<section id="why-composition-avoids-that-specific-defect" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="why-composition-avoids-that-specific-defect"><span class="header-section-number">4</span> Why composition avoids that specific defect</h2>
+<p>The composition version:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> PaymentMethod <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">validate</span><span class="op">();</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    PaymentResult <span class="fu">executePayment</span><span class="op">();</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CreditCardPayment <span class="kw">implements</span> PaymentMethod <span class="op">{</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">validate</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* credit card validation */</span> <span class="op">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> PaymentResult <span class="fu">executePayment</span><span class="op">()</span> <span class="op">{</span> <span class="co">/* credit card processing */</span> <span class="op">}</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> FraudDetector <span class="op">{</span> <span class="dt">boolean</span> <span class="fu">analyze</span><span class="op">(</span>PaymentMethod m<span class="op">);</span> <span class="op">}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> TransactionLogger <span class="op">{</span> <span class="dt">void</span> <span class="fu">log</span><span class="op">(</span><span class="bu">String</span> d<span class="op">);</span> <span class="op">}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> NotificationService <span class="op">{</span> <span class="dt">void</span> <span class="fu">send</span><span class="op">(</span><span class="bu">String</span> m<span class="op">);</span> <span class="op">}</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PaymentProcessor <span class="op">{</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> FraudDetector fraudDetector<span class="op">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> TransactionLogger logger<span class="op">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> NotificationService notifier<span class="op">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">PaymentProcessor</span><span class="op">(</span>FraudDetector f<span class="op">,</span> TransactionLogger l<span class="op">,</span> NotificationService n<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">fraudDetector</span> <span class="op">=</span> f<span class="op">;</span> <span class="kw">this</span><span class="op">.</span><span class="fu">logger</span> <span class="op">=</span> l<span class="op">;</span> <span class="kw">this</span><span class="op">.</span><span class="fu">notifier</span> <span class="op">=</span> n<span class="op">;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">process</span><span class="op">(</span>PaymentMethod method<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        method<span class="op">.</span><span class="fu">validate</span><span class="op">();</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>fraudDetector<span class="op">.</span><span class="fu">analyze</span><span class="op">(</span>method<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            PaymentResult r <span class="op">=</span> method<span class="op">.</span><span class="fu">executePayment</span><span class="op">();</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="st">"Payment processed: "</span> <span class="op">+</span> r<span class="op">);</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>            notifier<span class="op">.</span><span class="fu">send</span><span class="op">(</span><span class="st">"Payment confirmation"</span><span class="op">);</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Here <code>CreditCardPayment</code> couples to the infrastructure <em>only where the domain requires it</em>. The <code>PaymentProcessor</code> composes the two variation domains — but the payment-method element and the infrastructure services are separate elements, coupled through interfaces only where a genuine causal dependency exists. Nothing forces the payment-method class to absorb the infrastructure’s dependency footprint.</p>
+<p>The point is not that composition is magic. The point is narrower: <strong>composition lets the developer form the coupling at the points the domain mandates, whereas inheritance’s <code>extends</code> edge couples the subclass to the base’s whole dependency footprint transitively, mandated or not.</strong> IVP does not endorse composition — it diagnoses the coupling a mechanism actually produces against its <span class="math inline">\(\Gamma\)</span>-partition.</p>
+</section>
+<section id="what-ivp-does-not-say" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="what-ivp-does-not-say"><span class="header-section-number">5</span> What IVP does <em>not</em> say</h2>
+<p>IVP does <strong>not</strong> endorse “prefer composition over inheritance” as a universal rule. Three specific caveats:</p>
+<p><strong>Inheritance is not forbidden.</strong> Where the two sides genuinely share the same change driver — so IVP assigns them the same <span class="math inline">\(\Gamma\)</span> and the same module — the coupling inheritance creates is <em>essential</em>, not accidental, and IVP is satisfied. The composition example itself uses this: <code>CreditCardPayment</code> and <code>PayPalPayment</code> <em>implement</em> <code>PaymentMethod</code>, an “is-a” relationship to an abstraction that genuinely shares the payment-method change driver. That inheritance is IVP-compliant. What the example removes is inheritance <em>across</em> the two change drivers — subclassing a base that pulls in infrastructure the payment-method domain does not mandate. A geometric-shape hierarchy is IVP-compliant if all its elements are <span class="math inline">\(\Gamma\)</span>-equivalent, so that every change modifying one also creates a modification requirement for the others. A framework’s intentional extension points are IVP-compliant only when the extension and the base are same-<span class="math inline">\(\Gamma\)</span>; a low activation frequency does not by itself make them compliant. The defect is coupling <em>different</em> change drivers, not using inheritance.</p>
+<p><strong>Composition can violate IVP too.</strong> Composition that couples elements assigned different sets of change drivers across a module boundary is just as much cross-<span class="math inline">\(\Gamma\)</span> accidental coupling. Mechanism alone does not determine compliance; the change-driver assignment <span class="math inline">\(\Gamma\)</span> does.</p>
+<p><strong>The verdict is rule-relative.</strong> “The hierarchy couples independent change drivers” is an <em>IVP-specific</em> diagnosis. It follows from choosing <span class="math inline">\(\Gamma\)</span>-equivalence as the modularization rule. Another rule would partition the elements differently and classify the same edges differently. IVP’s answer is the answer <em>given its choice of rule</em>, not a mechanism-independent fact.</p>
+</section>
+<section id="the-takeaway" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="the-takeaway"><span class="header-section-number">6</span> The takeaway</h2>
+<p>IVP does not tell you to reach for composition and avoid inheritance. It tells you something more useful: <strong>start with the domain.</strong> Ask what the domain actually prescribes: what are the change drivers, and what does each element’s specification require it to embody and depend on? The change drivers determine the partition; then couple elements only where the domain requires the dependency, and never make an element embody knowledge its causal domain does not mandate. When you evaluate a design, ask not “inheritance or composition?” but “what does the structure of the causal domain knowledge dictate, and does this mechanism add coupling the domain never had?”</p>
+<p>In the payment example, inheritance happens to manufacture accidental embodiment and cross-driver accidental coupling — through the knowledge the <code>extends</code> edge forces the subclass to carry — and composition happens to avoid it. That is why the classical guideline <em>points the right way in this example</em>. But IVP explains the <em>reason</em>: the best structure is derived directly from the structure of the causal domain knowledge, and the mechanism is faithful exactly when it adds no coupling the domain did not already decide.</p>
+<hr>
+</section>
+<section id="learn-more" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="learn-more"><span class="header-section-number">7</span> Learn More</h2>
+<p>IVP formalizes the module partition a system’s change drivers prescribe and the coupling a compliant partition tolerates — giving a precise, decidable answer where classical heuristics rely on intuition. The formal development — the module partition and the coupling-floor argument — is proved in the paper on the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph">(<a href="#ref-loth2026ivpgraph" role="doc-biblioref">Loth 2026d</a>)</span>, with the change-driver partition and purity/completeness accounted for in Causal Cohesion <span class="citation" data-cites="loth2026causalcohesion">(<a href="#ref-loth2026causalcohesion" role="doc-biblioref">Loth 2026a</a>)</span> and the cohesion-as-correctness framework in On the Nature of Cohesion <span class="citation" data-cites="loth2026naturecohesion">(<a href="#ref-loth2026naturecohesion" role="doc-biblioref">Loth 2026c</a>)</span>.</p>
+<p>This site’s overview sections — IVP (software) and Software design — present the theory and its applications in more depth, and the <a href="../software/design/languages/index.html">language coupling analysis</a> applies the coupling lens across 65 programming languages.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-loth2026causalcohesion" class="csl-entry" role="listitem">
+Loth, Yannick. 2026a. <span>“Causal Cohesion.”</span> Zenodo. <a href="https://doi.org/10.5281/zenodo.20785881">https://doi.org/10.5281/zenodo.20785881</a>.
+</div>
+<div id="ref-loth2026cohesion" class="csl-entry" role="listitem">
+———. 2026b. <span>“On the Nature of Cohesion: Cohesion as Correctness Relative to a Partitioning Rule.”</span> Zenodo. <a href="https://doi.org/10.5281/zenodo.20785752">https://doi.org/10.5281/zenodo.20785752</a>.
+</div>
+<div id="ref-loth2026naturecohesion" class="csl-entry" role="listitem">
+———. 2026c. <span>“On the Nature of Cohesion: Cohesion as Correctness Relative to a Partitioning Rule.”</span> Zenodo. <a href="https://doi.org/10.5281/zenodo.20785752">https://doi.org/10.5281/zenodo.20785752</a>.
+</div>
+<div id="ref-loth2026ivpgraph" class="csl-entry" role="listitem">
+———. 2026d. <span>“The Independent Variation Principle.”</span> Zenodo. <a href="https://doi.org/10.5281/zenodo.20794332">https://doi.org/10.5281/zenodo.20794332</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

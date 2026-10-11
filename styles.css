@@ -1,0 +1,429 @@
+:root {
+  --navbar-bg: #14507a;
+  --navbar-fg: #eaf4ff;
+  --navbar-fg-active: #ffffff;
+}
+
+/* ── Top menubar (Quarto navbar) — blue background, white/light-blue text ──
+   Quarto pins the header via `header.fixed-top` and offsets the body via
+   `body.nav-fixed{padding-top:64px}`; do NOT set position:fixed on .navbar
+   here (it would take the nav out of the header's flow, collapse the header
+   height to 0, and make Quarto's headerOffset() return 0 → content slides
+   under the bar). Only recolor. */
+.navbar {
+  background-color: var(--navbar-bg) !important;
+}
+/* Keep the navbar visible at all times. Quarto's headroom JS normally hides
+   the bar (translateY(-100%)) on scroll-down; override the unpinned state so
+   it always stays fixed and visible while scrolling. */
+header.headroom--unpinned { transform: translateY(0%) !important; }
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar .navbar-toggler {
+  color: var(--navbar-fg) !important;
+}
+.navbar .navbar-brand:hover,
+.navbar .nav-link:hover,
+.navbar .nav-link.active,
+.navbar .nav-link:focus {
+  color: var(--navbar-fg-active) !important;
+}
+.navbar .navbar-toggler {
+  border-color: color-mix(in srgb, var(--navbar-fg) 60%, transparent);
+}
+.navbar .navbar-toggler-icon {
+  filter: invert(90%) sepia(10%) saturate(300%) hue-rotate(180deg);
+}
+/* Make the navbar search lens (loupe) white so it is visible against the
+   blue bar. Quarto's search injects the icon via an Algolia autocomplete;
+   Bootstrap paints the SVG glyph gray. Override the stroke colour on the
+   injected icon. */
+.navbar #quarto-search.type-overlay .aa-Autocomplete svg.aa-SubmitIcon,
+.navbar #quarto-search.type-overlay .aa-Autocomplete .aa-Form .aa-Label svg,
+.navbar #quarto-search.type-overlay .aa-Autocomplete .aa-Form .aa-LoadingIndicator svg {
+  color: var(--navbar-fg-active) !important;
+}
+.navbar .dropdown-menu {
+  background-color: var(--navbar-bg);
+}
+.navbar .dropdown-menu .dropdown-item {
+  color: var(--navbar-fg) !important;
+}
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus,
+.navbar .dropdown-menu .dropdown-item.active {
+  background-color: color-mix(in srgb, var(--navbar-bg) 85%, var(--bs-white));
+  color: var(--navbar-fg-active) !important;
+}
+/* Keep the right margin sidebar (TOC) pinned while scrolling. */
+ #quarto-margin-sidebar {
+   position: sticky !important;
+   top: 72px !important;          /* just below the 64px fixed header */
+   align-self: start;
+   overflow-y: auto;
+   overscroll-behavior: contain;
+   max-height: calc(100vh - 88px) !important;
+ }
+/* NOTE: these rules are deliberately UNLAYERED. styles.css is linked after
+   Bootstrap/Quarto CSS in the site, so unlayered rules win over Quarto's
+   unlayered callout styles by source order. Wrapping them in @layer would
+   DEMOTE them below unlayered CSS and the overrides would not apply. */
+  body, p, li, dd, td, th { text-align: justify; hyphens: auto; }
+  h1,h2,h3,h4,h5,h6, nav, .sidebar, pre, code,
+  .callout-title-container, .registry-badge, .registry-name,
+  dt, caption, figcaption, .quarto-title-meta { text-align: unset; }
+
+  figure img { max-inline-size: 100%; block-size: auto; }
+  .math.display { overflow-x: auto; padding-block: 0.2em; }
+  .sidebar nav[role="doc-toc"] ul { list-style-type: none; padding-inline-start: 0.8em; }
+
+  /* Accent boxes — one shared frame. Each box sets `--box-accent` (a cosmo
+     token) and `--box-accent-strong` (a fully saturated, darkened variant),
+     from which the border, the tinted fill, and the vivid title badge derive.
+     `--box-accent-strong` is set PER FAMILY (below), not computed here, so it
+     can be tuned per hue to guarantee WCAG AA contrast (>= 4.5:1) of the
+     white title text against the badge. */
+  .callout.callout-style-default.callout-warning,
+  .callout.callout-style-default.callout-note,
+  .callout.callout-style-default.callout-important,
+  .callout.callout-style-default.callout-tip,
+  .callout.callout-style-default.callout-caution {
+    border-inline-start: 4.5px solid var(--box-accent-strong);
+    border-top: 1px solid color-mix(in srgb, var(--box-accent) 60%, var(--bs-white));
+    border-right: 1px solid color-mix(in srgb, var(--box-accent) 60%, var(--bs-white));
+    border-bottom: 1px solid color-mix(in srgb, var(--box-accent) 60%, var(--bs-white));
+    background-color: var(--box-bg);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 42%);
+    color: var(--box-fg, color-mix(in srgb, var(--box-accent) 60%, var(--bs-black)));
+    padding: 0.8rem 1rem;
+    margin-block-end: 1rem;
+  }
+  /* Quarto callout header — icon + title on one line. Transparent so the
+     box's own pale fill shows through; only the title badge carries the
+     vivid accent. */
+  .callout.callout-style-default > .callout-header {
+    display: flex; align-items: center; gap: 0.5em; margin-block-end: 0.4em;
+    background: transparent !important;
+    opacity: 1;
+    padding-top: 0; padding-bottom: 0;
+  }
+  .callout-icon-container { display: inline-flex; align-items: center; }
+  .callout.callout-style-default > .callout-header .callout-title-container {
+    background: var(--box-accent-strong);
+    color: var(--bs-white);
+    padding: 0.2em 0.6em;
+    border-radius: var(--bs-border-radius);
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    font-weight: 600;
+  }
+  .callout.callout-style-default > .callout-header .callout-icon {
+    color: var(--box-accent-strong);
+  }
+  .callout.callout-style-default > .callout-header .callout-icon::before {
+    background-image: none;
+    -webkit-mask-image: var(--callout-icon);
+    mask-image: var(--callout-icon);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    background-color: var(--box-accent-strong);
+  }
+  /* Callouts built with `callout-icon: false` carry no icon element and no
+     stray icon glyph in the title. Draw the family icon on the header. */
+  .callout.callout-style-default.callout-titled.no-icon > .callout-header::before {
+    content: "";
+    flex: 0 0 auto;
+    height: 0.95rem;
+    width: 0.95rem;
+    display: inline-block;
+    background-color: var(--box-accent-strong);
+    -webkit-mask-image: var(--callout-icon);
+    mask-image: var(--callout-icon);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+  .callout.callout-style-default .callout-body-container {
+    color: var(--box-fg, color-mix(in srgb, var(--box-accent) 60%, var(--bs-black)));
+  }
+
+  .callout-warning   { --box-accent: #ff6b8a;  --box-accent-strong: #a63a56; --box-bg: #ffd6e0;  --box-fg: #6b1f36;  --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z'/><path d='M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z'/></svg>"); }
+  .callout-note      { --box-accent: #3d7ef7; --box-accent-strong: #1758b8; --box-bg: #cfe7ff; --box-fg: #123c6b;   --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/><path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z'/></svg>"); }
+  .callout-important { --box-accent: #2fbf6e; --box-accent-strong: #1a7a43; --box-bg: #cdf3df; --box-fg: #0e4a29; --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/><path d='M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z'/></svg>"); }
+  .callout-tip       { --box-accent: #00b8e0; --box-accent-strong: #087381; --box-bg: #b8f2ff; --box-fg: #00566b;    --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z'/></svg>"); }
+  .callout-caution   { --box-accent: #ff9f43; --box-accent-strong: #a85f00; --box-bg: #ffddb0; --box-fg: #7a3a00; --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M9.97 4.88l.953 3.811C10.158 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.274 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm4.396 8.613a.5.5 0 0 1 .037.96l-6 2a.5.5 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l2.391-.598.565-2.257c.862.212 1.964.339 3.165.339s2.303-.127 3.165-.339l.565 2.257 2.391.598z'/></svg>"); }
+
+  /* Epigraphs / blockquotes — theme border width + subtle hue */
+  :where(.epigraph, blockquote) {
+    border-inline-start: var(--bs-border-width) solid var(--bs-gray-400);
+    background: var(--bs-light);
+    color: var(--bs-secondary-color);
+    font-style: italic;
+    padding: 0.6em 1em;
+  }
+
+  /* ── Glossary tooltips (custom popover) ── */
+  .gt, glossary-term { border-bottom: 1.5px dashed var(--box-fg, #0079ab); cursor: help; color: inherit; display: inline; }
+
+  .gt-pop {
+    position: fixed; z-index: 99999;     max-inline-size: min(92vw, 640px);
+    background: var(--bs-body-bg); border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg); box-shadow: var(--bs-box-shadow);
+    padding: 12px 14px; font-size: 0.875rem; line-height: 1.5;
+    display: flex; flex-direction: column; gap: 4px;
+    opacity: 0; visibility: hidden; transform: translateY(4px);
+    transition: opacity .15s ease, visibility .15s ease, transform .15s ease;
+    pointer-events: none; overflow-wrap: break-word; word-break: break-word;
+    max-block-size: min(80vh, 600px); overflow-y: auto;
+  }
+  .gt-show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+
+  .gt-cat { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--bs-secondary-color); }
+  .gt-term { font-weight: 700; font-size: 0.95rem; color: var(--bs-body-color); }
+  .gt-def { color: var(--bs-body-color); }
+  .gt-ol { margin: 2px 0 0 0; padding-inline-start: 1.25em; }
+  .gt-ol li { margin-top: 2px; }
+
+  .gt-also, .gt-sources { font-size: 0.8rem; color: var(--bs-secondary-color); border-top: var(--bs-border-width) solid var(--bs-border-color); padding-top: 4px; margin-top: 2px; }
+  .gt-sources { font-size: 0.75rem; line-height: 1.6; }
+  .gt-sources a { color: #0d6efd !important; text-decoration: none; }
+  .gt-sources a:hover { text-decoration: underline; }
+  .gt-pop b { color: var(--bs-emphasis-color); }
+
+  .unbulleted { list-style-type: none; padding-inline-start: 0; }
+
+  /* Empty placeholder <span> nodes emitted between items by some Quarto
+     versions in the grid-listing template. Hide them. */
+  .quarto-listing-container-grid .list.grid > span { display: none; }
+
+  /* Quarto's HTML writer injects whitespace-only placeholder <span> nodes as
+     direct children of #quarto-content. Hide them. */
+  #quarto-content > span { display: none; }
+
+  /* Collapse the right margin sidebar when it holds no content. */
+  #quarto-content.no-margin-sidebar {
+    grid-template-columns: [screen-start] 1.5em [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] minmax(0px, 1fr) [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1.5em [screen-end];
+  }
+  #quarto-content.no-margin-sidebar #quarto-margin-sidebar { display: none; }
+
+/* ── Knowledge-Gap Indicators: master–detail post browser ──
+   Left pane = list of post references, right pane = the selected post.
+   The panes are siblings in a two-column grid; the list stays pinned
+   while the post scrolls. Below 900px the grid stacks, list first. */
+.kg-layout {
+  display: grid;
+  grid-template-columns: minmax(190px, 34fr) 66fr;
+  gap: 1.2rem;
+  align-items: start;
+  margin-block-start: 1.2rem;
+}
+/* Quarto injects whitespace-only placeholder <span> children between the
+   panes. They would claim grid cell 1 and stack both panes in column 2,
+   so hide them and pin each pane to its own column. */
+.kg-layout > span { display: none; }
+.kg-pane-left > span, .kg-pane-right > span { display: none; }
+.kg-pane-left {
+  grid-column: 1;
+  position: sticky;
+  top: 76px;                                   /* clears the 64px fixed navbar */
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: calc(100vh - 92px);
+}
+.kg-list {
+  display: flex; flex-direction: column; gap: 0.45rem;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: 0.35rem;
+}
+.kg-item {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  border-inline-start: 4px solid transparent;
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  text-decoration: none;
+  transition: background-color .12s ease, border-color .12s ease;
+}
+.kg-item:hover {
+  background: color-mix(in srgb, var(--navbar-bg) 8%, var(--bs-body-bg));
+  border-inline-start-color: color-mix(in srgb, var(--navbar-bg) 45%, transparent);
+  text-decoration: none;
+  color: var(--bs-body-color);
+}
+.kg-item.kg-active {
+  background: color-mix(in srgb, var(--navbar-bg) 12%, var(--bs-body-bg));
+  border-inline-start-color: var(--navbar-bg);
+}
+.kg-item-top { display: flex; align-items: baseline; gap: 0.5em; }
+.kg-num {
+  flex: 0 0 auto;
+  font-size: 0.72rem; font-weight: 700;
+  color: var(--navbar-bg);
+  font-variant-numeric: tabular-nums;
+}
+.kg-name { font-weight: 600; line-height: 1.25; }
+.kg-meta {
+  font-size: 0.72rem; color: var(--bs-secondary-color);
+  letter-spacing: 0.02em;
+}
+/* Family groups in the left pane: a collapsible header plus its posts. */
+.kg-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.kg-group + .kg-group { margin-block-start: 0.5rem; }
+.kg-group-head {
+  display: flex; align-items: center; gap: 0.45em;
+  width: 100%; text-align: left;
+  padding: 0.3rem 0.4rem;
+  border: 0; border-radius: var(--bs-border-radius);
+  background: color-mix(in srgb, var(--navbar-bg) 10%, var(--bs-body-bg));
+  color: color-mix(in srgb, var(--navbar-bg) 82%, var(--bs-black));
+  font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.02em; text-transform: uppercase;
+  cursor: pointer;
+}
+.kg-group-head:hover {
+  background: color-mix(in srgb, var(--navbar-bg) 16%, var(--bs-body-bg));
+}
+.kg-group-caret::before { content: "▾"; display: inline-block; }
+.kg-group-closed .kg-group-caret::before { content: "▸"; }
+.kg-group-label { flex: 1 1 auto; }
+.kg-group-count {
+  flex: 0 0 auto;
+  font-size: 0.7rem; font-weight: 600;
+  padding: 0.05em 0.5em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--navbar-bg) 16%, var(--bs-body-bg));
+}
+.kg-group-body {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  padding-inline-start: 0.45rem;
+  border-inline-start: 2px solid color-mix(in srgb, var(--navbar-bg) 22%, var(--bs-border-color));
+}
+.kg-group-closed .kg-group-body { display: none; }
+/* Collapse control, above the post list. */
+.kg-collapse-btn {
+  display: block; width: 100%;
+  flex: 0 0 auto;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--navbar-bg) 35%, var(--bs-border-color));
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-body-bg);
+  color: color-mix(in srgb, var(--navbar-bg) 82%, var(--bs-black));
+  font-size: 0.74rem; font-weight: 600;
+  cursor: pointer;
+}
+.kg-collapse-btn:hover {
+  background: color-mix(in srgb, var(--navbar-bg) 10%, var(--bs-body-bg));
+}
+/* Family framing shown above the open post. */
+.kg-intro {
+  margin-block: 0.2rem 1.1rem;
+  padding: 0.7rem 0.9rem;
+  border-inline-start: 4px solid color-mix(in srgb, var(--navbar-bg) 45%, transparent);
+  border-radius: var(--bs-border-radius);
+  background: color-mix(in srgb, var(--navbar-bg) 6%, var(--bs-body-bg));
+  color: var(--bs-secondary-color);
+  font-size: 0.92rem;
+}
+.kg-intro > :first-child { margin-block-start: 0; }
+.kg-intro > :last-child { margin-block-end: 0; }
+.kg-pane-right { grid-column: 2; }
+/* Posts are closed with the semantic `hidden` attribute (see post-viewer.js)
+   so reader mode and text-only renderers see only the open post. */
+.kg-viewer {
+  min-height: 60vh;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  background: var(--bs-body-bg);
+  padding: 0 1.1rem 1.1rem;
+}
+.kg-status {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--bs-secondary-color);
+  font-size: 0.9rem;
+}
+.kg-status-error { color: var(--box-fg, #a63a56); }
+.kg-post-bar {
+  position: sticky; top: 64px; z-index: 3;
+  display: none; align-items: center; gap: 0.8em;
+  margin: 0 -1.1rem 0.9rem;
+  padding: 0.6rem 1.1rem;
+  background: color-mix(in srgb, var(--bs-body-bg) 92%, var(--bs-white));
+  border-bottom: 1px solid var(--bs-border-color);
+}
+.kg-post-bar.kg-bar-on { display: flex; }
+.kg-viewer.kg-empty::before {
+  content: "Select a post on the left to open it here.";
+  display: block;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--bs-secondary-color);
+  font-size: 0.9rem;
+}
+.kg-post-bar-title {
+  flex: 1 1 auto;
+  font-weight: 600; font-size: 0.9rem;
+  color: var(--bs-emphasis-color);
+}
+.kg-copy {
+  flex: 0 0 auto;
+  font-size: 0.74rem; font-weight: 600;
+  padding: 0.25em 0.7em;
+  border: 1px solid color-mix(in srgb, var(--navbar-bg) 40%, var(--bs-border-color));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--navbar-bg) 8%, var(--bs-body-bg));
+  color: var(--navbar-bg);
+  cursor: pointer;
+}
+.kg-copy:hover { background: color-mix(in srgb, var(--navbar-bg) 16%, var(--bs-body-bg)); }
+.kg-post-content > :first-child { margin-block-start: 0; }
+.kg-post-content h2 { font-size: 1.25rem; margin-block-start: 1.4rem; }
+.kg-post-content h3 { font-size: 1.05rem; margin-block-start: 1.2rem; }
+.kg-tags {
+  display: flex; flex-wrap: wrap; gap: 0.35rem;
+  margin-block-start: 1.2rem;
+  padding-block-start: 0.9rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+.kg-tags code {
+  font-size: 0.72rem;
+  padding: 0.2em 0.6em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--navbar-bg) 9%, var(--bs-body-bg));
+  color: color-mix(in srgb, var(--navbar-bg) 78%, var(--bs-black));
+  border: 1px solid color-mix(in srgb, var(--navbar-bg) 22%, var(--bs-border-color));
+}
+@media (max-width: 900px) {
+  .kg-layout { grid-template-columns: 1fr; gap: 1rem; }
+  .kg-pane-left, .kg-pane-right { grid-column: 1; }
+  .kg-pane-left {
+    position: static;
+    max-height: 12rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 0.5rem;
+    background: color-mix(in srgb, var(--bs-light) 60%, var(--bs-body-bg));
+  }
+  .kg-viewer { min-height: 40vh; }
+}
+@media print {
+  .kg-pane-left { display: none; }
+  .kg-pane-right { grid-column: 1; }
+  .kg-layout { grid-template-columns: 1fr; }
+  .kg-post { display: block !important; }
+  .kg-post-bar { position: static; }
+}
