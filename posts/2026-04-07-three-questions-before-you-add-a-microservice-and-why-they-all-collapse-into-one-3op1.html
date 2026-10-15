@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-04-07">
+<meta name="description" content="A recent LinkedIn post from John Crickett has been making the rounds. It offers three questions to…">
+
+<title>Three Questions Before You Add a Microservice — and Why They All Collapse Into One – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-083efae8c4c9256682aa2f1f6671313f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Three Questions Before You Add a Microservice — and Why They All Collapse Into One – Independent Variation Principle">
+<meta property="og:description" content="A recent LinkedIn post from John Crickett has been making the rounds. It offers three questions to…">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Three Questions Before You Add a Microservice — and Why They All Collapse Into One – Independent Variation Principle">
+<meta name="twitter:description" content="A recent LinkedIn post from John Crickett has been making the rounds. It offers three questions to…">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../ivp-software/index.html"> 
+<span class="menu-text">IVP Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-criterion-same-drivers-together-different-drivers-apart" id="toc-the-criterion-same-drivers-together-different-drivers-apart" class="nav-link active" data-scroll-target="#the-criterion-same-drivers-together-different-drivers-apart"><span class="header-section-number">1</span> The criterion: same drivers together, different drivers apart</a></li>
+  <li><a href="#question-2-first-because-its-the-cleanest" id="toc-question-2-first-because-its-the-cleanest" class="nav-link" data-scroll-target="#question-2-first-because-its-the-cleanest"><span class="header-section-number">2</span> Question 2 first, because it’s the cleanest</a></li>
+  <li><a href="#question-3-the-temporal-illusion" id="toc-question-3-the-temporal-illusion" class="nav-link" data-scroll-target="#question-3-the-temporal-illusion"><span class="header-section-number">3</span> Question 3: the temporal illusion</a></li>
+  <li><a href="#question-1-the-technology-trap" id="toc-question-1-the-technology-trap" class="nav-link" data-scroll-target="#question-1-the-technology-trap"><span class="header-section-number">4</span> Question 1: the technology trap</a></li>
+  <li><a href="#one-question-not-three" id="toc-one-question-not-three" class="nav-link" data-scroll-target="#one-question-not-three"><span class="header-section-number">5</span> One question, not three</a></li>
+  <li><a href="#but-heres-the-catch" id="toc-but-heres-the-catch" class="nav-link" data-scroll-target="#but-heres-the-catch"><span class="header-section-number">6</span> But here’s the catch</a></li>
+  <li><a href="#a-worked-example-10000-users-and-four-servers" id="toc-a-worked-example-10000-users-and-four-servers" class="nav-link" data-scroll-target="#a-worked-example-10000-users-and-four-servers"><span class="header-section-number">7</span> A worked example: 10,000 users and four servers</a>
+  <ul class="collapse">
+  <li><a href="#two-distinct-kinds-of-knowledge" id="toc-two-distinct-kinds-of-knowledge" class="nav-link" data-scroll-target="#two-distinct-kinds-of-knowledge"><span class="header-section-number">7.1</span> Two distinct kinds of knowledge</a></li>
+  </ul></li>
+  <li><a href="#what-the-three-questions-are-compressing" id="toc-what-the-three-questions-are-compressing" class="nav-link" data-scroll-target="#what-the-three-questions-are-compressing"><span class="header-section-number">8</span> What the three questions are compressing</a></li>
+  <li><a href="#the-practical-takeaway" id="toc-the-practical-takeaway" class="nav-link" data-scroll-target="#the-practical-takeaway"><span class="header-section-number">9</span> The practical takeaway</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">10</span> References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Three Questions Before You Add a Microservice — and Why They All Collapse Into One</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">architecture</div>
+    <div class="quarto-category">microservices</div>
+    <div class="quarto-category">softwaredesign</div>
+    <div class="quarto-category">modularization</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A recent LinkedIn post from John Crickett has been making the rounds. It offers three questions to…
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 7, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>A recent <a href="https://www.linkedin.com/posts/johncrickett_before-you-add-another-microservice-ask-activity-7446942307318198272-1643?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAAEuBW_YBL9MhmpcmMr-e02KLNSfUbxuKQqY">LinkedIn post from John Crickett</a> has been making the rounds. It offers three questions to ask before adding another microservice:</p>
+<ol type="1">
+<li>Does this need to be a service?</li>
+<li>Does this need to be its own service?</li>
+<li>Does this need to be its own service right now?</li>
+</ol>
+<p>Crickett credited Craig Ferguson, the comedian, for the format — Ferguson has a bit about three questions a man should ask himself before he speaks. The post is in that register: deliberately light, deliberately compressed, the kind of aphorism a practitioner can carry in their head into a Monday-morning design meeting. Crickett’s questions have spread because they work. They surface the right conversation in teams that might otherwise never have it.</p>
+<p>What I want to do is unpack what the aphorism is compressing. My claim isn’t that Crickett’s questions are wrong or incomplete — it’s that they’re pointing very precisely at something a formal theory of modularization can name. And the something they’re pointing at is more unified than the three-part structure suggests: the three questions turn out to be three natural-language phrasings of <strong>one</strong> structural question. Seeing why is, I think, the most interesting thing you can do with the post.</p>
+<p>Let me walk through it.</p>
+<section id="the-criterion-same-drivers-together-different-drivers-apart" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-criterion-same-drivers-together-different-drivers-apart"><span class="header-section-number">1</span> The criterion: same drivers together, different drivers apart</h2>
+<p>I’ll use the <strong>Independent Variation Principle (IVP)</strong> as the lens. You don’t need to have read the formalization to follow this article. The idea in plain words is:</p>
+<blockquote class="blockquote">
+<p>Every element in a system — every function, every class, every module — has a set of <strong>change drivers</strong>. A change driver is anything that, when it changes, forces that element to change. Requirements, domain rules, regulations, performance targets, deployment constraints — any cause of future modification.</p>
+<p>The principle says: group together elements that share the exact same set of change drivers, and separate elements whose sets of change drivers differ.</p>
+</blockquote>
+<p>That’s it. Once the driver sets are fixed, the <em>comparison</em> is binary: two elements either have the same set of change drivers or they don’t. No gradient, no threshold, no “similar enough.” Same set → together. Different set → apart.</p>
+<p>That binary comparison is what distinguishes this principle from SRP’s “one reason to change” or CCP’s “things that change together.” Both of those formulations leave the comparison itself underspecified — <em>reason</em> and <em>change together</em> admit interpretations a team can argue about indefinitely. IVP shifts the imprecision: the comparison step becomes mechanical, but the <em>driver discovery</em> step — figuring out what’s actually in the driver set for a real element — still requires deep engineering judgment. The principle doesn’t make the hard work disappear. It moves it from “how do we compare these modules?” to “what are the actual causes of change for these elements?”, which is the question domain expertise can answer.</p>
+<p>We’ll come back to the discovery step. The point for now is that once the inputs are fixed, the answer follows. That’s a stronger guarantee than the classical principles offer, even if it isn’t the magic-wand guarantee absolute decidability would suggest.</p>
+</section>
+<section id="question-2-first-because-its-the-cleanest" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="question-2-first-because-its-the-cleanest"><span class="header-section-number">2</span> Question 2 first, because it’s the cleanest</h2>
+<p>Let me take the questions out of order and start with Q2: “Does this need to be its own service?”</p>
+<p>Read literally, Q2 is a yes-or-no question. “Its own” means separate from existing services — a binary property. And that maps directly onto the principle’s criterion:</p>
+<blockquote class="blockquote">
+<p>Is there an existing service whose set of change drivers equals the set of change drivers for this new capability?</p>
+</blockquote>
+<p>If yes: the new capability belongs inside that existing service from a structural standpoint. Putting them in separate services would mean two services that must change in lockstep whenever any of their shared drivers change — which is the structural shape of a distributed monolith. Other constraints (security boundaries, regulatory isolation, organizational ownership) may still justify keeping them apart, but those would be explicit trade-offs against the structural ideal, not refutations of it.</p>
+<p>If no: the new capability belongs in a separate module from a structural standpoint. Keeping it inside an existing service would mean that service now has elements changing for different reasons, tangling concerns that should be independent.</p>
+<p>Q2, read structurally, is asking exactly this. It doesn’t <em>say</em> “change drivers,” but the question it poses is the one the principle formalizes. What it lacks is a method for answering — it tells you to ask the question but doesn’t tell you how to compute the answer. We’ll come back to that.</p>
+</section>
+<section id="question-3-the-temporal-illusion" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="question-3-the-temporal-illusion"><span class="header-section-number">3</span> Question 3: the temporal illusion</h2>
+<p>Now Q3: “Does this need to be its own service <strong>right now</strong>?”</p>
+<p>This looks like it adds a new dimension — timing — to Q2. On closer inspection, it doesn’t. It adds nothing the principle can see.</p>
+<p>Here’s why. The principle evaluates a module structure against the <em>current</em> set of change drivers. It has no temporal dimension. It doesn’t care about drivers you imagine will exist in the future, or drivers you had last year, or drivers you might have if the product succeeds. It cares about the drivers that actually cause modification <em>now</em>, in the system as it exists.</p>
+<p>So “right now” is either redundant or incoherent:</p>
+<ul>
+<li><strong>Redundant</strong> if the asker means “given the drivers we actually have today.” That’s what the principle already assumes. Q3 reduces to Q2.</li>
+<li><strong>Incoherent</strong> if the asker means “given drivers we imagine might emerge later.” The principle doesn’t accept imagined future drivers as inputs. If you don’t have evidence that a driver exists and applies to these elements, it isn’t in the set, and speculating about it doesn’t put it there.</li>
+</ul>
+<p>There’s a third reading: “should we do this decomposition work in this sprint versus later.” That’s a project scheduling question, and it has nothing to do with modularization theory. You might defer the work because you’re busy, because the team is tired, because another priority dominates — those are real reasons, but the principle says nothing about them.</p>
+<p>So Q3 either collapses into Q2 (structural reading) or dissolves into something outside the theory’s scope (scheduling reading). Either way, it adds no new structural content.</p>
+<p>There is, however, something the “right now” phrasing accidentally brushes against, and it’s worth saying explicitly — not as part of Q3, but as a warning about the “drivers we imagine might emerge later” reading above. IVP has a consequence sometimes called the <strong>knowledge theorem</strong>: the correct partition reflects the causal knowledge you actually have about the system’s current drivers. When you add elements designed to serve drivers that don’t yet exist — speculative extensibility points, plugin systems waiting for plugins, abstractions anticipating requirements that haven’t arrived — those elements don’t share drivers with anything real in the system. They land in their own cells, structurally disconnected from the rest, and they push real elements into shapes that accommodate hypothetical concerns rather than actual ones. The partition the principle produces over the enlarged element set is structurally incorrect relative to the system’s actual causal reality.</p>
+<p>That’s a structural claim, not a moral verdict. The principle isn’t saying “speculative design is bad.” It’s saying that a partition built on drivers that haven’t materialized doesn’t match the partition the system’s actual change history will reward, and that mismatch shows up as elements getting touched together for reasons the structure didn’t anticipate. Whether the cost of that mismatch outweighs the cost of waiting until the drivers are real is an engineering judgment IVP doesn’t make for you. What IVP does say is that the cost is structural and not free. There’s an important exception: extensibility justified by <em>currently observed</em> drivers — plugin systems for which plugins already exist, abstractions over already-shipping variations — is a different case. Those drivers are real, the elements that serve them have a place in the partition, and the principle has no objection.</p>
+<p>So if Q3 is doing any work beyond Q2, it’s this: don’t import imagined future drivers into a decomposition you’re making today. Decide based on what you actually know causes change in the system as it stands.</p>
+<p><strong>Q3 collapses into Q2.</strong></p>
+</section>
+<section id="question-1-the-technology-trap" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="question-1-the-technology-trap"><span class="header-section-number">4</span> Question 1: the technology trap</h2>
+<p>Now Q1: “Does this need to be a service?”</p>
+<p>There’s an intuitive reading of Q1 that makes it look orthogonal to the principle — that it asks about <em>realization technology</em> (service vs.&nbsp;library vs.&nbsp;in-process module) rather than about module boundaries. On this reading, the principle tells you the logical partition, and then a separate engineering decision picks how each module is deployed. Modularization and deployment are treated as two layers: first decide what goes with what, then decide how to ship it. It’s a sensible-looking division of labor, and it’s something close to the default mental model in much architecture writing.</p>
+<p>I want to argue it’s incomplete, and the gap it leaves is the one Q1 is actually pointing at.</p>
+<p>The gap lies in what counts as a change driver. The two-layer reading tacitly restricts the driver set to <em>functional</em> drivers — business rules, domain concepts, user-facing requirements — and treats everything else as “non-functional” concerns that live downstream. But that split is a convention, not a principle. A change driver, in IVP’s sense, is anything whose change forces a corresponding modification of the element. And architectural quality requirements clearly cause modifications:</p>
+<ul>
+<li>“Must scale independently to 10,000 requests per second.” If that target shifts — up to 100,000, or down to 100 — caching strategy, concurrency model, data structures, and possibly the storage layer have to change. It’s a driver.</li>
+<li>“Must survive the failure of neighboring components.” If the failure-tolerance target changes, retry logic, circuit breakers, state replication, and idempotency guarantees have to change. It’s a driver.</li>
+<li>“Must be deployable without coordinating with team X.” If that independence requirement changes, interface contracts, versioning strategy, and backward-compatibility code have to change. It’s a driver.</li>
+</ul>
+<p>These satisfy the definition of a driver in the same sense as “the tax code might change” or “the pricing model might be revised” do. There’s no principled way to admit one kind and exclude the other.</p>
+<p>But just admitting architectural-quality drivers into the set isn’t by itself what reshapes the partition. There’s an intermediate step that’s easy to skip past: a quality requirement doesn’t act on the system as an abstract force — it acts through <em>concrete elements that implement it</em>. A scalability target above what a single instance can handle isn’t satisfied by wishing; some element has to actually distribute the work. A failure-isolation target isn’t satisfied by intent; some element has to actually contain failures. A deployment-independence requirement isn’t satisfied by good will; some element has to actually broker compatibility. These elements are real components with their own implementations and their own change profiles. They aren’t optional decorations on the functional code; they’re the concrete carriers of the quality requirements, and the quality requirements can’t act on the partition without going through them.</p>
+<p>The interesting question is what driver sets those carrier elements have. A circuit breaker’s behavior is shaped primarily by the failure modes it guards against, the observability it reports to, and the retry policies it coordinates with. Its implementation responds to changes in those drivers, not to changes in the business rules of the service it fronts. (There’s a real edge case here: a circuit breaker whose failure-classification logic is driven by business semantics — “treat this as a failure only for premium customers” — does have business drivers in its set. In that case the principle would correctly group it with the business logic, not with other infrastructure. The general claim isn’t that infrastructure drivers and functional drivers never overlap; it’s that they often don’t, and where they don’t, the partition reflects that.) A caching layer’s drivers are cache-invalidation semantics and memory pressure, not the functional logic of what’s being cached. When the typical case holds — when the carrier element’s drivers are genuinely distinct from the functional element’s — the principle separates them into different cells, and the resulting partition is different from the one functional drivers alone would produce.</p>
+<p>This is where the service-versus-library choice connects to the partition rather than sitting after it. The principle determines the <em>logical</em> module boundary: which elements share a driver set and therefore belong in the same cell. Whether that cell can be realized as an in-process module is a separate question, answered by whether the drivers in the cell are <em>operationally compatible</em> with sharing a process. A driver that requires independent failure containment is not operationally compatible with in-process coexistence — failures inside one process take everything in that process with them, so the failure-isolation driver can’t be made actionable inside a shared process. A driver that requires independent horizontal scaling is not operationally compatible with in-process coexistence — you can’t scale one component of a process without scaling the whole process. These operational-compatibility judgments aren’t part of IVP’s formal apparatus; they’re engineering facts about runtimes, processes, and networks. But they connect <em>directly</em> to the partition: when a cell’s drivers include any whose operational requirements rule out shared-process realization, the only realization that lets all the drivers in the cell be satisfied at once is a separate deployable unit.</p>
+<p>So the “is this a service?” question is really asking: <em>when we account for the elements that carry the system’s quality requirements, and we let the principle partition over the enlarged element set, does this element land in a cell whose drivers — functional and quality — collectively rule out sharing a process with anything else?</em> That’s the same shape as Q2 — is there an existing module this element’s driver set matches? — but evaluated over the full driver set rather than just the functional one. The realization decision isn’t downstream of the partition; it’s the operational consequence of <em>which</em> drivers are in the partition’s cells, evaluated against engineering facts about how those drivers can actually be served.</p>
+<p><strong>Q1 collapses into Q2.</strong></p>
+</section>
+<section id="one-question-not-three" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="one-question-not-three"><span class="header-section-number">5</span> One question, not three</h2>
+<p>Here’s where we land. Crickett’s three questions, read structurally, aren’t three independent checks. They’re three natural-language phrasings of the same underlying question:</p>
+<blockquote class="blockquote">
+<p>Taking into account the full set of change drivers for this element — functional drivers and quality drivers alike — does its set of drivers equal that of some existing module? If yes, the structural answer is to merge. If no, the structural answer is to separate, and which realization (in-process module, library, separate service) the separated module needs is determined by which drivers are in its cell and how those drivers can be operationally served.</p>
+</blockquote>
+<p>That’s the whole decision, once the inputs are fixed. One question, one criterion, binary comparison. The principle’s contribution is making the question precise: given an agreed-upon driver assignment, the answer is determined.</p>
+<p>That precision is the gap classical principles haven’t quite closed. Parnas, in his 1972 paper on decomposing systems into modules, came close — his “design decisions likely to change” is essentially a change driver in everything but the formal apparatus. The intuition was right; what was missing was the explicit treatment of driver-set equality as the criterion. SRP points at separation by reason-to-change but leaves “reason” undefined. Separation of Concerns points at orthogonal grouping but leaves “concern” undefined. CCP correctly targets co-variation but doesn’t distinguish causal co-variation (shared drivers) from accidental co-modification (drivers that happened to fire together). All three are pointing at something genuine. What IVP adds is the formal apparatus that makes the criterion precise enough for two engineers who disagree to identify exactly <em>what</em> they disagree about — which driver applies to which element — rather than talking past each other about “reasons” and “concerns.”</p>
+</section>
+<section id="but-heres-the-catch" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="but-heres-the-catch"><span class="header-section-number">6</span> But here’s the catch</h2>
+<p>The principle makes the question <em>well-posed</em> and <em>decidable</em>. It does not make the question <em>answerable without expertise</em>.</p>
+<p>This is the part that matters for practitioners, and it’s the part I want to be careful about. The principle consumes a driver set and produces a partition. It does <strong>not</strong> produce the driver set. Identifying what actually belongs in the driver set for a real system — which architectural qualities are genuine drivers versus current accidental properties, which functional requirements are real causes of future change versus one-time decisions, which deployment constraints are inherent versus incidental — is empirical work. It requires:</p>
+<ul>
+<li><strong>Performance engineering expertise</strong> to know which scaling drivers are real. Splitting a service “for independent scalability” when nothing in the system’s actual or projected load suggests the element will ever need independent scaling means splitting on a driver that isn’t there. The partition looks principled, but the input it rests on is imagined.</li>
+<li><strong>Reliability engineering expertise</strong> to know which failure-isolation drivers are real. Blast-radius concerns are drivers when there’s a credible failure mode that actually needs to be contained; in their absence, they’re a split justified by a driver the system doesn’t have.</li>
+<li><strong>Capacity planning and load analysis</strong> to distinguish current properties from future causes of change. “It runs fast enough today” is not a driver. “It must maintain sub-10ms latency as traffic grows ten-fold over the next two years” is.</li>
+<li><strong>Deployment and organizational analysis</strong> to know which independence drivers are real. Team-autonomy is a driver when teams genuinely need to deploy independently; it isn’t when the organization doesn’t actually work that way.</li>
+<li><strong>Domain knowledge</strong> to identify the functional drivers without confusing them with implementation choices.</li>
+</ul>
+<p>None of that is the principle. The principle has no method for deciding whether “must scale to 10K RPS independently” is a real driver or an imagined one. That determination comes from engineering disciplines IVP doesn’t subsume.</p>
+<p>The honest picture is: <strong>the principle plus quality knowledge together answer the question Crickett is pointing at. Neither alone does.</strong> Quality knowledge without the principle gives you a list of architectural concerns but no principled way to combine them into a partition. The principle without quality knowledge gives you a partition machine with no inputs. Both are common in isolation; the combination is rarer than it should be, and that’s where the leverage is.</p>
+</section>
+<section id="a-worked-example-10000-users-and-four-servers" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="a-worked-example-10000-users-and-four-servers"><span class="header-section-number">7</span> A worked example: 10,000 users and four servers</h2>
+<p>Let me make this concrete, because the interaction between capacity math and the principle is where a lot of confusion lives.</p>
+<p>Suppose you’re told: “this system must serve 10,000 concurrent users on hardware X.” A natural question is: <em>does the principle tell you how to modularize this?</em> The honest answer is that the principle, on its own, has nothing to say about the number 10,000, or about hardware X, or about how many servers you’ll end up running. It has no model of throughput, queuing, concurrency, or hardware characteristics. If you ask it “how many servers do I need?” it has no answer, not because it’s incomplete, but because that’s not a modularization question. It’s a capacity-planning question, and capacity planning is a separate engineering discipline with its own methods: load modeling, benchmarking, queuing analysis, back-of-envelope arithmetic against hardware specs.</p>
+<p>So where does a number like “four servers” come from? From that capacity calculation, done entirely outside the principle. You measure or estimate per-request cost on hardware X, you multiply by concurrency, you apply a safety margin, you get a count. Maybe it’s four. Maybe it’s fourteen. The principle doesn’t care and couldn’t produce the number if it tried.</p>
+<p>But now something important happens, and this is where the principle re-enters. The capacity calculation has produced <em>knowledge about the system</em> — structural knowledge, not just a number. You now know:</p>
+<ul>
+<li>A single instance cannot handle the required load.</li>
+<li>The workload must be distributable across multiple instances running in parallel.</li>
+<li>Distribution requires elements that didn’t previously exist: a way to route requests across instances, a way to share or partition state, a way to coordinate on things that can’t be freely replicated, a way to detect and recover from instance failure.</li>
+</ul>
+<p>Those “requires” introduce new elements into the system. A load balancer. A session store or sticky-routing scheme. A distributed lock or a partition-key strategy. A health-check mechanism. A failure handler. None of these existed in the pre-analysis system. They exist now because the capacity knowledge forced them into existence.</p>
+<p>And here’s the key point: each of those new elements carries its own driver set, and those drivers are typically distinct from the drivers of the business logic they serve. They’re genuinely new drivers, brought into the system by the structural decisions the capacity analysis forced.</p>
+<ul>
+<li>The load balancer’s drivers are the routing strategy, the health-check protocol, the traffic patterns it has to handle. They are not the business rules of the requests passing through it.</li>
+<li>The session store’s drivers are the consistency model, the eviction policy, the replication strategy. They are not the domain rules that produced the sessions.</li>
+<li>The partition-key strategy’s drivers are the skew characteristics of the key space and the rebalancing cost. They are not the semantics of the partitioned entities.</li>
+</ul>
+<p>Once these elements are added to the system, the principle does its usual work over the enlarged element set. Functional elements group with functional elements that share their functional drivers. Infrastructure elements group with infrastructure elements that share <em>their</em> drivers. Where a functional element genuinely participates in an infrastructure driver — say, a business rule whose modification is itself triggered by scaling constraints because it encodes a degradation policy — the principle correctly groups it with the infrastructure cluster rather than its original functional one. The partition is recomputed over a richer set of inputs, and the result is a different modularization than functional drivers alone would give.</p>
+<p>Concretely, the resulting cells look something like this:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 31%">
+<col style="width: 60%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cell</th>
+<th>Representative drivers</th>
+<th>Operational compatibility with other cells</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>App logic</td>
+<td>Domain rules, business workflows, validation logic</td>
+<td>Compatible with replication; not compatible with sharing a process with the load balancer (cyclic)</td>
+</tr>
+<tr class="even">
+<td>Load balancing</td>
+<td>Routing strategy, health-check protocol, traffic patterns</td>
+<td>Cannot live inside an instance it balances</td>
+</tr>
+<tr class="odd">
+<td>Session / state coordination</td>
+<td>Consistency model, eviction policy, replication strategy</td>
+<td>Must outlive any single instance — independent failure domain</td>
+</tr>
+<tr class="even">
+<td>Failure detection</td>
+<td>Health-check semantics, timeout policies, recovery rules</td>
+<td>Must survive failures of what it monitors</td>
+</tr>
+</tbody>
+</table>
+<p>The interesting move happens in the right column. Each cell has, in addition to its driver set, an operational profile: a set of facts about whether the drivers in the cell <em>can</em> be served by sharing a process with another cell. The load balancer cell can’t share a process with the app logic cell it balances, because a load balancer running inside one of the app instances can’t distribute requests across the four of them — the routing driver becomes unactionable. The session coordination cell can’t share a process with any single app instance, because the consistency-and-replication driver requires it to outlive that instance. These aren’t claims IVP itself derives. They’re engineering facts about runtimes — what a process is, what it means for one process to fail, how routing works. The principle determines that the cells exist as distinct modules; the operational facts determine that some of those modules cannot be realized in-process and must be separate deployable units.</p>
+<p>The app logic cell, now freed from the concurrency and routing concerns that have been factored into their own modules, becomes replicable precisely because the concerns that would have prevented replication are no longer tangled into it.</p>
+<p><strong>The chain, in order:</strong></p>
+<ol type="1">
+<li><strong>Capacity math</strong> (outside the principle): 10,000 users on hardware X cannot be served by a single instance.</li>
+<li><strong>Element addition</strong> (outside the principle, prompted by step 1): the system must now contain load balancing, state coordination, failure detection, and whatever else horizontal scaling requires.</li>
+<li><strong>Driver attribution</strong> (outside the principle, requires engineering judgment): each new element’s drivers are identified — routing drivers for the balancer, consistency drivers for the store, health drivers for the detector.</li>
+<li><strong>Repartition</strong> (this is the principle’s job): the enlarged element set and enlarged driver set are fed in; the principle produces a new partition separating business logic from infrastructure, routing from state, health checking from everything else. The realization of each cell isn’t a later decision — it’s the operational consequence of which drivers ended up in the cell, evaluated against the engineering facts about how those drivers can actually be served. Cells whose drivers can’t all be served at once inside a shared process need to be separate deployable units, and that follows from step 4 directly.</li>
+<li><strong>Deployment topology</strong> (outside the principle, back to capacity math): the separate deployable unit for app logic runs on four instances, because that’s what the original capacity analysis said.</li>
+</ol>
+<p>Steps 1, 2, 3, and 5 are performance engineering and architectural judgment. The principle has no access to any of them. Step 4 follows deterministically once the elements, the driver attributions, and the engineering facts about which drivers can coexist in a shared process are all in place. The principle does the partition work; the engineering facts decide which cells can be in-process and which can’t.</p>
+<section id="two-distinct-kinds-of-knowledge" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="two-distinct-kinds-of-knowledge"><span class="header-section-number">7.1</span> Two distinct kinds of knowledge</h3>
+<p>Notice that “there must be a separate service deployed onto four servers” is actually two different claims fused into one sentence, and they enter the principle through different doors.</p>
+<p>“There must be a separate service” is a <em>structural</em> claim about elements and drivers. It says: there exist elements whose drivers (combined with engineering facts about runtimes) cannot all be served inside a shared process — they need independent deployment, independent scaling, or an independent failure domain. Once you know that, the principle takes over and propagates the structural consequence: those elements form a cell whose realization is a separate deployable unit. The principle doesn’t <em>discover</em> the underlying drivers, but it <em>consumes</em> them and propagates their implications through the partition.</p>
+<p>“Deployed onto four servers” is a <em>quantitative</em> fact about capacity and resource allocation. It is not a structural claim about modularization at all. The principle has nothing to say about whether the number is four, forty, or four hundred. You can change the number tomorrow without touching a single module boundary — you adjust a deployment config, you don’t re-modularize. But you can’t quietly change “separate service” to “in-process library” without reshaping the partition, because the drivers that put it in its own cell haven’t gone away.</p>
+<p>So the key knowledge, from the principle’s point of view, is the <em>structural</em> knowledge. The quantitative part is what made the structural knowledge visible in the first place — capacity math is what revealed that horizontal scaling was necessary — but once the structural fact is established, the specific instance count drops out of the modularization question entirely. If a genie whispered “this system will need to run horizontally scaled” without telling you the number, the principle could already produce the correct partition. If the same genie whispered “this system will need four servers” without telling you <em>why</em>, the principle couldn’t do anything with the information — it has no slot for a raw count.</p>
+<p>This is the layering the honest answer requires. Capacity math produces numbers and reveals structural necessities. The principle consumes the structural necessities and produces the partition. Operations consumes the partition <em>and</em> the original numbers to decide how many instances of each module run where. Each layer does its own job. When a single mental model tries to carry all three at once, the layers blur, and that blurring is where a lot of microservice sizing confusion comes from.</p>
+</section>
+</section>
+<section id="what-the-three-questions-are-compressing" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="what-the-three-questions-are-compressing"><span class="header-section-number">8</span> What the three questions are compressing</h2>
+<p>The reason Crickett’s three questions work is that they compress, in a form practitioners can carry into a meeting, the structural reasoning the principle does formally. That kind of compression is valuable in its own right — in fact it’s what good practitioner writing <em>does</em>, and it’s what most academic writing fails at. The three questions don’t try to do what IVP does; they’re a different artifact aimed at a different job. They’re the question you ask in the hallway. IVP is what you reach for when the hallway question produces a disagreement neither of you can resolve.</p>
+<p>Read this article’s argument as unpacking the compression rather than replacing the questions. The reason all three “collapse into one” isn’t that the original three are redundant — it’s that they’re three useful angles on a single underlying question that, viewed structurally, has one shape. Ferguson’s three questions before you speak presumably unpack into a single underlying question too: <em>should I say this?</em> That doesn’t make Ferguson’s three-part formulation useless; it makes it a compression worth understanding.</p>
+<p>What the formal lens adds, beyond the compression, is a way to make the question precise enough to settle disagreements. Two engineers asking “does this need to be its own service?” can give different answers and have no shared ground for resolution. Two engineers asking “does this element’s driver set match the driver set of any existing module?” can, in principle, identify exactly where they disagree — which driver one of them is including that the other isn’t, or which element they’re attributing it to. The classical principles SRP, SoC, and CCP each point at related intuitions and run into the same gap when disagreement arises: their core terms aren’t sharp enough to localize where the disagreement actually lives. Parnas was already most of the way there in 1972 with “design decisions likely to change”; what was missing was the formal step from that intuition to driver-set equality as the partition criterion.</p>
+</section>
+<section id="the-practical-takeaway" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="the-practical-takeaway"><span class="header-section-number">9</span> The practical takeaway</h2>
+<p>Next time you face a “should this be a service?” decision, Crickett’s three questions are a perfectly good prompt — they’ll surface the conversation. When they surface a disagreement that the conversation can’t resolve, the underlying structural question they’re pointing at is this:</p>
+<blockquote class="blockquote">
+<p>What are the change drivers for the elements I’m considering? Include functional drivers, scaling drivers, reliability drivers, deployment-independence drivers, team-autonomy drivers — anything that can genuinely cause these elements to be modified. Then ask: is there an existing module whose set of change drivers matches this one? If yes, the structural answer is to merge. If no, the structural answer is to separate — and which realization (in-process module, library, separate service) the separated module needs is determined by which drivers are in its cell and how those drivers can actually be served operationally.</p>
+</blockquote>
+<p>Be honest about what you know and don’t know. If you can’t name the quality drivers for an element, you don’t have enough information to decide yet. The principle has no “wait until you know” rule — it just has nothing to evaluate when the inputs aren’t there. Going and finding out is the right move. Acting on guesses you haven’t surfaced as guesses is the move that goes wrong silently.</p>
+<p>A few honest scope notes. This article has been talking about server-side, request/response systems with a horizontal-scaling story. The same principle applies elsewhere — to brownfield migrations, FaaS, batch and streaming systems, regulated environments where compliance imposes its own boundaries — but the <em>inputs</em> (what counts as a driver, how the operational compatibility column gets filled in) shift with the context. In a brownfield migration, the order in which you act on the partition is constrained by data and dependency reality; the principle tells you the target, not the path. In regulated industries, compliance boundaries can force separations that aren’t visible from drivers alone — those should be modeled as static constraints on realization, not bolted onto the partition. None of these are refutations; they’re places where applying the principle requires specific quality knowledge the article hasn’t tried to provide.</p>
+<p>That’s the picture. Three questions, one underlying criterion, and a reminder that no theory of modularization can substitute for knowing your domain and your quality requirements. The theory gives you a precise question; your expertise gives you the inputs; the answer follows. You need both halves.</p>
+<hr>
+</section>
+<section id="references" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="references"><span class="header-section-number">10</span> References</h2>
+<ul>
+<li>Loth, Y. (2025). <em>The Independent Variation Principle</em>. Zenodo. <a href="https://zenodo.org/records/18024111">https://zenodo.org/records/18024111</a></li>
+<li>Loth Y. (2026). <em>IVP as a Meta-Principle: A Unifying Software Architecture Theory</em>. Zenodo <a href="https://zenodo.org/records/18748561">https://zenodo.org/records/18748561</a></li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2024-01-12">
+<meta name="description" content="I wrote that article for my personal blog 2010-08-01, so it may be a bit outdated, yet the info might…">
+
+<title>Installing Archlinux with software raid1, encrypted filesystem and LVM2 – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-083efae8c4c9256682aa2f1f6671313f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Installing Archlinux with software raid1, encrypted filesystem and LVM2 – Independent Variation Principle">
+<meta property="og:description" content="I wrote that article for my personal blog 2010-08-01, so it may be a bit outdated, yet the info might…">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Installing Archlinux with software raid1, encrypted filesystem and LVM2 – Independent Variation Principle">
+<meta name="twitter:description" content="I wrote that article for my personal blog 2010-08-01, so it may be a bit outdated, yet the info might…">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../ivp-software/index.html"> 
+<span class="menu-text">IVP Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#required-skills" id="toc-required-skills" class="nav-link active" data-scroll-target="#required-skills"><span class="header-section-number">1</span> Required skills</a></li>
+  <li><a href="#the-story" id="toc-the-story" class="nav-link" data-scroll-target="#the-story"><span class="header-section-number">2</span> The story</a></li>
+  <li><a href="#hard-drive-setup" id="toc-hard-drive-setup" class="nav-link" data-scroll-target="#hard-drive-setup"><span class="header-section-number">3</span> Hard drive setup</a></li>
+  <li><a href="#archlinux-installation" id="toc-archlinux-installation" class="nav-link" data-scroll-target="#archlinux-installation"><span class="header-section-number">4</span> ArchLinux installation</a>
+  <ul class="collapse">
+  <li><a href="#rc.conf" id="toc-rc.conf" class="nav-link" data-scroll-target="#rc.conf"><span class="header-section-number">4.1</span> <code>rc.conf</code></a></li>
+  <li><a href="#mkinitcpio.conf" id="toc-mkinitcpio.conf" class="nav-link" data-scroll-target="#mkinitcpio.conf"><span class="header-section-number">4.2</span> <code>mkinitcpio.conf</code></a></li>
+  <li><a href="#locale.gen" id="toc-locale.gen" class="nav-link" data-scroll-target="#locale.gen"><span class="header-section-number">4.3</span> <code>locale.gen</code></a></li>
+  <li><a href="#pacman.conf" id="toc-pacman.conf" class="nav-link" data-scroll-target="#pacman.conf"><span class="header-section-number">4.4</span> <code>pacman.conf</code></a></li>
+  </ul></li>
+  <li><a href="#enjoy" id="toc-enjoy" class="nav-link" data-scroll-target="#enjoy"><span class="header-section-number">5</span> Enjoy!</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Installing Archlinux with software raid1, encrypted filesystem and LVM2</h1>
+</div>
+
+<div>
+  <div class="description">
+    I wrote that article for my personal blog 2010-08-01, so it may be a bit outdated, yet the info might…
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 12, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>I wrote that article for my personal blog 2010-08-01, so it may be a bit outdated, yet the info might still be useful, so here it is.</p>
+<p>I have not tested this setup with a recently, so please be aware that the described steps may not work with an up-to-date ArchLinux version.</p>
+<hr>
+<p>On the web, you’ll find how to setup <a href="https://archlinux.org/">ArchLinux</a> with <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a>, or with <a href="https://en.wikipedia.org/wiki/RAID">RAID</a>, or with encryption, but not with the combination of these three technologies. This article explains the different steps I took to setup these three technologies with <a href="https://archlinux.org/">ArchLinux</a>.</p>
+<section id="required-skills" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="required-skills"><span class="header-section-number">1</span> Required skills</h2>
+<p>Sound understanding of Linux (<a href="https://archlinux.org/">ArchLinux</a> specifics may be useful…) and <a href="https://en.wikipedia.org/wiki/RAID">RAID</a>, <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM2</a>, partitioning, encryption.</p>
+</section>
+<section id="the-story" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-story"><span class="header-section-number">2</span> The story</h2>
+<p>During the last days I reinstalled my server (AMD x86_64), which runs several <a href="https://www.virtualbox.org/">VirtualBox</a> VMs, with <a href="https://archlinux.org/">ArchLinux</a>.</p>
+<p>It’s a simple PC with 3 hard drives: one for the OS and two 500GB drives which hold my data and VMs.</p>
+<p>Here’s the detail of my hard disk setup:</p>
+<ul>
+<li>The OS hard drive: This one is encrypted using LUKS and then runs <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a> for the partitioning. There are 2 primary partitions: one for /boot, not encrypted, and one which contains the encrypted <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a> partitions. Thus, the root partition is encrypted and on <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a>, which needs specific setup in Grub.</li>
+<li>The 2 data hard drives: These are <a href="https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1">raid-1</a> (simple duplication), the raid array is encrypted, and the partitioning is done using <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a>. The array only contains 1 single primary partition, spanning the whole space and containing the <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a> partitions.</li>
+</ul>
+<p>I never dared install <a href="https://archlinux.org/">ArchLinux</a> on top of this setup before (so I ran my server using <a href="https://www.opensuse.org/">openSUSE</a>, and recently <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a>), because of the not so user friendly <a href="https://archlinux.org/">ArchLinux</a> install software. I added encryption to my setup when I installed <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a>, using the Fedora installer Anaconda. But some days ago, as I encountered several issues using <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a>, I decided to give <a href="https://archlinux.org/">ArchLinux</a> a try. Please note that I was really surprised by the <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a> release (it’s quite slick and very stable), but <a href="https://archlinux.org/">ArchLinux</a> (the control I have over it and the gargantuous software collection it provides) is better suited to my advanced needs. More precisely, in <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a>, I’ve found nothing as easy as <code>netcfg</code> to setup my network interfaces like I wanted (quite complicated, not explained here). So here are the steps:</p>
+</section>
+<section id="hard-drive-setup" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="hard-drive-setup"><span class="header-section-number">3</span> Hard drive setup</h2>
+<p>Setup the hard drives (partitioning, RAID-1 and LVM2) with the <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a> installer Anaconda. Simply put in the <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a> install disk and make a simple install with the correct disk setup you need. The installed OS will be of no use, the purpose here is to setup the disks, not the OS. The <a href="https://fedoraproject.org/">Fedora</a> <a href="https://archive.fedoraproject.org/pub/archive/fedora/linux/releases/13/">13</a> install software is very easy to use, as the hard drive setup is visual. <a href="https://www.opensuse.org/">openSUSE</a> may be OK as well, as <a href="https://yast.opensuse.org/">Yast</a> is visual and easy to use as well.</p>
+</section>
+<section id="archlinux-installation" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="archlinux-installation"><span class="header-section-number">4</span> <a href="https://archlinux.org/">ArchLinux</a> installation</h2>
+<p>Boot using the <a href="https://archlinux.org/">ArchLinux</a> <a href="https://archlinux.org/download/">Install CD</a>. Choose the correct keymap for your PC:</p>
+<pre><code>km</code></pre>
+<p>Load the encryption, <a href="https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1">raid1</a> and LVM modules:</p>
+<pre><code>modprobe dm-crypt
+modprobe dm-mod
+modprobe raid1</code></pre>
+<p>Assemble the raid (as it was created with the Fedora 13 installer, there is no need to create it):</p>
+<pre><code>mdadm -A /dev/md0 /dev/sdc1 /dev/sdb1</code></pre>
+<p>Setup encryption on the OS hard drive and the data array (again, as the encrypted drives already exist, there is no need to create them, simply open them with your passphrases):</p>
+<pre><code>cryptsetup luksOpen /dev/sda2 system
+cryptsetup luksOpen /dev/md0 data</code></pre>
+<p>Scan for <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)">LVM</a> volume groups and keep them in memory:</p>
+<pre><code>vgscan
+vgchange -ay</code></pre>
+<p>Then run the <a href="https://archlinux.org/">ArchLinux</a> install software:</p>
+<pre><code>/arch/setup</code></pre>
+<p>Configure your installation (use the existing partitions!) until when packages were installed. Immediately after package installation, change to another terminal with the key combination <code>CTRL-ALT-F2</code>, and login as root. Now, replace the <code>mdadm.conf</code> file by the one corresponding to your setup (this step is needed, as this file is used to generate the initrd image with <code>mkinitcpio</code>):</p>
+<pre><code>rm /mnt/etc/mdadm.conf
+mdadm --examine --scan &gt;&gt; /mnt/etc/mdadm.conf</code></pre>
+<p>Come back to the install software with the key combination <code>CTRL-ALT-F1</code>. Now, in the install software, edit your configuration files:</p>
+<section id="rc.conf" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="rc.conf"><span class="header-section-number">4.1</span> <code>rc.conf</code></h3>
+<pre><code>USELVM=yes
+KEYMAP=be-latin1</code></pre>
+<p>You may replace <code>be-latin1</code> with your keymap.</p>
+</section>
+<section id="mkinitcpio.conf" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="mkinitcpio.conf"><span class="header-section-number">4.2</span> <code>mkinitcpio.conf</code></h3>
+<pre><code>MODULES=(... dm-mod dm-crypt aes_x86_64 raid1 ...)
+HOOKS=(... mdadm keymap encrypt lvm2 filesystems...)</code></pre>
+<p>The order in the <code>HOOKS</code> array is very important:</p>
+<ul>
+<li><code>keymap</code> permits to set the keymap before the encryption password for the drives is required.</li>
+<li><code>encrypt</code> is necessary to decrypt the drives, which allows content access to <code>lvm2</code></li>
+<li><code>lvm2</code> provides partitions, which are needed to mount the filesystems</li>
+</ul>
+<p>I think the <code>mdadm</code> hook is not needed, as the root partition is not on top of a raid. But if it was, it would be required! Based on your setup (lvm2 over encryption over raid, encryption of single lvm2 drives,…), the order may change, so your understanding of how these technologies are set up on your drives really is relevant.</p>
+</section>
+<section id="locale.gen" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="locale.gen"><span class="header-section-number">4.3</span> <code>locale.gen</code></h3>
+<p>Remove the leading dashes (<code>#</code>) in front of your locale.</p>
+</section>
+<section id="pacman.conf" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="pacman.conf"><span class="header-section-number">4.4</span> <code>pacman.conf</code></h3>
+<p>Strictly speaking, this is not needed at all for this setup, but I can’t imagine using <a href="https://archlinux.org/">ArchLinux</a> without this repository, so I always enable it:</p>
+<pre><code>[archlinuxfr]
+Server = http://repo.archlinux.fr/x86_64</code></pre>
+<p>Now validate your config files. The system launches <code>mkinitcpio</code>, which generates <code>initrd</code> images. Now edit your <code>menu.lst</code> file. Add <code>cryptdevice=/dev/sda2:vg_system</code> to the kernel line (adapt it to your config, replace <code>sda2</code> by your encrypted partition and <code>vg_system</code> by your LVM2 volume group’s name). Following are my configurations:</p>
+<pre><code># (0) Arch Linux
+title  Arch Linux
+root   (hd0,0)
+kernel /vmlinuz26 root=/dev/mapper/vg_system-root cryptdevice=/dev/sda2:vg_system ro
+initrd /kernel26.img
+
+# (1) Arch Linux
+title  Arch Linux Fallback
+root   (hd0,0)
+kernel /vmlinuz26 root=/dev/mapper/vg_system-root cryptdevice=/dev/sda2:vg_system ro
+initrd /kernel26-fallback.img</code></pre>
+<p>Save the file, install <code>grub</code> to your MBR. Now, to automatically mount the encrypted data partitions (those on the raid1), the system must know your passphrase. That’s the purpose of the <code>/etc/crypttab</code> file.</p>
+<pre><code>nano /mnt/etc/crypttab</code></pre>
+<p>Add the line:</p>
+<pre><code>data /dev/md0 PASSPHRASE</code></pre>
+<pre><code>The device `/dev/md0` should be the same as the one in `/etc/mdadm.conf`.
+Replace `PASSPHRASE` with the one you chose for your system.
+Make sure `/etc/crypttab` is only readable by root, or maybe someone else may read your passphrase!</code></pre>
+<p>The use of <code>/etc/crypttab</code> conveniently avoids asking the user for two passphrases, one for the OS encrypted drive and one for the data encrypted drive. At boot, you enter your OS-encrypted-partition passphrase, and then the system reads <code>/etc/crypttab</code> to decrypt the data-encrypted-partition.</p>
+</section>
+</section>
+<section id="enjoy" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="enjoy"><span class="header-section-number">5</span> Enjoy!</h2>
+<p>Now, if everything went fine, you may reboot and enjoy using your fresh <a href="https://archlinux.org/">ArchLinux</a> system.</p>
+<p>Should there be some steps you don’t understand or with errors, feel free to leave a comment, I’ll do the corrections.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

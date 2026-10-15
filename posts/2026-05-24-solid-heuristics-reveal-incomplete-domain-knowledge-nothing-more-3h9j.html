@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-05-24">
+<meta name="description" content="SOLID — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency…">
+
+<title>SOLID Heuristics Reveal Incomplete Domain Knowledge — Nothing More – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-083efae8c4c9256682aa2f1f6671313f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="SOLID Heuristics Reveal Incomplete Domain Knowledge — Nothing More – Independent Variation Principle">
+<meta property="og:description" content="SOLID — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency…">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="SOLID Heuristics Reveal Incomplete Domain Knowledge — Nothing More – Independent Variation Principle">
+<meta name="twitter:description" content="SOLID — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency…">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../ivp-software/index.html"> 
+<span class="menu-text">IVP Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#how-each-case-is-presented" id="toc-how-each-case-is-presented" class="nav-link active" data-scroll-target="#how-each-case-is-presented"><span class="header-section-number">0.1</span> How each case is presented</a></li>
+  <li><a href="#the-independent-variation-principle" id="toc-the-independent-variation-principle" class="nav-link" data-scroll-target="#the-independent-variation-principle"><span class="header-section-number">1</span> The Independent Variation Principle</a></li>
+  <li><a href="#srp-bundled-causal-concerns" id="toc-srp-bundled-causal-concerns" class="nav-link" data-scroll-target="#srp-bundled-causal-concerns"><span class="header-section-number">2</span> SRP: Bundled Causal Concerns</a>
+  <ul class="collapse">
+  <li><a href="#knowledge-with-the-gap" id="toc-knowledge-with-the-gap" class="nav-link" data-scroll-target="#knowledge-with-the-gap"><span class="header-section-number">2.1</span> Knowledge with the gap</a></li>
+  <li><a href="#knowledge-without-the-gap" id="toc-knowledge-without-the-gap" class="nav-link" data-scroll-target="#knowledge-without-the-gap"><span class="header-section-number">2.2</span> Knowledge without the gap</a></li>
+  <li><a href="#ivp-application" id="toc-ivp-application" class="nav-link" data-scroll-target="#ivp-application"><span class="header-section-number">2.3</span> IVP application</a></li>
+  <li><a href="#accidental-coupling-with-the-gap-vs.-without" id="toc-accidental-coupling-with-the-gap-vs.-without" class="nav-link" data-scroll-target="#accidental-coupling-with-the-gap-vs.-without"><span class="header-section-number">2.4</span> Accidental coupling: with the gap vs.&nbsp;without</a></li>
+  <li><a href="#when-srp-is-wrong" id="toc-when-srp-is-wrong" class="nav-link" data-scroll-target="#when-srp-is-wrong"><span class="header-section-number">2.5</span> When SRP is wrong</a></li>
+  </ul></li>
+  <li><a href="#ocp-failure-to-anticipate-driver-independent-variation" id="toc-ocp-failure-to-anticipate-driver-independent-variation" class="nav-link" data-scroll-target="#ocp-failure-to-anticipate-driver-independent-variation"><span class="header-section-number">3</span> OCP: Failure to Anticipate Driver-Independent Variation</a>
+  <ul class="collapse">
+  <li><a href="#knowledge-with-the-gap-1" id="toc-knowledge-with-the-gap-1" class="nav-link" data-scroll-target="#knowledge-with-the-gap-1"><span class="header-section-number">3.1</span> Knowledge with the gap</a></li>
+  <li><a href="#knowledge-without-the-gap-1" id="toc-knowledge-without-the-gap-1" class="nav-link" data-scroll-target="#knowledge-without-the-gap-1"><span class="header-section-number">3.2</span> Knowledge without the gap</a></li>
+  <li><a href="#ivp-application-1" id="toc-ivp-application-1" class="nav-link" data-scroll-target="#ivp-application-1"><span class="header-section-number">3.3</span> IVP application</a></li>
+  <li><a href="#accidental-coupling-with-the-gap-vs.-without-1" id="toc-accidental-coupling-with-the-gap-vs.-without-1" class="nav-link" data-scroll-target="#accidental-coupling-with-the-gap-vs.-without-1"><span class="header-section-number">3.4</span> Accidental coupling: with the gap vs.&nbsp;without</a></li>
+  </ul></li>
+  <li><a href="#lsp-structural-placement-first-behavioral-validity-second" id="toc-lsp-structural-placement-first-behavioral-validity-second" class="nav-link" data-scroll-target="#lsp-structural-placement-first-behavioral-validity-second"><span class="header-section-number">4</span> LSP: Structural Placement First, Behavioral Validity Second</a>
+  <ul class="collapse">
+  <li><a href="#knowledge-with-the-gap-2" id="toc-knowledge-with-the-gap-2" class="nav-link" data-scroll-target="#knowledge-with-the-gap-2"><span class="header-section-number">4.1</span> Knowledge with the gap</a></li>
+  <li><a href="#knowledge-without-the-gap-2" id="toc-knowledge-without-the-gap-2" class="nav-link" data-scroll-target="#knowledge-without-the-gap-2"><span class="header-section-number">4.2</span> Knowledge without the gap</a></li>
+  <li><a href="#ivp-application-2" id="toc-ivp-application-2" class="nav-link" data-scroll-target="#ivp-application-2"><span class="header-section-number">4.3</span> IVP application</a></li>
+  <li><a href="#when-lsp-is-not-a-knowledge-gap" id="toc-when-lsp-is-not-a-knowledge-gap" class="nav-link" data-scroll-target="#when-lsp-is-not-a-knowledge-gap"><span class="header-section-number">4.4</span> When LSP is not a knowledge gap</a></li>
+  <li><a href="#accidental-coupling-with-the-gap-vs.-without-2" id="toc-accidental-coupling-with-the-gap-vs.-without-2" class="nav-link" data-scroll-target="#accidental-coupling-with-the-gap-vs.-without-2"><span class="header-section-number">4.5</span> Accidental coupling: with the gap vs.&nbsp;without</a></li>
+  </ul></li>
+  <li><a href="#isp-conflated-client-contracts" id="toc-isp-conflated-client-contracts" class="nav-link" data-scroll-target="#isp-conflated-client-contracts"><span class="header-section-number">5</span> ISP: Conflated Client Contracts</a>
+  <ul class="collapse">
+  <li><a href="#knowledge-with-the-gap-3" id="toc-knowledge-with-the-gap-3" class="nav-link" data-scroll-target="#knowledge-with-the-gap-3"><span class="header-section-number">5.1</span> Knowledge with the gap</a></li>
+  <li><a href="#knowledge-without-the-gap-3" id="toc-knowledge-without-the-gap-3" class="nav-link" data-scroll-target="#knowledge-without-the-gap-3"><span class="header-section-number">5.2</span> Knowledge without the gap</a></li>
+  <li><a href="#ivp-application-3" id="toc-ivp-application-3" class="nav-link" data-scroll-target="#ivp-application-3"><span class="header-section-number">5.3</span> IVP application</a></li>
+  <li><a href="#accidental-coupling-with-the-gap-vs.-without-3" id="toc-accidental-coupling-with-the-gap-vs.-without-3" class="nav-link" data-scroll-target="#accidental-coupling-with-the-gap-vs.-without-3"><span class="header-section-number">5.4</span> Accidental coupling: with the gap vs.&nbsp;without</a></li>
+  </ul></li>
+  <li><a href="#dip-bundled-abstraction-and-implementation" id="toc-dip-bundled-abstraction-and-implementation" class="nav-link" data-scroll-target="#dip-bundled-abstraction-and-implementation"><span class="header-section-number">6</span> DIP: Bundled Abstraction and Implementation</a>
+  <ul class="collapse">
+  <li><a href="#knowledge-with-the-gap-4" id="toc-knowledge-with-the-gap-4" class="nav-link" data-scroll-target="#knowledge-with-the-gap-4"><span class="header-section-number">6.1</span> Knowledge with the gap</a></li>
+  <li><a href="#knowledge-without-the-gap-4" id="toc-knowledge-without-the-gap-4" class="nav-link" data-scroll-target="#knowledge-without-the-gap-4"><span class="header-section-number">6.2</span> Knowledge without the gap</a></li>
+  <li><a href="#ivp-application-4" id="toc-ivp-application-4" class="nav-link" data-scroll-target="#ivp-application-4"><span class="header-section-number">6.3</span> IVP application</a></li>
+  <li><a href="#accidental-coupling-with-the-gap-vs.-without-4" id="toc-accidental-coupling-with-the-gap-vs.-without-4" class="nav-link" data-scroll-target="#accidental-coupling-with-the-gap-vs.-without-4"><span class="header-section-number">6.4</span> Accidental coupling: with the gap vs.&nbsp;without</a></li>
+  </ul></li>
+  <li><a href="#the-synthesis" id="toc-the-synthesis" class="nav-link" data-scroll-target="#the-synthesis"><span class="header-section-number">7</span> The Synthesis</a></li>
+  <li><a href="#what-this-means" id="toc-what-this-means" class="nav-link" data-scroll-target="#what-this-means"><span class="header-section-number">8</span> What This Means</a></li>
+  <li><a href="#a-note-on-robert-c.-martins-achievement" id="toc-a-note-on-robert-c.-martins-achievement" class="nav-link" data-scroll-target="#a-note-on-robert-c.-martins-achievement"><span class="header-section-number">9</span> A note on Robert C. Martin’s achievement</a></li>
+  <li><a href="#further-reading" id="toc-further-reading" class="nav-link" data-scroll-target="#further-reading"><span class="header-section-number">10</span> Further Reading</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">11</span> References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">SOLID Heuristics Reveal Incomplete Domain Knowledge — Nothing More</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">architecture</div>
+    <div class="quarto-category">solidprinciples</div>
+    <div class="quarto-category">independentvariationprinciple</div>
+    <div class="quarto-category">designprinciples</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    SOLID — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency…
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 24, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>SOLID — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion — has been taught for three decades as five independent design principles [Martin 1996a, 1996b, 2000, 2003]. Every software engineer learns them. Every code review invokes them.</p>
+<p>This article argues that each SOLID heuristic is not a design principle in the formal sense. It is a <em>diagnostic pattern for a specific way domain knowledge is incomplete or incorrectly expressed</em>. The heuristics exist only because we do not, in practice, document causal domain knowledge completely. Were we to do so, the correct design follows automatically — no heuristic check required.</p>
+<section id="how-each-case-is-presented" class="level3" data-number="0.1">
+<h3 data-number="0.1" class="anchored" data-anchor-id="how-each-case-is-presented"><span class="header-section-number">0.1</span> How each case is presented</h3>
+<p>For each heuristic that addresses change management (SRP, OCP, ISP, DIP), the analysis follows a three-step method:</p>
+<ol type="1">
+<li><p><strong>Knowledge with the gap.</strong> A domain statement as it is typically written — incomplete or compound — producing flawed code. The SOLID heuristic correctly flags this code. But the heuristic identifies the <em>symptom</em>, not the cause.</p></li>
+<li><p><strong>Knowledge without the gap.</strong> The same domain knowledge expressed correctly — decomposed into irreducible sub-statements, each governed by a distinct change driver. This is the knowledge correction. It is not a code refactoring; it is an epistemic act: recognizing what can independently cause each element to change.</p></li>
+<li><p><strong>IVP application.</strong> The corrected knowledge yields driver assignments Γ. IVP-2 decomposes reducible composites. IVP-3 and IVP-4 produce the unique module partition. The structure the heuristic prescribed emerges automatically. The heuristic itself was never invoked — it was only needed because the knowledge had a gap.</p></li>
+</ol>
+<p>LSP is treated separately: it is a hybrid. IVP still determines which types share a driver and therefore belong in the same module. When the structural placement is wrong — types with different invariants forced into a hierarchy — correcting Γ resolves the violation like the others. When the structural placement is correct but the behavioral contract is broken, Bertrand Meyer’s Design by Contract — a type-theoretic discipline — takes over.</p>
+<p>The argument rests on the Independent Variation Principle (IVP), a formal theory of software modularization. I state it first.</p>
+<hr>
+</section>
+<section id="the-independent-variation-principle" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-independent-variation-principle"><span class="header-section-number">1</span> The Independent Variation Principle</h2>
+<p>IVP defines a software system as a six-tuple <em>S = (F, κ_F, E, K, C, Γ)</em> where:</p>
+<ul>
+<li><em>F</em> is the set of functional purposes the system must fulfill</li>
+<li><em>κ_F</em> is the causal domain knowledge the system must embody to fulfill <em>F</em></li>
+<li><em>E</em> is the set of software elements — classes, functions, modules</li>
+<li><em>K</em> is the universe of all possible domain knowledge</li>
+<li><em>C</em> is the set of change drivers — forces that can causally require elements to be modified (regulations, contracts, interface specifications, stakeholder commitments, hardware evolution)</li>
+<li><em>Γ : E → P(C)</em> is the driver assignment function, mapping each element to the set of change drivers that can cause it to require modification</li>
+</ul>
+<p>The driver assignment Γ is the central object. <em>Γ(e)</em> answers one question: what can cause this element to change? The answer is not a design preference — it is a fact about the system’s causal reality. Two engineers who correctly analyze the same system must arrive at the same Γ. If they disagree, at least one analysis is incomplete.</p>
+<p>The four IVP directives are:</p>
+<p><strong>IVP-1 — Element Admissibility.</strong> Every element must have at least one change driver: <em>|Γ(e)| ≥ 1</em> for all <em>e ∈ E</em>. An element with no driver serves no purpose and should be removed.</p>
+<p><strong>IVP-2 — Change Driver Assignment.</strong> Every element is either pure (<em>|Γ(e)| = 1</em>) or irreducibly composite (<em>|Γ(e)| &gt; 1</em> with no decomposition possible without losing function). A reducible composite — an element that could be split to reduce its driver set — is a design defect. A reducible element is evidence that domain knowledge was over-specified, conflated, or incompletely analyzed.</p>
+<p><strong>IVP-3 — Unit Purity (Separation).</strong> Elements with different driver assignments must not occupy the same module: <em>∀ M ∈ M, ∀ e, e’ ∈ M : Γ(e) = Γ(e’)</em>.</p>
+<p><strong>IVP-4 — Unit Completeness (Unification).</strong> Elements with the same driver assignment must occupy the same module: <em>∀ e, e’ : Γ(e) = Γ(e’) ⇒ ∃ M ∈ M : {e, e’} ⊆ M</em>.</p>
+<p>IVP-3 and IVP-4 together form a biconditional: two elements belong in the same module if and only if they share the same driver assignment. The modularization is precisely the partition of <em>E</em> induced by <em>e₁ ∼ e₂ ⇔ Γ(e₁) = Γ(e₂)</em>.</p>
+<p>Four directives. No heuristics. No weighing of trade-offs. The answer falls out of Γ.</p>
+<hr>
+</section>
+<section id="srp-bundled-causal-concerns" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="srp-bundled-causal-concerns"><span class="header-section-number">2</span> SRP: Bundled Causal Concerns</h2>
+<section id="knowledge-with-the-gap" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="knowledge-with-the-gap"><span class="header-section-number">2.1</span> Knowledge with the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement:</strong> “The system calculates employee pay, formats pay statements, and emails them to employees.”</p>
+</blockquote>
+<p>This is a compound statement bundling three independent concerns. The resulting code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PayCalculator <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">BigDecimal</span> <span class="fu">calculatePay</span><span class="op">(</span>Employee e<span class="op">)</span> <span class="op">{</span> <span class="co">/* tax rules, benefits, overtime */</span> <span class="op">}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> <span class="fu">formatPayStatement</span><span class="op">(</span>Employee e<span class="op">)</span> <span class="op">{</span> <span class="co">/* PDF layout, company logo, line items */</span> <span class="op">}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">emailPayStatement</span><span class="op">(</span>Employee e<span class="op">,</span> <span class="bu">String</span> statement<span class="op">)</span> <span class="op">{</span> <span class="co">/* SMTP config, attachments */</span> <span class="op">}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>SRP says: “A class should have only one reason to change” [Martin 2003]. <code>PayCalculator</code> has three: tax rules change, statement layout changes, email infrastructure changes. SRP flags this — correctly — as a defect.</p>
+<p>But SRP does not tell you <em>why</em> the defect exists.</p>
+</section>
+<section id="knowledge-without-the-gap" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="knowledge-without-the-gap"><span class="header-section-number">2.2</span> Knowledge without the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement (corrected):</strong> - “Pay calculation is governed by tax regulations and benefits contracts.” - “Pay statement formatting is governed by document layout standards.” - “Pay statement delivery is governed by the organization’s mail infrastructure.”</p>
+</blockquote>
+<p>Three irreducible statements, each governed by a distinct authority. The correction is not a code refactoring — it is a knowledge revision: the compound statement has been decomposed.</p>
+</section>
+<section id="ivp-application" class="level3" data-number="2.3">
+<h3 data-number="2.3" class="anchored" data-anchor-id="ivp-application"><span class="header-section-number">2.3</span> IVP application</h3>
+<p>From the corrected knowledge, the driver assignments follow directly:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Element</th>
+<th>Γ (change drivers)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>TaxCalculator</code></td>
+<td>{γ_tax}</td>
+</tr>
+<tr class="even">
+<td><code>PayStatementFormatter</code></td>
+<td>{γ_format}</td>
+</tr>
+<tr class="odd">
+<td><code>PayStatementMailer</code></td>
+<td>{γ_email}</td>
+</tr>
+</tbody>
+</table>
+<p>Each element is pure: <em>|Γ(e)| = 1</em>. IVP-2 is satisfied.</p>
+<p>The driver sets differ (<em>{γ_tax} ≠ {γ_format} ≠ {γ_email}</em>). IVP-3 places each element in its own module:</p>
+<ul>
+<li><strong>Payroll module:</strong> <code>TaxCalculator</code> (driven by γ_tax)</li>
+<li><strong>Formatting module:</strong> <code>PayStatementFormatter</code> (driven by γ_format)</li>
+<li><strong>Delivery module:</strong> <code>PayStatementMailer</code> (driven by γ_email)</li>
+</ul>
+<p>SRP was never invoked. The decomposition falls out of Γ. The resulting class structure — three separate classes, each with a single driver — is identical to what SRP would prescribe. But SRP needed a heuristic check to get there. IVP needed only correct Γ.</p>
+</section>
+<section id="accidental-coupling-with-the-gap-vs.-without" class="level3" data-number="2.4">
+<h3 data-number="2.4" class="anchored" data-anchor-id="accidental-coupling-with-the-gap-vs.-without"><span class="header-section-number">2.4</span> Accidental coupling: with the gap vs.&nbsp;without</h3>
+<p>With the gap, the compound knowledge statement creates <em>accidental coupling</em> between three independent driver domains. <code>TaxCalculator</code>’s pay calculation logic is coupled to the formatting code and the email delivery code — not because they share causal drivers, but because the knowledge bundled them into one statement. A change to statement layout (γ_format) touches tax calculation code in the diff. A change to email infrastructure (γ_email) forces recompilation of the pay calculation module. These are accidental dependencies: <code>PayCalculator</code> depends on formatting and email delivery code, but not because the domain requires it.</p>
+<p>Without the gap, there is no accidental coupling. Each module contains elements governed by exactly one driver. A dependency exists only where the domain demands it: <code>PayStatementMailer</code> depends on <code>TaxCalculator</code> because the delivery module genuinely needs pay data to construct the email. That is an intentional, domain-justified dependency. The coupling that remains is of the form <em>dependency</em> — one module depends on another. All the coupling discussed in this example is dependency coupling; other forms of coupling exist (data coupling, temporal coupling, coupling via shared state) but do not arise here.</p>
+</section>
+<section id="when-srp-is-wrong" class="level3" data-number="2.5">
+<h3 data-number="2.5" class="anchored" data-anchor-id="when-srp-is-wrong"><span class="header-section-number">2.5</span> When SRP is wrong</h3>
+<p>SRP says “a class should have only one reason to change” — it demands <em>|Γ(e)| = 1</em> for every element. But some elements are irreducibly composite: they genuinely embody knowledge from multiple drivers and cannot be split without losing function. SRP would demand splitting them anyway. That is not a knowledge correction — it is a design error.</p>
+<p>An adapter between a payment system (γ_payment) and a foreign exchange service (γ_fx) genuinely needs to know both domains: payment message formats <em>and</em> currency conversion protocols. The domain knowledge is not reducible:</p>
+<blockquote class="blockquote">
+<p><strong>Domain statement:</strong> “A payment-to-FX adapter translates payment instructions into currency exchange requests.”</p>
+</blockquote>
+<p>This is one statement — not a compound of two independent ones — because the translation <em>is</em> the element’s function. Splitting it into two elements would leave each unable to perform the translation. Γ(adapter) = {γ_payment, γ_fx} is irreducible. IVP-2 permits this. SRP does not.</p>
+<p>SRP is not just unnecessary when knowledge is complete — it is <em>wrong</em> for systems that contain legitimate multi-driver elements. IVP-2’s irreducibility test distinguishes the two cases: reducible (PayCalculator — defect, must split) from irreducible (payment-to-FX adapter — legitimate, must not split). SRP makes no such distinction.</p>
+<p><strong>The knowledge flaw SRP detects (when correct):</strong> Domain knowledge expressed as a compound statement rather than as irreducible sub-statements. SRP is the diagnostic for the reducible case; Γ and the irreducibility test handle both cases correctly.</p>
+<hr>
+</section>
+</section>
+<section id="ocp-failure-to-anticipate-driver-independent-variation" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="ocp-failure-to-anticipate-driver-independent-variation"><span class="header-section-number">3</span> OCP: Failure to Anticipate Driver-Independent Variation</h2>
+<section id="knowledge-with-the-gap-1" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="knowledge-with-the-gap-1"><span class="header-section-number">3.1</span> Knowledge with the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement:</strong> “The system sends notifications by email.”</p>
+</blockquote>
+<p>This statement embeds the notification channel into the notification act. The resulting code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> NotificationService <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">notify</span><span class="op">(</span><span class="bu">String</span> message<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        emailSender<span class="op">.</span><span class="fu">send</span><span class="op">(</span>message<span class="op">);</span>  <span class="co">// hard-coded to email</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>OCP says: “Software entities should be open for extension but closed for modification” [Meyer 1988]. Adding SMS requires modifying <code>NotificationService</code> — a violation.</p>
+<p>But OCP does not tell you <em>what</em> knowledge is missing.</p>
+</section>
+<section id="knowledge-without-the-gap-1" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="knowledge-without-the-gap-1"><span class="header-section-number">3.2</span> Knowledge without the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement (corrected):</strong> - “The system sends notifications.” - “Email delivery is governed by the SendGrid API and email template standards.” - “SMS delivery is governed by the Twilio API.” - “Push notification delivery is governed by Firebase Cloud Messaging.”</p>
+</blockquote>
+<p>Each channel is governed by its own change driver: the email infrastructure (γ_email), the SMS provider (γ_sms), and the push notification service (γ_push). The notification act itself is governed by the notification-content driver (γ_notification). Adding a new channel — say, WhatsApp — means adding a new driver (γ_whatsapp) without modifying existing code.</p>
+</section>
+<section id="ivp-application-1" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="ivp-application-1"><span class="header-section-number">3.3</span> IVP application</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Element</th>
+<th>Γ (change drivers)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>NotificationService</code></td>
+<td>{γ_notification}</td>
+</tr>
+<tr class="even">
+<td><code>NotificationChannel</code> (interface)</td>
+<td>{γ_notification}</td>
+</tr>
+<tr class="odd">
+<td><code>EmailChannel</code></td>
+<td>{γ_notification, γ_email}</td>
+</tr>
+<tr class="even">
+<td><code>SmsChannel</code></td>
+<td>{γ_notification, γ_sms}</td>
+</tr>
+<tr class="odd">
+<td><code>PushChannel</code></td>
+<td>{γ_notification, γ_push}</td>
+</tr>
+</tbody>
+</table>
+<p><code>NotificationService</code> and <code>NotificationChannel</code> share {γ_notification} — IVP-4 unifies them in the same module.</p>
+<p>Each channel implementation is an <em>irreducible composite</em>: it must know the notification contract (γ_notification — the interface it realizes) and its own delivery mechanism (γ_email, γ_sms, or γ_push). Splitting either driver out would destroy the element’s function — it could not send notifications without knowing the contract, and could not deliver without knowing the infrastructure. IVP-2 permits this: the composite is irreducible.</p>
+<p>The driver sets differ: {γ_notification} ≠ {γ_notification, γ_email} ≠ {γ_notification, γ_sms} ≠ {γ_notification, γ_push}. IVP-3 places each in its own module:</p>
+<ul>
+<li><strong>Notification module:</strong> <code>NotificationService</code>, <code>NotificationChannel</code></li>
+<li><strong>Email module:</strong> <code>EmailChannel</code></li>
+<li><strong>SMS module:</strong> <code>SmsChannel</code></li>
+<li><strong>Push module:</strong> <code>PushChannel</code></li>
+</ul>
+<p>OCP was never invoked. The resulting structure — an abstraction (<code>NotificationChannel</code>) with separate channel implementations, each in its own module — is identical to what OCP would prescribe. But OCP needed a heuristic check to get there. IVP needed only correct Γ.</p>
+<p>The same design also satisfies ISP and DIP. ISP: each channel depends only on the <code>NotificationChannel</code> contract it uses — no channel is forced to depend on other channels’ delivery methods. DIP: <code>NotificationService</code> depends on the <code>NotificationChannel</code> abstraction, not on concrete channels; the interface is owned by the notification domain (high-level), not by the channel implementations (low-level). The three heuristics converge on the same structure because they all address the same underlying reality: variation forces are independent, and dependencies must honor that independence.</p>
+</section>
+<section id="accidental-coupling-with-the-gap-vs.-without-1" class="level3" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="accidental-coupling-with-the-gap-vs.-without-1"><span class="header-section-number">3.4</span> Accidental coupling: with the gap vs.&nbsp;without</h3>
+<p>With the gap, the knowledge statement “the system sends notifications by email” creates <em>accidental coupling</em> between the notification dispatch logic and the email delivery infrastructure. <code>NotificationService</code> is coupled to <code>EmailSender</code> — not because the domain requires dispatch logic to know about email delivery, but because the knowledge embedded the channel into the notification act. A change to SMS delivery (γ_sms) touches <code>NotificationService</code> in the diff. The coupling is accidental: <code>NotificationService</code> depends on email delivery code, but the domain only requires it to depend on the abstract notion of sending a notification.</p>
+<p>Without the gap, there is no accidental coupling. <code>NotificationService</code> depends only on <code>NotificationChannel</code> — an abstraction governed by its own driver (γ_notification). Each channel module carries an intentional, irreducible dependency on both γ_notification (the contract it implements) and its infrastructure driver. The coupling that remains is of the form <em>dependency</em> — the service depends on the abstraction, each channel depends on the abstraction. Again, all the coupling visible here is dependency coupling. Adding WhatsApp adds a new module governed by γ_whatsapp. No existing module is modified. OCP says “open for extension, closed for modification.” Γ makes the statement structural: a new driver means a new module. Existing modules are closed.</p>
+<p><strong>The knowledge flaw OCP detects:</strong> Knowledge that treats variation points as fixed, when the domain contains forces — each channel’s governing infrastructure — that will activate independently. OCP is the diagnostic; recognizing each variation force as a distinct change driver resolves it.</p>
+<hr>
+</section>
+</section>
+<section id="lsp-structural-placement-first-behavioral-validity-second" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="lsp-structural-placement-first-behavioral-validity-second"><span class="header-section-number">4</span> LSP: Structural Placement First, Behavioral Validity Second</h2>
+<p>LSP is different from the other four, but not as different as it first appears. The other four are <em>purely</em> knowledge diagnostics: the knowledge is wrong, correct it, the design follows. LSP is a hybrid. IVP still decides where types live — and the LSP violation often reveals that the structural placement was wrong.</p>
+<section id="knowledge-with-the-gap-2" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="knowledge-with-the-gap-2"><span class="header-section-number">4.1</span> Knowledge with the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement:</strong> “The system models geometric shapes. Rectangle and Square are shapes with width and height.”</p>
+</blockquote>
+<p>This statement treats Rectangle and Square as sharing the same driver — geometry. But they don’t. A Rectangle has two independent dimensions. A Square has one dimension with the constraint that width equals height. They are governed by different invariants.</p>
+<p>The resulting code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="bu">Rectangle</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setWidth</span><span class="op">(</span><span class="dt">int</span> w<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">width</span> <span class="op">=</span> w<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setHeight</span><span class="op">(</span><span class="dt">int</span> h<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">height</span> <span class="op">=</span> h<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Square <span class="kw">extends</span> <span class="bu">Rectangle</span> <span class="op">{</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setWidth</span><span class="op">(</span><span class="dt">int</span> w<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">width</span> <span class="op">=</span> w<span class="op">;</span> <span class="kw">this</span><span class="op">.</span><span class="fu">height</span> <span class="op">=</span> w<span class="op">;</span> <span class="op">}</span> <span class="co">// breaks invariant</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setHeight</span><span class="op">(</span><span class="dt">int</span> h<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">width</span> <span class="op">=</span> h<span class="op">;</span> <span class="kw">this</span><span class="op">.</span><span class="fu">height</span> <span class="op">=</span> h<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>LSP says: “Subtypes must be substitutable for their base types” [Liskov 1987, Liskov and Wing 1994]. <code>Square</code> is not — a method accepting <code>Rectangle</code> that calls <code>setWidth(5); setHeight(10)</code> gets a 10×10 square instead of a 5×10 rectangle. But the heuristic only flags the behavioral violation. It does not tell you <em>why</em> the violation exists.</p>
+</section>
+<section id="knowledge-without-the-gap-2" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="knowledge-without-the-gap-2"><span class="header-section-number">4.2</span> Knowledge without the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement (corrected):</strong> - “A rectangle is a shape with independent width and height.” - “A square is a shape with a single side length.”</p>
+</blockquote>
+<p>These are two distinct knowledge statements. The invariant “width = height” is a domain fact about squares, not a property derivable from rectangles. Treating Square as a subtype of a mutable Rectangle is the knowledge error — the domain knowledge was incorrectly modeled as an inheritance relationship rather than as two separate shape types.</p>
+</section>
+<section id="ivp-application-2" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="ivp-application-2"><span class="header-section-number">4.3</span> IVP application</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Element</th>
+<th>Γ (change drivers)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Rectangle</code></td>
+<td>{γ_rect}</td>
+</tr>
+<tr class="even">
+<td><code>Square</code></td>
+<td>{γ_square}</td>
+</tr>
+</tbody>
+</table>
+<p>The drivers differ: {γ_rect} ≠ {γ_square}. IVP-3 places them in separate modules — no inheritance hierarchy connecting them. Each type governs its own invariant. The LSP violation was a symptom of a structural misplacement: two types with different drivers were forced into a subtype relationship.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="bu">Rectangle</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setWidth</span><span class="op">(</span><span class="dt">int</span> w<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">width</span> <span class="op">=</span> w<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setHeight</span><span class="op">(</span><span class="dt">int</span> h<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">height</span> <span class="op">=</span> h<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Square <span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">setSide</span><span class="op">(</span><span class="dt">int</span> s<span class="op">)</span> <span class="op">{</span> <span class="kw">this</span><span class="op">.</span><span class="fu">side</span> <span class="op">=</span> s<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// No inheritance. No shared invariant to break.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="when-lsp-is-not-a-knowledge-gap" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="when-lsp-is-not-a-knowledge-gap"><span class="header-section-number">4.4</span> When LSP is not a knowledge gap</h3>
+<p>LSP can also surface purely behavioral problems even when IVP placement is correct. Two elements genuinely share a driver and IVP-3/4 place them together in the same module. Inheritance is the chosen mechanism for sharing behavior. But the subtype breaks the behavioral contract — it strengthens preconditions or weakens postconditions relative to the base type. Here the driver assignments are correct; the defect is in the contract design, not in Γ. This is where Bertrand Meyer’s Design by Contract — a type-theoretic discipline — takes over from IVP.</p>
+<p><strong>LSP is a hybrid.</strong> When the structural placement is wrong — types with different invariants forced into a hierarchy — correcting Γ resolves the violation. The resulting class structure — two independent types, no inheritance — is what the corrected knowledge demands. LSP would have flagged the behavioral violation but could not diagnose the structural cause. IVP provides the structural diagnosis; when that suffices, the behavioral violation disappears because the hierarchy no longer exists.</p>
+</section>
+<section id="accidental-coupling-with-the-gap-vs.-without-2" class="level3" data-number="4.5">
+<h3 data-number="4.5" class="anchored" data-anchor-id="accidental-coupling-with-the-gap-vs.-without-2"><span class="header-section-number">4.5</span> Accidental coupling: with the gap vs.&nbsp;without</h3>
+<p>With the gap, the knowledge statement treats Rectangle and Square as sharing a driver. The subtype relationship creates <em>accidental coupling</em>: Square is coupled to Rectangle’s invariant that width and height are independent — not because the domain requires squares to have two independent dimensions, but because the knowledge modeled Square as a special case of Rectangle. A change to Rectangle’s invariant (γ_rect) forces re-verification of every Square in the system. Any client code that passes a Square where a Rectangle is expected may silently produce wrong results. The coupling is accidental: Square inherits from Rectangle, but the domain says Square has one dimension, not two.</p>
+<p>Without the gap, there is no accidental coupling. Rectangle and Square are separate types in separate modules, each governed by its own driver. γ_rect activates → only Rectangle changes. Square is untouched. No invariant re-verification across types. No substitution surprise. Each type governs its own change space. The only coupling between them — if any — would be an intentional dependency in code that genuinely uses both, not a forced subtype relationship. The coupling that was eliminated is behavioral (substitution via inheritance); the coupling that would remain, if any, is of the form <em>dependency</em>. Coupling is not a single thing.</p>
+<hr>
+</section>
+</section>
+<section id="isp-conflated-client-contracts" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="isp-conflated-client-contracts"><span class="header-section-number">5</span> ISP: Conflated Client Contracts</h2>
+<section id="knowledge-with-the-gap-3" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="knowledge-with-the-gap-3"><span class="header-section-number">5.1</span> Knowledge with the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement:</strong> “The system has a reporting interface that serves accounting, analytics, and management reporting needs.”</p>
+</blockquote>
+<p>This statement bundles three distinct client contracts into one. The resulting code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> ReportService <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    Report <span class="fu">generatePdf</span><span class="op">(</span>FinancialData data<span class="op">);</span>     <span class="co">// accounting</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    Report <span class="fu">generateCsv</span><span class="op">(</span>MetricsData data<span class="op">);</span>        <span class="co">// analytics</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    Report <span class="fu">generateExcel</span><span class="op">(</span>DashboardData data<span class="op">);</span>    <span class="co">// management</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AccountingClient <span class="op">{</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    ReportService service<span class="op">;</span>  <span class="co">// forced to depend on generateCsv, generateExcel</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">run</span><span class="op">()</span> <span class="op">{</span> service<span class="op">.</span><span class="fu">generatePdf</span><span class="op">(</span>ledgerData<span class="op">);</span> <span class="op">}</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>ISP says: “Many client-specific interfaces are better than one general-purpose interface” [Martin 1996b]. <code>AccountingClient</code> depends on methods it never uses — a violation.</p>
+<p>But ISP does not tell you <em>why</em> the violation exists.</p>
+</section>
+<section id="knowledge-without-the-gap-3" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="knowledge-without-the-gap-3"><span class="header-section-number">5.2</span> Knowledge without the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement (corrected):</strong> - “Accounting requires PDF reports of financial data.” - “Analytics requires CSV exports of operational metrics.” - “Management requires Excel dashboards of KPIs.”</p>
+</blockquote>
+<p>Each client’s contract is a distinct knowledge slice, governed by its own change driver — accounting regulations, analytics requirements, and management reporting standards, respectively.</p>
+</section>
+<section id="ivp-application-3" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="ivp-application-3"><span class="header-section-number">5.3</span> IVP application</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Element</th>
+<th>Γ (change drivers)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>AccountingClient</code></td>
+<td>{γ_accounting}</td>
+</tr>
+<tr class="even">
+<td><code>AccountingReport</code> (interface)</td>
+<td>{γ_accounting}</td>
+</tr>
+<tr class="odd">
+<td><code>AnalyticsClient</code></td>
+<td>{γ_analytics}</td>
+</tr>
+<tr class="even">
+<td><code>AnalyticsReport</code> (interface)</td>
+<td>{γ_analytics}</td>
+</tr>
+<tr class="odd">
+<td><code>ManagementClient</code></td>
+<td>{γ_management}</td>
+</tr>
+<tr class="even">
+<td><code>ManagementReport</code> (interface)</td>
+<td>{γ_management}</td>
+</tr>
+</tbody>
+</table>
+<p>Each interface shares its client’s Γ. IVP-4 unifies each client-interface pair. {γ_accounting} ≠ {γ_analytics} ≠ {γ_management}, so IVP-3 separates them:</p>
+<ul>
+<li><strong>Accounting module:</strong> <code>AccountingClient</code>, <code>AccountingReport</code></li>
+<li><strong>Analytics module:</strong> <code>AnalyticsClient</code>, <code>AnalyticsReport</code></li>
+<li><strong>Management module:</strong> <code>ManagementClient</code>, <code>ManagementReport</code></li>
+</ul>
+<p>ISP was never invoked. The resulting structure — each client with its own interface, no shared general-purpose interface — is identical to what ISP would prescribe. But ISP needed a heuristic check to get there. IVP needed only correct Γ. No client depends on methods it does not use, because no interface contains methods governed by another client’s driver.</p>
+</section>
+<section id="accidental-coupling-with-the-gap-vs.-without-3" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="accidental-coupling-with-the-gap-vs.-without-3"><span class="header-section-number">5.4</span> Accidental coupling: with the gap vs.&nbsp;without</h3>
+<p>With the gap, the knowledge statement “the system has a reporting interface serving accounting, analytics, and management” creates <em>accidental coupling</em> between three independent client domains. <code>AccountingClient</code> is coupled to <code>generateCsv</code> and <code>generateExcel</code> — not because accounting requires CSV exports or Excel dashboards, but because the knowledge bundled all three contracts into one interface. A change to analytics requirements (γ_analytics) — adding a new CSV field — forces recompilation of <code>AccountingClient</code>, even though accounting’s driver is unchanged. The dependency is accidental: <code>AccountingClient</code> depends on methods it does not use, forced by a shared interface that couples three independent driver domains.</p>
+<p>Without the gap, there is no accidental coupling. Each client depends only on its own interface — an abstraction governed by the same driver. γ_analytics activates → only the Analytics module (<code>AnalyticsClient</code>, <code>AnalyticsReport</code>) changes. <code>AccountingClient</code> is not in the diff, not recompiled, not re-verified. The coupling that remains is of the form <em>dependency</em> — each client depends on its own interface, which is governed by the same driver. All the coupling discussed here is dependency coupling. ISP says “no client should depend on methods it doesn’t use.” Γ makes that structural: no module depends on code governed by another module’s driver.</p>
+<p><strong>The knowledge flaw ISP detects:</strong> Conflated client contracts — domain knowledge that bundles what should be separate slices, each governed by a distinct client’s change driver. ISP is the diagnostic; identifying each client’s driver resolves it.</p>
+<hr>
+</section>
+</section>
+<section id="dip-bundled-abstraction-and-implementation" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="dip-bundled-abstraction-and-implementation"><span class="header-section-number">6</span> DIP: Bundled Abstraction and Implementation</h2>
+<section id="knowledge-with-the-gap-4" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="knowledge-with-the-gap-4"><span class="header-section-number">6.1</span> Knowledge with the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement:</strong> “OrderProcessor persists orders to MySQL.”</p>
+</blockquote>
+<p>This statement compounds an abstract capability (persist orders) with a specific realization (MySQL). The resulting code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> OrderProcessor <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> MySQLOrderRepository repository<span class="op">;</span>  <span class="co">// concrete dependency</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">process</span><span class="op">(</span>Order order<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">// ... business rules ...</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        repository<span class="op">.</span><span class="fu">save</span><span class="op">(</span>order<span class="op">);</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>DIP says: “Depend on abstractions, not on concretions” [Martin 1996a]. <code>OrderProcessor</code> directly depends on a concrete database technology — a violation.</p>
+<p>But DIP does not tell you <em>what</em> knowledge is incorrectly expressed.</p>
+</section>
+<section id="knowledge-without-the-gap-4" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="knowledge-without-the-gap-4"><span class="header-section-number">6.2</span> Knowledge without the gap</h3>
+<blockquote class="blockquote">
+<p><strong>Domain statement (corrected):</strong> - “Order processing applies business rules to orders and persists the result.” - “Persistence technology — MySQL, PostgreSQL, in-memory — varies independently of order business rules.”</p>
+</blockquote>
+<p>The correction separates abstract capability from implementation technology. The persistence mechanism is recognized as an independent change driver (γ_persistence) whose activation — switching databases — should not modify <code>OrderProcessor</code>.</p>
+</section>
+<section id="ivp-application-4" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="ivp-application-4"><span class="header-section-number">6.3</span> IVP application</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Element</th>
+<th>Γ (change drivers)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>OrderProcessor</code></td>
+<td>{γ_order}</td>
+</tr>
+<tr class="even">
+<td><code>OrderRepository</code> (interface)</td>
+<td>{γ_order}</td>
+</tr>
+<tr class="odd">
+<td><code>MySqlOrderRepository</code></td>
+<td>{γ_persistence}</td>
+</tr>
+<tr class="even">
+<td><code>PostgreSqlOrderRepository</code></td>
+<td>{γ_persistence}</td>
+</tr>
+</tbody>
+</table>
+<p>The interface <code>OrderRepository</code> shares {γ_order} with <code>OrderProcessor</code> — IVP-4 unifies them. The implementations share {γ_persistence} — IVP-4 places them together. {γ_order} ≠ {γ_persistence}, so IVP-3 separates the two modules:</p>
+<ul>
+<li><strong>Order module:</strong> <code>OrderProcessor</code>, <code>OrderRepository</code></li>
+<li><strong>Persistence module:</strong> <code>MySqlOrderRepository</code>, <code>PostgreSqlOrderRepository</code></li>
+</ul>
+<p>DIP was never invoked. The resulting structure — an abstraction owned by the high-level module, with implementations in a separate module — is identical to what DIP would prescribe. But DIP needed a heuristic check to get there. IVP needed only correct Γ. <code>OrderProcessor</code> depends on an interface governed by its own driver — exactly the dependency structure DIP prescribes, derived from Γ alone.</p>
+</section>
+<section id="accidental-coupling-with-the-gap-vs.-without-4" class="level3" data-number="6.4">
+<h3 data-number="6.4" class="anchored" data-anchor-id="accidental-coupling-with-the-gap-vs.-without-4"><span class="header-section-number">6.4</span> Accidental coupling: with the gap vs.&nbsp;without</h3>
+<p>With the gap, the knowledge statement “OrderProcessor persists orders to MySQL” creates <em>accidental coupling</em> between order processing and persistence technology. <code>OrderProcessor</code> is coupled to <code>MySQLOrderRepository</code> — not because order business rules require MySQL, but because the knowledge bundled the abstraction with a specific implementation. A change to persistence technology (γ_persistence) — switching to PostgreSQL — forces modification of <code>OrderProcessor</code>, even though order business rules are unchanged. The concrete dependency couples two independent driver domains. The coupling is accidental: <code>OrderProcessor</code> depends on MySQL, but the domain only requires it to depend on the abstract capability of persisting orders.</p>
+<p>Without the gap, there is no accidental coupling. <code>OrderProcessor</code> depends only on <code>OrderRepository</code> — an abstraction governed by its own driver (γ_order). γ_persistence activates → only the Persistence module (<code>MySqlOrderRepository</code>, <code>PostgreSqlOrderRepository</code>) changes. The Order module is not in the diff — the interface <code>OrderRepository</code> insulates it. γ_order activates → only the Order module changes. The coupling that remains is of the form <em>dependency</em> — <code>OrderProcessor</code> depends on the interface, implementations depend on the interface. Again, all the coupling discussed here is dependency coupling. The abstraction (<code>OrderRepository</code>) is the structural seam where IVP-3 separates the two driver domains, and the interface ownership — with the order module, not the persistence module — ensures that changes to persistence technology cannot force changes to order processing.</p>
+<p><strong>The knowledge flaw DIP detects:</strong> Bundled abstraction and implementation — domain knowledge that compounds an abstract capability with a specific realization, when the two are governed by independent change drivers. DIP is the diagnostic; recognizing the implementation technology as an independent driver resolves it.</p>
+<hr>
+</section>
+</section>
+<section id="the-synthesis" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="the-synthesis"><span class="header-section-number">7</span> The Synthesis</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 24%">
+<col style="width: 27%">
+<col style="width: 21%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Heuristic</th>
+<th>Knowledge with the gap</th>
+<th>Knowledge without the gap</th>
+<th>Γ after correction</th>
+<th>IVP resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SRP</td>
+<td>“The system calculates pay, formats statements, and emails them”</td>
+<td>Three separate statements, each with its own governing authority</td>
+<td>Three pure elements, each {γ_i}</td>
+<td>IVP-2 decomposes reducible composites; IVP-3 separates. <em>Wrong in general:</em> SRP also demands splitting irreducible composites (adapters) that IVP-2 correctly permits.</td>
+</tr>
+<tr class="even">
+<td>OCP</td>
+<td>“The system sends notifications by email”</td>
+<td>“Notification is governed by notification requirements. Each channel — email, SMS, push — has its own governing infrastructure.”</td>
+<td>{γ_notification} for service and interface; {γ_notification, γ_email}, {γ_notification, γ_sms}, {γ_notification, γ_push} for channels (irreducible composites)</td>
+<td>IVP-3 separates per channel; IVP-2 permits the irreducible composite; IVP-4 unifies service with its interface</td>
+</tr>
+<tr class="odd">
+<td>LSP</td>
+<td>“Rectangle and Square are shapes with width and height”</td>
+<td>“Rectangle has independent width and height. Square has a single side length with the constraint width = height.”</td>
+<td>{γ_rect} for Rectangle, {γ_square} for Square</td>
+<td>IVP-3 separates; the subtype relationship was forced onto two types with different invariants. <em>Hybrid:</em> when Γ is correct but contract is broken, Bertrand Meyer’s Design by Contract is needed.</td>
+</tr>
+<tr class="even">
+<td>ISP</td>
+<td>“The system has a reporting interface serving accounting, analytics, and management”</td>
+<td>Three separate client contracts, each governed by its own driver</td>
+<td>Interface-client pairs share Γ</td>
+<td>IVP-4 unifies each pair; IVP-3 separates across clients</td>
+</tr>
+<tr class="odd">
+<td>DIP</td>
+<td>“OrderProcessor persists orders to MySQL”</td>
+<td>“Order processing and persistence technology vary independently”</td>
+<td>{γ_order} for processor and interface, {γ_persistence} for implementations</td>
+<td>IVP-3 separates abstraction from implementation</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern is uniform for SRP, OCP, ISP, and DIP. Each identifies a particular way domain knowledge is incomplete or incorrectly expressed. The prescription is always the same: <strong>decompose the compound or incomplete knowledge statement into irreducible sub-statements with distinct driver assignments; let the code structure emerge from correct Γ.</strong></p>
+<p>SRP is additionally wrong in general: it demands purity (<em>|Γ(e)| = 1</em>) for every element, failing to recognize legitimate irreducible composites such as adapters, facades, and protocol translators. IVP-2’s irreducibility test is the correct criterion — it decomposes the reducible (PayCalculator) and permits the irreducible (payment-to-FX adapter). SRP lacks this distinction.</p>
+<p>LSP is a hybrid. When the structural placement is wrong — types with different invariants forced into a hierarchy — the violation resolves like the others: correct Γ, IVP separates, the problem disappears. When the structural placement is correct but the behavioral contract is broken, Bertrand Meyer’s Design by Contract is needed. The other four heuristics are purely knowledge diagnostics; LSP spans both domains.</p>
+</section>
+<section id="what-this-means" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="what-this-means"><span class="header-section-number">8</span> What This Means</h2>
+<p>Were domain knowledge always causally complete and correctly documented, the four IVP directives would produce the correct design automatically. Γ would capture every element’s causal dependencies. IVP-2 would flag every reducible composite. IVP-3 and IVP-4 would produce the unique module partition. There would be nothing for SRP, OCP, ISP, or DIP to do.</p>
+<p>The heuristics exist only because, in practice, domain knowledge is incomplete or incorrectly expressed. When a designer applies SRP to a class with multiple reasons to change, they are correcting a knowledge defect — the statement “the system calculates pay, formats statements, and emails them” should be three statements. When a designer applies DIP to a concrete dependency, they are correcting a knowledge defect — the statement “OrderProcessor persists to MySQL” bundled abstract capability with implementation detail.</p>
+<p>SOLID heuristics are <em>reports of incomplete knowledge</em>. They do not produce correct structure from correct inputs — they diagnose incorrect inputs. IVP is the general law that would be sufficient if knowledge were complete.</p>
+<p>The fact that the IVP-derived structures are identical to what each heuristic prescribes — same class decomposition, same abstraction boundaries, same interface segregation — is not a coincidence. Three independent discovery paths converge on the same structural conclusions: mathematical derivation from cost axioms, empirical debugging experience encoded in SOLID, and epistemic insight that software design is knowledge work. When a heuristic’s prescription matches what IVP derives from correct Γ, the heuristic identifies a genuine structural condition; IVP explains <em>why</em> that condition holds. When a heuristic diverges — SRP demanding splits of irreducible composites — IVP identifies the error and supplies the correct criterion.</p>
+<p>This framing has practical consequences. A designer who understands IVP has no need for SRP, OCP, ISP, or DIP as separate rules. IVP provides a strictly stronger and more precise criterion — one that avoids the errors those heuristics introduce outside their narrow conditions. SRP demands splitting legitimate multi-driver modules (irreducible composites). OCP and ISP are silent about unification (IVP-4). IVP’s four directives cover both separation and unification, pure and composite elements, with formal precision.</p>
+<p>The question to ask when a SOLID heuristic appears to apply is not “how do I fix this code?” but <em>“what causal domain knowledge is missing or incorrectly expressed such that this code structure emerged?”</em> The code defect is a symptom. The knowledge defect is the cause.</p>
+<hr>
+</section>
+<section id="a-note-on-robert-c.-martins-achievement" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="a-note-on-robert-c.-martins-achievement"><span class="header-section-number">9</span> A note on Robert C. Martin’s achievement</h2>
+<p>This article argues that SOLID heuristics are diagnostic patterns for incomplete knowledge, not design principles. That does not diminish Robert C. Martin’s contribution. Identifying five recurrent patterns across decades of practitioner experience — and giving them names that the entire industry adopted — is a remarkable feat of pattern recognition [Martin 1996a, 1996b, 2000, 2003]. The heuristics are not principles in the formal sense, but their identification was an act of genuine discovery.</p>
+<p>Several authors have previously observed that SOLID’s five heuristics are not all independent. Henney [2016] argued that ISP becomes redundant if SRP is properly applied. Oldwood [2014] proposed that all five reduce to two concepts. Kaminski [2019] noted that SRP, ISP, and DIP rehash similar concepts around managing dependencies. Terhorst-North [2022] proposed replacing SOLID entirely with a different framework. None of these critiques identified the specific mechanism that IVP reveals: each heuristic is a diagnostic pattern for a particular way domain knowledge is incomplete or incorrectly expressed.</p>
+<p>This interpretation is itself only possible because of a formal theoretical development of the matter. The Independent Variation Principle provides a fundamental, principled design practice — four directives derived from the Change Management Hypothesis — that determines a unique module partition from causal domain knowledge alone. Without this formal foundation, SOLID’s heuristics remain disconnected rules of thumb. Earlier critics could sense overlap and redundancy. They could not specify <em>why</em> each heuristic arises or <em>what</em> structural situation it addresses — because those answers require the apparatus of change drivers, driver assignments, and the IVP directives. IVP does not merely critique SOLID. It provides the formal framework within which SOLID’s contribution — and its limits — become legible.</p>
+<p>Three of the five — OCP, ISP, and DIP — have been essential in module boundary design for roughly thirty years. They address what happens at the seam between modules: OCP says don’t modify existing code, extend through a boundary. ISP says segregate interfaces per client at the boundary. DIP says depend on abstractions owned by the high-level module, not on concretions from the low-level one. These three are the practical workhorses of boundary design. They converge on the same structural truth IVP formalizes: variation forces are independent, and module boundaries must honor that independence.</p>
+<p>SRP is different. It addresses internal cohesion — what belongs inside a class — not boundary structure. Its prescription (“one reason to change”) is correct for reducible composites but wrong for irreducible ones. LSP is also different: it addresses behavioral contracts within a type hierarchy, not boundaries between modules. The three boundary heuristics are where SOLID’s lasting value lies. The other two diagnose real problems but lack the generality of the boundary principles — and the formal foundation that IVP provides.</p>
+<hr>
+</section>
+<section id="further-reading" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="further-reading"><span class="header-section-number">10</span> Further Reading</h2>
+<p>The formal theory is developed in Volume 1 of the IVP book series, with Chapter 9 providing the full IVP–SOLID analysis and Chapter 3 developing the structural formulation.</p>
+<ul>
+<li>IVP formalization (preprint): <a href="https://doi.org/10.5281/zenodo.18024111">DOI: 10.5281/zenodo.18024111</a></li>
+<li>ISP Is a Conditional Corollary of DIP Applied Per Client - An Asymmetric Relationship Gated by Interface Evolution Origin: <a href="https://doi.org/10.5281/zenodo.20350293">DOI: 10.5281/zenodo.20350293</a> — a formal proof that ISP is a conditional corollary of DIP applied per client, and that the two heuristics address the same structural constraint from different vantage points.</li>
+</ul>
+<p>If this framing — SOLID as diagnostic patterns for incomplete domain knowledge — resonates, the ISP–DIP paper is the natural next read. It shows the same phenomenon at closer range: two heuristics that converge on one structure, differing only in which knowledge gap they are named after.</p>
+<hr>
+<p>If you teach SOLID or use it daily in code reviews: does the “diagnostic pattern for incomplete knowledge” framing change how you apply these heuristics? I would value your perspective.</p>
+<hr>
+</section>
+<section id="references" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="references"><span class="header-section-number">11</span> References</h2>
+<ul>
+<li>[Henney 2016] Kevlin Henney. <em>SOLID Deconstruction.</em> NDC London, January 2016.</li>
+<li>[Kaminski 2019] Tomasz Kamiński. <em>Deconstructing SOLID design principles.</em> Blog post, April 2019.</li>
+<li>[Liskov 1987] Barbara Liskov. <em>Data Abstraction and Hierarchy.</em> OOPSLA 1987, Addendum to the Proceedings.</li>
+<li>[Liskov and Wing 1994] Barbara Liskov and Jeannette M. Wing. <em>A Behavioral Notion of Subtyping.</em> ACM Transactions on Programming Languages and Systems, 16(6):1811–1841, 1994.</li>
+<li>[Martin 1996a] Robert C. Martin. <em>The Dependency Inversion Principle.</em> C++ Report, May 1996.</li>
+<li>[Martin 1996b] Robert C. Martin. <em>The Interface Segregation Principle.</em> C++ Report, August 1996.</li>
+<li>[Martin 2000] Robert C. Martin. <em>Design Principles and Design Patterns.</em> Object Mentor, 2000.</li>
+<li>[Martin 2003] Robert C. Martin. <em>Agile Software Development: Principles, Patterns, and Practices.</em> Prentice Hall, 2003.</li>
+<li>[Meyer 1988] Bertrand Meyer. <em>Object-Oriented Software Construction.</em> Prentice Hall, 1988.</li>
+<li>[Oldwood 2014] Chris Oldwood. <em>KISSing SOLID Goodbye.</em> ACCU Overload, 22(122), August 2014.</li>
+<li>[Terhorst-North 2022] Daniel Terhorst-North. <em>CUPID — for joyful coding.</em> Blog post, 2022.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

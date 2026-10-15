@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2025-11-25">
+<meta name="description" content="We’ve all heard that “high cohesion” is good. But what does cohesion actually mean? Most definitions…">
+
+<title>Cohesion Is About Knowledge: Why High Cohesion Makes Code Easier to Understand – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-083efae8c4c9256682aa2f1f6671313f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Cohesion Is About Knowledge: Why High Cohesion Makes Code Easier to Understand – Independent Variation Principle">
+<meta property="og:description" content="We’ve all heard that “high cohesion” is good. But what does cohesion actually mean? Most definitions…">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Cohesion Is About Knowledge: Why High Cohesion Makes Code Easier to Understand – Independent Variation Principle">
+<meta name="twitter:description" content="We’ve all heard that “high cohesion” is good. But what does cohesion actually mean? Most definitions…">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../ivp-software/index.html"> 
+<span class="menu-text">IVP Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-knowledge-perspective" id="toc-the-knowledge-perspective" class="nav-link active" data-scroll-target="#the-knowledge-perspective"><span class="header-section-number">1</span> The Knowledge Perspective</a></li>
+  <li><a href="#a-tale-of-scattered-knowledge" id="toc-a-tale-of-scattered-knowledge" class="nav-link" data-scroll-target="#a-tale-of-scattered-knowledge"><span class="header-section-number">2</span> A Tale of Scattered Knowledge</a></li>
+  <li><a href="#what-knowledge-do-you-need" id="toc-what-knowledge-do-you-need" class="nav-link" data-scroll-target="#what-knowledge-do-you-need"><span class="header-section-number">3</span> What Knowledge Do You Need?</a></li>
+  <li><a href="#the-independent-variation-principle" id="toc-the-independent-variation-principle" class="nav-link" data-scroll-target="#the-independent-variation-principle"><span class="header-section-number">4</span> The Independent Variation Principle</a>
+  <ul class="collapse">
+  <li><a href="#what-is-a-change-driver" id="toc-what-is-a-change-driver" class="nav-link" data-scroll-target="#what-is-a-change-driver"><span class="header-section-number">4.1</span> What Is a Change Driver?</a></li>
+  <li><a href="#business-rules" id="toc-business-rules" class="nav-link" data-scroll-target="#business-rules"><span class="header-section-number">4.2</span> 1. Business Rules</a></li>
+  <li><a href="#document-generation" id="toc-document-generation" class="nav-link" data-scroll-target="#document-generation"><span class="header-section-number">4.3</span> 2. Document Generation</a></li>
+  <li><a href="#communication" id="toc-communication" class="nav-link" data-scroll-target="#communication"><span class="header-section-number">4.4</span> 3. Communication</a></li>
+  <li><a href="#warehouse-operations" id="toc-warehouse-operations" class="nav-link" data-scroll-target="#warehouse-operations"><span class="header-section-number">4.5</span> 4. Warehouse Operations</a></li>
+  <li><a href="#data-analytics" id="toc-data-analytics" class="nav-link" data-scroll-target="#data-analytics"><span class="header-section-number">4.6</span> 5. Data &amp; Analytics</a></li>
+  </ul></li>
+  <li><a href="#high-cohesion-grouping-knowledge-by-change-driver" id="toc-high-cohesion-grouping-knowledge-by-change-driver" class="nav-link" data-scroll-target="#high-cohesion-grouping-knowledge-by-change-driver"><span class="header-section-number">5</span> High Cohesion: Grouping Knowledge by Change Driver</a></li>
+  <li><a href="#the-benefits-of-high-cohesion" id="toc-the-benefits-of-high-cohesion" class="nav-link" data-scroll-target="#the-benefits-of-high-cohesion"><span class="header-section-number">6</span> The Benefits of High Cohesion</a>
+  <ul class="collapse">
+  <li><a href="#reduced-cognitive-load" id="toc-reduced-cognitive-load" class="nav-link" data-scroll-target="#reduced-cognitive-load"><span class="header-section-number">6.1</span> Reduced Cognitive Load</a></li>
+  <li><a href="#localized-changes" id="toc-localized-changes" class="nav-link" data-scroll-target="#localized-changes"><span class="header-section-number">6.2</span> Localized Changes</a></li>
+  <li><a href="#independent-evolution" id="toc-independent-evolution" class="nav-link" data-scroll-target="#independent-evolution"><span class="header-section-number">6.3</span> Independent Evolution</a></li>
+  </ul></li>
+  <li><a href="#the-relationship-between-cohesion-knowledge-and-change-drivers" id="toc-the-relationship-between-cohesion-knowledge-and-change-drivers" class="nav-link" data-scroll-target="#the-relationship-between-cohesion-knowledge-and-change-drivers"><span class="header-section-number">7</span> The Relationship Between Cohesion, Knowledge, and Change Drivers</a></li>
+  <li><a href="#how-to-identify-low-cohesion" id="toc-how-to-identify-low-cohesion" class="nav-link" data-scroll-target="#how-to-identify-low-cohesion"><span class="header-section-number">8</span> How to Identify Low Cohesion</a>
+  <ul class="collapse">
+  <li><a href="#what-are-the-change-drivers" id="toc-what-are-the-change-drivers" class="nav-link" data-scroll-target="#what-are-the-change-drivers"><span class="header-section-number">8.1</span> 1. What are the change drivers?</a></li>
+  <li><a href="#who-owns-each-change-driver" id="toc-who-owns-each-change-driver" class="nav-link" data-scroll-target="#who-owns-each-change-driver"><span class="header-section-number">8.2</span> 2. Who owns each change driver?</a></li>
+  <li><a href="#what-knowledge-does-each-change-driver-require" id="toc-what-knowledge-does-each-change-driver-require" class="nav-link" data-scroll-target="#what-knowledge-does-each-change-driver-require"><span class="header-section-number">8.3</span> 3. What knowledge does each change driver require?</a></li>
+  <li><a href="#do-change-drivers-vary-independently" id="toc-do-change-drivers-vary-independently" class="nav-link" data-scroll-target="#do-change-drivers-vary-independently"><span class="header-section-number">8.4</span> 4. Do change drivers vary independently?</a></li>
+  </ul></li>
+  <li><a href="#the-decision-framework" id="toc-the-decision-framework" class="nav-link" data-scroll-target="#the-decision-framework"><span class="header-section-number">9</span> The Decision Framework</a></li>
+  <li><a href="#real-world-application" id="toc-real-world-application" class="nav-link" data-scroll-target="#real-world-application"><span class="header-section-number">10</span> Real-World Application</a>
+  <ul class="collapse">
+  <li><a href="#single-responsibility-principle" id="toc-single-responsibility-principle" class="nav-link" data-scroll-target="#single-responsibility-principle"><span class="header-section-number">10.1</span> Single Responsibility Principle</a></li>
+  <li><a href="#separation-of-concerns" id="toc-separation-of-concerns" class="nav-link" data-scroll-target="#separation-of-concerns"><span class="header-section-number">10.2</span> Separation of Concerns</a></li>
+  <li><a href="#interface-segregation" id="toc-interface-segregation" class="nav-link" data-scroll-target="#interface-segregation"><span class="header-section-number">10.3</span> Interface Segregation</a></li>
+  <li><a href="#bounded-contexts-ddd" id="toc-bounded-contexts-ddd" class="nav-link" data-scroll-target="#bounded-contexts-ddd"><span class="header-section-number">10.4</span> Bounded Contexts (DDD)</a></li>
+  </ul></li>
+  <li><a href="#the-takeaway" id="toc-the-takeaway" class="nav-link" data-scroll-target="#the-takeaway"><span class="header-section-number">11</span> The Takeaway</a></li>
+  <li><a href="#learn-more" id="toc-learn-more" class="nav-link" data-scroll-target="#learn-more"><span class="header-section-number">12</span> Learn More</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Cohesion Is About Knowledge: Why High Cohesion Makes Code Easier to Understand</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">softwaredesign</div>
+    <div class="quarto-category">cohesion</div>
+    <div class="quarto-category">architecture</div>
+    <div class="quarto-category">ivp</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    We’ve all heard that “high cohesion” is good. But what does cohesion actually mean? Most definitions…
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 25, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>We’ve all heard that “high cohesion” is good. But what does cohesion actually <em>mean</em>?</p>
+<p>Most definitions focus on the mechanics: “elements that belong together should be grouped together.” But this raises the question: how do we know what “belongs together”?</p>
+<p>The answer lies in understanding cohesion as a <strong>knowledge organization principle</strong>.</p>
+<section id="the-knowledge-perspective" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-knowledge-perspective"><span class="header-section-number">1</span> The Knowledge Perspective</h2>
+<p>Here’s a more fundamental way to think about cohesion:</p>
+<blockquote class="blockquote">
+<p><strong>Cohesion is about grouping knowledge that changes for the same reason</strong></p>
+</blockquote>
+<p>Knowledge that varies together should be grouped together. Knowledge that varies independently should be separated.</p>
+<p>When you have high cohesion, all the knowledge in a unit changes for <strong>one reason</strong>—driven by one change driver. When you have low cohesion, the knowledge in a unit changes for <strong>multiple independent reasons</strong>—driven by different, unrelated change drivers.</p>
+<p>Let me show you what this means in practice.</p>
+</section>
+<section id="a-tale-of-scattered-knowledge" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="a-tale-of-scattered-knowledge"><span class="header-section-number">2</span> A Tale of Scattered Knowledge</h2>
+<p>Consider this typical e-commerce order system:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Order <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">List</span><span class="op">&lt;</span>OrderItem<span class="op">&gt;</span> items<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">String</span> customerId<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">String</span> status<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">double</span> totalAmount<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">addItem</span><span class="op">(</span>Product product<span class="op">,</span> <span class="dt">int</span> quantity<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        items<span class="op">.</span><span class="fu">add</span><span class="op">(</span><span class="kw">new</span> <span class="fu">OrderItem</span><span class="op">(</span>product<span class="op">,</span> quantity<span class="op">));</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">calculateTotal</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        totalAmount <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="op">(</span>OrderItem item <span class="op">:</span> items<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            totalAmount <span class="op">+=</span> item<span class="op">.</span><span class="fu">getPrice</span><span class="op">()</span> <span class="op">*</span> item<span class="op">.</span><span class="fu">getQuantity</span><span class="op">();</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">applyDiscount</span><span class="op">(</span><span class="bu">String</span> discountCode<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Apply discount logic</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">generateInvoice</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Generate PDF invoice</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">sendConfirmationEmail</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Email logic</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">updateInventory</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Inventory update logic</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">logToAnalytics</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Analytics logging</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This looks reasonable at first. But let’s analyze the <strong>knowledge</strong> required to understand this class.</p>
+</section>
+<section id="what-knowledge-do-you-need" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="what-knowledge-do-you-need"><span class="header-section-number">3</span> What Knowledge Do You Need?</h2>
+<p>To understand the <code>Order</code> class, you need to know about:</p>
+<ol type="1">
+<li><strong>Order domain logic</strong> (items, totals, discounts)</li>
+<li><strong>PDF generation</strong> (libraries, templates, formatting)</li>
+<li><strong>Email systems</strong> (SMTP, templates, recipients)</li>
+<li><strong>Inventory management</strong> (stock levels, reservations)</li>
+<li><strong>Analytics systems</strong> (tracking, event formats)</li>
+</ol>
+<p>That’s <strong>five different areas of knowledge</strong>—and they change for <strong>completely different reasons</strong>:</p>
+<ul>
+<li>Order logic changes when <strong>business rules</strong> change</li>
+<li>Invoice generation changes when <strong>document requirements</strong> change</li>
+<li>Email changes when <strong>notification preferences</strong> change</li>
+<li>Inventory changes when <strong>warehouse systems</strong> change</li>
+<li>Analytics changes when <strong>tracking requirements</strong> change</li>
+</ul>
+<p>A developer working on discount logic shouldn’t need to understand PDF generation. A developer fixing email issues shouldn’t need to understand inventory systems.</p>
+<p><strong>This is low cohesion.</strong> The knowledge is scattered across unrelated concerns.</p>
+</section>
+<section id="the-independent-variation-principle" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="the-independent-variation-principle"><span class="header-section-number">4</span> The Independent Variation Principle</h2>
+<p>The <strong>Independent Variation Principle (IVP)</strong> is a principle that states:</p>
+<blockquote class="blockquote">
+<p><strong>Separate elements governed by different change drivers into distinct units; unify elements governed by the same change driver within a single unit.</strong></p>
+</blockquote>
+<p>IVP provides a precise way to identify low cohesion:</p>
+<blockquote class="blockquote">
+<p><strong>When a module contains knowledge that varies for independent reasons, cohesion is low</strong></p>
+</blockquote>
+<section id="what-is-a-change-driver" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="what-is-a-change-driver"><span class="header-section-number">4.1</span> What Is a Change Driver?</h3>
+<p>A <strong>change driver</strong> is a reason why code needs to change. The same concept appears in other design principles (Single Responsibility Principle, Common Closure Principle) under different names: “reason to change”, “actor”, “source of change”.</p>
+<p>These terms are used interchangeably—they all refer to the same underlying concept.</p>
+<p>Change drivers have these characteristics: - <strong>Independent triggers</strong>: They activate for different reasons at different times - <strong>Different stakeholders</strong>: Different people or teams decide when and how each driver triggers - <strong>Distinct knowledge domains</strong>: Each driver requires understanding different areas of expertise</p>
+<p>For example: - <strong>Business rule changes</strong> are driven by product managers adjusting pricing, discounts, or validation rules - <strong>Infrastructure changes</strong> are driven by platform engineers optimizing databases or APIs - <strong>UI changes</strong> are driven by designers and frontend teams improving user experience</p>
+<p>When multiple independent change drivers affect the same module, that module has low cohesion.</p>
+<p>Let’s identify the <strong>independent change drivers</strong> in our <code>Order</code> class:</p>
+</section>
+<section id="business-rules" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="business-rules"><span class="header-section-number">4.2</span> 1. Business Rules</h3>
+<ul>
+<li>Discount calculations</li>
+<li>Order validation</li>
+<li>Tax calculations</li>
+<li>Pricing logic</li>
+</ul>
+<p><strong>Stakeholder:</strong> Product managers, business analysts</p>
+</section>
+<section id="document-generation" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="document-generation"><span class="header-section-number">4.3</span> 2. Document Generation</h3>
+<ul>
+<li>PDF formatting</li>
+<li>Invoice templates</li>
+<li>Receipt layouts</li>
+</ul>
+<p><strong>Stakeholder:</strong> Design team, legal/compliance</p>
+</section>
+<section id="communication" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="communication"><span class="header-section-number">4.4</span> 3. Communication</h3>
+<ul>
+<li>Email templates</li>
+<li>Notification timing</li>
+<li>Delivery channels (email, SMS, push)</li>
+</ul>
+<p><strong>Stakeholder:</strong> Marketing, customer service</p>
+</section>
+<section id="warehouse-operations" class="level3" data-number="4.5">
+<h3 data-number="4.5" class="anchored" data-anchor-id="warehouse-operations"><span class="header-section-number">4.5</span> 4. Warehouse Operations</h3>
+<ul>
+<li>Inventory tracking</li>
+<li>Stock reservations</li>
+<li>Fulfillment systems</li>
+</ul>
+<p><strong>Stakeholder:</strong> Logistics team</p>
+</section>
+<section id="data-analytics" class="level3" data-number="4.6">
+<h3 data-number="4.6" class="anchored" data-anchor-id="data-analytics"><span class="header-section-number">4.6</span> 5. Data &amp; Analytics</h3>
+<ul>
+<li>Event tracking</li>
+<li>Metrics collection</li>
+<li>Reporting</li>
+</ul>
+<p><strong>Stakeholder:</strong> Data science team</p>
+<p>These are <strong>five independent sources of change</strong>—different stakeholders, different reasons to change, different timelines.</p>
+<p>When they’re all mixed in one class, <strong>every change forces you to understand all five concerns</strong>, even if you’re only modifying one.</p>
+</section>
+</section>
+<section id="high-cohesion-grouping-knowledge-by-change-driver" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="high-cohesion-grouping-knowledge-by-change-driver"><span class="header-section-number">5</span> High Cohesion: Grouping Knowledge by Change Driver</h2>
+<p>Now let’s reorganize so that each module contains <strong>only knowledge driven by one change driver</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Change Driver 1: Business Rules</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Contains knowledge that varies when business requirements change</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Order <span class="op">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> OrderId id<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> CustomerId customerId<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="bu">List</span><span class="op">&lt;</span>OrderItem<span class="op">&gt;</span> items<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> Money totalAmount<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> OrderStatus status<span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">addItem</span><span class="op">(</span>Product product<span class="op">,</span> Quantity quantity<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        items<span class="op">.</span><span class="fu">add</span><span class="op">(</span><span class="kw">new</span> <span class="fu">OrderItem</span><span class="op">(</span>product<span class="op">,</span> quantity<span class="op">));</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">recalculateTotal</span><span class="op">();</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">applyDiscount</span><span class="op">(</span>DiscountCode code<span class="op">,</span> DiscountCalculator calculator<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        Money discount <span class="op">=</span> calculator<span class="op">.</span><span class="fu">calculate</span><span class="op">(</span><span class="kw">this</span><span class="op">,</span> code<span class="op">);</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        totalAmount <span class="op">=</span> totalAmount<span class="op">.</span><span class="fu">subtract</span><span class="op">(</span>discount<span class="op">);</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">void</span> <span class="fu">recalculateTotal</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        totalAmount <span class="op">=</span> items<span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span><span class="fu">map</span><span class="op">(</span>item <span class="op">-&gt;</span> item<span class="op">.</span><span class="fu">subtotal</span><span class="op">())</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span><span class="fu">reduce</span><span class="op">(</span>Money<span class="op">.</span><span class="fu">ZERO</span><span class="op">,</span> Money<span class="op">::</span>add<span class="op">);</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> OrderConfirmed <span class="fu">confirm</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">validateCanConfirm</span><span class="op">();</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        status <span class="op">=</span> OrderStatus<span class="op">.</span><span class="fu">CONFIRMED</span><span class="op">;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">new</span> <span class="fu">OrderConfirmed</span><span class="op">(</span><span class="kw">this</span><span class="op">);</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">// Change Driver 2: Document Generation</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co">// Contains knowledge that varies when document requirements change</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> InvoiceGenerator <span class="op">{</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> PdfEngine pdfEngine<span class="op">;</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> InvoiceTemplate template<span class="op">;</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> Invoice <span class="fu">generate</span><span class="op">(</span>Order order<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        InvoiceData data <span class="op">=</span> InvoiceData<span class="op">.</span><span class="fu">from</span><span class="op">(</span>order<span class="op">);</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> pdfEngine<span class="op">.</span><span class="fu">render</span><span class="op">(</span>template<span class="op">,</span> data<span class="op">);</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co">// Change Driver 3: Communication</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">// Contains knowledge that varies when notification requirements change</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> OrderNotifier <span class="op">{</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> EmailService emailService<span class="op">;</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> NotificationTemplates templates<span class="op">;</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> CustomerRepository customerRepository<span class="op">;</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="fu">OrderNotifier</span><span class="op">(</span>EmailService emailService<span class="op">,</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>                        NotificationTemplates templates<span class="op">,</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>                        CustomerRepository customerRepository<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">emailService</span> <span class="op">=</span> emailService<span class="op">;</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">templates</span> <span class="op">=</span> templates<span class="op">;</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">customerRepository</span> <span class="op">=</span> customerRepository<span class="op">;</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">notifyOrderConfirmed</span><span class="op">(</span>OrderConfirmed event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>        Customer customer <span class="op">=</span> customerRepository<span class="op">.</span><span class="fu">find</span><span class="op">(</span>event<span class="op">.</span><span class="fu">customerId</span><span class="op">());</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        Email email <span class="op">=</span> templates<span class="op">.</span><span class="fu">orderConfirmation</span><span class="op">(</span>event<span class="op">,</span> customer<span class="op">);</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>        emailService<span class="op">.</span><span class="fu">send</span><span class="op">(</span>email<span class="op">);</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co">// Change Driver 4: Warehouse Operations</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="co">// Contains knowledge that varies when warehouse systems change</span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> InventoryManager <span class="op">{</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> InventoryRepository inventory<span class="op">;</span></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">reserveStock</span><span class="op">(</span>OrderConfirmed event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="op">(</span>OrderItem item <span class="op">:</span> event<span class="op">.</span><span class="fu">items</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>            inventory<span class="op">.</span><span class="fu">reserve</span><span class="op">(</span>item<span class="op">.</span><span class="fu">productId</span><span class="op">(),</span> item<span class="op">.</span><span class="fu">quantity</span><span class="op">());</span></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="co">// Change Driver 5: Data &amp; Analytics</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="co">// Contains knowledge that varies when analytics requirements change</span></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> OrderAnalytics <span class="op">{</span></span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> AnalyticsClient analytics<span class="op">;</span></span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">trackOrderPlaced</span><span class="op">(</span>OrderConfirmed event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>        analytics<span class="op">.</span><span class="fu">track</span><span class="op">(</span><span class="st">"order_placed"</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>            <span class="st">"order_id"</span><span class="op">,</span> event<span class="op">.</span><span class="fu">orderId</span><span class="op">(),</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>            <span class="st">"total_amount"</span><span class="op">,</span> event<span class="op">.</span><span class="fu">totalAmount</span><span class="op">(),</span></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>            <span class="st">"item_count"</span><span class="op">,</span> event<span class="op">.</span><span class="fu">itemCount</span><span class="op">()</span></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>        <span class="op">));</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Now each class is driven by <strong>exactly one change driver</strong>:</p>
+<ul>
+<li><code>Order</code> contains knowledge driven by <strong>business rule changes</strong></li>
+<li><code>InvoiceGenerator</code> contains knowledge driven by <strong>document requirement changes</strong></li>
+<li><code>OrderNotifier</code> contains knowledge driven by <strong>communication requirement changes</strong></li>
+<li><code>InventoryManager</code> contains knowledge driven by <strong>warehouse system changes</strong></li>
+<li><code>OrderAnalytics</code> contains knowledge driven by <strong>analytics requirement changes</strong></li>
+</ul>
+<p>This is high cohesion: <strong>one module, one change driver, one cohesive area of knowledge</strong>.</p>
+</section>
+<section id="the-benefits-of-high-cohesion" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="the-benefits-of-high-cohesion"><span class="header-section-number">6</span> The Benefits of High Cohesion</h2>
+<section id="reduced-cognitive-load" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="reduced-cognitive-load"><span class="header-section-number">6.1</span> Reduced Cognitive Load</h3>
+<p>When you need to understand discount logic, you <strong>only</strong> need to understand the <code>Order</code> class. You don’t need to know anything about PDFs, emails, or analytics.</p>
+<p>When you need to change email templates, you <strong>only</strong> need to understand <code>OrderNotifier</code>. You don’t need to understand order pricing or inventory management.</p>
+<p><strong>Each unit requires understanding only one area of knowledge.</strong></p>
+</section>
+<section id="localized-changes" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="localized-changes"><span class="header-section-number">6.2</span> Localized Changes</h3>
+<p>Each change driver affects exactly one module: - Business rules → <code>Order</code> - Document requirements → <code>InvoiceGenerator</code> - Communication needs → <code>OrderNotifier</code> - Warehouse operations → <code>InventoryManager</code> - Analytics tracking → <code>OrderAnalytics</code></p>
+<p><strong>Changes are localized to the relevant knowledge area.</strong></p>
+</section>
+<section id="independent-evolution" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="independent-evolution"><span class="header-section-number">6.3</span> Independent Evolution</h3>
+<p>The PDF library can be upgraded without touching order logic. The analytics system can be replaced without touching email code. Order validation can be enhanced without touching inventory management.</p>
+<p><strong>Each knowledge area evolves independently.</strong></p>
+</section>
+</section>
+<section id="the-relationship-between-cohesion-knowledge-and-change-drivers" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="the-relationship-between-cohesion-knowledge-and-change-drivers"><span class="header-section-number">7</span> The Relationship Between Cohesion, Knowledge, and Change Drivers</h2>
+<p>Here’s the key insight:</p>
+<p><strong>High cohesion = Knowledge driven by one change driver is grouped together</strong></p>
+<p><strong>Low cohesion = Knowledge driven by different change drivers is mixed together</strong></p>
+<p>Or more precisely:</p>
+<blockquote class="blockquote">
+<p><strong>Cohesion measures how well a module’s knowledge aligns with a single change driver</strong></p>
+</blockquote>
+<p>This explains why high cohesion improves maintainability:</p>
+<ol type="1">
+<li><strong>Easier to understand</strong>: You only need to understand knowledge relevant to one change driver</li>
+<li><strong>Easier to change</strong>: When a change driver triggers, you modify exactly one module</li>
+<li><strong>Easier to test</strong>: Each module tests knowledge for one change driver in isolation</li>
+<li><strong>Easier to parallelize work</strong>: Different teams own different change drivers and their corresponding modules</li>
+</ol>
+</section>
+<section id="how-to-identify-low-cohesion" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="how-to-identify-low-cohesion"><span class="header-section-number">8</span> How to Identify Low Cohesion</h2>
+<p>The key is identifying <strong>change drivers</strong>. Ask these questions about your classes/modules:</p>
+<section id="what-are-the-change-drivers" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="what-are-the-change-drivers"><span class="header-section-number">8.1</span> 1. What are the change drivers?</h3>
+<p>What are the different reasons this unit might change? - Business rule changes? - Technology/infrastructure changes? - Performance optimizations? - UI/UX changes? - Compliance/regulatory changes?</p>
+<p>If there are multiple <strong>independent</strong> reasons to change, you have multiple change drivers → low cohesion.</p>
+</section>
+<section id="who-owns-each-change-driver" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="who-owns-each-change-driver"><span class="header-section-number">8.2</span> 2. Who owns each change driver?</h3>
+<p>For each potential change, who decides when and how it happens? - Product managers (business rules)? - Platform team (infrastructure)? - Frontend team (UI/UX)? - DevOps (performance)? - Data team (analytics)?</p>
+<p>Multiple stakeholders = multiple change drivers = low cohesion.</p>
+</section>
+<section id="what-knowledge-does-each-change-driver-require" class="level3" data-number="8.3">
+<h3 data-number="8.3" class="anchored" data-anchor-id="what-knowledge-does-each-change-driver-require"><span class="header-section-number">8.3</span> 3. What knowledge does each change driver require?</h3>
+<p>For each change driver, what do you need to understand to make that change? - When business rules change, do you need to understand PDF generation? - When document templates change, do you need to understand order validation? - When analytics requirements change, do you need to understand email delivery?</p>
+<p>If one change driver forces you to understand knowledge from other change drivers, they’re inappropriately coupled → low cohesion.</p>
+</section>
+<section id="do-change-drivers-vary-independently" class="level3" data-number="8.4">
+<h3 data-number="8.4" class="anchored" data-anchor-id="do-change-drivers-vary-independently"><span class="header-section-number">8.4</span> 4. Do change drivers vary independently?</h3>
+<ul>
+<li>Can business rules change without affecting document generation?</li>
+<li>Can analytics requirements change without affecting inventory management?</li>
+<li>Can notification preferences change without affecting order validation?</li>
+</ul>
+<p>If these vary independently but are in the same module → low cohesion.</p>
+</section>
+</section>
+<section id="the-decision-framework" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="the-decision-framework"><span class="header-section-number">9</span> The Decision Framework</h2>
+<p>When designing or refactoring code:</p>
+<ol type="1">
+<li><p><strong>Identify change drivers</strong>: What are the independent reasons this code might change?</p></li>
+<li><p><strong>Map knowledge to change drivers</strong>: For each change driver, what knowledge varies when that driver triggers?</p>
+<ul>
+<li>Business rules → domain logic, validation, calculations</li>
+<li>Document requirements → templates, formatting, PDF generation</li>
+<li>Communication needs → email templates, notification channels</li>
+<li>Infrastructure changes → databases, APIs, caching</li>
+</ul></li>
+<li><p><strong>Check independence</strong>: Do these change drivers vary independently?</p>
+<ul>
+<li>Different stakeholders?</li>
+<li>Different timelines?</li>
+<li>Different triggering events?</li>
+<li>Can one change without affecting others?</li>
+</ul></li>
+<li><p><strong>If independent</strong> → Separate them</p>
+<ul>
+<li>Create one module per change driver</li>
+<li>Each module contains only knowledge for its change driver</li>
+<li>Use interfaces/events to coordinate between modules</li>
+<li>Keep boundaries explicit</li>
+</ul></li>
+<li><p><strong>If dependent</strong> → Keep them together</p>
+<ul>
+<li>They represent the same change driver</li>
+<li>They always change together</li>
+<li>The knowledge forms a cohesive unit</li>
+</ul></li>
+</ol>
+</section>
+<section id="real-world-application" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="real-world-application"><span class="header-section-number">10</span> Real-World Application</h2>
+<p>This knowledge-based view of cohesion helps explain many design principles:</p>
+<section id="single-responsibility-principle" class="level3" data-number="10.1">
+<h3 data-number="10.1" class="anchored" data-anchor-id="single-responsibility-principle"><span class="header-section-number">10.1</span> Single Responsibility Principle</h3>
+<p>“A class should have only one reason to change” = “A class should be driven by exactly one change driver”</p>
+</section>
+<section id="separation-of-concerns" class="level3" data-number="10.2">
+<h3 data-number="10.2" class="anchored" data-anchor-id="separation-of-concerns"><span class="header-section-number">10.2</span> Separation of Concerns</h3>
+<p>“Separate different concerns” = “Separate knowledge driven by different change drivers”</p>
+</section>
+<section id="interface-segregation" class="level3" data-number="10.3">
+<h3 data-number="10.3" class="anchored" data-anchor-id="interface-segregation"><span class="header-section-number">10.3</span> Interface Segregation</h3>
+<p>“No client should depend on methods it doesn’t use” = “Don’t force clients to know about irrelevant knowledge”</p>
+</section>
+<section id="bounded-contexts-ddd" class="level3" data-number="10.4">
+<h3 data-number="10.4" class="anchored" data-anchor-id="bounded-contexts-ddd"><span class="header-section-number">10.4</span> Bounded Contexts (DDD)</h3>
+<p>“Separate contexts have separate models” = “Separate knowledge domains have separate representations”</p>
+</section>
+</section>
+<section id="the-takeaway" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="the-takeaway"><span class="header-section-number">11</span> The Takeaway</h2>
+<p>Stop thinking of cohesion as a vague “things that belong together” principle.</p>
+<p>Start thinking of cohesion in terms of <strong>change drivers and knowledge</strong>:</p>
+<blockquote class="blockquote">
+<p><strong>Group knowledge driven by the same change driver. Separate knowledge driven by different change drivers.</strong></p>
+</blockquote>
+<p>When you do this: - <strong>Understanding</strong> becomes easier: each module contains knowledge for one change driver - <strong>Changes</strong> become localized: one change driver triggers changes in exactly one module - <strong>Testing</strong> becomes focused: each module tests knowledge for one change driver - <strong>Parallel work</strong> becomes natural: different teams own different change drivers</p>
+<p>The next time you’re writing or reviewing code, ask yourself:</p>
+<p><strong>“How many independent change drivers affect this module?”</strong></p>
+<p>If the answer is more than one, you’ve found low cohesion.</p>
+<p>Identify the change drivers. Separate the knowledge. One module per change driver.</p>
+<p>Your future self (and your teammates) will thank you.</p>
+<hr>
+</section>
+<section id="learn-more" class="level2" data-number="12">
+<h2 data-number="12" class="anchored" data-anchor-id="learn-more"><span class="header-section-number">12</span> Learn More</h2>
+<p>This article applies insights from:</p>
+<p><strong>Loth, Y. (2025). The Independent Variation Principle. Zenodo.</strong> https://doi.org/10.5281/zenodo.17677316</p>
+<p>The IVP paper provides a mathematical framework for understanding when concerns should be separated or unified, offering a principled approach to cohesion.</p>
+<hr>
+<p><em>How do you identify low cohesion in your codebase? What strategies have worked for improving it? Share your experiences in the comments!</em></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

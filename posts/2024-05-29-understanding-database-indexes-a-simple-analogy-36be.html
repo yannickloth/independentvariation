@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2024-05-29">
+<meta name="description" content="TL;DR Think of how a DB index works as how a dictionary works: how it allows you to…">
+
+<title>Understanding database indexes - A simple analogy – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-083efae8c4c9256682aa2f1f6671313f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Understanding database indexes - A simple analogy – Independent Variation Principle">
+<meta property="og:description" content="TL;DR Think of how a DB index works as how a dictionary works: how it allows you to…">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Understanding database indexes - A simple analogy – Independent Variation Principle">
+<meta name="twitter:description" content="TL;DR Think of how a DB index works as how a dictionary works: how it allows you to…">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../ivp-software/index.html"> 
+<span class="menu-text">IVP Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#tldr" id="toc-tldr" class="nav-link active" data-scroll-target="#tldr"><span class="header-section-number">1</span> TL;DR</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">2</span> Introduction</a></li>
+  <li><a href="#the-dictionary-analogy" id="toc-the-dictionary-analogy" class="nav-link" data-scroll-target="#the-dictionary-analogy"><span class="header-section-number">3</span> The Dictionary Analogy</a>
+  <ul class="collapse">
+  <li><a href="#what-if-words-were-not-sorted" id="toc-what-if-words-were-not-sorted" class="nav-link" data-scroll-target="#what-if-words-were-not-sorted"><span class="header-section-number">3.1</span> What If Words Were Not Sorted?</a></li>
+  <li><a href="#comparison" id="toc-comparison" class="nav-link" data-scroll-target="#comparison"><span class="header-section-number">3.2</span> Comparison</a></li>
+  <li><a href="#what-is-a-database-index" id="toc-what-is-a-database-index" class="nav-link" data-scroll-target="#what-is-a-database-index"><span class="header-section-number">3.3</span> What is a Database Index?</a></li>
+  <li><a href="#why-are-indexes-important" id="toc-why-are-indexes-important" class="nav-link" data-scroll-target="#why-are-indexes-important"><span class="header-section-number">3.4</span> Why Are Indexes Important?</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Understanding database indexes - A simple analogy</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">database</div>
+    <div class="quarto-category">softwareengineering</div>
+    <div class="quarto-category">algorithms</div>
+    <div class="quarto-category">datastructures</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    TL;DR Think of how a DB index works as how a dictionary works: how it allows you to…
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 29, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="tldr" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="tldr"><span class="header-section-number">1</span> TL;DR</h2>
+<p>Think of how a DB index works as how a dictionary works: how it allows you to quickly find any word’s definition.</p>
+</section>
+<section id="introduction" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="introduction"><span class="header-section-number">2</span> Introduction</h2>
+<p>When diving into the world of databases, one of the key concepts you’ll encounter is the database index. To make this idea more relatable, let’s compare it to something children learn to use at about ages from 7 to 9 and which we all know well—a word definition dictionary.</p>
+<p>By the end of this post, you’ll see how this familiar tool can help you understand all types of database indexes.</p>
+</section>
+<section id="the-dictionary-analogy" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="the-dictionary-analogy"><span class="header-section-number">3</span> The Dictionary Analogy</h2>
+<p>Think about a dictionary for a moment. When you need to find the definition of a word, you don’t start reading from the first page, hoping to stumble upon it. Instead, you take advantage of the dictionary’s organisation. Here’s how it works:</p>
+<ol type="1">
+<li><strong>Alphabetical Order</strong>: Words in a dictionary are sorted alphabetically. This sorting is crucial because it allows you to quickly jump to the section where the word should be.</li>
+<li><strong>Index at the Top of the Page</strong>: Each page in the dictionary typically shows the first and last word on that page, giving you a quick reference to know if the word you’re looking for might be on that page.</li>
+<li><strong>Quick Lookup</strong>: With this structure, you can find a word and its definition in seconds rather than minutes.</li>
+</ol>
+<section id="what-if-words-were-not-sorted" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="what-if-words-were-not-sorted"><span class="header-section-number">3.1</span> What If Words Were Not Sorted?</h3>
+<section id="linear-search" class="level4" data-number="3.1.1">
+<h4 data-number="3.1.1" class="anchored" data-anchor-id="linear-search"><span class="header-section-number">3.1.1</span> Linear search</h4>
+<p>Imagine if the words in the dictionary were not sorted alphabetically. You’d have to start at the beginning and check each word one by one until you find the one you’re looking for. This method is called a <strong>linear search</strong>.</p>
+<ol type="1">
+<li>Start at the first word.</li>
+<li>Check if it’s the word you need.</li>
+<li>If not, move to the next word.</li>
+<li>Repeat until you find the word.</li>
+</ol>
+<p>In the worst-case scenario, if the word you’re searching for is the last word in the dictionary, you would have to check all 5,000 words. Therefore, the maximum number of operations in the case of the linear search is 5,000. #### Other search strategies With other search strategies, like choosing a random word and repeating until you have picked the right one, the number of operations may be asymptotically infinite.</p>
+<p>If you decided to choose a random word from the list of words that you have not picked yet, the maximum number of operations would be 5000, but you would also have to maintain a list of the words you already picked. This would neither be efficient in time nor in space (memory). ### Operations in a Sorted Dictionary</p>
+<p>Let’s consider a dictionary with 5,000 words sorted alphabetically.</p>
+<p>Because the words are sorted alphabetically, you can employ a <strong>binary search</strong> to find a word. Binary search is an efficient algorithm that repeatedly divides the search interval in half:</p>
+<ol type="1">
+<li>Start by looking at the middle word of the dictionary.</li>
+<li>If the word you’re looking for comes before the middle word, narrow your search to the first half of the dictionary.</li>
+<li>If the word comes after the middle word, narrow your search to the second half.</li>
+<li>Repeat this process until you find the word.</li>
+</ol>
+<p>In a binary search, each step cuts the number of possible locations in half. Therefore, the maximum number of steps (or operations) needed is the logarithm of the number of words to the base 2, denoted as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><msub><mo>⁡</mo><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>5000</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">log⁡_{2}(5000)</annotation></semantics></math>.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><msub><mo>⁡</mo><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>5000</mn><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><mn>12.29</mn></mrow><annotation encoding="application/x-tex">
+log⁡_{2}(5000) ≈ 12.29
+</annotation></semantics></math></p>
+<p>This means you can find any word in approximately 13 operations at most.</p>
+<p><strong>Notes:</strong> - As we know the first letter of the word we search, we usually already approximate the position of the word when opening the dictionary: obviously, no need to start looking in the middle of the dictionary for a word starting with letter “c”. This usually allows us to remove a few search steps, reducing further the maximum number of steps to find a word to less than 12 in the case of a dictionary with 5000 words. - As the number of words in the dictionary increases, the gains increase as well because of the logarithmic scale, which increases at a slower rate than the size of the dictionary (compare <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><msub><mo>⁡</mo><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">log⁡_{2}(n)</annotation></semantics></math>). The gains provided by an index become greater as the number of entries grows. This is a key insight to understanding why queries on large tables (&gt;&gt; 100k rows) are still extremely fast despite the huge amount of data: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><msub><mo>⁡</mo><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msup><mn>10</mn><mn>5</mn></msup><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><mn>16.61</mn></mrow><annotation encoding="application/x-tex">log⁡_{2}(10^5) ≈ 16.61</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>o</mi><mi>g</mi><msub><mo>⁡</mo><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msup><mn>10</mn><mn>9</mn></msup><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><mn>29.9</mn></mrow><annotation encoding="application/x-tex">log⁡_{2}(10^9) ≈ 29.9</annotation></semantics></math>.</p>
+</section>
+</section>
+<section id="comparison" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="comparison"><span class="header-section-number">3.2</span> Comparison</h3>
+<ul>
+<li><strong>Sorted Dictionary (Binary Search)</strong>: Approximately 13 operations.</li>
+<li><strong>Unsorted Dictionary (Linear Search)</strong>: Up to 5,000 operations.</li>
+</ul>
+<p>Now, let’s translate this process to the realm of databases. ## Translating to Databases</p>
+</section>
+<section id="what-is-a-database-index" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="what-is-a-database-index"><span class="header-section-number">3.3</span> What is a Database Index?</h3>
+<p>A database index works similarly to the sorted dictionary, making it faster to find specific data in a database. Here’s how the analogy fits:</p>
+<ul>
+<li><strong>Sorted Order</strong>: Just like the words in a dictionary, data in an index is sorted in a specific order. This might be alphabetical, numerical, or based on another attribute.</li>
+<li><strong>Index Entries</strong>: In a database, an index contains entries that are analogous to dictionary entries. Each entry in the index contains a key (like the word in a dictionary) and a reference to the actual data (like the definition in a dictionary).</li>
+<li><strong>Efficient Lookup</strong>: When you search for data, the database uses the index to quickly locate the information, much like you use the dictionary’s alphabetical order to find a word.</li>
+</ul>
+<p>Using an index in a database is akin to using a binary search in a sorted dictionary—it’s efficient and significantly reduces the number of operations required to find the desired data. Without an index, the database would need to perform a linear search, scanning each row until it finds the matching data, which is far less efficient.</p>
+<p><strong>Note:</strong> - This shows that a dictionary actually is an index. ### Types of Database Indexes</p>
+<p>Let’s generalise this concept to different types of database indexes:</p>
+<ol type="1">
+<li><strong>B-Tree Indexes</strong>:
+<ul>
+<li><strong>How It Works</strong>: Similar to the alphabetical sorting in a dictionary, B-Tree indexes keep data sorted in a balanced tree structure. This ensures that the database can quickly navigate through the data to find what you need.</li>
+<li><strong>Use Case</strong>: Ideal for range queries and when you need to sort data.</li>
+</ul></li>
+<li><strong>Hash Indexes</strong>:
+<ul>
+<li><strong>How It Works</strong>: Instead of sorting data, hash indexes use a hash function to distribute data evenly across a set of buckets. Think of it like using a special code to find the word directly rather than flipping through pages.</li>
+<li><strong>Use Case</strong>: Perfect for exact match queries, where you need to find a specific entry quickly.</li>
+</ul></li>
+<li><strong>Bitmap Indexes</strong>:
+<ul>
+<li><strong>How It Works</strong>: Bitmap indexes use bitmaps (arrays of bits) to represent the presence of a value or combination of values. It’s like having multiple dictionaries where each dictionary represents a specific attribute of the words.</li>
+<li><strong>Use Case</strong>: Useful in data warehousing for complex queries involving multiple attributes.</li>
+</ul></li>
+<li><strong>Full-Text Indexes</strong>:
+<ul>
+<li><strong>How It Works</strong>: These indexes are designed to handle full-text search capabilities. They index words and phrases, much like a detailed glossary or concordance.</li>
+<li><strong>Use Case</strong>: Great for applications requiring search within large text fields, like articles or books.</li>
+</ul></li>
+</ol>
+</section>
+<section id="why-are-indexes-important" class="level3" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="why-are-indexes-important"><span class="header-section-number">3.4</span> Why Are Indexes Important?</h3>
+<p>Just as you wouldn’t want to read a dictionary cover to cover to find a word, you don’t want your database to scan through every record to find a piece of data. Indexes improve the efficiency and performance of your database queries, ensuring that information can be retrieved quickly and efficiently.</p>
+<p>Without indexes, there is no magic: the database is forced systematically read each entry one by one until it finds a hit, potentially the last entry. This not only takes more time, it also consumes more CPU time and requires more I/O operations. ### Conclusion</p>
+<p>A database index, much like a dictionary, is an essential tool for efficient information retrieval. Whether you’re using a B-Tree index, a hash index, a bitmap index, or a full-text index, the underlying principle remains the same: organising data in a way that makes it easy to find. By understanding this concept through the familiar analogy of a dictionary, you can better appreciate how indexes optimise database performance and make data retrieval a breeze.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

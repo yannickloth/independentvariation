@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-03-04">
+<meta name="description" content="If you have used LLMs for anything that requires accuracy, you have probably noticed the pattern: the…">
+
+<title>Iterative review-fix loops remove LLM hallucinations, and there is a formula for it – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-083efae8c4c9256682aa2f1f6671313f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-da67aa496935c04ff9f33194c29d14d7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Iterative review-fix loops remove LLM hallucinations, and there is a formula for it – Independent Variation Principle">
+<meta property="og:description" content="If you have used LLMs for anything that requires accuracy, you have probably noticed the pattern: the…">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Iterative review-fix loops remove LLM hallucinations, and there is a formula for it – Independent Variation Principle">
+<meta name="twitter:description" content="If you have used LLMs for anything that requires accuracy, you have probably noticed the pattern: the…">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../ivp-software/index.html"> 
+<span class="menu-text">IVP Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-pattern" id="toc-the-pattern" class="nav-link active" data-scroll-target="#the-pattern"><span class="header-section-number">1</span> The pattern</a></li>
+  <li><a href="#why-it-works-the-solver-verifier-gap" id="toc-why-it-works-the-solver-verifier-gap" class="nav-link" data-scroll-target="#why-it-works-the-solver-verifier-gap"><span class="header-section-number">2</span> Why it works: the solver-verifier gap</a></li>
+  <li><a href="#the-convergence-math" id="toc-the-convergence-math" class="nav-link" data-scroll-target="#the-convergence-math"><span class="header-section-number">3</span> The convergence math</a></li>
+  <li><a href="#how-many-review-passes-does-each-text-need" id="toc-how-many-review-passes-does-each-text-need" class="nav-link" data-scroll-target="#how-many-review-passes-does-each-text-need"><span class="header-section-number">4</span> How many review passes does each text need?</a></li>
+  <li><a href="#the-ceiling-and-when-to-stop" id="toc-the-ceiling-and-when-to-stop" class="nav-link" data-scroll-target="#the-ceiling-and-when-to-stop"><span class="header-section-number">5</span> The ceiling and when to stop</a></li>
+  <li><a href="#making-the-loop-more-effective" id="toc-making-the-loop-more-effective" class="nav-link" data-scroll-target="#making-the-loop-more-effective"><span class="header-section-number">6</span> Making the loop more effective</a></li>
+  <li><a href="#when-it-does-not-work" id="toc-when-it-does-not-work" class="nav-link" data-scroll-target="#when-it-does-not-work"><span class="header-section-number">7</span> When it does not work</a></li>
+  <li><a href="#in-summary" id="toc-in-summary" class="nav-link" data-scroll-target="#in-summary"><span class="header-section-number">8</span> In summary</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">9</span> References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Iterative review-fix loops remove LLM hallucinations, and there is a formula for it</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">productivity</div>
+    <div class="quarto-category">hallucinations</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    If you have used LLMs for anything that requires accuracy, you have probably noticed the pattern: the…
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 4, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>If you have used LLMs for anything that requires accuracy, you have probably noticed the pattern: the first output is a mix of genuine insight and confident fabrication. You read through it, spot the errors, fix them, and move on. Most people treat this manual review step as an unavoidable cost of working with these models.</p>
+<p>But here is something worth pausing on: when you ask the <em>same model</em> to review its own output, it often finds the very errors it just made. It spots hallucinated facts, logical gaps, and inconsistencies that it introduced moments earlier. And if you ask it to fix those findings and then review again, it finds more. You can repeat this until a review round produces zero findings, and the result is remarkably clean.</p>
+<p>This seems paradoxical at first. If the model was capable of recognizing these errors, why did it make them in the first place? The answer turns out to be that <em>recognizing a mistake is fundamentally easier than not making one</em>. Generation and verification are not the same cognitive task, and LLMs are measurably better at the second. This asymmetry is the key to everything that follows.</p>
+<p>I have been using this review-fix loop for academic papers, code, and technical documentation, and it reliably converges within a few rounds. Recent research now provides a formal mathematical model explaining why it converges and when you should stop.</p>
+<section id="the-pattern" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-pattern"><span class="header-section-number">1</span> The pattern</h2>
+<p>The loop itself is straightforward:</p>
+<pre><code>output = generate(task)
+changes = output
+round = 0
+while true:
+    round += 1
+    findings = review(changes)
+    if findings == 0 and round &gt;= 2:
+        break
+    changes = fix(changes, findings)</code></pre>
+<p>You generate once, then enter a review-fix loop. Notice the <code>round &gt;= 2</code> condition: even if the first review finds nothing, you run at least two review passes. The reason is that verification itself is probabilistic. A single review pass gives the model one chance to catch each error, and given that CS (the probability of spotting a given error) is less than 1, some errors will slip through on any single pass. A second pass gives the model another independent chance at those, which is where most of the accuracy gain concentrates according to the convergence formula.</p>
+<p>An important detail is that each review round focuses on what was changed in the previous round, not the entire output from scratch. The first round reviews the initial generation, but subsequent rounds only review the fixes that were just applied. This keeps each round focused on material that has not yet been reviewed, rather than re-scanning everything and risking the model second-guessing content it already validated.</p>
+<p>The reason this is effective is that LLMs tend to be better at verifying content than generating it. They spot errors more reliably than they avoid making them in the first place.</p>
+<p>This applies broadly. For documents, each round catches factual errors, inconsistencies, or missing context. For code, each round catches bugs, edge cases, or security issues. For technical writing, each round catches logical gaps and unsupported claims. The pattern does not require external feedback, fine-tuning, or multiple models, though using different prompts for generation and review does improve results.</p>
+</section>
+<section id="why-it-works-the-solver-verifier-gap" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="why-it-works-the-solver-verifier-gap"><span class="header-section-number">2</span> Why it works: the solver-verifier gap</h2>
+<p>To understand why the same model that made the errors can then find them, it helps to think about what generation and verification actually require.</p>
+<p>When generating, the model samples from a vast probability distribution. Many paths through that distribution lead to plausible-sounding but wrong outputs. The model has to construct the correct answer from scratch, navigating through all of those plausible-but-wrong alternatives. This is where hallucinations come from: the model lands on a confident-sounding path that happens to be wrong.</p>
+<p>When reviewing, the task is different. The model does not have to construct anything. It just has to look at a specific claim and assess whether it is correct. This is a much more constrained problem, and the model’s latent knowledge handles it more reliably. Think of it this way: it is hard to write a correct proof from scratch, but it is much easier to spot a logical gap in a proof that is already written.</p>
+<p>Liu et al.&nbsp;(2024) provide an explanation for this in <a href="https://arxiv.org/abs/2406.02378">“On the Intrinsic Self-Correction Capability of LLMs”</a>: the instruction to review and fix errors shifts the model’s internal state toward higher-certainty regions of its training distribution. Each review round activates latent knowledge that reduces uncertainty, progressively steering the output away from noise.</p>
+<p>The important consequence is that the model is not learning anything new during refinement. It is accessing knowledge it already had but failed to retrieve during generation. The review prompt effectively resamples from a better part of the distribution, and each round extracts a bit more of that latent knowledge.</p>
+</section>
+<section id="the-convergence-math" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="the-convergence-math"><span class="header-section-number">3</span> The convergence math</h2>
+<p>Yang et al.&nbsp;(2025) formalized this process in <a href="https://arxiv.org/abs/2508.16456">“A Probabilistic Inference Scaling Theory for LLM Self-Correction”</a> at EMNLP 2025. They model it as a Markov chain with a recursive formula:</p>
+<pre><code>Acc_t = Acc_{t-1} · CL + (1 - Acc_{t-1}) · CS</code></pre>
+<p>Here, <strong>Acc_t</strong> is the probability of the output being correct after round <em>t</em>, <strong>CL</strong> (Confidence Level) is the probability that the model keeps correct content correct, and <strong>CS</strong> (Critique Score) is the probability that the model successfully fixes an error.</p>
+<p>Through mathematical induction, this resolves into a closed-form convergence equation:</p>
+<pre><code>Acc_t = Upp - α^t · (Upp - Acc_0)</code></pre>
+<p>In this formula, <strong>Upp = CS / (1 - CL + CS)</strong> is the theoretical accuracy ceiling, <strong>α = CL - CS</strong> is the convergence rate (where a smaller α means faster convergence), and <strong>Acc_0</strong> is the initial accuracy of the first draft.</p>
+<p>This describes exponential decay toward the ceiling: each iteration removes a fixed fraction of remaining error. In practice, this translates to the following trajectory:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 65%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Round</th>
+<th>What typically happens</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>Initial generation, with hallucinations present</td>
+</tr>
+<tr class="even">
+<td>1 to 2</td>
+<td>Major errors are removed, including factual and logical contradictions</td>
+</tr>
+<tr class="odd">
+<td>3 to 5</td>
+<td>Refinement phase, where nuances, edge cases, and subtle inconsistencies are resolved</td>
+</tr>
+<tr class="even">
+<td>6+</td>
+<td>Diminishing returns, with a risk of the model “fixing” things that were not broken</td>
+</tr>
+</tbody>
+</table>
+<p>For current models, convergence typically happens in 3 to 5 rounds.</p>
+</section>
+<section id="how-many-review-passes-does-each-text-need" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="how-many-review-passes-does-each-text-need"><span class="header-section-number">4</span> How many review passes does each text need?</h2>
+<p>This is the question that the convergence formula actually answers, and the answer is not “one.”</p>
+<p>Verification is probabilistic. When the model reviews a piece of generated text, it has some probability CS of catching any given error. If CS is 0.4 (a reasonable estimate for current models on non-trivial content), then after a single review pass, each error has a 60% chance of surviving undetected. After two passes, that drops to 36%. After three, to about 22%.</p>
+<p>You can compute this directly from the convergence equation. The accuracy gain from round <em>t-1</em> to round <em>t</em> is:</p>
+<pre><code>ΔAcc_t = (1 - α) · α^(t-1) · (Upp - Acc_0)</code></pre>
+<p>If you plug in typical values (say CL = 0.9, CS = 0.4, so α = 0.5 and Upp = 0.80), the relative share of total improvement per round looks like this:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Round</th>
+<th>Share of total improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>50%</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>25%</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>12.5%</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>6.25%</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>3.125%</td>
+</tr>
+</tbody>
+</table>
+<p>Round 1 catches half the errors. Round 2 catches half of what remains. Together, rounds 1 and 2 account for 75% of the total improvement the loop will ever achieve. This is why a single review pass is not enough: it leaves a quarter of the reachable improvement on the table.</p>
+<p>The practical rule I follow is: <strong>every generated text gets reviewed at least twice.</strong> A single pass gives the model one chance to catch each error, and given the probabilistic nature of verification, that is not enough. Two passes give it a second independent chance, and that second chance is where a large share of the remaining errors get caught.</p>
+<p>Beyond two passes, you get diminishing returns, but they are not zero. For content where quality is critical (proofs, security-sensitive code, text that will be published), I typically run 3 to 5 rounds. For less critical content (internal documentation, draft notes), two rounds is usually sufficient.</p>
+<p>The formula also tells you something important: there is a maximum accuracy that the loop can reach, regardless of how many rounds you run. This ceiling, <strong>Upp</strong>, depends entirely on the model’s ability to preserve correct content (CL) and fix errors (CS).</p>
+</section>
+<section id="the-ceiling-and-when-to-stop" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="the-ceiling-and-when-to-stop"><span class="header-section-number">5</span> The ceiling and when to stop</h2>
+<p>If Upp is 0.80, the remaining 20% consists of errors that the model cannot recognize as errors, because they are blind spots shared by both its generator and its critic. This aligns with the finding from Huang et al.&nbsp;(2024) in <a href="https://arxiv.org/abs/2310.01798">“Large Language Models Cannot Self-Correct Reasoning Yet”</a> at ICLR 2024: when the evaluator has the same blind spots as the generator, iteration rearranges errors without removing them.</p>
+<p>There are a few practical rules for when to stop:</p>
+<ol type="1">
+<li><strong>Always run at least two review passes.</strong> As discussed above, the first two rounds capture 75% of the reachable improvement. Stopping after one pass leaves too much on the table.</li>
+<li><strong>Track findings per round.</strong> If the count is decreasing, you are converging. If it plateaus or increases, you should stop.</li>
+<li><strong>Set a hard cap at 5 or 6 rounds.</strong> Beyond this, the risk of introducing new errors tends to exceed the benefit of fixing remaining ones.</li>
+<li><strong>Watch for stochastic drift.</strong> If a round introduces issues that previous rounds had already fixed, you have overshot, and you should use the previous round’s output.</li>
+</ol>
+</section>
+<section id="making-the-loop-more-effective" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="making-the-loop-more-effective"><span class="header-section-number">6</span> Making the loop more effective</h2>
+<p>A few things I have learned from running this pattern extensively:</p>
+<p><strong>Separate the reviewer from the generator.</strong> Using a different system prompt for review than for generation yields better results. The Self-Refine framework by Madaan et al.&nbsp;(<a href="https://arxiv.org/abs/2303.17651">NeurIPS 2023</a>) showed that distinct generation, critique, and refinement prompts outperform monolithic approaches by roughly 20% on average across diverse tasks.</p>
+<p><strong>Be specific about what to review.</strong> A vague instruction like “review this for errors” produces weak findings, whereas “check for factual accuracy, logical consistency, missing edge cases, and unsupported claims” produces targeted and actionable findings. The more precise the review prompt, the higher the effective CS.</p>
+<p><strong>Quality-gate the initial generation.</strong> If the first draft is structurally broken or fundamentally confused about the topic, the review loop will not save it, because the critique signal gets drowned out by noise. Investing in better prompts, few-shot examples, or a more capable model for the initial generation will do more than adding extra review rounds on a poor draft.</p>
+<p><strong>Number your rounds.</strong> Tracking R1, R2, R3 with findings counts makes convergence visible and gives you a clear signal of when diminishing returns set in.</p>
+<p><strong>Recognize when to hand off.</strong> The ceiling tells you when human involvement is needed. If round 5 still shows findings but they are subtle judgment calls rather than clear errors, you have reached the model’s intrinsic limit, and the remaining gap requires human expertise.</p>
+</section>
+<section id="when-it-does-not-work" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="when-it-does-not-work"><span class="header-section-number">7</span> When it does not work</h2>
+<p>The loop fails in a few specific situations. If the task requires reasoning that the model cannot perform (for example, novel mathematical proofs or deeply specialized domain knowledge), then CS is close to zero and the ceiling is very low. If the initial quality is near zero, the model cannot bootstrap refinement from noise, and you need to fix the generation step first. And if the model is too aggressive (low CL), it frequently “fixes” correct content into incorrect content, so that each round both fixes and breaks things, and you oscillate instead of converging.</p>
+<p>These are edge cases, however. For the broad range of practical tasks involving writing, coding, analysis, and documentation, the loop-until-convergence pattern works well.</p>
+</section>
+<section id="in-summary" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="in-summary"><span class="header-section-number">8</span> In summary</h2>
+<p>If you are using LLMs for anything where quality matters, it is worth treating generation not as a one-shot process but as the first step in an iterative refinement loop. This is not a hack: it is a mathematically grounded strategy that takes advantage of the fact that these models can verify more reliably than they can generate.</p>
+<p>The approach is to generate once, review and fix in a loop, and stop when findings reach zero or at around round 5. The convergence math from Yang et al.&nbsp;predicts this, and my daily experience with it confirms the prediction.</p>
+<hr>
+</section>
+<section id="references" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="references"><span class="header-section-number">9</span> References</h2>
+<ol type="1">
+<li><p>Yang, Z., Zhang, Y., Wang, Y., Xu, Z., Lin, J., &amp; Sui, Z. (2025). <a href="https://arxiv.org/abs/2508.16456">A Probabilistic Inference Scaling Theory for LLM Self-Correction</a>. EMNLP 2025.</p></li>
+<li><p>Madaan, A., Tandon, N., Gupta, P., et al.&nbsp;(2023). <a href="https://arxiv.org/abs/2303.17651">Self-Refine: Iterative Refinement with Self-Feedback</a>. NeurIPS 2023.</p></li>
+<li><p>Huang, J., Chen, X., Mishra, S., et al.&nbsp;(2024). <a href="https://arxiv.org/abs/2310.01798">Large Language Models Cannot Self-Correct Reasoning Yet</a>. ICLR 2024.</p></li>
+<li><p>Liu, G., Mao, H., Cao, B., et al.&nbsp;(2024). <a href="https://arxiv.org/abs/2406.02378">On the Intrinsic Self-Correction Capability of LLMs: Uncertainty and Latent Concept</a>. arXiv:2406.02378.</p></li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="../toc-references.js"></script>
+<script src="../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
