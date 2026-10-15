@@ -1,7 +1,9 @@
 :root {
-  --navbar-bg: #46123b;
-  --navbar-fg: #ffceca;
-  --navbar-fg-active: #ffffff;
+  --navbar-bg: #ffffff;
+  --navbar-fg: #333333;
+  --navbar-fg-active: #000000;
+  --navbar-border: #e6e6e6;
+  --section-nav-h: 0px;   /* set by section-nav.js to the bar's real height */
 }
 
 /* ── Top menubar (Quarto navbar) — blue background, white/light-blue text ──
@@ -12,6 +14,7 @@
    under the bar). Only recolor. */
 .navbar {
   background-color: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--navbar-border);
 }
 /* Keep the navbar visible at all times. Quarto's headroom JS normally hides
    the bar (translateY(-100%)) on scroll-down; override the unpinned state so
@@ -32,7 +35,7 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   border-color: color-mix(in srgb, var(--navbar-fg) 60%, transparent);
 }
 .navbar .navbar-toggler-icon {
-  filter: invert(90%) sepia(10%) saturate(300%) hue-rotate(180deg);
+  filter: none;
 }
 /* Make the navbar search lens (loupe) white so it is visible against the
    blue bar. Quarto's search injects the icon via an Algolia autocomplete;
@@ -55,10 +58,51 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   background-color: color-mix(in srgb, var(--navbar-bg) 85%, var(--bs-white));
   color: var(--navbar-fg-active) !important;
 }
+/* ── Secondary (section) navigation bar — horizontal ──
+   Built by section-nav.js from the current section's top-level sidebar
+   entries and appended inside #quarto-header, directly below the navbar.
+   Quarto measures header.clientHeight for the body offset, so the bar needs
+   no manual page padding. --section-nav-h is the bar's measured height. */
+.section-nav {
+  background: var(--navbar-bg);
+  border-bottom: 1px solid var(--navbar-border);
+}
+.section-nav-list {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.25rem; list-style: none; margin: 0;
+  padding: 0.2rem 1rem;
+  overflow-x: auto; scrollbar-width: thin;
+}
+.section-nav-item { flex: 0 0 auto; }
+.section-nav-link {
+  display: inline-block;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem; line-height: 1.2;
+  color: var(--navbar-fg); text-decoration: none;
+  border-radius: var(--bs-border-radius);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.section-nav-link:hover,
+.section-nav-link:focus {
+  color: var(--navbar-fg-active);
+  background: color-mix(in srgb, var(--navbar-fg) 10%, transparent);
+}
+.section-nav-link.active {
+  color: var(--navbar-fg-active);
+  font-weight: 600;
+  border-bottom-color: currentColor;
+}
+/* On small screens the navbar collapses and the sidebar carries the section
+   navigation via its own toggle, so the bar is redundant. */
+@media (max-width: 991.98px) {
+  .section-nav { display: none; }
+}
+
 /* Keep the right margin sidebar (TOC) pinned while scrolling. */
  #quarto-margin-sidebar {
    position: sticky !important;
-   top: 72px !important;          /* just below the 64px fixed header */
+   top: calc(72px + var(--section-nav-h)) !important;   /* below the fixed header + section nav */
    align-self: start;
    overflow-y: auto;
    overscroll-behavior: contain;
@@ -162,11 +206,11 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
     color: var(--box-fg, color-mix(in srgb, var(--box-accent) 60%, var(--bs-black)));
   }
 
-  .callout-warning   { --box-accent: #d98a4a;  --box-accent-strong: #8a4a12; --box-bg: #fbe8d6;  --box-fg: #5c2f08;  --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z'/><path d='M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z'/></svg>"); }
-  .callout-note      { --box-accent: #8a4a7c; --box-accent-strong: #46123b; --box-bg: #f4e6f0; --box-fg: #3a0e31;   --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/><path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z'/></svg>"); }
-  .callout-important { --box-accent: #4a5b96; --box-accent-strong: #2f3a6b; --box-bg: #e6eaf5; --box-fg: #1e2546; --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/><path d='M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z'/></svg>"); }
-  .callout-tip       { --box-accent: #a3c14a; --box-accent-strong: #4d7c0f; --box-bg: #eef7d6; --box-fg: #2f4a06;    --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z'/></svg>"); }
-  .callout-caution   { --box-accent: #e06a7c; --box-accent-strong: #a8121a; --box-bg: #fbe0e2; --box-fg: #6b0a10; --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M9.97 4.88l.953 3.811C10.158 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.274 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm4.396 8.613a.5.5 0 0 1 .037.96l-6 2a.5.5 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l2.391-.598.565-2.257c.862.212 1.964.339 3.165.339s2.303-.127 3.165-.339l.565 2.257 2.391.598z'/></svg>"); }
+  .callout-warning   { --box-accent: #c9c9c9;  --box-accent-strong: #666666; --box-bg: #f4f4f4;  --box-fg: #1c1c1c;  --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z'/><path d='M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z'/></svg>"); }
+  .callout-note      { --box-accent: #c4c4c4; --box-accent-strong: #6b6b6b; --box-bg: #f7f7f7; --box-fg: #222222;   --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/><path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z'/></svg>"); }
+  .callout-important { --box-accent: #a8a8a8; --box-accent-strong: #2b2b2b; --box-bg: #f1f1f1; --box-fg: #111111; --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/><path d='M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z'/></svg>"); }
+  .callout-tip       { --box-accent: #bdbdbd; --box-accent-strong: #5f5f5f; --box-bg: #f5f5f5; --box-fg: #222222;    --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z'/></svg>"); }
+  .callout-caution   { --box-accent: #9a9a9a; --box-accent-strong: #111111; --box-bg: #eeeeee; --box-fg: #111111; --callout-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M9.97 4.88l.953 3.811C10.158 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.274 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm4.396 8.613a.5.5 0 0 1 .037.96l-6 2a.5.5 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l2.391-.598.565-2.257c.862.212 1.964.339 3.165.339s2.303-.127 3.165-.339l.565 2.257 2.391.598z'/></svg>"); }
 
   /* Epigraphs / blockquotes — theme border width + subtle hue */
   :where(.epigraph, blockquote) {
@@ -178,7 +222,7 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   }
 
   /* ── Glossary tooltips (custom popover) ── */
-  .gt, glossary-term { border-bottom: 1.5px dashed var(--box-fg, #8a4a7c); cursor: help; color: inherit; display: inline; }
+  .gt, glossary-term { border-bottom: 1.5px dashed var(--box-fg, #9a9a9a); cursor: help; color: inherit; display: inline; }
 
   .gt-pop {
     position: fixed; z-index: 99999;     max-inline-size: min(92vw, 640px);
@@ -201,7 +245,7 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
 
   .gt-also, .gt-sources { font-size: 0.8rem; color: var(--bs-secondary-color); border-top: var(--bs-border-width) solid var(--bs-border-color); padding-top: 4px; margin-top: 2px; }
   .gt-sources { font-size: 0.75rem; line-height: 1.6; }
-  .gt-sources a { color: #46123b !important; text-decoration: none; }
+  .gt-sources a { color: var(--bs-link-color, #111111) !important; text-decoration: none; }
   .gt-sources a:hover { text-decoration: underline; }
   .gt-pop b { color: var(--bs-emphasis-color); }
 
@@ -240,7 +284,7 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
 .kg-pane-left {
   grid-column: 1;
   position: sticky;
-  top: 76px;                                   /* clears the 64px fixed navbar */
+  top: calc(76px + var(--section-nav-h));      /* clears the fixed header + section nav */
   align-self: start;
   display: flex;
   flex-direction: column;
@@ -363,9 +407,9 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   color: var(--bs-secondary-color);
   font-size: 0.9rem;
 }
-.kg-status-error { color: var(--box-fg, #c21515); }
+.kg-status-error { color: var(--box-fg, #666666); }
 .kg-post-bar {
-  position: sticky; top: 64px; z-index: 3;
+  position: sticky; top: calc(64px + var(--section-nav-h)); z-index: 3;
   display: none; align-items: center; gap: 0.8em;
   margin: 0 -1.1rem 0.9rem;
   padding: 0.6rem 1.1rem;
@@ -433,4 +477,63 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   .kg-layout { grid-template-columns: 1fr; }
   .kg-post { display: block !important; }
   .kg-post-bar { position: static; }
+}
+
+/* ── Dark mode ──
+   The brand supplies the dark color roles and Quarto's theme pair adds the
+   navbar toggle. These rules adapt the navbar and callout colors that the
+   light theme sets above; Quarto marks dark mode with the body.quarto-dark
+   class (the navbar's own data-bs-theme attribute is separate and must not be
+   used as a dark-mode hook). */
+body.quarto-dark {
+  --navbar-bg: #121212;
+  --navbar-fg: #b8b8b8;
+  --navbar-fg-active: #f0f0f0;
+  --navbar-border: #333333;
+  /* Both modes are built on cosmo, so the layout is identical by construction
+     and only the colors change. The component colors that cosmo derives from
+     its own palette at build time must therefore be set here for dark mode. */
+  --bs-body-bg: #121212;
+  --bs-body-color: #e6e6e6;
+  --bs-secondary-bg: #242424;
+  --bs-tertiary-bg: #1c1c1c;
+  --bs-secondary-color: rgba(230, 230, 230, 0.75);
+  --bs-tertiary-color: rgba(230, 230, 230, 0.5);
+  --bs-emphasis-color: #ffffff;
+  --bs-heading-color: #ffffff;
+  --bs-border-color: #333333;
+  --bs-border-color-translucent: rgba(255, 255, 255, 0.15);
+  --bs-code-color: #e6e6e6;
+  --bs-highlight-bg: #333333;
+  --bs-highlight-color: #e6e6e6;
+  --bs-link-color: #f0f0f0;
+  --bs-link-hover-color: #ffffff;
+  --bs-link-color-rgb: 240, 240, 240;
+}
+body.quarto-dark .callout-note      { --box-accent: #5a5a5a; --box-accent-strong: #2b2b2b; --box-bg: #1c1c1c; --box-fg: #d0d0d0; }
+body.quarto-dark .callout-tip       { --box-accent: #565656; --box-accent-strong: #2f2f2f; --box-bg: #1e1e1e; --box-fg: #d0d0d0; }
+body.quarto-dark .callout-important { --box-accent: #6b6b6b; --box-accent-strong: #3a3a3a; --box-bg: #222222; --box-fg: #e0e0e0; }
+body.quarto-dark .callout-warning   { --box-accent: #666666; --box-accent-strong: #333333; --box-bg: #202020; --box-fg: #d8d8d8; }
+body.quarto-dark .callout-caution   { --box-accent: #7a7a7a; --box-accent-strong: #454545; --box-bg: #242424; --box-fg: #e0e0e0; }
+body.quarto-dark .callout.callout-style-default.callout-warning,
+body.quarto-dark .callout.callout-style-default.callout-note,
+body.quarto-dark .callout.callout-style-default.callout-important,
+body.quarto-dark .callout.callout-style-default.callout-tip,
+body.quarto-dark .callout.callout-style-default.callout-caution {
+  background-image: none;
+}
+
+/* ── Typography roles ──
+   Content is serif: the brand sets STIX Two Text for the body and headings,
+   and every content surface (navigation, sidebar, listings, captions)
+   inherits it. Only form controls and the search box stay in Inter, and math
+   is pinned to its STIX companion so inline math matches the text. Print
+   inherits the serif body. */
+math,
+mjx-container {
+  font-family: "STIX Two Math", "STIX Two Text", math, serif;
+}
+.btn, button, input, select, textarea,
+#quarto-search, .aa-Autocomplete, .aa-Input {
+  font-family: Inter, system-ui, sans-serif;
 }
