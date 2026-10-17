@@ -76,11 +76,16 @@
   }
 
   // ---- Tier 3: trim the panel to the active area's subtree ----
-  const activeRoot = rootItems.find((li) => li.querySelector('a.active'));
-  if (!activeRoot) return;                       // topic landing: keep the full tree
-  const childList = activeRoot.querySelector(':scope > ul');
-  if (!childList) return;                        // leaf area: keep the full tree
+  // The panel answers one question: what is in the area the bar has selected?
+  // So every top-level entry except the active one is hidden, whether the area
+  // has pages of its own or none (a leaf area yields a one-line panel, not the
+  // whole topic tree). The topic overview is the exception: it is the topic's
+  // own landing page, no area is selected there, and the panel is its table of
+  // contents — the full tree.
+  const activeIndex = rootItems.findIndex((li) => li.querySelector('a.active'));
+  if (activeIndex <= 0) return;                  // overview or no area: full tree
 
+  const activeRoot = rootItems[activeIndex];
   for (const li of rootItems) {
     if (li !== activeRoot) li.style.display = 'none';
   }
