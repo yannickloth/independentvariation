@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,114 +1026,735 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="dartLang"><a href="#ref-dartLang" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 69/100</strong> | <strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Sound null safety (Dart 2.12+) — <code>String</code> vs <code>String?</code> like Kotlin, enforced at compile time. Strong static typing with type inference. No checked exceptions (like C#). Async/await with <code>Future&lt;T&gt;</code> separates sync from async. Isolates decouple concurrency (no shared memory, message-passing only). Sealed classes (Dart 3) for exhaustive pattern matching. Records (Dart 3) for structural data. Pattern matching (Dart 3) decouples destructuring. Extension methods decouple behavior from types. <code>late</code> keyword for lazy initialization decouples initialization from construction. Main weakness: relatively small ecosystem outside Flutter, null safety migration still ongoing for old packages.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Excellent for cross-platform UI (Flutter). AOT compilation to native (iOS, Android) — no JIT overhead in production. JIT compilation for development (hot reload). Fast startup. Growing ecosystem (pub.dev). Google-backed. Learning curve gentle (familiar syntax to Java/TypeScript devs). Dart 3 unified the language (100% null safe). Used primarily for Flutter but expanding to server (Dart Frog, Shelf). Web compilation to JavaScript.</p>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Dart in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 69/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Sound null safety</strong>: <code>String</code> and <code>String?</code> are distinct types, and Dart 2.12 and later check the difference at compile time.</li>
+<li>✅ <strong>Static typing with inference</strong>: <code>var</code>, <code>final</code>, and <code>const</code> infer a type, and that type is checked everywhere the value is used.</li>
+<li>✅ <strong>Sealed classes give exhaustive matching</strong>: a <code>sealed class</code> hierarchy lets the analyser check a <code>switch</code> expression for exhaustiveness.</li>
+<li>✅ <strong>Records give structural data</strong>: <code>(int, String)</code> is a value type with no class declaration, and its fields are named or positional.</li>
+<li>✅ <strong>Pattern matching decouples destructuring from accessors</strong>: an object, list, or record pattern pulls values apart without getter calls.</li>
+<li>✅ <strong>Extension methods add behaviour outside the type</strong>: an <code>extension</code> on <code>String</code> adds methods without subclassing or changing the class.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong><code>late</code> decouples initialisation from construction</strong>: a <code>late final</code> field is initialised on first access, so the constructor need not compute it.</li>
+<li>✅ <strong>Factory constructors decouple construction from allocation</strong>: a <code>factory</code> constructor can return a cached instance, a subtype, or a constant instead of a fresh object.</li>
+<li>✅ <strong><code>const</code> constructors build compile-time constants</strong>: a <code>const</code> value is canonicalised, so equal constants share one instance.</li>
+<li>✅ <strong>State lives in the object</strong>: the language provides no default global mutable state, and an instance is the natural unit of state.</li>
+<li>✅ <strong>Named and optional parameters state the construction contract</strong>: <code>Point({required int x, int y = 0})</code> names each argument at the call site.</li>
+<li>⚠️ <strong>A library-level <code>var</code> is global mutable state</strong>: mutable top-level variables are permitted, so global coupling needs discipline rather than the compiler.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>The VM collects garbage</strong>: allocation and reclamation are automatic, and the program cannot choose when a pause happens (M2).</li>
+<li>❌ <strong>No RAII</strong>: the language has no scope-exit destructor, so an opened <code>File</code> or socket must be closed by hand or in a <code>try</code>/<code>finally</code> (M3).</li>
+<li>❌ <strong>No ownership or borrow model</strong>: aliasing is unrestricted, so two references can hold the same mutable object and the VM alone tracks its lifetime (M4).</li>
+<li>✅ <strong>No manual deallocation</strong>: ordinary Dart never frees memory, so a double free or a use after free cannot occur in managed code.</li>
+<li>✅ <strong>Each isolate owns a separate heap</strong>: an isolate collects its own garbage, so a pause is confined to one isolate.</li>
+<li>⚠️ <strong><code>Finalizer</code> and weak references are best effort</strong>: finalisation runs when the collector decides, not at a moment the program chooses.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Exceptions are unchecked</strong>: <code>throw</code> accepts any object and no signature declares what a function can throw, so a caller cannot read the failure set from the type (Er2).</li>
+<li>⚠️ <strong><code>try</code>/<code>on</code>/<code>catch</code>/<code>finally</code> gives a structured path</strong>: the recovery path is separate from the normal path, but the caught type is matched at run time.</li>
+<li>⚠️ <strong><code>Error</code> and <code>Exception</code> are a convention</strong>: <code>Error</code> marks a programming fault and <code>Exception</code> a recoverable condition, and nothing enforces the split.</li>
+<li>✅ <strong><code>finally</code> separates cleanup from recovery</strong>: the block runs whether the body succeeds, throws, or returns.</li>
+<li>✅ <strong><code>Future</code> failures stay inside the chain</strong>: <code>async</code>/<code>await</code> routes a thrown object to the awaiting caller, and <code>catchError</code> handles it beside the value.</li>
+<li>✅ <strong><code>assert</code> states a precondition in checked mode</strong>: an assertion runs in development and JIT mode, so a violated invariant fails early.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Isolates share no memory</strong>: each isolate has its own heap and communicates only by message, so a data race between isolates cannot occur.</li>
+<li>✅ <strong><code>Future</code> and <code>async</code>/<code>await</code> suspend without blocking</strong>: an <code>await</code> yields the event loop instead of holding a thread.</li>
+<li>✅ <strong><code>Stream</code> composes asynchronous sequences</strong>: <code>await for</code> and stream transformers chain events without callback nesting.</li>
+<li>❌ <strong>No race detection inside an isolate</strong>: the event loop runs each callback to completion, and the language provides no lock or race checker for shared mutable state (K3).</li>
+<li>✅ <strong><code>Isolate.run</code> and ports marshal by copy</strong>: a message is copied or transferred, so a value cannot be shared accidentally.</li>
+<li>✅ <strong>One event loop per isolate removes most synchronisation</strong>: application code on a single isolate needs no lock.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>Ahead-of-time compilation to native code</strong>: <code>dart compile exe</code> and the Flutter release build produce native ARM and x64 binaries with no interpreter.</li>
+<li>✅ <strong>Web targets are first class</strong>: <code>dart compile js</code> and <code>dart2wasm</code> emit JavaScript and WebAssembly for browsers.</li>
+<li>✅ <strong>The development VM supports hot reload</strong>: the kernel VM and the JIT path give an edit-and-reload cycle without a rebuild.</li>
+<li>✅ <strong>No vendor runtime lock-in</strong>: one source runs on the Dart VM, as native code, and in a browser.</li>
+<li>⚠️ <strong>Flutter is the dominant consumer</strong>: server use through Shelf and Dart Frog is real but far smaller.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The ecosystem outside Flutter is small</strong>: most packages target Flutter, so a non-UI project has fewer libraries; this is a community outcome, not a language mechanism.</li>
+<li><strong>Null-safety migration of old packages is unfinished</strong>: an unmigrated package carries an unsound boundary, and opting out with a <code>// @dart=2.x</code> comment is a legacy choice.</li>
+<li><strong>JIT in development and AOT in production is a tooling split</strong>: hot reload needs the JIT, and a release build needs the AOT compiler.</li>
+<li><strong>Familiar syntax is a familiarity choice</strong>: the C-style grammar is close to Java and TypeScript, which lowers the barrier but is not a coupling property.</li>
+<li><strong><code>dart:ffi</code> reaches native code</strong>: FFI is an explicit escape hatch, so the memory-safety guarantees of managed code do not extend across it.</li>
+<li><strong>Dart is a general-purpose language with a UI-heavy reputation</strong>: the reputation follows Flutter, not a scope limit in the language.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Production code is compiled ahead of time</strong>: the Flutter release toolchain and <code>dart compile</code> emit native machine code, so the hot path holds no interpreter.</li>
+<li>✅ <strong>Startup is fast</strong>: an AOT binary starts without a warm-up phase, which matters for a mobile cold start.</li>
+<li>✅ <strong>The JIT optimises development runs</strong>: the development VM profiles and recompiles hot functions, so hot reload keeps speed.</li>
+<li>❌ <strong>The collector pauses the mutator</strong>: the generational garbage collector stops execution during a collection, which appears as a frame-time spike (R2).</li>
+<li>⚠️ <strong>Throughput is good but not hand-tuned C</strong>: AOT output is close to a native compiler’s, but a numeric kernel has no SIMD or arena control in the language.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>✅ <strong><code>dart pub</code> and pub.dev are mature</strong>: version constraints, a lockfile, and a central registry are part of the SDK.</li>
+<li>✅ <strong>The SDK ships the toolchain</strong>: <code>dart analyze</code>, <code>dart format</code>, <code>dart test</code>, and <code>dart fix</code> need no extra install.</li>
+<li>✅ <strong>Google backs the language</strong>: funding and staff come from one large vendor, which keeps the toolchain coherent.</li>
+<li>❌ <strong>The package ecosystem is small outside Flutter</strong>: the great majority of packages are Flutter plugins, so a server or CLI project finds fewer libraries (Ec3).</li>
+<li>⚠️ <strong>Null-safety migration is still in progress for old packages</strong>: an unmigrated dependency weakens the soundness guarantee at the boundary.</li>
+<li>⚠️ <strong>A single vendor holds the roadmap</strong>: the language specification and the Flutter release train come from one company.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>Dart 3 unified the language at 100% null safety</strong>: one soundness model now applies to all migrated code.</li>
+<li>✅ <strong>Language versions are declared per library</strong>: a <code>// @dart=3.0</code> comment pins a library to a language version, so a migration can be staged.</li>
+<li>✅ <strong><code>dart fix --apply</code> automates migrations</strong>: mechanical rewrites for deprecations ship with the SDK.</li>
+<li>✅ <strong>The language changes on a predictable cadence</strong>: releases follow the Flutter stable train, so a team can plan an upgrade.</li>
+<li>⚠️ <strong>Older packages may lag the current release</strong>: a dependency that targets an older language version keeps its old semantics.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for cross-platform UI</strong>: Flutter renders one widget tree on iOS, Android, web, and desktop from one source.</li>
+<li>✅ <strong>Server-side use is supported</strong>: Shelf and Dart Frog provide HTTP servers and routing on the same runtime.</li>
+<li>✅ <strong>Browser output works through JavaScript and WebAssembly</strong>: <code>dart compile js</code> and <code>dart2wasm</code> cover the web target.</li>
+<li>✅ <strong>Command-line tools are a supported target</strong>: <code>dart compile exe</code> produces a standalone binary.</li>
+<li>⚠️ <strong>Non-Flutter use is uncommon</strong>: examples, packages, and hiring lean toward UI development.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The syntax is familiar</strong>: the C-style grammar and the type annotations resemble Java, C#, and TypeScript.</li>
+<li>✅ <strong>Inference keeps annotations light</strong>: <code>var</code>, <code>final</code>, and collection literals let a beginner write working code early.</li>
+<li>✅ <strong>The official documentation is thorough</strong>: dart.dev carries a language tour, codelabs, and the effective-Dart guides.</li>
+<li>✅ <strong>Null safety gives a clear first rule</strong>: the compiler’s null-safety errors teach the distinction between <code>T</code> and <code>T?</code> quickly.</li>
+<li>⚠️ <strong>Dart 3 features are recent</strong>: records, patterns, and sealed classes postdate many tutorials, so older material omits them.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Familiar C-style syntax</strong>: braces, semicolons, and the <code>.</code> member operator match the mainstream.</li>
+<li>✅ <strong>Expression-oriented <code>switch</code></strong>: a Dart 3 <code>switch</code> expression returns a value and reads as a mapping from case to result.</li>
+<li>✅ <strong>String interpolation is built in</strong>: <code>"value: $x"</code> embeds an expression without a concatenation call.</li>
+<li>✅ <strong>Named arguments make call sites self-documenting</strong>: <code>theme: dark, dense: true</code> states the intent at the call.</li>
+<li>⚠️ <strong>Asynchronous code colours functions</strong>: an <code>async</code> function returns <code>Future&lt;T&gt;</code>, so a caller must be asynchronous to await it.</li>
+<li>⚠️ <strong>Null-aware operators add punctuation</strong>: <code>?.</code>, <code>!</code>, and <code>??</code> are concise but stack up in dense expressions.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>package:test</code> is the standard runner</strong>: <code>dart test</code> discovers files under <code>test/</code> and reports structured failures.</li>
+<li>✅ <strong><code>flutter_test</code> covers widget tests</strong>: <code>WidgetTester</code> pumps frames and finds widgets by key or text.</li>
+<li>✅ <strong>The analyser catches errors before the test run</strong>: <code>dart analyze</code> reports type and null-safety faults without executing code.</li>
+<li>✅ <strong>Asynchronous and golden tests are supported</strong>: <code>expectLater</code> and matchers handle <code>Future</code> and <code>Stream</code> results.</li>
+<li>⚠️ <strong>There is no single mocking standard</strong>: <code>mockito</code> with code generation and <code>mocktail</code> without it are both common.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>Sound null safety removes null dereference</strong>: a <code>String?</code> cannot be used as a <code>String</code> without a check or an explicit <code>!</code>.</li>
+<li>✅ <strong>Static typing rejects type confusion at compile time</strong>: the analyser rejects an assignment the type system forbids.</li>
+<li>✅ <strong>Bounds checking is always on</strong>: an index outside a list’s range throws <code>RangeError</code> rather than reading adjacent memory.</li>
+<li>✅ <strong>No <code>eval</code> and no dynamic code execution</strong>: the language has no construct that turns a string into code.</li>
+<li>⚠️ <strong>Web output inherits browser risks</strong>: a compiled script still runs inside the browser’s security model.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Type subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
-<td><code>K3</code></td>
-<td>manual sync no race detection</td>
-<td style="text-align: right;">8</td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 69/100</strong> — total points removed = 31 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>R2</code></td>
 <td>GC pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Dart’s design yields moderate language-imposed coupling. Sound null safety, inference, records, patterns, and sealed classes decouple the type from absence and from shape, and isolates remove shared-memory races entirely. Main strengths: AOT native compilation with fast startup, an explicit <code>late</code> and <code>factory</code> construction model, and a compiler that rejects null-safety faults before the program runs. Main weaknesses: the collector and the absence of RAII make resource release non-deterministic, exceptions are unchecked, there is no race detection inside an isolate, and the package ecosystem is small outside Flutter.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1139,6 +1765,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

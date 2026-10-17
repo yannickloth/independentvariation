@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,163 +1026,735 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="groovyDocs"><a href="#ref-groovyDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 53/100</strong> | <strong>Platform &amp; Ecosystem Score: 80/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Groovy is a Java-compatible, multi-paradigm language for the JVM that can be both dynamically and statically typed. Its dual typing is the central coupling issue: dynamic typing (the <code>def</code> keyword) defers coupling detection to runtime, while optional static compilation and static type checking (Groovy 2+) provide compile-time detection and near-Java performance. Closures act like method pointers, decoupling callbacks from calling code. Traits (interfaces carrying default implementations and state) support behavior composition without inheritance coupling. The safe-navigation operator <code>?.</code> reduces null-checking coupling. However, prototype extension via <code>ExpandoMetaClass</code> and Objective-C-style categories enable metaprogramming that can create hidden, action-at-a-distance coupling at runtime. GroovyBeans auto-generate getters/setters, reducing construction boilerplate. Much of Groovy’s power lies in AST transformations (compile-time metaprogramming), which add flexibility without runtime penalty but couple code to compile-time semantics. Groovy’s syntax omitting parentheses and dots enables DSLs that decouple surface syntax from meaning. The JVM ecosystem and tools such as Gradle and Jenkins pipelines make Groovy widely used for scripting and build automation.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Groovy has a strong, well-established ecosystem as an Apache top-level project. It is central to Gradle (build automation) and Jenkins Pipeline (CI), and powers Grails web development. Performance is moderate in dynamic mode (JVM, dynamic dispatch) but approaches Java with static compilation. The learning curve is gentle for Java developers, since most valid Java is valid Groovy. The syntax is concise and Java-compatible. Testing is excellent via Spock and JUnit. Security is reasonable, though dynamic typing and metaprogramming (ExpandoMetaClass) can create type-confusion and hidden-coupling risk. The language has no fixed release cadence; Groovy 5.x (2025) improves performance and JDK 17+ support.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Groovy in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 53/100</strong> · <strong>Ecosystem coupling 80/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>⚠️ <strong>Dynamic typing is the default</strong>: a <code>def</code> declaration defers method resolution to the runtime metaclass protocol, so a mismatch is reported when the line runs rather than when the file compiles.</li>
+<li>✅ <strong><code>@CompileStatic</code> and <code>@TypeChecked</code> restore compile-time checking</strong>: Groovy 2 and later can compile a class to direct bytecode, and the annotated class is checked in the manner of Java.</li>
+<li>⚠️ <strong>Generics are erased on the JVM</strong>: <code>List&lt;String&gt;</code> is a <code>List</code> at runtime, so a cast or a reflection call can reach a type the declaration does not admit (T7).</li>
+<li>✅ <strong>Traits compose behaviour without inheritance</strong>: a <code>trait</code> may carry default methods and state, so behaviour is mixed in rather than inherited from a superclass.</li>
+<li>✅ <strong>Safe navigation separates the test from the call</strong>: <code>a?.b</code> short-circuits to <code>null</code> at the point of use, so the absence test stands where the value is read.</li>
+<li>⚠️ <strong>Operator overloading is by method name</strong>: <code>a + b</code> may call <code>plus</code> and <code>a[i]</code> may call <code>getAt</code>, so a dense expression can invoke user code the syntax does not show (T8).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>⚠️ <strong>Mutability is the default</strong>: a field is mutable unless it is <code>final</code> or the class is annotated <code>@Immutable</code> (C2).</li>
+<li>✅ <strong>GroovyBeans generate the accessors</strong>: a property declaration is compiled with its getter and setter, so the boilerplate leaves the source.</li>
+<li>✅ <strong>Map constructors separate the arguments from their order</strong>: <code>new Point(x: 1, y: 2)</code> names each value at the call site, so the call does not depend on positional order.</li>
+<li>✅ <strong><code>@Immutable</code> makes a value type in one annotation</strong>: it generates the tuple constructor, <code>equals</code>, <code>hashCode</code>, and a defensive copy of the fields.</li>
+<li>⚠️ <strong>AST transformations decide the shape at compile time</strong>: <code>@Canonical</code>, <code>@TupleConstructor</code>, and <code>@Builder</code> generate constructors whose signatures are not written in the source.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>The JVM owns deallocation</strong>: there is no free operation, and a collection is scheduled outside the program’s control (M2).</li>
+<li>⚠️ <strong>No RAII</strong>: <code>@Cleanup</code> and <code>withCloseable</code> release a resource at the end of a declared block, but nothing runs automatically at the end of an arbitrary scope (M3).</li>
+<li>❌ <strong>No ownership model</strong>: a reference may alias or be shared freely, and the collector decides when the object dies (M4).</li>
+<li>✅ <strong><code>withCloseable</code> binds release to a closure</strong>: <code>stream.withCloseable { ... }</code> closes the resource when the block returns, including on an exception.</li>
+<li>✅ <strong><code>@Cleanup</code> names the release point</strong>: a local annotated <code>@Cleanup</code> is closed at the end of its enclosing block.</li>
+<li>✅ <strong>Collection is invisible in the source</strong>: an allocation is a <code>new</code>, and no deallocation call is ever written.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Exceptions are unchecked</strong>: Groovy requires no <code>throws</code> clause and the compiler does not check that a handler exists, so an exception may propagate from any call (Er2).</li>
+<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> is the structured path</strong>: a <code>catch</code> clause names the type it handles, and <code>finally</code> runs on every exit.</li>
+<li>✅ <strong><code>@TypeChecked</code> turns a type error into a compile error</strong>: a call to a method that does not exist fails the build rather than the run.</li>
+<li>⚠️ <strong>Dynamic dispatch failure is a runtime exception</strong>: a missing method or property raises <code>MissingMethodException</code> or <code>MissingPropertyException</code> at the call.</li>
+<li>⚠️ <strong><code>?.</code> and <code>?:</code> suppress a failure by design</strong>: safe navigation returns <code>null</code> where an exception would otherwise report the fault.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>The JDK concurrency library is available</strong>: <code>Thread</code>, <code>synchronized</code>, <code>java.util.concurrent</code> executors, and atomics are reached directly.</li>
+<li>✅ <strong><code>@Synchronized</code> puts the monitor on the declaration</strong>: the annotation transformation wraps a method in the object’s monitor, so the lock is stated beside the method.</li>
+<li>✅ <strong>GPars adds dataflow, actors, and parallel collections</strong>: the abstractions are a library over the JDK, so a concurrent design is not limited to threads and locks.</li>
+<li>⚠️ <strong>Shared mutable state is the default</strong>: a field is reachable by every thread, and the compiler checks no access pattern.</li>
+<li>❌ <strong>No structured concurrency in the language</strong>: a task tree, a scope, and a join are the JDK executor’s responsibility, and Groovy adds no scope construct of its own (K4).</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>Runs on the JVM and interoperates with Java</strong>: any Java class is callable, and most valid Java is valid Groovy.</li>
+<li>✅ <strong>Compiles to standard JVM bytecode</strong>: the output is a class file, so any JVM accepts it and the JDK’s tools apply.</li>
+<li>❌ <strong>The JVM is the only target</strong>: there is no non-JVM implementation of Groovy, so a program couples to one runtime (P2).</li>
+<li>✅ <strong>Gradle and Jenkins Pipeline give it a first-class host</strong>: the build and CI systems execute Groovy directly, which is why the language is present in most Java builds.</li>
+<li>⚠️ <strong><code>@Grab</code> resolves a dependency from the script</strong>: the annotation fetches an artifact from a repository at compile time, so a script couples to a repository and a version.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Dynamic or static compilation is a per-file choice</strong>: <code>@CompileStatic</code> buys speed and checks at the cost of the metaprogramming forms it cannot compile.</li>
+<li><strong>DSL-friendly syntax trades precision for brevity</strong>: optional parentheses and dots make a DSL read well and a fragment ambiguous.</li>
+<li><strong><code>def</code> is a productivity trade</strong>: less typing now, a later failure at run time.</li>
+<li><strong><code>ExpandoMetaClass</code> is a deliberate escape hatch</strong>: it is a scope and architecture decision, and its hidden reach is the price of the flexibility.</li>
+<li><strong>Java source compatibility is a target</strong>: most valid Java remains valid Groovy, which constrains the syntax as much as it helps.</li>
+<li><strong>There is no fixed release cadence</strong>: the release schedule is the project’s own decision.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong><code>@CompileStatic</code> approaches Java</strong>: the annotation emits direct bytecode calls, so the dynamic dispatch cost is removed for the annotated class.</li>
+<li>✅ <strong>The JVM JIT optimises a hot path</strong>: the HotSpot compiler applies its full pipeline to the generated bytecode.</li>
+<li>⚠️ <strong>Collection pauses are inherited from the JVM heap</strong>: a stop-the-world or concurrent cycle is scheduled by the collector the program chooses, not by the program (R2).</li>
+<li>⚠️ <strong>Dynamic dispatch costs in dynamic mode</strong>: a call site without <code>@CompileStatic</code> goes through the metaclass protocol, so the per-call overhead is higher than Java’s.</li>
+<li>⚠️ <strong>JIT warm-up precedes peak speed</strong>: a short script or a test run finishes before the compiler has optimised the hot path (R3).</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>✅ <strong>Apache top-level project</strong>: the language is governed by the ASF, so it is not owned by one vendor.</li>
+<li>✅ <strong>The whole Java library ecosystem is available</strong>: any Maven artifact is usable from Groovy, resolved by the ordinary Java build tools.</li>
+<li>✅ <strong>Gradle and Jenkins Pipeline are built on it</strong>: the two most common build and CI systems make Groovy a mainstream presence.</li>
+<li>✅ <strong>Grails and Spock are established projects</strong>: the web framework and the testing framework are mature and maintained.</li>
+<li>⚠️ <strong>Groovy-specific libraries are few</strong>: most dependencies are Java libraries, so a Groovy-only package is less likely to exist.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>Apache governance with published release notes</strong>: a change is recorded in the release notes and the language documentation.</li>
+<li>✅ <strong>Java source compatibility is maintained</strong>: most valid Java keeps compiling as Groovy.</li>
+<li>✅ <strong>Groovy 5.x improves performance and JDK support</strong>: the 5.x line raises the runtime baseline to the modern JDK.</li>
+<li>✅ <strong><code>@CompileStatic</code> can be adopted file by file</strong>: a project migrates incrementally rather than all at once.</li>
+<li>⚠️ <strong>There is no fixed release cadence</strong>: the timing of a release is the project’s decision, so a needed fix has no promised date.</li>
+<li>⚠️ <strong>The JDK baseline moves with the release line</strong>: Groovy 5 targets JDK 17 and later, so adopting it forces the runtime forward.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Build automation is a primary domain</strong>: Gradle’s build scripts are Groovy, and the DSL reads as a configuration.</li>
+<li>✅ <strong>CI pipelines are a primary domain</strong>: Jenkins Pipeline scripts are Groovy, in the <code>Jenkinsfile</code> form.</li>
+<li>✅ <strong>Web development is supported by Grails</strong>: the framework carries the persistence, routing, and view layers.</li>
+<li>✅ <strong>Testing is supported by Spock</strong>: the specification framework defines a given/when/then DSL in Groovy.</li>
+<li>❌ <strong>The host framework can own the architecture</strong>: a Gradle build script and a Jenkins pipeline run inside the host’s execution model and its conventions, so the code couples to that model (D3).</li>
+<li>⚠️ <strong>Application code usually prefers Java or Kotlin</strong>: Groovy’s share of general JVM application work is smaller than its share of scripting and build work.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>Gentle for a Java developer</strong>: most valid Java is valid Groovy, so an existing file compiles.</li>
+<li>✅ <strong>Typing is optional</strong>: a script can start with <code>def</code> and add <code>@CompileStatic</code> later.</li>
+<li>✅ <strong>The closure and builder idioms read like the domain</strong>: <code>each</code>, <code>collect</code>, and the builder pattern remove loop and assembly boilerplate.</li>
+<li>⚠️ <strong>The dynamic model is a large corner</strong>: the metaclass protocol, method-missing dispatch, <code>ExpandoMetaClass</code>, and the differences of <code>@CompileStatic</code> from Java must each be learned.</li>
+<li>⚠️ <strong>Two compilation modes are two languages</strong>: code that compiles under <code>@CompileStatic</code> is a subset of dynamic Groovy, so a developer must know which rules apply where.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Concise and Java-compatible</strong>: a statement needs no semicolon, no type, and often no parentheses.</li>
+<li>✅ <strong>Properties replace explicit accessors</strong>: <code>x</code> reads <code>getX()</code> and <code>x = v</code> calls <code>setX()</code>, so the accessor is not written.</li>
+<li>✅ <strong>GString interpolation is built in</strong>: <code>"Hello $name"</code> embeds an expression in a string literal.</li>
+<li>✅ <strong>Optional <code>return</code> and statement-value rules shorten a method</strong>: the last expression is the result.</li>
+<li>⚠️ <strong>Operator syntax invokes methods</strong>: <code>a + b</code>, <code>a[i]</code>, and <code>a &lt;&lt; b</code> may call <code>plus</code>, <code>getAt</code>, or <code>leftShift</code>, so the notation hides the call (T8).</li>
+<li>⚠️ <strong>Parenthesis omission can be ambiguous</strong>: <code>foo bar baz</code> depends on the method-call rules, which the reader must resolve.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>Spock is a first-class framework</strong>: given/when/then blocks, data tables, and mocks are a Groovy DSL over JUnit.</li>
+<li>✅ <strong>JUnit works directly</strong>: a plain JUnit test class is a Groovy class.</li>
+<li>✅ <strong><code>assert</code> prints the intermediate values</strong>: a power assertion reports each subexpression of a failed assertion, which localises the failure without a debugger.</li>
+<li>✅ <strong>Metaprogramming builds test doubles</strong>: <code>ExpandoMetaClass</code> and map coercion can stub a method without a mocking library.</li>
+<li>⚠️ <strong>A dynamic failure appears only when the test runs the line</strong>: for a <code>def</code> call path the test is the first check.</li>
+<li>⚠️ <strong><code>@CompileStatic</code> changes what a test can patch</strong>: a statically compiled class does not consult the metaclass, so a stub installed that way has no effect.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>Memory safety is the JVM’s responsibility</strong>: a buffer overflow or a use-after-free is not expressible in Groovy code.</li>
+<li>✅ <strong>The JDK security stack is available</strong>: TLS, the cryptography providers, and the access-control APIs are directly usable.</li>
+<li>⚠️ <strong>Metaprogramming can cause type confusion</strong>: <code>ExpandoMetaClass</code>, <code>methodMissing</code>, and <code>invokeMethod</code> change dispatch at runtime, so a call may reach code the source does not name.</li>
+<li>⚠️ <strong>Script execution is a code-execution surface</strong>: <code>GroovyShell</code>, <code>Eval</code>, and <code>evaluate</code> run arbitrary text, so untrusted input must never reach them.</li>
+<li>⚠️ <strong>An AST transformation executes at compile time</strong>: a build-time transformation runs code in the build, which is a supply-chain surface.</li>
+<li>⚠️ <strong><code>@Grab</code> pulls code into the build</strong>: the resolved artifact is loaded onto the script’s class path from a remote repository.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>T7</code></td>
 <td>type erasure/reflection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M2</code></td>
-<td>GC non-deterministic pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>K4</code></td>
 <td>no structured concurrency</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>P2</code></td>
 <td>single-vendor but other uses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 53/100</strong> — total points removed = 47 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Performance</strong></td>
-<td><code>R2</code></td>
-<td>GC pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td></td>
 <td><code>R3</code></td>
 <td>JIT warmup</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>D3</code></td>
 <td>framework forces architecture</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 80/100</strong> — total points removed = 20 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Groovy’s design yields moderate core coupling, and a platform cost driven by the JVM and its dynamic dispatch rather than by the syntax. <code>@CompileStatic</code> and <code>@TypeChecked</code> convert the dynamic default into a checked and fast one, traits compose behaviour without inheritance, and safe navigation puts the absence test at the point of use. Main strengths: the whole Java ecosystem is reachable, Gradle and Jenkins Pipeline give the language a mainstream host, and Spock makes testing first-class. Main weaknesses: <code>def</code> defers failure to run time, the JVM is the only target, exceptions are unchecked, the metaclass protocol can change dispatch invisibly, and no structured concurrency exists in the language.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1188,6 +1765,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

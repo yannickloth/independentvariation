@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,199 +1026,742 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="pascalStandard"><a href="#ref-pascalStandard" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 46/100</strong> | <strong>Platform &amp; Ecosystem Score: 54/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Turbo Pascal, developed by Anders Hejlsberg at Borland (1983), is notable for coupling because its <strong>units</strong> provide a real interface/implementation boundary: <code>interface</code> and <code>implementation</code> keywords control what is visible outside a unit, and <code>uses</code> declares the dependency explicitly. This makes coupling between units explicit and limits it, a strength rare among its 1980s peers. It is strongly and statically typed. Its weaknesses reflect its era. Version 7’s exception handling (<code>try</code>/<code>except</code>/<code>finally</code>) is a 1992 addition and simple — many programs still used manual error codes. Single-inheritance object-oriented programming (added in 5.5) can couple class hierarchies; there are no generics; and memory management is manual. The compiler’s legendary speed (a one-pass compiler) and the integrated IDE made the edit-compile-run cycle extremely fast. Namespaces are limited to units; <code>.TPU</code> object files are compiler-specific and not linkable with other languages.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Turbo Pascal had enormous historical influence and reach (over 400,000 copies in two years), and it made Pascal accessible to a generation of programmers. It was discontinued in 1995 in favor of Delphi/Object Pascal, which still supports most of its language. Free Pascal and Virtual Pascal provide compatible implementations, so much Turbo Pascal code can still compile today. Performance is excellent for its era (fast compilation and execution). The ecosystem is legacy DOS/early-Windows. The learning curve is gentle — Pascal’s structured, readable syntax is ideal for teaching. Tooling is historical (the IDE had debugging but no testing framework). It matters today mainly for education and legacy migration, not new development.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Turbo Pascal in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 46/100</strong> · <strong>Ecosystem coupling 54/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Strong static typing is enforced at compile time</strong>: every variable, parameter, and function result has a declared type, and an assignment between incompatible types is rejected.</li>
+<li>✅ <strong>Enumerated and subrange types state a value domain</strong>: <code>type TDay = (Mon, Tue, Wed, Thu, Fri)</code> and a subrange such as <code>1..31</code> narrow the domain in the declaration.</li>
+<li>✅ <strong>A typed pointer names what it addresses</strong>: <code>^T</code> is a pointer to <code>T</code>, so an assignment between pointers of different types is an error.</li>
+<li>❌ <strong>A variant record is an unchecked union</strong>: <code>record ... case Tag: T of ... end</code> names the alternatives, but the compiler does not require the tag to be tested before a field is read (T4).</li>
+<li>❌ <strong>No generics</strong>: a container is written for one element type, or it stores <code>Pointer</code> values and casts them, so reuse across types is untyped (T5).</li>
+<li>✅ <strong>A unit is the namespace and a real module boundary</strong>: the <code>interface</code> section is what a <code>uses</code> clause sees, and the <code>implementation</code> section is private to the unit.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>A <code>uses</code> clause states each dependency</strong>: the compiler rejects a call into a unit that is not listed, so the dependency edge is written in the source.</li>
+<li>✅ <strong><code>interface</code> and <code>implementation</code> separate the contract from the code</strong>: a caller compiles against the declarations only.</li>
+<li>✅ <strong>An object declares its own construction and destruction</strong>: an <code>object</code> type declares <code>constructor Init</code> and <code>destructor Done</code>, and <code>New(P, Init)</code> runs the constructor together with the allocation.</li>
+<li>✅ <strong>Unit <code>initialization</code> and <code>finalization</code> run in dependency order</strong>: a unit’s startup code runs before the program body and its shutdown code runs after it.</li>
+<li>❌ <strong>Mutability is the default</strong>: a <code>var</code> is writable and reassignable, and only a <code>const</code> marks a value fixed (C2).</li>
+<li>⚠️ <strong>A class hierarchy couples a derived object to its base</strong>: object-oriented programming arrived in version 5.5, and an <code>object</code> type derives from one base, so shared behaviour is reached through that single-inheritance chain.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>Every heap allocation is manual</strong>: <code>New</code> and <code>Dispose</code>, or <code>GetMem</code> and <code>FreeMem</code>, are the ways to use the heap, and the programmer writes the matching release (M1).</li>
+<li>❌ <strong>Nothing runs when a variable leaves its scope</strong>: there is no release tied to scope, and a destructor is a method the programmer must call (M3).</li>
+<li>❌ <strong>No ownership model</strong>: a typed pointer may alias, dangle, or be disposed twice, and the compiler does not track it (M4).</li>
+<li>✅ <strong>The run-time library owns the heap</strong>: <code>New</code>, <code>Dispose</code>, <code>Mark</code>, and <code>Release</code> give a defined heap with a stack-like mark and release discipline.</li>
+<li>✅ <strong>A <code>String</code> value carries its own length</strong>: a <code>String[255]</code> short string stores its length in the first byte, so a string operation needs no terminator.</li>
+<li>⚠️ <strong>Real-mode addressing bounds the heap</strong>: in the 16-bit memory models the heap lies in the data segment, so the model’s segment limit caps one allocation.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>The default failure path is a halt or an error code</strong>: an unhandled run-time error stops the program with a run-time error number, and an I/O failure is reported through <code>IOResult</code> when checking is off (Er1).</li>
+<li>❌ <strong>No composable result type</strong>: a failure cannot be carried in the type of a function’s result, so the caller learns of it from an error code or an exception (Er4).</li>
+<li>✅ <strong><code>try</code>/<code>except</code>/<code>finally</code> is a structured path</strong>: version 7 added exception handling, and the <code>finally</code> block runs on every exit from the statement.</li>
+<li>✅ <strong><code>raise</code> names the failure</strong>: <code>raise EDivByZero.Create</code> raises an object from the <code>SysUtils</code> exception hierarchy.</li>
+<li>⚠️ <strong>The exceptions are unchecked</strong>: nothing in a signature states which exceptions a routine may raise, so the recovery path depends on a convention.</li>
+<li>⚠️ <strong>Two error styles coexist</strong>: <code>{$I-}</code> with <code>IOResult</code> checks one call at a time, while <code>try</code>/<code>except</code> covers a block, so a program mixes both.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>The language has no concurrency construct</strong>: there is no thread type, no task, and no synchronisation primitive; concurrent work in DOS is expressed with an interrupt procedure (K5).</li>
+<li>⚠️ <strong>The only shared state is a global variable</strong>: with no concurrency construct in the language, a global variable is what the main code and an interrupt procedure both reach, and nothing guards the access.</li>
+<li>⚠️ <strong><code>threadvar</code> exists for a multithreaded host</strong>: the reserved word gives a variable one copy per thread, but the language creates no thread and the DOS target has none.</li>
+<li>⚠️ <strong>An interrupt procedure must be declared as such</strong>: the <code>interrupt</code> directive saves the registers, and the protection is a declaration rather than a checked protocol.</li>
+<li>⚠️ <strong>Reentrancy is the programmer’s concern</strong>: an interrupt procedure that calls a library routine can corrupt state the interrupted code was using.</li>
+<li>⚠️ <strong>Cooperative concurrency came from an add-on</strong>: a terminate-and-stay-resident program or a library simulated multitasking outside the language.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>❌ <strong>The main target is 16-bit DOS</strong>: the compiler produces real-mode DOS executables, and version 7 was the last release of the line (P3).</li>
+<li>❌ <strong>A compiled unit is a private object format</strong>: a <code>.TPU</code> file is Turbo Pascal’s own unit format, and no other language’s linker consumes it.</li>
+<li>✅ <strong>Free Pascal and Delphi compile the same source</strong>: both accept Turbo Pascal units, so the source is not frozen to the original compiler.</li>
+<li>✅ <strong>The compiler is a self-contained toolchain</strong>: one executable compiles a program, and the IDE runs the edit-compile-run cycle.</li>
+<li>⚠️ <strong>The memory model is a compile-time choice</strong>: <code>{$M}</code> selects tiny, small, compact, large, or huge, and the model bounds the code and the data segments.</li>
+<li>⚠️ <strong>Real-mode addressing shows in the source</strong>: <code>near</code> and <code>far</code> pointers and segment arithmetic appear once a program leaves the small model.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The one-pass compiler is a deliberate speed choice</strong>: compilation is nearly instant, and the price is a modest optimiser.</li>
+<li><strong>The integrated IDE is the intended way to work</strong>: the compiler, the editor, and the debugger are one program.</li>
+<li><strong>The 16-bit limit belongs to the target machine</strong>: the segment size is a property of the processor mode, not only of the language.</li>
+<li><strong>Turbo Vision is supplied and not required</strong>: the text-mode GUI library is an optional dependency of the program.</li>
+<li><strong>The <code>goto</code> statement remains in the language</strong>: a jump is available for the case where a structured form is awkward.</li>
+<li><strong>Pascal is a teaching language by design</strong>: the readable syntax and the strong typing were written for instruction.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The compiler emits native 8086 machine code</strong>: there is no interpreter and no run-time compiler between the source and the processor.</li>
+<li>✅ <strong>Compilation is very fast</strong>: the one-pass compiler makes the edit-compile-run cycle take seconds.</li>
+<li>✅ <strong>A compiled program starts immediately</strong>: a DOS <code>.EXE</code> needs no runtime initialisation beyond the loader.</li>
+<li>⚠️ <strong>The optimiser does little global work</strong>: the algorithm and the data layout dominate the result.</li>
+<li>⚠️ <strong>The 16-bit target caps the work</strong>: the real-mode segment limit bounds the data one program can address.</li>
+<li>⚠️ <strong>A far pointer costs extra cycles</strong>: a segment override and a far access element are slower than a register operation.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The ecosystem is legacy and discontinued</strong>: Borland ended Turbo Pascal after version 7 in favour of Delphi, so the tool and package field is historical (Ec3).</li>
+<li>✅ <strong>Free Pascal, Delphi, and Virtual Pascal continue the language</strong>: each is a compatible implementation, so much Turbo Pascal code still compiles today.</li>
+<li>✅ <strong>A large body of published material exists</strong>: the era’s books, tutorials, and the Turbo Vision source remain available.</li>
+<li>✅ <strong>The compiler is a single small program</strong>: nothing else must be installed to build a program.</li>
+<li>⚠️ <strong>Reuse is by source</strong>: a unit is shared as <code>.PAS</code> source rather than as a resolved package with a version.</li>
+<li>⚠️ <strong>The tooling runs in DOS or an emulator</strong>: the IDE and the debugger need a DOS machine or an emulator on a current computer.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>❌ <strong>The language is discontinued</strong>: Borland ended the line in 1995 and moved it to Delphi and Object Pascal, so no version followed 7.0 (V3).</li>
+<li>❌ <strong>The definition is frozen at 7.0</strong>: the language does not change, so a missing feature or a defect is permanent (V2).</li>
+<li>✅ <strong>The reach of the tool was historically large</strong>: over 400 000 copies were sold in the first two years, which made Pascal accessible to a generation of programmers.</li>
+<li>✅ <strong>The successors accept the source</strong>: Delphi and Object Pascal keep the unit, the static typing, and most of the syntax.</li>
+<li>✅ <strong>A port is an adjustment rather than a rewrite</strong>: Free Pascal compiles a unit with little change outside the platform-specific code.</li>
+<li>⚠️ <strong>The platform-specific part is real work</strong>: DOS interrupts, direct video memory, <code>inline</code> machine code, and <code>.TPU</code> linkage have no direct counterpart on a current target.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Structured programming instruction is the native domain</strong>: the readable syntax and the strong typing were designed for teaching.</li>
+<li>✅ <strong>DOS application and tool development fit the target</strong>: a compiled <code>.EXE</code> needed no runtime and ran on any PC of the era.</li>
+<li>✅ <strong>Turbo Vision covers text-mode GUI work</strong>: the bundled library provides windows, menus, and dialogs on a character screen.</li>
+<li>✅ <strong>A small number-crunching utility is a natural use</strong>: a scientific or engineering program was a common Turbo Pascal program.</li>
+<li>⚠️ <strong>New development does not choose it</strong>: the domain today is legacy maintenance and education.</li>
+<li>⚠️ <strong>Hardware access sits outside the language</strong>: a program that drives a device uses the BIOS, a DOS interrupt, or <code>inline</code> code.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The syntax is small and readable</strong>: <code>begin</code>/<code>end</code>, <code>var</code>, <code>procedure</code>, <code>if</code>/<code>then</code>/<code>else</code>, and <code>for</code>/<code>to</code> cover the language.</li>
+<li>✅ <strong>The compiler reports an error immediately</strong>: the short edit-compile-run cycle makes a mistake cheap to find.</li>
+<li>✅ <strong>The IDE integrates a debugger</strong>: step, watch, and breakpoint are keystrokes away.</li>
+<li>⚠️ <strong>Pointers and manual memory are the hard part</strong>: the syntax is gentle and the heap discipline is not.</li>
+<li>⚠️ <strong>Real-mode addressing is a second subject</strong>: near and far pointers and segments must be learned for system work.</li>
+<li>⚠️ <strong>The semicolon rule catches a beginner</strong>: a semicolon separates statements, so the last statement of a block takes none.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>❌ <strong>The syntax is verbose</strong>: <code>begin</code>/<code>end</code>, <code>unit</code>/<code>interface</code>/<code>implementation</code>, <code>try</code>/<code>except</code>/<code>end</code>, and every declaration keyword are spelled out (S1).</li>
+<li>✅ <strong>Keywords are words rather than symbols</strong>: <code>if</code>, <code>then</code>, <code>do</code>, <code>of</code>, and <code>end</code> carry the structure.</li>
+<li>✅ <strong>Blocks are bracketed consistently</strong>: <code>begin</code>/<code>end</code> closes every compound statement, including the body of a procedure.</li>
+<li>✅ <strong>A declaration names the variable before its type</strong>: <code>var Count: Integer</code> reads in one direction.</li>
+<li>⚠️ <strong>A statement separator, not a terminator</strong>: the semicolon rule is a rule to learn rather than a decoration.</li>
+<li>⚠️ <strong>A nested field needs its qualifier or a <code>with</code></strong>: reading a record inside a record is verbose without the <code>with</code> statement.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>❌ <strong>There is no test framework in the toolchain</strong>: a test is a program that runs and compares, and nothing in the distribution runs a suite (G1).</li>
+<li>❌ <strong>The debugger is the era’s tool</strong>: the IDE steps and watches variables, with no assertion or coverage support (G2).</li>
+<li>✅ <strong>The IDE debugger is integrated and fast</strong>: F7 and F8 step through the source and a watch window shows the values.</li>
+<li>✅ <strong>A failed run-time check reports the detail</strong>: the run-time library prints the error number, the address, and the register contents.</li>
+<li>✅ <strong>A check is a few lines of Pascal</strong>: a comparison and a halt write a test without a framework.</li>
+<li>⚠️ <strong>A test suite is a program the programmer writes</strong>: no runner, no fixture loader, and no report come with the toolchain.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>The type system rejects a mismatch at compile time</strong>: a pointer to one type cannot take a pointer to another without a written cast.</li>
+<li>✅ <strong>The dangerous cast is one written site</strong>: <code>Pointer</code> and a type cast put the risk where the programmer wrote it.</li>
+<li>✅ <strong>A check can be switched on</strong>: <code>{$R+}</code> adds range checking to an array index and to a subrange assignment.</li>
+<li>⚠️ <strong>Manual memory management admits the classic faults</strong>: an overrun and a use-after-free are possible, and the compiler does not check them.</li>
+<li>⚠️ <strong><code>{$I-}</code> disables an I/O check</strong>: after that directive a failed file operation must be tested through <code>IOResult</code>.</li>
+<li>⚠️ <strong><code>inline</code> machine code bypasses the type system</strong>: an <code>inline(...)</code> statement writes raw opcodes into the compiled program.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
-<td><code>T4</code></td>
-<td>no sum types</td>
-<td style="text-align: right;">4</td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T5</code></td>
-<td>no generics</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
 <td><code>M1</code></td>
 <td>manual deallocation</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
-<td><code>K5</code></td>
-<td>no primitives</td>
-<td style="text-align: right;">4</td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Platform</strong></td>
-<td><code>P3</code></td>
-<td>legacy/discontinued platform</td>
-<td style="text-align: right;">8</td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 46/100</strong> — total points removed = 54 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Evolution</strong></td>
-<td><code>V2</code></td>
-<td>frozen</td>
-<td style="text-align: right;">4</td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>V3</code></td>
 <td>discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Evolution subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Syntax</strong></td>
 <td><code>S1</code></td>
 <td>verbose</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Syntax subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Testing</strong></td>
 <td><code>G1</code></td>
 <td>weak tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>G2</code></td>
 <td>poor debugging</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 54/100</strong> — total points removed = 46 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Turbo Pascal’s core score is held down by the mechanisms of its era rather than by a missing idea: the heap is manual, no release is tied to scope, and a failure is a run-time error number or an unchecked exception. Its one strong structural feature is the unit, where <code>interface</code> and <code>implementation</code> draw a real boundary and the <code>uses</code> clause writes each dependency into the source. Main strengths: strong static typing, near-instant native compilation, a gentle readable syntax, and a live path to Free Pascal and Delphi. Main weaknesses: no generics, unchecked variant records, no concurrency construct in the language, and a 16-bit target whose toolchain, ecosystem, and platform are all historical.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1224,6 +1772,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

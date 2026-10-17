@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,103 +1026,729 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="isoSql2023"><a href="#ref-isoSql2023" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 85/100</strong> | <strong>Platform &amp; Ecosystem Score: 80/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> SQL’s declarative query model separates the specification of <em>what</em> data to retrieve from the procedural <em>how</em> of accessing it. The schema separates data structure from queries that consume it. Views decouple presentation logic from the underlying tables. Stored procedures, however, couple application logic to the database engine. Triggers create implicit coupling by executing side effects automatically in response to data changes. Vendor-specific SQL syntax couples queries to a particular database management system. Normalization decouples data redundancy by structuring tables to eliminate duplication.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> SQL is the universal standard for data querying and manipulation. Every major database system uses SQL in some form. Fragmentation persists across MySQL, PostgreSQL, Oracle, and SQL Server, though ANSI SQL standards reduce this. Performance is excellent because decades of query optimization research deliver efficient execution plans. The learning curve is gentle for basic queries but steep for query optimization and complex joins. SQL injection remains a major security risk because queries are constructed as strings rather than parameterized by default.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses SQL in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 85/100</strong> · <strong>Ecosystem coupling 80/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Static column typing</strong>: every column, parameter, and result column has a declared type, checked when the statement is prepared or planned.</li>
+<li>✅ <strong>Schema is declared independently of queries</strong>: a table declares its structure once; queries consume it without redeclaring it.</li>
+<li>❌ <strong>No sum types</strong>: a column carries one scalar type, so alternatives are modelled with nullable columns or separate tables and the caller must know the encoding (T4).</li>
+<li>❌ <strong>No generics</strong>: there is no type parameter, so reuse across types is done by generating DDL, not by the type system (T5).</li>
+<li>❌ <strong>NULL is not type-safe absence</strong>: NULL is compatible with every domain, three-valued logic propagates through expressions, and <code>NULL = NULL</code> is unknown rather than true (T10).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>Declarative query construction</strong>: a statement states the result set, and the engine chooses the access path, so construction does not couple to a storage layout or an algorithm.</li>
+<li>✅ <strong>Views separate consumers from the query behind them</strong>: a view exposes a stable relation whose defining query can change without changing its consumers.</li>
+<li>✅ <strong>Set-based composition</strong>: joins, unions, and subqueries compose relations, so logic composes without imperative sequencing or shared cursors.</li>
+<li>✅ <strong>Schema and use are separated</strong>: tables declare the data, and normalisation stores each fact once so a fact duplicated across columns cannot drift out of agreement.</li>
+<li>⚠️ <strong>Triggers fire implicitly</strong>: a trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run.</li>
+<li>⚠️ <strong>Stored procedures couple construction to the engine</strong>: SQL/PSM standardises persistent stored modules (Part 4 of ISO/IEC 9075), but the dialects used in practice — PL/pgSQL, PL/SQL, and T-SQL — share little beyond the basics, so the code depends on one engine.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>No manual memory management</strong>: the storage engine owns buffers, caches, and page allocation, and a statement never names an address or frees anything.</li>
+<li>✅ <strong>No explicit allocation in queries</strong>: the engine materialises or streams a result set, so query text does not couple to a memory layout.</li>
+<li>✅ <strong>Resource limits are declarative configuration</strong>: work memory and temp-file behaviour are engine settings, not properties the query must manage.</li>
+<li>⚠️ <strong>Large intermediate results still cost memory</strong>: an unbounded sort, hash join, or <code>SELECT *</code> spool can exhaust the engine’s memory even though the language hides allocation.</li>
+<li>⚠️ <strong>Materialised views and temporary tables persist engine-side state</strong>: they pin storage and need a refresh policy, coupling the data to a refresh lifecycle.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>✅ <strong>Standard SQLSTATE</strong>: an error carries a five-character SQLSTATE class and subclass, so a handler matches a portable code instead of a message string.</li>
+<li>✅ <strong>Structured handlers in SQL/PSM</strong>: <code>DECLARE ... HANDLER</code> and <code>EXCEPTION</code> blocks separate the normal path from the recovery path.</li>
+<li>✅ <strong>Constraint violations are errors, not silent writes</strong>: a primary-key, foreign-key, UNIQUE, or CHECK violation aborts the statement.</li>
+<li>⚠️ <strong>Vendor error codes extend SQLSTATE</strong>: PostgreSQL <code>SQLSTATE</code> codes, Oracle <code>ORA-</code> numbers, and SQL Server error numbers differ outside the standard classes, so handlers are not portable.</li>
+<li>⚠️ <strong>Some failures depend on the data</strong>: name and type errors are caught at prepare time, but division by zero, overflow, and constraint violations are detected only at execution.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Transactions group statements atomically</strong>: BEGIN, COMMIT, and ROLLBACK make a unit of work commit or abort as one, so a statement does not coordinate with others by hand.</li>
+<li>✅ <strong>Isolation is selectable</strong>: READ COMMITTED, REPEATABLE READ, and SERIALIZABLE let the application declare the visibility contract it needs.</li>
+<li>✅ <strong>MVCC in PostgreSQL and Oracle</strong>: readers do not block writers and writers do not block readers, so read and write traffic decouple.</li>
+<li>✅ <strong>Set-based statements reduce explicit locking</strong>: one UPDATE moves many rows without a row-by-row lock protocol in application code.</li>
+<li>⚠️ <strong>Default isolation permits anomalies</strong>: READ COMMITTED is the default in PostgreSQL, so non-repeatable reads and write skew are possible unless the application raises the level.</li>
+<li>⚠️ <strong>Explicit locking couples code to the engine</strong>: <code>SELECT ... FOR UPDATE</code>, <code>LOCK TABLE</code>, and advisory locks are vendor-shaped and must agree with the lock ordering of the whole application.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>A standard core is portable</strong>: DDL, DML, and joins written to core SQL run on PostgreSQL, MySQL, Oracle, SQL Server, Db2, and SQLite with little change.</li>
+<li>✅ <strong>Standard call interfaces</strong>: ODBC and JDBC let one client reach many engines, so an application does not bind to one engine’s binary protocol.</li>
+<li>✅ <strong>Multiple independent implementations</strong>: no single vendor owns the language, so the standard cannot be changed unilaterally.</li>
+<li>⚠️ <strong>Dialects diverge outside the core</strong>: string functions, date arithmetic, <code>LIMIT</code> versus <code>FETCH FIRST</code>, and window-function details differ by vendor.</li>
+<li>⚠️ <strong>Vendor extensions bind queries to one engine</strong>: JSON operators, array types, regex syntax, and identity or sequence clauses are engine-specific.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Denormalisation is a modelling choice</strong>: storing a value in two places trades redundancy for fewer joins; the language permits it but does not force it.</li>
+<li><strong>NULL versus NOT NULL is a modelling decision</strong>: making a column nullable widens its value set, and the three-valued-logic cost follows from that decision, not from a forced dependency.</li>
+<li><strong>The optimiser owns the execution plan</strong>: a declarative statement gives up control of access paths, so plan hints are a choice about how far to override the engine.</li>
+<li><strong>Schema migration is a process, not a mechanism</strong>: changing a column couples deploy order to schema version, but the coupling follows from sharing one schema, which is the purpose of a relational store.</li>
+<li><strong>Vendor-specific SQL may be worth the portability cost</strong>: writing to one dialect buys features and performance; the loss of portability is a deliberate trade, not a property of the language.</li>
+<li><strong>SQL is not a general-purpose language</strong>: the assumption of a database engine and a set-based workload is a scope decision, not a coupling defect.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Decades of query-optimisation research</strong>: cost-based planners, index selection, join reordering, and predicate pushdown produce good plans without hand-tuning in the common case.</li>
+<li>✅ <strong>Set-based execution</strong>: one statement moves many rows, so per-row interpreter overhead is amortised by the engine.</li>
+<li>✅ <strong>Indexes and partitions are declarative</strong>: an index is declared once and then used by any matching query.</li>
+<li>✅ <strong>Engines are written in C or C++ with mature storage layers</strong>: throughput and buffer management are the engine’s responsibility, not the query’s.</li>
+<li>⚠️ <strong>Plan quality is an engine property</strong>: the same query can be fast on PostgreSQL and slow on another engine, and the language guarantees no plan.</li>
+<li>⚠️ <strong>Plans can regress without a query change</strong>: new statistics, a version upgrade, or changed data volume can select a worse plan.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>Tooling is fragmented by dialect</strong>: ORMs, migration tools, linters, and formatters commonly target one engine’s dialect, and there is no single SQL toolchain (Ec2).</li>
+<li>✅ <strong>The standard interfaces are universal</strong>: ODBC, JDBC, and ADO.NET drivers exist for nearly every engine and host language.</li>
+<li>✅ <strong>Mature, independently maintained engines</strong>: PostgreSQL, MySQL, Oracle, SQL Server, Db2, and SQLite are all long-lived and actively developed.</li>
+<li>✅ <strong>A very large body of published knowledge</strong>: standards documents, engine manuals, and books are abundant and stable over decades.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>❌ <strong>The standard evolves slowly</strong>: SQL:2023 appeared six years after SQL:2016, so a needed feature can wait years for standardisation (V4).</li>
+<li>✅ <strong>The language is broadly backward compatible</strong>: new editions add features and rarely remove them, so decades-old queries keep running.</li>
+<li>✅ <strong>Vendor implementations lead the standard</strong>: PostgreSQL, Oracle, and others ship features before standardisation, which gives users early access.</li>
+<li>⚠️ <strong>Adoption lags publication</strong>: an engine may take years to implement a newly standardised feature, so code written to the standard may not run everywhere yet.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for relational data</strong>: the model of relations, tuples, and set operations matches tabular data directly.</li>
+<li>✅ <strong>One language spans several data domains</strong>: analytics with window functions, transactional writes with DML, and semi-structured data with SQL/JSON all live in the same language.</li>
+<li>✅ <strong>SQL/PGQ in SQL:2023 adds property-graph queries</strong>: graph patterns are expressible without leaving SQL.</li>
+<li>⚠️ <strong>Procedural logic is awkward</strong>: row-by-row algorithms and complex control flow read poorly in SQL/PSM and are usually pushed to a host language.</li>
+<li>⚠️ <strong>It is not a runtime for arbitrary programs</strong>: SQL assumes a database engine and a set-based workload, which limits use outside data management.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>Basic queries are gentle</strong>: <code>SELECT ... FROM ... WHERE</code> is readable and learnable within days.</li>
+<li>✅ <strong>The declarative surface hides the hard part</strong>: a beginner writes a correct query without knowing the plan the engine will choose.</li>
+<li>⚠️ <strong>Advanced work is steep</strong>: query optimisation, join ordering, and window semantics take years to master.</li>
+<li>⚠️ <strong>NULL semantics surprise newcomers</strong>: three-valued logic makes an intuitive predicate such as <code>a &lt;&gt; 5</code> fail to match rows where <code>a</code> is NULL.</li>
+<li>⚠️ <strong>Dialect knowledge is required in practice</strong>: beyond the standard core, a developer must learn one engine’s functions, types, and plan output.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Keyword-based and readable</strong>: statements read close to English and do not lean on punctuation or symbols.</li>
+<li>✅ <strong>Compact for the result produced</strong>: a join and filter over several tables fits in a few lines.</li>
+<li>⚠️ <strong>DDL is verbose</strong>: <code>CREATE TABLE</code>, constraints, indexes, and <code>ALTER TABLE</code> statements are long and repetitive.</li>
+<li>⚠️ <strong>Identifier quoting differs by engine</strong>: double quotes, backticks, and square brackets each mark an identifier in a different dialect.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>Plan inspection is standard practice</strong>: PostgreSQL and MySQL report the chosen plan and actual timings through <code>EXPLAIN</code> and <code>EXPLAIN ANALYZE</code>, and Oracle and SQL Server expose equivalent plan and runtime statistics.</li>
+<li>✅ <strong>Constraints are executable invariants</strong>: PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, and NOT NULL reject bad data at write time, so tests need not re-check them.</li>
+<li>✅ <strong>Transactions isolate a test</strong>: a test can run inside a transaction and roll back, leaving the database unchanged.</li>
+<li>✅ <strong>Standard schema introspection</strong>: <code>INFORMATION_SCHEMA</code> and catalog views let tooling verify structure.</li>
+<li>⚠️ <strong>No in-language test framework</strong>: test harnesses live in the host language, so a suite couples to the driver and to a fixture loader.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>❌ <strong>Injection is the canonical failure</strong>: because a statement is text, building it by concatenating untrusted input lets that input become code (Q3).</li>
+<li>✅ <strong>Parameterised statements remove the injection surface</strong>: bind variables and prepared statements carry data out of band, so a value cannot change the parse.</li>
+<li>✅ <strong>GRANT and REVOKE express least privilege</strong>: access is declared per object and per role.</li>
+<li>✅ <strong>Views and row-level security restrict visibility</strong>: a view, or PostgreSQL row-level security, limits what a statement can see.</li>
+<li>⚠️ <strong>Dynamic SQL re-opens the risk</strong>: <code>EXECUTE IMMEDIATE</code>, dynamic PL/pgSQL, and string-built queries defeat parameterisation where they are unavoidable.</li>
+<li>⚠️ <strong>Definer’s-rights procedures can escalate</strong>: a procedure that runs with its definer’s rights (<code>SECURITY DEFINER</code>) can grant more access than intended unless it is audited.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
-<td><code>T4</code></td>
-<td>no sum types</td>
-<td style="text-align: right;">4</td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T5</code></td>
-<td>no generics</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Error subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 85/100</strong> — total points removed = 15 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Ec2</code></td>
 <td>fragmented tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Evolution</strong></td>
-<td><code>V4</code></td>
-<td>glacial standards</td>
-<td style="text-align: right;">4</td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Evolution subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
-<td><strong>Security</strong></td>
-<td><code>Q3</code></td>
-<td>known vulnerability/injection</td>
-<td style="text-align: right;">8</td>
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 80/100</strong> — total points removed = 20 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> SQL’s design yields low language-imposed coupling for the work it is built for. The declarative model separates what a result is from how it is computed, and the schema separates data structure from the queries that consume it. Views decouple consumers from the query behind them, and transactions decouple statements from each other’s timing. Main strengths: the standard core is portable across many independent engines, types come from the schema, and a mature optimiser takes on execution plans. Main weaknesses: NULL is not type-safe, no sum types or generics exist, the standard moves slowly, tooling fragments by dialect, and a string-built statement is a standing injection hazard unless parameters are used.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1128,6 +1759,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

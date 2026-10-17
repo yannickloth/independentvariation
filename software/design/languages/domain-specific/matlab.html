@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,186 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="matlabDoc"><a href="#ref-matlabDoc" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 39/100</strong> | <strong>Platform &amp; Ecosystem Score: 61/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> MATLAB’s matrix operations decouple iteration from computation by operating on entire matrices at once. Toolboxes decouple domain-specific functionality (signal processing, control systems, image processing) from the core language. The global workspace couples all variables into a single shared namespace. Arrays are 1-indexed, coupling code to a convention that differs from most other languages. Scripts pollute the namespace since all variables created in a script remain in the caller’s workspace. A script file’s primary function is tied to its filename (local functions in scripts are a modern addition), coupling source organization to the filesystem. Cell arrays and structs provide weak structural typing.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> MATLAB is excellent for numerical computation, signal processing, and control systems engineering. The commercial license couples projects to MathWorks’ pricing. Simulink provides graphical modeling of dynamic systems. The toolbox ecosystem is huge but entirely proprietary. The learning curve is moderate. GNU Octave provides an open-source alternative with high compatibility. Performance is good for matrix operations. The platform’s proprietary nature creates vendor lock-in.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses MATLAB in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 39/100</strong> · <strong>Ecosystem coupling 61/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>Dynamic typing with no static check (T1)</strong>: a variable takes its type from the value assigned to it, so a type error is reported only when the statement runs.</li>
+<li>⚠️ <strong>Every scalar, vector, and matrix is one type</strong>: the default <code>double</code> array stands for all of them, so the type does not state the shape the algorithm needs.</li>
+<li>⚠️ <strong>Cell arrays and structs are weak structural types</strong>: they group heterogeneous values but declare no schema, so a consumer learns a struct’s fields from the code that fills it.</li>
+<li>❌ <strong>No namespaces (T6)</strong>: functions and scripts share a flat, path-ordered scope, so a name collides with any other name on the search path.</li>
+<li>⚠️ <strong>Argument validation is opt-in</strong>: an <code>arguments</code> block (R2019b+) checks class, size, and shape at call time, but a function without one accepts anything.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>Toolboxes separate domain computation from the core language</strong>: Signal Processing, Control System, and Image Processing operations are ordinary function calls, so an algorithm does not embed its own filter or transform code.</li>
+<li>✅ <strong>A <code>classdef</code> file groups state with its operations</strong>: properties and methods are declared in one unit, so a consumer binds to the class name.</li>
+<li>❌ <strong>Global mutable state by default (C1)</strong>: the base workspace and every shared function workspace hold variables that running code can read and overwrite at any time.</li>
+<li>❌ <strong>No immutability by default (C2)</strong>: every array is mutable, and there is no <code>const</code>-like freeze for ordinary data.</li>
+<li>⚠️ <strong>Constructors are ordinary methods with no enforced invariant</strong>: a class defines its own <code>Name(...)</code> constructor, so a well-formed instance depends on the author’s validation.</li>
+<li>⚠️ <strong>Scripts run in the caller’s workspace</strong>: a variable a script creates stays in the caller after the script returns, so a script couples to every caller’s variable names.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>Copy-on-modify protects the reader</strong>: an assignment copies a value only when the copy is modified, so a function that receives an array does not change the caller’s value.</li>
+<li>⚠️ <strong>The collector runs on its own schedule (M2)</strong>: memory returns when the interpreter decides, so release timing is not owned by the code.</li>
+<li>❌ <strong>No RAII (M3)</strong>: there is no block-scoped destructor, so a file handle, timer, or instrument connection stays open until <code>delete</code> or an <code>onCleanup</code> object runs.</li>
+<li>❌ <strong>No ownership model (M4)</strong>: no static lifetime or aliasing rule ties an array’s storage to one owner.</li>
+<li>⚠️ <strong><code>clear</code> and <code>pack</code> are manual controls</strong>: freeing a large array and defragmenting the workspace are explicit calls, so the memory strategy is the programmer’s.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>✅ <strong><code>try</code>/<code>catch</code> gives a structured recovery path</strong>: a <code>catch</code> block receives the <code>MException</code> object, with its identifier, message, and stack, so recovery need not parse text.</li>
+<li>✅ <strong><code>error</code> takes a stable identifier</strong>: <code>error('pkg:func:reason', ...)</code> sets <code>MException.identifier</code>, so a caller can branch on the code rather than on the message.</li>
+<li>❌ <strong>Unchecked exceptions only (Er2)</strong>: a raised <code>MException</code> travels up until something catches it or the program stops, and no caller is required to handle it.</li>
+<li>⚠️ <strong>An empty <code>catch</code> is common in legacy code</strong>: a <code>catch</code> block with no body discards the failure without a trace.</li>
+<li>⚠️ <strong>Many failures are detected only at run time</strong>: an out-of-bound index, a class mismatch, or a singular matrix is reported when the statement executes.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>⚠️ <strong>Manual synchronisation with no race detection (K3)</strong>: <code>parfor</code>, <code>spmd</code>, and <code>parfeval</code> leave the shared-variable reasoning to the programmer, and the language reports no data race.</li>
+<li>✅ <strong><code>parfor</code> separates loop iterations</strong>: an independent loop is split across workers, so iteration order is not part of the result.</li>
+<li>✅ <strong><code>labSend</code> and <code>labReceive</code> pass data between <code>spmd</code> workers</strong>: a worker sends a value to a named peer instead of writing into shared memory.</li>
+<li>⚠️ <strong>The parallel constructs need the Parallel Computing Toolbox</strong>: <code>parfor</code>, distributed arrays, and <code>parpool</code> are a separate licensed product.</li>
+<li>⚠️ <strong>A captured variable is broadcast to every worker</strong>: a <code>parfor</code> body sees a copy of the outer variable, and a reduction must use a supported form or a temporary variable.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>GNU Octave is a compatible open implementation</strong>: most MATLAB programs run under Octave, so a project is not bound to one vendor’s binary alone.</li>
+<li>❌ <strong>A licence binds a project to MathWorks</strong>: an installation needs a licence, so deployment and continuous integration depend on MathWorks’ terms and pricing.</li>
+<li>⚠️ <strong>Toolbox coverage is proprietary</strong>: domain functions come from licensed MathWorks toolboxes, so portability depends on which toolboxes the code calls.</li>
+<li>⚠️ <strong>A compiled component still needs the MATLAB Runtime</strong>: MATLAB Compiler builds a library callable from C, C++, .NET, or Python, but the component runs against a version-matched MATLAB Runtime.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>One-based indexing is a convention choice</strong>: starting an array at index 1 is a documented decision, and the cost is re-learning for a user who comes from a zero-based language.</li>
+<li><strong>The global workspace suits interactive work</strong>: a session-wide namespace is convenient at the command line, and the coupling it creates at scale follows from using session state as program state.</li>
+<li><strong>Everything-is-an-array is a deliberate uniformity</strong>: one container for scalars, vectors, matrices, and N-D arrays keeps the language small, and the loss of shape in the type is the price.</li>
+<li><strong>The filename rule is a lookup convention</strong>: a function file is named for its entry point, and local functions in scripts (a later addition) reduce the constraint.</li>
+<li><strong>A proprietary platform is traded for an integrated toolchain</strong>: the licence buys one install, one editor, and one support channel.</li>
+<li><strong>Scripts are for session-scale tasks</strong>: converting a script to a function removes the caller-workspace coupling.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Matrix expressions call tuned BLAS and LAPACK libraries</strong>: <code>A*B</code>, <code>A\b</code>, and <code>fft</code> run in compiled libraries, so numerical throughput does not depend on hand-written loops.</li>
+<li>✅ <strong>Vectorisation removes per-element interpreter overhead</strong>: one array expression is one interpreted call, whatever the element count.</li>
+<li>⚠️ <strong>The interpreter performs no ahead-of-time compilation (R1)</strong>: base MATLAB executes an interpreted form, so a loop that cannot be vectorised is slower than its compiled equivalent.</li>
+<li>✅ <strong>The execution engine compiles eligible code just in time</strong>: the engine introduced in R2015b accelerates a repeated loop after warm-up.</li>
+<li>⚠️ <strong>Speed follows the shipped library, not the source</strong>: the cost of a signal-processing or control operation depends on the toolbox build and on the CPU it was tuned for.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The ecosystem is proprietary (Ec4)</strong>: toolboxes, the editor, and the reference documentation come from one vendor under licence.</li>
+<li>✅ <strong>The toolbox library covers most engineering fields</strong>: Optimization, Statistics and Machine Learning, Signal Processing, and Control System toolboxes are long-established products.</li>
+<li>✅ <strong>The Add-On Explorer installs packages by name</strong>: MathWorks and community add-ons are installed through one manager, so a project does not have to vendor source.</li>
+<li>✅ <strong>MATLAB Central File Exchange is a large community index</strong>: user-contributed functions and toolboxes are published together and searchable.</li>
+<li>⚠️ <strong>Toolboxes ship in lockstep with the release</strong>: a toolbox is versioned for the MATLAB release it targets, so an upgrade can require every toolbox to move.</li>
+<li>⚠️ <strong>Every tool in the chain assumes a licensed installation</strong>: editors and continuous-integration integrations exist, but they resolve back to a licensed MATLAB.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>Backward compatibility is a stated commitment</strong>: MathWorks keeps old syntax working and warns before a feature is removed, so a program from an earlier release generally still runs.</li>
+<li>✅ <strong>Two releases a year on a known cadence</strong>: R2026a and R2026b follow a predictable schedule, so an upgrade path can be planned.</li>
+<li>✅ <strong><code>verLessThan</code> lets one source span two releases</strong>: a program can branch on the MATLAB version, so an old and a new release can be supported together.</li>
+<li>⚠️ <strong>An upgrade can change performance or a default</strong>: a new execution engine, a new library version, or a changed default can alter timing or output for code that relied on the old behaviour.</li>
+<li>⚠️ <strong>A deprecated function may stop working later</strong>: deprecation is announced, but a function or toolbox marked for removal eventually goes away.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for numerical linear algebra</strong>: matrix syntax, <code>\</code> for a linear solve, and N-D arrays match the mathematics directly.</li>
+<li>✅ <strong>Signal processing, control systems, and image processing are first-class domains</strong>: each ships as an endorsed toolbox with the reference algorithms.</li>
+<li>❌ <strong>Domain and vendor lock-in (D1)</strong>: the language and its library set target one vendor’s platform, so adoption is also a procurement decision.</li>
+<li>⚠️ <strong>Simulink is a second modelling toolchain</strong>: a graphical model is not MATLAB source, so a control design that uses Simulink couples to a second product and file format.</li>
+<li>⚠️ <strong>General application work sits outside the design centre</strong>: file handling, text processing, and network code read as additions to a numerical language.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>⚠️ <strong>Moderate at the start and steeper later (L1)</strong>: <code>A\b</code> and <code>1:n</code> are learnable in days, while vectorisation, the workspace model, and copy semantics take practice.</li>
+<li>⚠️ <strong>The workspace model confuses newcomers</strong>: a variable a script creates persists in the caller, so a beginner cannot tell where state lives.</li>
+<li>⚠️ <strong>One-based indexing diverges from most languages</strong>: code ported from a C-family or Python source needs every index checked by hand.</li>
+<li>✅ <strong>Documentation is uniform and complete</strong>: every function has a reference page with examples, and the language is taught in standard textbooks.</li>
+<li>⚠️ <strong>Toolbox knowledge is separate from language knowledge</strong>: finding the right function means knowing which toolbox owns the domain.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Matrix-oriented and compact</strong>: <code>A(:, 2) = A(:, 1) * 3;</code> expresses a whole-column operation in one statement.</li>
+<li>✅ <strong>Keyword-light and readable</strong>: most statements are operations on data, with few punctuation-only constructs.</li>
+<li>⚠️ <strong>Element-wise and matrix operators differ by one dot</strong>: <code>*</code> versus <code>.*</code> and <code>^</code> versus <code>.^</code> are distinct operations, so a missing dot silently changes the computation.</li>
+<li>⚠️ <strong><code>end</code> is overloaded</strong>: it terminates a block and marks the last index inside a subscript.</li>
+<li>⚠️ <strong>The semicolon controls output rather than the statement</strong>: a missing <code>;</code> prints every intermediate result, which clutters a long run.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>A test framework ships in the base product</strong>: <code>matlab.unittest.TestCase</code>, <code>functiontests</code>, and <code>runtests</code> provide assertions, fixtures, and parameterised cases.</li>
+<li>✅ <strong>A failure reports the value and the assertion</strong>: the framework prints the constraint that failed and the observed value, so a failure is localised.</li>
+<li>✅ <strong>Mocking and coverage are part of the framework</strong>: <code>matlab.mock</code> creates replacement objects, and the code-coverage plugin reports unexecuted lines.</li>
+<li>⚠️ <strong>A test suite lives in function files beside the code</strong>: there is no separate test manifest, so a suite’s scope follows the folder layout.</li>
+<li>⚠️ <strong>Automated runs need a licence</strong>: continuous integration needs a licence seat or a pre-built component with the MATLAB Runtime.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>No pointers and no manual memory access</strong>: the language offers no address arithmetic, so a buffer overflow cannot be written in MATLAB source.</li>
+<li>✅ <strong>External access is explicit in the source</strong>: <code>fopen</code>, <code>readmatrix</code>, and <code>webread</code> are visible calls, so a reader can see every file and network access.</li>
+<li>⚠️ <strong><code>eval</code>, <code>evalin</code>, and <code>str2func</code> execute text as code</strong>: a string built from untrusted input can become a statement, which is the injection pattern.</li>
+<li>⚠️ <strong><code>load</code> can introduce undeclared variables</strong>: restoring a <code>.mat</code> file creates variables whose names the source does not state, and such a name can shadow a live variable.</li>
+<li>⚠️ <strong>Static proof of run-time error freedom needs a separate product</strong>: Polyspace Code Prover proves the absence of certain run-time errors, but it is licensed apart from the language.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,98 +1214,274 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
-<td><code>K3</code></td>
-<td>manual sync no race detection</td>
-<td style="text-align: right;">8</td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 39/100</strong> — total points removed = 61 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1143,53 +1490,265 @@ div.csl-indent {
 <td><strong>Performance</strong></td>
 <td><code>R1</code></td>
 <td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Ec4</code></td>
 <td>proprietary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Domain</strong></td>
 <td><code>D1</code></td>
 <td>domain/vendor lock-in</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 61/100</strong> — total points removed = 39 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> MATLAB’s design yields moderate language-imposed coupling for numerical engineering work. Matrix operations remove per-element iteration from the source, and toolboxes separate domain algorithms from the core language. Main strengths: an excellent fit for linear algebra, signal processing, and control systems; a large library; and a strong backward-compatibility record. Main weaknesses: the base workspace and every script variable form one shared mutable namespace with no namespaces, typing is dynamic with no static check, indexing is one-based against most languages, and the whole platform is proprietary, so cost and portability follow MathWorks’ licence and pricing.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1200,6 +1759,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

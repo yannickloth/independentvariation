@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1022,22 +1025,34 @@ div.csl-indent {
 </header>
 
 
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="fsharpSpec"><a href="#ref-fsharpSpec" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses F# in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 57/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Discriminated unions separate cases</strong>: Like Haskell ADTs</li>
 <li>✅ <strong>Type providers decouple data access from code</strong>: SQL, JSON, etc. accessed via types generated from schemas</li>
 <li>⚠️ <strong>OOP interop allows inheritance coupling</strong>: Can use C# classes with inheritance, coupling subclasses to base classes</li>
+<li>❌ <strong>.NET interop is double-edged</strong>: Allows violations via C# patterns</li>
+<li>❌ <strong>Nulls from .NET</strong>: Nullable references from C# libraries reintroduce null-checking coupling</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>✅ <strong>Immutable records by default</strong>: Construction doesn’t couple to mutation</li>
 <li>✅ <strong>With-copy syntax decouples updates</strong>: <code>{ person with Age = 30 }</code> doesn’t modify original</li>
 <li>⚠️ <strong>Can use .NET constructors with side effects</strong>: Interop allows coupled construction</li>
+<li>❌ <strong>Mutable cells exist</strong>: Can create ref cells, coupling to mutable state</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>.NET GC decouples memory</strong>: Generational GC handles deallocation</li>
 <li>✅ <strong>Immutability simplifies GC</strong>: Fewer mutable references, cleaner collection</li>
@@ -1045,25 +1060,34 @@ div.csl-indent {
 <li>⚠️ <strong>Can use IDisposable from .NET</strong>: Manual resource management via <code>use</code> keyword couples cleanup</li>
 <li>✅ <strong>Garbage collection handles closures</strong>: Captured references are traced by the .NET GC, not by reference counting</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>✅ <strong>Result type separates success/failure</strong>: <code>Result&lt;'T, 'Error&gt;</code> makes errors explicit</li>
 <li>⚠️ <strong>Can throw .NET exceptions</strong>: Interop allows unchecked exceptions</li>
 <li>✅ <strong>Railway-oriented programming pattern</strong>: The community embraces this functional error-handling style where success and failure paths are composed like parallel railroad tracks using Result types</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>✅ <strong>Async workflows decouple async from sync</strong>: <code>async { }</code> blocks separate concerns</li>
 <li>✅ <strong>MailboxProcessor for actors</strong>: Message passing decouples concurrent operations</li>
 <li>⚠️ <strong>.NET threads allow shared mutable state</strong>: Interop permits coupling</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>.NET interop is double-edged</strong>: Allows violations via C# patterns</li>
-<li>❌ <strong>Mutable cells exist</strong>: Can create ref cells, coupling to mutable state</li>
-<li>❌ <strong>Nulls from .NET</strong>: Nullable references from C# libraries reintroduce null-checking coupling</li>
+<li>✅ <strong>Cross-platform .NET runtime</strong>: The same F# assembly runs on Linux, macOS, and Windows</li>
+<li>✅ <strong>Open-source compiler</strong>: The F# compiler (dotnet/fsharp) is MIT-licensed and developed in the open as a .NET Foundation project</li>
+<li>✅ <strong>Freely available, cross-platform toolchain</strong>: The <code>dotnet</code> SDK and NuGet run on Linux, macOS, and Windows at no cost, and Visual Studio is optional rather than required</li>
+<li>✅ <strong>Multiple compile targets</strong>: Fable compiles F# to JavaScript, so the language reaches the browser as well as the .NET runtime</li>
 </ul>
-<p><strong>Trade-offs (not coupling):</strong></p>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
 <li><strong>Functional Purity vs.&nbsp;.NET Interop</strong>: Can’t enforce purity when calling C# code</li>
 <li><strong>Type Safety vs.&nbsp;Practical Libraries</strong>: .NET libraries use null, exceptions, mutation—F# must accommodate</li>
@@ -1071,58 +1095,12 @@ div.csl-indent {
 <li><strong>Immutability by Default vs.&nbsp;Performance</strong>: Persistent data structures slower than .NET mutable collections</li>
 <li><strong>FP Culture vs.&nbsp;OOP Platform</strong>: F# encourages FP but runs on OOP-first platform</li>
 </ul>
-<p><strong>Core Coupling Score: 57/100</strong></p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 44%">
-<col style="width: 28%">
-<col style="width: 28%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>80</td>
-<td>Good, but .NET nulls leak in</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>82</td>
-<td>FP-first, but OOP available</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>75</td>
-<td>Immutable by default, but .NET interop</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>75</td>
-<td>Result type, but exceptions exist</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>78</td>
-<td>Async, actors, but threads available</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>80</td>
-<td>Good tooling, .NET ecosystem</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Verdict:</strong> F# provides excellent coupling-reducing features (discriminated unions, Result, async, immutability) but .NET interop creates escape hatches. Pragmatic trade-off: coupling when you want it, C# compatibility when needed. Main weakness: discipline required to avoid .NET coupling traps.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 80/100</p>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>✅ <strong>JIT compilation</strong>: Fast steady-state performance</li>
 <li>⚠️ <strong>GC pauses</strong>: Non-deterministic, but tunable</li>
@@ -1130,7 +1108,9 @@ div.csl-indent {
 <li>✅ <strong>Immutability optimized</strong>: Persistent data structures perform well</li>
 <li>⚠️ <strong>Startup time</strong>: JIT warmup couples cold start to performance</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 85/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>✅ <strong>Full .NET ecosystem access</strong>: Massive library availability</li>
 <li>✅ <strong>dotnet CLI standardized</strong>: Consistent build experience</li>
@@ -1138,14 +1118,18 @@ div.csl-indent {
 <li>⚠️ <strong>Some .NET libraries couple to OOP patterns</strong>: Not all libraries are functional-friendly</li>
 <li>✅ <strong>NuGet package management</strong>: Well-established, reliable</li>
 </ul>
-<p><strong>Language Evolution:</strong> 80/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>✅ <strong>Strong backward compatibility</strong>: Code rarely breaks between versions</li>
 <li>✅ <strong>Follows .NET release cadence</strong>: Predictable updates</li>
 <li>✅ <strong>Active development</strong>: Regular improvements and new features</li>
 <li>⚠️ <strong>Coupled to .NET platform evolution</strong>: Must follow .NET’s direction</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 85/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for backend services</strong>: Async, type safety, .NET performance</li>
 <li>✅ <strong>Strong for data analysis</strong>: Type providers for data access</li>
@@ -1153,166 +1137,605 @@ div.csl-indent {
 <li>⚠️ <strong>Web frontend less common</strong>: Fable exists but smaller ecosystem than mainstream</li>
 <li>✅ <strong>Cross-platform</strong>: .NET Core runs everywhere</li>
 </ul>
-<p><strong>Learning Curve:</strong> 70/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>✅ <strong>Gentler than Haskell</strong>: More pragmatic, less abstract</li>
 <li>✅ <strong>Good docs</strong>: F# for Fun and Profit, official docs</li>
 <li>⚠️ <strong>Requires functional mindset shift</strong>: For OOP developers</li>
 <li>✅ <strong>Can adopt gradually</strong>: Mix FP and OOP as needed</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 80/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>✅ <strong>Clean, concise</strong>: Significant whitespace, minimal boilerplate</li>
 <li>✅ <strong>Pipe operator</strong>: <code>|&gt;</code> decouples data flow</li>
 <li>⚠️ <strong>Type inference limitations</strong>: Sometimes need explicit annotations</li>
 <li>✅ <strong>Pattern matching expressive</strong>: Clear, readable</li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 85/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>Standard .NET testing tools</strong>: xUnit, NUnit, MSTest</li>
 <li>✅ <strong>FsCheck property testing</strong>: Built-in support</li>
 <li>✅ <strong>Excellent debugger</strong>: Visual Studio debugger is world-class</li>
 <li>✅ <strong>Pure functions easy to test</strong>: No hidden state</li>
 </ul>
-<p><strong>Security:</strong> 85/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>✅ <strong>Memory safe</strong>: .NET GC prevents memory bugs</li>
 <li>✅ <strong>Type safe</strong>: Strong static typing</li>
 <li>✅ <strong>Immutability by default</strong>: Prevents many mutation bugs</li>
 <li>⚠️ <strong>C# interop escape hatches</strong>: <code>mutable</code>, <code>null</code>, unsafe code possible</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M2</code></td>
-<td>GC non-deterministic pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 57/100</strong> — total points removed = 43 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Performance</strong></td>
-<td><code>R2</code></td>
-<td>GC pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td></td>
 <td><code>R3</code></td>
 <td>JIT warmup</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>L2</code></td>
 <td>large surface/multi-paradigm</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> F# provides excellent coupling-reducing features (discriminated unions, Result, async, immutability) but .NET interop creates escape hatches. Pragmatic trade-off: coupling when you want it, C# compatibility when needed. Main weakness: discipline required to avoid .NET coupling traps.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1323,6 +1746,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

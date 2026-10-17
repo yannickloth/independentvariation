@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,192 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="rLang"><a href="#ref-rLang" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 47/100</strong> | <strong>Platform &amp; Ecosystem Score: 50/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> R’s vectorized operations decouple iteration from computation by operating on entire vectors at once. Data frames serve as the central abstraction for structured data. Functions are first-class values. The global environment couples the namespace by default. Non-standard evaluation (NSE) couples macro-like argument capture to the calling context, creating action-at-a-distance. Copy-on-modify semantics protect against accidental mutation but increase memory usage. Dynamic typing defers all coupling detection to runtime.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> R is the standard for statistics and data science. It has a massive package ecosystem through CRAN. RStudio provides an excellent IDE. R is slower than Python for many tasks but is improving. It is a perfect domain fit for statistical computing. The learning curve is steep due to quirks like the <code>&lt;-</code> assignment operator, factor types, and non-standard evaluation. R is memory-intensive. Security risks include <code>eval</code> and other dynamic code execution features.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses R in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 47/100</strong> · <strong>Ecosystem coupling 50/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>Dynamic typing with no static check (T1)</strong>: a value carries its type at run time, so a type error surfaces when the expression evaluates.</li>
+<li>⚠️ <strong>An atomic vector holds one type and coerces silently</strong>: <code>c(1, "a")</code> becomes a character vector with no error, so a mixed vector changes type.</li>
+<li>⚠️ <strong>A factor stores integer level codes behind printed labels</strong>: a comparison and an ordering can therefore differ from the text a reader sees.</li>
+<li>❌ <strong>No namespaces (T6)</strong>: <code>library()</code> attaches a package’s exported names to the search path, so two packages that export one name collide and the later attachment masks the earlier.</li>
+<li>✅ <strong>A function is a first-class value with its own type</strong>: <code>is.function</code>, <code>formals</code>, and <code>body</code> expose a function as data.</li>
+<li>⚠️ <strong>Attributes travel with a value invisibly</strong>: a <code>names</code>, <code>class</code>, or <code>dim</code> attribute changes dispatch and printing, so two values that print alike can behave differently.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>A data frame is the central structured-data abstraction</strong>: named columns of one length form a table, and a model function accepts it without knowing how it was built.</li>
+<li>✅ <strong>Functions are first-class and an environment is a lexical home</strong>: a function can be stored, passed, and returned, and it closes over its defining environment, so deliberate state is possible as a closure instead of a global.</li>
+<li>✅ <strong>The formula interface separates a model from a caller’s data</strong>: <code>y ~ x1 + x2</code> names the columns, so the same call works on any data frame that has them.</li>
+<li>❌ <strong>Global mutable state by default (C1)</strong>: <code>&lt;-</code> at top level writes into the global environment, and <code>&lt;&lt;-</code> writes into an enclosing environment, so a name is shared across the session.</li>
+<li>❌ <strong>No immutability by default (C2)</strong>: a binding is assigned freely, and <code>attr(x, "a") &lt;- v</code>, <code>names(x) &lt;- v</code>, and a reference-class field change a value in place.</li>
+<li>⚠️ <strong>Many functions capture their arguments non-standardly</strong>: <code>subset</code>, <code>with</code>, and most modelling functions evaluate an argument inside a data frame, so the call does not follow the usual rule.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>Copy-on-modify protects the reader</strong>: a value is copied only when the copy is modified, so a function that receives a vector does not change the caller’s value.</li>
+<li>⚠️ <strong>Copy-on-modify raises peak memory</strong>: modifying a large object can duplicate it, so the footprint exceeds the logical size of the data.</li>
+<li>⚠️ <strong>The collector runs on R’s schedule (M2)</strong>: collection happens when R decides, and <code>gc()</code> reports heap use, but there is no block-scoped release.</li>
+<li>❌ <strong>No RAII (M3)</strong>: there is no destructor at block exit, so a connection, a file, or a graphics device is closed by <code>on.exit</code> or explicitly.</li>
+<li>❌ <strong>No ownership model (M4)</strong>: no static rule ties a value’s storage to one binding.</li>
+<li>✅ <strong><code>on.exit</code> registers exit-time cleanup</strong>: an action runs when the function returns or raises, which is the R idiom for releasing a resource.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>✅ <strong>Conditions are classed objects</strong>: <code>stop</code>, <code>warning</code>, and <code>message</code> signal a <code>condition</code> with a class, so a handler matches a class rather than a message string.</li>
+<li>✅ <strong><code>tryCatch</code> separates recovery from cleanup</strong>: an exiting handler returns a value, and <code>finally</code> runs on every path.</li>
+<li>✅ <strong><code>withCallingHandlers</code> allows a non-unwinding response</strong>: a handler can log a warning and let evaluation continue.</li>
+<li>❌ <strong>Unchecked exceptions only (Er2)</strong>: a signalled condition propagates until something catches it, and no caller is required to handle it.</li>
+<li>⚠️ <strong>A warning is not an error</strong>: it prints and evaluation continues, so an ignored warning can leave a wrong result.</li>
+<li>⚠️ <strong>No composable result value</strong>: a failure is a thrown condition or a sentinel such as <code>NULL</code> or <code>NA</code>, so it does not compose through a call chain.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong><code>parallel</code> ships with the base distribution</strong>: <code>mclapply</code> forks workers on Unix, and <code>makeCluster</code> with <code>parLapply</code> runs across sockets, so independent work splits without a shared-memory protocol.</li>
+<li>✅ <strong>A socket cluster passes results, not shared state</strong>: a worker returns a value that is serialised back, so workers do not share an address space.</li>
+<li>✅ <strong><code>future</code> and <code>%dopar%</code> give a declarative parallel surface</strong>: code written for a sequential <code>lapply</code> is unchanged when it runs in parallel.</li>
+<li>⚠️ <strong>Base R evaluates one expression at a time</strong>: vectorised operations are the usual substitute for a second thread.</li>
+<li>⚠️ <strong>A forked worker copies on write</strong>: <code>mclapply</code> shares the parent’s memory until a worker modifies it, and then it duplicates.</li>
+<li>⚠️ <strong>Reproducibility needs explicit seed handling</strong>: a parallel random stream requires <code>clusterSetRNGStream</code> or the <code>future</code> seed mechanism.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>One open-source implementation with several distributors</strong>: the R Core Team maintains the interpreter under the GNU GPL, and CRAN ships source and binaries.</li>
+<li>✅ <strong>Official builds cover the three desktop platforms</strong>: Linux, macOS, and Windows binaries are published for each release.</li>
+<li>✅ <strong>The interpreter is not tied to one editor</strong>: RStudio, VS Code, Emacs ESS, and the plain console drive the same R.</li>
+<li>✅ <strong>Package installation is declarative</strong>: <code>install.packages</code> fetches from a named mirror, and <code>renv</code> records exact versions in a lockfile.</li>
+<li>⚠️ <strong>A source package with C or C++ needs a toolchain</strong>: the published binary avoids the compiler, but a source install needs headers and a linker.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Copy-on-modify is a deliberate trade</strong>: immutability by copy protects callers and costs peak memory.</li>
+<li><strong>Non-standard evaluation is a deliberate design</strong>: it makes <code>subset(d, x &gt; 1)</code> and a formula interface readable and lets a modelling call record the variable names it was given, at the cost of evaluation that is not visible at the call site.</li>
+<li><strong>The global environment is for interactive analysis</strong>: a session-wide namespace suits exploratory work at the console.</li>
+<li><strong>A factor encodes categorical data</strong>: the hidden integer code is the price of ordered levels and of a compact representation.</li>
+<li><strong>One-based indexing and <code>&lt;-</code> are convention choices</strong>: they follow the S language and the statistics literature, so the cost is familiarity, not a forced dependency.</li>
+<li><strong>R is for statistics, not general programming</strong>: the assumption of a data-analysis workload is a scope decision.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Vectorised and matrix operations call compiled C, C++, and BLAS/LAPACK code</strong>: <code>colSums</code>, <code>%*%</code>, and <code>lm</code> do their work in compiled libraries, so the interpreter is not in the inner loop.</li>
+<li>✅ <strong>A large set of compiled packages exists</strong>: <code>data.table</code>, <code>Rcpp</code>, and <code>Matrix</code> move hot paths into compiled code, and CRAN distributes them.</li>
+<li>⚠️ <strong>Interpreted with no ahead-of-time compilation (R1)</strong>: base R executes an interpreted form, so a scalar loop is slower than its compiled equivalent.</li>
+<li>⚠️ <strong>The just-in-time compiler helps only where it applies</strong>: the byte-code compiler (level 3, <code>cmpfun</code>) speeds up a loop, but the gain is bounded.</li>
+<li>⚠️ <strong>Memory pressure shows up as time</strong>: copying and collection cost time that the source does not show.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>✅ <strong>CRAN is a large, curated, central repository</strong>: tens of thousands of packages pass an automated check before publication.</li>
+<li>✅ <strong>The RStudio IDE is a first-class environment</strong>: console, source editor, plots, and a debugger sit in one window.</li>
+<li>✅ <strong>Reproducibility tooling is mature</strong>: <code>renv</code> records a project library, and a package manager can pin a date-based snapshot.</li>
+<li>⚠️ <strong>Package quality varies</strong>: the CRAN check verifies correctness and portability, not statistical validity, so a method needs its own reading.</li>
+<li>⚠️ <strong>A deployment needs the full environment</strong>: R, a build toolchain, and system libraries for compiled dependencies make a project heavier to ship than a single binary.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>Backward compatibility is strong and documented</strong>: the Core Team publishes a <code>NEWS</code> file per release and keeps the language API stable, so an old script generally still runs.</li>
+<li>✅ <strong>A regular release cadence exists</strong>: an x.y.0 release appears each spring and a patch release follows in the same year.</li>
+<li>✅ <strong>The tidyverse and r-lib provide deprecation discipline</strong>: the <code>lifecycle</code> package marks a function as experimental, deprecated, or superseded before removal.</li>
+<li>⚠️ <strong>A third-party package can break across a major release</strong>: a package that used an internal API can fail after an upgrade, and the fix belongs to its maintainer.</li>
+<li>⚠️ <strong>A package can be archived from CRAN</strong>: an unmaintained package is removed from the index, so code that depends on it needs a replacement or a frozen snapshot.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for statistical computing</strong>: <code>lm</code>, <code>glm</code>, <code>aov</code>, and <code>t.test</code> are in the base distribution with a formula interface.</li>
+<li>✅ <strong>CRAN and Bioconductor cover the applied fields</strong>: biostatistics, econometrics, time series, and genomics each have dedicated packages.</li>
+<li>✅ <strong>A report is generated from the analysis itself</strong>: <code>knitr</code>, <code>rmarkdown</code>, and Quarto run the code and place its output in the document.</li>
+<li>❌ <strong>Domain lock-in to statistics and data analysis (D1)</strong>: the core value types, the formula interface, and the modelling packages assume a data-analysis workflow.</li>
+<li>⚠️ <strong>A production service in R is unusual</strong>: a service with a high request rate is usually written elsewhere and calls R for the model.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>⚠️ <strong>Steep (L1)</strong>: the idioms — vectorisation, the apply family, environments, and S3 dispatch — take time for a programmer from an imperative language.</li>
+<li>⚠️ <strong>Non-standard evaluation surprises newcomers</strong>: an argument can be evaluated inside a data frame, so <code>subset</code> and <code>dplyr</code> code does not follow the usual call rule.</li>
+<li>⚠️ <strong>Factor semantics are unfamiliar</strong>: a factor compares by its integer level code, so an ordering or a comparison can differ from the printed text.</li>
+<li>⚠️ <strong>The apply family is confusing</strong>: <code>sapply</code> varies its return type with the input, so a result is not predictable from the call alone.</li>
+<li>✅ <strong>Documentation is generated, complete, and mandated</strong>: every CRAN package must document every exported function, and <code>?</code> reaches the reference page.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>The formula interface and the pipe are compact</strong>: <code>y ~ x</code> and <code>x |&gt; f()</code> read as a data pipeline.</li>
+<li>✅ <strong>Indexing follows one rule across atomic, list, and data-frame values</strong>: <code>[</code>, <code>[[</code>, and <code>$</code> behave consistently, so a new structure needs no new syntax.</li>
+<li>⚠️ <strong>Two assignment operators exist</strong>: <code>&lt;-</code> binds a name in the current environment, and <code>=</code> also assigns at top level but separates a named argument inside a call, so the meaning depends on position.</li>
+<li>⚠️ <strong><code>.</code> is overloaded</strong>: it means every other variable in a formula and the piped value in a magrittr pipe.</li>
+<li>⚠️ <strong>A print method hides structure</strong>: printing a data frame or a model object shows a summary, so <code>str()</code> is needed to see the actual shape.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>testthat</code> is the de facto standard framework</strong>: it provides expectations, a runner, and a per-file test structure.</li>
+<li>✅ <strong>A package must pass <code>R CMD check</code></strong>: CRAN runs the check, which executes the tests and the examples, so a package is not published with a failing test.</li>
+<li>✅ <strong>Property-based and snapshot testing exist</strong>: <code>hedgehog</code> generates inputs, and a <code>testthat</code> snapshot records output for comparison.</li>
+<li>✅ <strong>Interactive debugging is available</strong>: <code>browser()</code>, <code>traceback()</code>, <code>debug()</code>, and the RStudio debugger stop at a line and inspect its environment.</li>
+<li>⚠️ <strong>Errors are runtime-only (G3)</strong>: a type error appears when the line runs, so the test suite is what reaches the untested path.</li>
+<li>⚠️ <strong>A suite depends on the installed environment</strong>: the tests run through the package machinery, so the environment must be installed first.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>❌ <strong>Known vulnerability/injection (Q3)</strong>: <code>eval(parse(text = ...))</code>, <code>do.call</code> on a string, and <code>system()</code> turn text into code or a command, so concatenated input is an injection surface.</li>
+<li>❌ <strong>Dynamic typing carries its risk into security code</strong>: a check written for one class can pass an object of another class, and dispatch then runs a different method.</li>
+<li>⚠️ <strong><code>system2</code> reduces but does not remove shell risk</strong>: it passes arguments as a vector, yet a shell is still involved.</li>
+<li>⚠️ <strong><code>load</code> and <code>readRDS</code> restore an object, not only data</strong>: a serialised object can carry an environment, so restoring untrusted state is a code-execution path.</li>
+<li>⚠️ <strong>The interpreter runs with the user’s full privileges</strong>: R has no sandbox of its own, so code in a session has the user’s access to files and the network.</li>
+<li>✅ <strong>CRAN policy limits what a package may do</strong>: network access and writes outside the temporary directory are restricted during install and check.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,86 +1220,274 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 47/100</strong> — total points removed = 53 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1131,71 +1496,265 @@ div.csl-indent {
 <td><strong>Performance</strong></td>
 <td><code>R1</code></td>
 <td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Domain</strong></td>
 <td><code>D1</code></td>
 <td>domain/vendor lock-in</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
-<td><strong>Testing</strong></td>
-<td><code>G3</code></td>
-<td>runtime-only errors</td>
-<td style="text-align: right;">4</td>
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Q2</code></td>
 <td>dynamic/weak typing risk</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>Q3</code></td>
 <td>known vulnerability/injection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 50/100</strong> — total points removed = 50 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> R’s design yields moderate coupling for statistical computing and higher coupling outside it. Vectorised operations and compiled linear algebra remove per-element iteration from the source, and the formula interface separates a model from a caller’s data. Main strengths: a curated package ecosystem, first-class functions and environments, and a strong fit for data analysis. Main weaknesses: dynamic typing with no static check, the global environment as the default destination of <code>&lt;-</code>, copy-on-modify memory cost, non-standard evaluation that hides where an argument is evaluated, a steep learning curve, and dynamic code paths (<code>eval</code>, <code>system</code>) that carry injection risk.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1206,6 +1765,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

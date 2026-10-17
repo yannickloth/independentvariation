@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,198 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="vbscriptDocs"><a href="#ref-vbscriptDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 40/100</strong> | <strong>Platform &amp; Ecosystem Score: 39/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> VBScript (Visual Basic Scripting Edition) is Microsoft’s COM-based scripting language modeled on classic Visual Basic. Its coupling profile is weak by design. Variables default to the Variant type (weak, dynamic typing), so type coupling is deferred entirely to runtime, and VBScript deliberately omits strong typing, extended error trapping, and the ability to pass a variable number of parameters. Procedures and subroutines provide some modularity, and version 5.0 added classes and regular expressions. Windows Script Files (<code>.wsf</code>) allow modular reuse of multiple script files. But error handling is minimal, everything is coupled to the Windows COM object model, and the language cannot compose cleanly. It is easy to learn but provides almost no structural enforcement against coupling.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> VBScript was widely used by system administrators and in Internet Explorer, ASP, and HTML Applications, but it has been in decline for years and was officially deprecated by Microsoft in October 2023, with removal planned after 2027. Microsoft recommends migrating to PowerShell or JavaScript. It is Windows-bound and tied to COM (WSH, WMI, ADO). The ecosystem is legacy and largely frozen since 1998. Security is a concern: VBScript was the vehicle for the ILOVEYOU worm and other malware, and it is often blocked. It still appears in test automation (UFT One) and some embedded operator interfaces, but PowerShell has overwhelmingly replaced it.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses VBScript in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 40/100</strong> · <strong>Ecosystem coupling 39/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>A variable has no declared type</strong>: <code>Dim x</code> declares a name, and the value it holds is a <code>Variant</code> whose subtype is decided at the assignment, so the operator resolves the operands when the statement runs and <code>+</code> adds or concatenates according to the values it receives (T1).</li>
+<li>❌ <strong>There is no namespace</strong>: every global variable and procedure lives in one flat global scope, so two included scripts share it (T6).</li>
+<li>❌ <strong>There is no module boundary</strong>: a script file exports nothing and imports nothing explicitly, and <code>ExecuteGlobal</code> or a <code>.wsf</code> include writes into the same global scope (T11).</li>
+<li>✅ <strong>The subtype is inspectable</strong>: <code>VarType</code>, <code>IsNumeric</code>, <code>IsDate</code>, <code>IsArray</code>, and <code>IsObject</code> let a script ask what a variant holds.</li>
+<li>✅ <strong><code>Null</code> and <code>Empty</code> are distinct values with their own tests</strong>: <code>IsNull</code> and <code>IsEmpty</code> separate a true null from an uninitialised variant.</li>
+<li>✅ <strong><code>Class</code>, added in version 5.0, groups state with behaviour</strong>: a class declares <code>Private</code> fields and <code>Public</code> property procedures, with <code>Class_Initialize</code> and <code>Class_Terminate</code>.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>A global variable appears at its first assignment</strong>: without <code>Option Explicit</code>, <code>x = 1</code> at file scope creates a global, so state appears wherever a name is first used (C1).</li>
+<li>✅ <strong><code>Option Explicit</code> requires a declaration</strong>: with it, an undeclared name is an error instead of a new variable.</li>
+<li>✅ <strong><code>Sub</code> and <code>Function</code> scope their own locals</strong>: a <code>Dim</code> inside a procedure belongs to that procedure.</li>
+<li>✅ <strong>A class validates and cleans up in its two lifecycle methods</strong>: <code>Class_Initialize</code> runs at creation and <code>Class_Terminate</code> at release.</li>
+<li>✅ <strong>A <code>.wsf</code> file combines several scripts</strong>: a Windows Script File includes more than one script file, and the procedures of one are callable from another.</li>
+<li>⚠️ <strong><code>ExecuteGlobal</code> defines a global at run time</strong>: a generated statement can create a name that no declaration lists.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>The script engine owns the memory</strong>: there is no allocate, free, or pointer operation in the language.</li>
+<li>✅ <strong>A COM object is released by reference count</strong>: the object is freed when its last reference goes out of scope, and <code>Class_Terminate</code> runs at that point.</li>
+<li>✅ <strong>No pointer type and no address exist</strong>: a value can never name a memory location.</li>
+<li>✅ <strong>A class instance is collected by the engine</strong>: the script states no lifetime for a class object.</li>
+<li>⚠️ <strong>A reference cycle between script and COM objects is not reclaimed</strong>: the engine’s counter cannot release a cycle, and the process must end to reclaim it.</li>
+<li>⚠️ <strong>Repeated string concatenation in a loop reallocates</strong>: a long string built with <code>&amp;</code> is copied at each step, and the language has no string builder.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>There is no structured error path</strong>: the language has no <code>try</code> and no <code>catch</code>, only <code>On Error Resume Next</code> and the <code>Err</code> object (Er1).</li>
+<li>❌ <strong><code>On Error Resume Next</code> discards a failure by default</strong>: the next statement runs regardless, and the failure is invisible unless <code>Err.Number</code> is tested.</li>
+<li>✅ <strong>The <code>Err</code> object makes a failure a value</strong>: <code>Err.Number</code>, <code>Err.Description</code>, <code>Err.Source</code>, and <code>Err.Raise</code> let a handler read and create a failure.</li>
+<li>✅ <strong><code>On Error GoTo 0</code> ends the suppressed mode</strong>: error handling returns to the default at that statement.</li>
+<li>⚠️ <strong>A host error names its provider</strong>: an ADO, WMI, or file-system failure carries a provider-specific number and source, so a handler is bound to that provider.</li>
+<li>⚠️ <strong>An unhandled failure ends the script</strong>: there is no caller frame to unwind to, and the default action is to stop.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>The language has no shared-memory concurrency</strong>: a script runs single-threaded in its host, so there is no race to guard.</li>
+<li>✅ <strong>A script can start another process</strong>: <code>WScript.Shell.Run</code> launches a program, and <code>Exec</code> returns a stream of its output.</li>
+<li>✅ <strong>The host delivers an event to the script on its own thread</strong>: a callback is serialised onto the host’s thread, so the script never observes a concurrent invocation of itself.</li>
+<li>⚠️ <strong>The host decides the threading model</strong>: Windows Script Host, Internet Explorer, and classic ASP each run a script differently, and the host’s apartment model governs a COM call.</li>
+<li>⚠️ <strong>A session-scoped object is shared across requests</strong>: in classic ASP, <code>Session</code> state is visible to more than one request, and nothing in the language partitions it.</li>
+<li>⚠️ <strong>A long-running script blocks its host thread</strong>: the language has no yield and no cancellation.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>❌ <strong>The engine is Windows-only</strong>: <code>vbscript.dll</code> is the only implementation, and it ships with Windows, so a script runs on no other platform (P1).</li>
+<li>❌ <strong>Every capability arrives through COM</strong>: file access, WMI, ADO, and the shell are COM objects such as <code>Scripting.FileSystemObject</code> and <code>ADODB.Connection</code>, so a script depends on the registered object model.</li>
+<li>✅ <strong>A <code>.vbs</code> file needs no build step</strong>: the host runs the text as written.</li>
+<li>✅ <strong>The host is part of the operating system</strong>: <code>cscript.exe</code> and <code>wscript.exe</code> are installed with Windows.</li>
+<li>⚠️ <strong>The host decides which objects exist</strong>: Windows Script Host, Internet Explorer, and classic ASP present different object models to the same language.</li>
+<li>⚠️ <strong>A <code>.wsf</code> file states its own includes</strong>: a multi-file script needs the <code>Job</code> attributes and the <code>&lt;script src=...&gt;</code> elements that name its parts.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Hosted scripting is the purpose of the language</strong>: VBScript is designed to be embedded in a host, so the dependence on the host is a scope decision.</li>
+<li><strong>The classic Visual Basic surface is a familiarity trade</strong>: the BASIC syntax is easy to read, and one value type keeps the engine simple, at the cost of the type system.</li>
+<li><strong>A suppressed error is sometimes deliberate</strong>: <code>On Error Resume Next</code> around one statement is a chosen tactic.</li>
+<li><strong>The language is meant for short programs</strong>: a page of automation is the design point, not a system.</li>
+<li><strong>A fixed parameter list is a deliberate omission</strong>: the language cannot pass a variable number of arguments, so a variadic call is written as an array parameter.</li>
+<li><strong>The deprecation is a lifecycle decision</strong>: Microsoft’s removal plan is a product decision rather than a language mechanism.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>⚠️ <strong>The script is interpreted</strong>: each statement is executed by the engine, and no compiled form is reused between runs.</li>
+<li>⚠️ <strong>A variant costs at every operation</strong>: an operation reads the subtype tag and converts the operands before it acts.</li>
+<li>✅ <strong>The engine is an in-process library</strong>: the host loads it once, so a script starts with no separate runtime to launch.</li>
+<li>✅ <strong>The engine compiles the file before it runs</strong>: the host parses and compiles the script once at start, and a page host can keep the compiled script for later requests.</li>
+<li>⚠️ <strong>A COM call dominates a data-heavy script</strong>: the crossing into ADO, WMI, or a file-system object is where the time goes.</li>
+<li>⚠️ <strong>String handling is the common trap</strong>: concatenation in a loop and a repeated <code>RegExp</code> replace on a large string cost far more than the control flow.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The language is proprietary and discontinued</strong>: it exists in one vendor’s product, and Microsoft announced the deprecation in October 2023 (Ec4).</li>
+<li>❌ <strong>The ecosystem is legacy and frozen</strong>: the language has gained no feature since the 1998 release, so the tool field is historical (Ec3).</li>
+<li>✅ <strong>The runtime tooling is part of Windows</strong>: <code>cscript</code> and <code>wscript</code> are installed with the operating system.</li>
+<li>✅ <strong>A large body of published scripts exists</strong>: administrative scripts, examples, and books from the 2000s are widely available.</li>
+<li>✅ <strong>The migration targets are named and documented</strong>: Microsoft points to PowerShell and JavaScript and describes the path.</li>
+<li>⚠️ <strong>Many environments block the script host</strong>: a security policy or a mail filter commonly disables or rejects a <code>.vbs</code> file.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>❌ <strong>The language is discontinued</strong>: Microsoft announced the deprecation in October 2023 with removal planned after 2027, so no further version is expected (V3).</li>
+<li>✅ <strong>The remaining life is long and published</strong>: the phased plan keeps the language available as an on-demand feature for years, so an existing script keeps running.</li>
+<li>✅ <strong>The language does not change under a script</strong>: an existing script’s meaning is fixed, which makes a migration predictable.</li>
+<li>✅ <strong>A successor covers each use</strong>: PowerShell replaces the administration role and JavaScript replaces the browser and page role.</li>
+<li>⚠️ <strong>New code has no reason to choose it</strong>: the direction of the platform is removal, not extension.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>❌ <strong>The domain is Windows administration and COM</strong>: the useful work is expressed through WMI, ADO, the file-system object, and the shell, and none of that exists off Windows (D1).</li>
+<li>✅ <strong>Administrative automation fits it well</strong>: a short script drives WMI and the registry directly.</li>
+<li>✅ <strong>Classic ASP and HTML Applications were real hosting domains</strong>: a server page and an <code>.hta</code> file both used VBScript with the full object model.</li>
+<li>✅ <strong>Test automation still uses it</strong>: UFT One and similar tools keep a VBScript dialect for their test scripts.</li>
+<li>⚠️ <strong>PowerShell has replaced it for administration</strong>: the same task is now written in PowerShell.</li>
+<li>⚠️ <strong>An embedded operator interface is a narrow remaining use</strong>: a few industrial and point-of-sale systems still run a VBScript engine for local automation.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The syntax is small</strong>: <code>If ... Then ... End If</code>, <code>Sub</code>, <code>Function</code>, and <code>For Each</code> are the surface.</li>
+<li>✅ <strong>The curve is gentle for a Visual Basic programmer</strong>: the classic Visual Basic surface carries over almost unchanged.</li>
+<li>✅ <strong>The reference is complete</strong>: Microsoft’s VBScript Language Reference documents every statement and function.</li>
+<li>✅ <strong>The error model is easy to start with</strong>: <code>On Error Resume Next</code> and the <code>Err</code> object are a few lines.</li>
+<li>⚠️ <strong>The real subject is COM</strong>: the object model beneath the language is the large part of the work.</li>
+<li>⚠️ <strong>The error model is easy to misuse</strong>: it requires a discipline that the language does not enforce.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>The keywords are words</strong>: <code>If</code>, <code>Then</code>, <code>Else</code>, <code>End If</code>, <code>For Each</code>, and <code>Next</code>.</li>
+<li>✅ <strong>A line is a statement</strong>: statement boundaries are lines, and <code>:</code> separates two statements on one line.</li>
+<li>✅ <strong>Line continuation is explicit</strong>: <code>_</code> continues a statement on the next line.</li>
+<li>✅ <strong>A block closes with its keyword pair</strong>: <code>End If</code>, <code>End Sub</code>, <code>End Function</code>, <code>Loop</code>, and <code>Next</code> each close their own construct.</li>
+<li>⚠️ <strong>The language is case-insensitive</strong>: <code>myValue</code> and <code>MyValue</code> name the same variable, so a rename is not caught by the case.</li>
+<li>⚠️ <strong><code>Dim</code> may be omitted</strong>: without <code>Option Explicit</code>, a name is declared by its first use, so a typo reads as a new variable.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>❌ <strong>There is no test framework in the language or the host</strong>: a check is a script that compares values and reports the result (G1).</li>
+<li>✅ <strong>A test is a <code>.vbs</code> file run by <code>cscript</code></strong>: the same engine runs the test and the code under test.</li>
+<li>✅ <strong>A harness is only a few lines</strong>: <code>WScript.Echo</code> with a comparison gives a report, and a failing check can call <code>Err.Raise</code>.</li>
+<li>✅ <strong><code>cscript //X</code> starts the script debugger</strong>: a step-through debugger is available where the Windows debugging tools are installed.</li>
+<li>⚠️ <strong>A test suite is the programmer’s own</strong>: there is no runner, no fixture loader, and no report format.</li>
+<li>⚠️ <strong>A type error appears only in the test run</strong>: nothing checks a value’s use before the line executes.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>❌ <strong>Untrusted input can become code</strong>: <code>Execute</code>, <code>ExecuteGlobal</code>, and <code>Eval</code> evaluate text, so a value built from input can run as a statement (Q3).</li>
+<li>❌ <strong>Script malware is a known, historical class</strong>: the ILOVEYOU worm spread as a <code>.vbs</code> attachment, and the file extension is still commonly blocked.</li>
+<li>❌ <strong>The file-system object grants the user’s own rights</strong>: <code>Scripting.FileSystemObject</code> can read or overwrite any file the invoking user can.</li>
+<li>✅ <strong>A script runs without elevation by default</strong>: it holds the privileges of the invoking user and no more.</li>
+<li>⚠️ <strong>The usual mitigation is policy</strong>: a mail filter, an attachment block, or a group-policy restriction, rather than a language feature.</li>
+<li>⚠️ <strong>Correct quoting must be uniform</strong>: an injection that forms a valid statement is not distinguishable from a legitimate one by the engine.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,147 +1226,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T11</code></td>
 <td>no module boundary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Platform</strong></td>
 <td><code>P1</code></td>
 <td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 40/100</strong> — total points removed = 60 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>Ec4</code></td>
 <td>proprietary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>V3</code></td>
 <td>discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Evolution subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
 <td><code>D1</code></td>
 <td>domain/vendor lock-in</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Testing</strong></td>
 <td><code>G1</code></td>
 <td>weak tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Q3</code></td>
 <td>known vulnerability/injection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 39/100</strong> — total points removed = 61 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> VBScript holds the lowest pair of scores in this group, and the losses concentrate in its defaults and its dependence. A variable is a <code>Variant</code> with no declared type, an undeclared name becomes a global, an error is a mode the caller must enable, and every useful capability arrives through a COM object that exists only on Windows. What the language does provide is a tiny readable syntax, a host that is already installed, lifecycle methods on a class, and <code>Option Explicit</code> to require a declaration. Main strengths: a gentle learning curve, direct WMI and ADO automation, a <code>.wsf</code> file that packages a multi-file script, and a simple way to restrict a script through the Windows Script Host. Main weaknesses: no structured error path, no namespace and no module boundary, a proprietary and discontinued implementation, a domain locked to Windows and COM, weak tooling, and an injection surface that made it a malware vehicle.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1194,6 +1771,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

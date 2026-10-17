@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,19 +1026,194 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="juliaLang"><a href="#ref-juliaLang" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 39/100</strong> | <strong>Platform &amp; Ecosystem Score: 73/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Multiple dispatch decouples behavior from class hierarchy — functions are generic, methods are specialized by argument types. Type system is optional but powerful: parametric types, union types, abstract types all at runtime with JIT compilation. No inheritance (no hierarchy coupling). Metaprogramming via hygienic macros decouples syntax. Dynamic by default with optional type annotations. <code>@code_warntype</code> can detect type instability (accidental coupling). No null — <code>Nothing</code> and <code>Missing</code> types separate absence from value. 1-indexed arrays (like Fortran, R, Lua). Global scope coupling (mitigated by <code>const</code> and modules). Main weakness: time-to-first-plot (JIT warmup couples startup to latency), optional typing means undisciplined code has invisible coupling.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Excellent for scientific/numerical computing (competes with Python/MATLAB but with native speed). Great metaprogramming capabilities. Growing ecosystem (JuliaHub, Pluto.jl). Very fast (approaches C for numerical code). Package manager (Pkg.jl) good. IDE support improving (VSCode extension). Learning curve moderate (multiple dispatch paradigm shift). REPL-driven development. Used in pharmaceuticals, finance, climate science. Performance: JIT warmup is the main pain point.</p>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Julia in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 39/100</strong> · <strong>Ecosystem coupling 73/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>Dynamic by default</strong>: a binding has type <code>Any</code> unless a declaration narrows it, so the compiler cannot check a call statically (T1).</li>
+<li>✅ <strong>Multiple dispatch decouples behaviour from a hierarchy</strong>: a generic function is a set of methods selected by argument-type signature, and no method belongs to a class.</li>
+<li>✅ <strong>Parametric types provide generics</strong>: <code>Vector{T}</code> and <code>Array{T,N}</code> are parameterised, and a method can dispatch on <code>Vector{&lt;:Number}</code>.</li>
+<li>✅ <strong>Union types express alternatives</strong>: <code>Union{Int, String}</code> is a real type, so a sum-like choice needs no encoding.</li>
+<li>✅ <strong><code>Nothing</code> and <code>Missing</code> separate absence from value</strong>: <code>nothing</code> means no result, and <code>missing</code> propagates through three-valued logic.</li>
+<li>⚠️ <strong>Type instability is invisible in the source</strong>: a variable whose type changes between branches defeats specialisation, and only <code>@code_warntype</code> shows it.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Global mutable state is the default at module scope</strong>: a variable assigned at top level is a global that any function can read and change (C1).</li>
+<li>❌ <strong>Values are mutable by default</strong>: an <code>Array</code> is mutable and passed by reference, so a callee can change the caller’s data (C2).</li>
+<li>✅ <strong><code>const</code> and modules reduce global coupling</strong>: a <code>const</code> binding cannot be reassigned, and a module confines its names.</li>
+<li>✅ <strong><code>struct</code> is immutable and <code>mutable struct</code> is explicit</strong>: a value type is immutable unless the programmer asks for mutability.</li>
+<li>✅ <strong>Constructors are ordinary methods</strong>: a constructor is a method of the type, and dispatch selects the matching one.</li>
+<li>⚠️ <strong><code>global</code> inside a function reaches module state</strong>: the escape hatch is available and easy to use in a script.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>Collection is non-deterministic</strong>: a generational mark-and-sweep collector reclaims memory on its own schedule (M2).</li>
+<li>❌ <strong>No RAII</strong>: there is no scope-exit destructor, so an open file or socket is closed with an explicit <code>close</code> (M3).</li>
+<li>❌ <strong>No ownership or borrow model</strong>: aliasing is unrestricted, and the collector alone tracks a value’s lifetime (M4).</li>
+<li>✅ <strong>No manual deallocation in ordinary code</strong>: <code>free</code> and <code>unsafe_wrap</code> belong to explicit <code>unsafe</code> interfaces.</li>
+<li>✅ <strong><code>finalizer</code> registers a cleanup callback</strong>: the callback runs when the collector reclaims the value, as a best-effort backstop.</li>
+<li>⚠️ <strong>Untyped code allocates boxes in a loop</strong>: a non-concrete variable forces heap allocation, which couples an inner loop to allocation pressure.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Exceptions are unchecked</strong>: <code>error</code> and <code>throw</code> appear in no signature, so the failure set is not readable from the type (Er2).</li>
+<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> gives a structured path</strong>: the normal path and the recovery path are separate blocks.</li>
+<li>✅ <strong><code>error(msg)</code> raises a defined <code>ErrorException</code></strong>: an expected failure path can be caught by type.</li>
+<li>✅ <strong><code>Union{Nothing, T}</code> signals absence without an exception</strong>: a caller tests for <code>nothing</code> instead of catching.</li>
+<li>✅ <strong><code>@assert</code> states a precondition</strong>: a violated assertion raises immediately at the point of the failure.</li>
+<li>⚠️ <strong><code>throw(value)</code> accepts any value</strong>: a thrown value is untyped, so a <code>catch</code> clause must match it by convention.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>No race detection</strong>: <code>Threads.@threads</code> shares memory, and the language provides no data-race checker or lock discipline (K3).</li>
+<li>✅ <strong>Tasks give cooperative concurrency</strong>: <code>@spawn</code> and <code>@sync</code> schedule work on a task scheduler.</li>
+<li>✅ <strong>A <code>Channel</code> communicates between tasks</strong>: a channel moves a value without shared mutable access.</li>
+<li>✅ <strong><code>@threads</code> and <code>@sync</code> compose a parallel loop</strong>: a parallel construct is a macro over the task model.</li>
+<li>✅ <strong><code>Distributed</code> runs work on several processes</strong>: <code>pmap</code> and <code>remotecall</code> spread a computation over a cluster.</li>
+<li>⚠️ <strong>Shared mutable state needs a <code>ReentrantLock</code> or <code>Atomic</code></strong>: the programmer holds the lock by hand, and nothing checks the discipline.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>Native code through LLVM</strong>: Julia compiles to machine code with the LLVM back end, so the hot path is native.</li>
+<li>✅ <strong>The runtime is portable</strong>: Julia runs on Linux, macOS, Windows, and FreeBSD.</li>
+<li>✅ <strong><code>PackageCompiler.jl</code> builds a standalone binary</strong>: a system image or an application bundle removes the need to invoke <code>julia</code> directly.</li>
+<li>✅ <strong>C and Fortran interop is built in</strong>: <code>ccall</code> calls a native library without a binding generator.</li>
+<li>⚠️ <strong>WebAssembly support is experimental</strong>: the browser target is not a first-class platform.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>JIT warm-up is a deliberate latency trade</strong>: the first call compiles, which buys peak throughput later.</li>
+<li><strong>Optional typing is a design choice</strong>: a type annotation is available but not required, so discipline decides the result.</li>
+<li><strong>One-based indexing is a convention choice</strong>: the convention matches Fortran, MATLAB, and R, and it is not a coupling.</li>
+<li><strong>No inheritance is deliberate</strong>: dispatch replaces it, so no class hierarchy exists to couple.</li>
+<li><strong>The REPL is the primary interface</strong>: interactive development is a workflow choice, not a language mechanism.</li>
+<li><strong><code>@inbounds</code> and <code>@fastmath</code> are explicit opt-outs</strong>: the programmer takes responsibility for an unchecked optimisation.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Compiled native kernels approach C</strong>: a type-stable inner loop compiles to machine code.</li>
+<li>✅ <strong>Multiple dispatch specialises generic code</strong>: a function is compiled per concrete argument signature, so an abstraction has no boxing cost when the types are concrete.</li>
+<li>✅ <strong><code>@simd</code>, <code>@inbounds</code>, and <code>@fastmath</code> control code generation</strong>: the programmer can state the optimisation the compiler may assume.</li>
+<li>❌ <strong>JIT warm-up is paid at run time</strong>: the first call to a function compiles it, so latency depends on which path runs first (R3).</li>
+<li>⚠️ <strong>Type instability defeats specialisation</strong>: a non-concrete variable forces dynamic dispatch and allocation in the hot path.</li>
+<li>⚠️ <strong>Precompilation helps but does not remove first-call work</strong>: a system image moves some compilation to build time.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>✅ <strong><code>Pkg.jl</code> is built into the language</strong>: environments, a manifest, and dependency resolution need no external tool.</li>
+<li>✅ <strong>The General registry is central and curated</strong>: packages are registered, versioned, and checked automatically.</li>
+<li>✅ <strong><code>Pluto.jl</code> and Jupyter give notebook workflows</strong>: reactive notebooks and the standard kernel are both supported.</li>
+<li>✅ <strong>The scientific packages are mature in their fields</strong>: <code>DifferentialEquations.jl</code>, <code>Flux.jl</code>, and <code>DataFrames.jl</code> are established libraries.</li>
+<li>❌ <strong>The ecosystem is niche outside scientific computing</strong>: general-purpose libraries and tooling are fewer than in Python (Ec3).</li>
+<li>⚠️ <strong>Package quality varies</strong>: many packages are research code with one maintainer.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>The registry enforces semantic versioning</strong>: a compatibility bound in <code>Project.toml</code> is checked against the registry.</li>
+<li>✅ <strong>Version 1.0 landed in 2018 and the language has kept stability since</strong>: a package written for 1.0 generally runs on a later release.</li>
+<li>✅ <strong>Environments make an upgrade reversible</strong>: a <code>Manifest.toml</code> pins the exact versions a project uses.</li>
+<li>✅ <strong>Deprecations are staged</strong>: a deprecated binding warns before removal.</li>
+<li>⚠️ <strong>Internal <code>Base</code> interfaces change between minor releases</strong>: a package that reaches into internals breaks at the next release.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for scientific and numerical computing</strong>: the language competes with Python and MATLAB at native speed.</li>
+<li>✅ <strong>Multiple dispatch matches mathematical code</strong>: an operation over scalar, vector, and matrix types is one generic function with several methods.</li>
+<li>✅ <strong>Used in pharmaceuticals, finance, and climate science</strong>: numerical work in those fields runs on it.</li>
+<li>❌ <strong>Domain lock-in to scientific computing</strong>: outside numerics Julia is rarely chosen, so libraries, tooling, and expectations assume that domain (D1).</li>
+<li>⚠️ <strong>Not aimed at systems programming or web back ends</strong>: the runtime and the collector suit computation, not a low-latency service.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The syntax is familiar to MATLAB and Python users</strong>: loops, function definitions, and index syntax transfer directly.</li>
+<li>✅ <strong>The REPL gives immediate feedback</strong>: an expression returns its value and its type, which speeds experimentation.</li>
+<li>✅ <strong>The documentation is thorough</strong>: the manual, the performance tips, and the style guide are maintained with the language.</li>
+<li>✅ <strong>Documentation examples are executable</strong>: <code>Documenter.jl</code> builds documentation with doctests.</li>
+<li>⚠️ <strong>Multiple dispatch is a paradigm shift</strong>: reasoning about which method runs takes practice.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Mathematical syntax is native</strong>: <code>A'</code> transposes, <code>\</code> solves a linear system, and Unicode identifiers such as <code>\alpha</code> are legal.</li>
+<li>✅ <strong><code>x -&gt; x^2</code> and <code>do</code> blocks express a function inline</strong>: a function argument needs no wrapper type.</li>
+<li>✅ <strong>Broadcasting with <code>.</code> is uniform</strong>: <code>f.(x)</code> applies a function elementwise and composes with other calls.</li>
+<li>✅ <strong>Indexing and slicing are built into the bracket syntax</strong>: <code>A[2:end, :]</code> selects a submatrix directly.</li>
+<li>⚠️ <strong>Macros and <code>@</code>-annotations can obscure control flow</strong>: a macro rewrites the expression it decorates.</li>
+<li>⚠️ <strong>Unicode identifiers are hard to type and to read</strong>: the character may need an input method at the keyboard.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>Test</code> is a standard-library module</strong>: <code>@test</code> and <code>@testset</code> are available with no dependency.</li>
+<li>✅ <strong><code>@inferred</code> tests type stability</strong>: a test can assert that a call returns a concrete type, which is a performance property.</li>
+<li>✅ <strong><code>Aqua.jl</code> checks method ambiguities</strong>: a real dispatch hazard has a dedicated checker.</li>
+<li>✅ <strong>Doctests run through <code>Documenter.jl</code></strong>: an example in the documentation is executed as a test.</li>
+<li>⚠️ <strong>A type-unstable path is not a failure by default</strong>: a test passes on a correct value even when the code is slow.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>Arrays are bounds-checked by default</strong>: an out-of-range index raises <code>BoundsError</code> rather than reading adjacent memory.</li>
+<li>✅ <strong>Managed code is memory safe</strong>: the collector and the bounds checks cover ordinary values.</li>
+<li>✅ <strong>Package installation is version-pinned and hashed</strong>: the registry records a tree hash for each version.</li>
+<li>⚠️ <strong><code>@inbounds</code> removes the bounds check</strong>: the annotation is an explicit opt-out from that safety guarantee.</li>
+<li>⚠️ <strong><code>ccall</code> reaches memory-unsafe native code</strong>: a wrong pointer or size can corrupt memory.</li>
+<li>⚠️ <strong><code>eval</code> and <code>include</code> execute code</strong>: dynamic evaluation must be kept away from untrusted input.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1042,135 +1222,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M2</code></td>
-<td>GC non-deterministic pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 39/100</strong> — total points removed = 61 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>R3</code></td>
 <td>JIT warmup</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Domain</strong></td>
 <td><code>D1</code></td>
 <td>domain/vendor lock-in</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 73/100</strong> — total points removed = 27 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Julia’s design yields high language-imposed coupling to its runtime, offset by a dispatch model that decouples behaviour from hierarchy. Multiple dispatch is the strength: a generic function is decoupled from any class, parametric and union types express structure, and <code>Nothing</code> and <code>Missing</code> separate absence from value. Main weaknesses: the language is dynamically typed by default, so type instability is invisible in the source; global mutable state and mutable arrays are the defaults; the collector and the absence of RAII make resource release non-deterministic; there is no race detection; and JIT warm-up couples startup to latency.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1181,6 +1767,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

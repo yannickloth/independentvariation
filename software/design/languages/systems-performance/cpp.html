@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1023,10 +1026,18 @@ div.csl-indent {
 
 
 <p><em>Analysis against C++23 (ISO/IEC 14882:2024). Older C++ standards have substantially worse coupling properties; C++23 represents the best of what modern C++ offers.</em></p>
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="isoCpp2024"><a href="#ref-isoCpp2024" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses C++ in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 54/100</strong> · <strong>Ecosystem coupling 76/100</strong></p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> The score reflects C++23 with modern idioms (smart pointers ≥ raw pointers, <code>std::expected</code> ≥ exceptions, modules ≥ headers, concepts ≥ unconstrained templates). Teams stuck on older standards or pre-modern coding styles will experience significantly worse coupling properties.</p>
+</blockquote>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Templates enable generic programming</strong>: Decouple algorithms from types</li>
 <li>✅ <strong>RAII separates resource management</strong>: Constructor acquires, destructor releases</li>
@@ -1035,16 +1046,23 @@ div.csl-indent {
 <li>✅ <strong>Deducing this (C++23)</strong>: Eliminates const/non-const overload duplication</li>
 <li>⚠️ <strong>Multiple inheritance still available</strong>: Diamond problem possible (though <code>final</code> specifier helps)</li>
 <li>⚠️ <strong>Template metaprogramming still complex</strong>: Despite concepts, advanced templates couple to expertise</li>
+<li>❌ <strong>Macros couple</strong>: Preprocessor doesn’t respect scope (though modules reduce header macro issues)</li>
+<li>⚠️ <strong>Headers still exist for non-module code</strong>: <code>#include</code> coupling for code not yet migrated to C++20 modules</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>✅ <strong>Constructors separate</strong>: Copy, move, default constructors are distinct</li>
 <li>✅ <strong>Move semantics decouple</strong>: Transfer ownership without copying</li>
 <li>✅ <strong>Designated initializers (C++20)</strong>: Named initialization decouples from parameter order</li>
 <li>❌ <strong>Constructors can throw</strong>: Exception during construction couples cleanup</li>
 <li>⚠️ <strong>Two-phase initialization still possible</strong>: Though discouraged by modern idioms</li>
+<li>❌ <strong>Global state common</strong>: Static variables, singletons (not enforced away)</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>RAII decouples resource management</strong>: Destructors run deterministically, no GC needed</li>
 <li>✅ <strong>Smart pointers eliminate manual delete</strong>: <code>unique_ptr</code>, <code>shared_ptr</code> are idiomatic (manual <code>new</code>/<code>delete</code> is a code smell in modern C++)</li>
@@ -1054,8 +1072,11 @@ div.csl-indent {
 <li>⚠️ <strong><code>shared_ptr</code> has atomic ref counting cost</strong>: And circular references need <code>weak_ptr</code></li>
 <li>⚠️ <strong>Raw pointer escape hatches exist</strong>: Though idiomatic C++23 uses spans and smart pointers</li>
 <li>✅ <strong>No GC, deterministic</strong>: Full control over allocation timing</li>
+<li>❌ <strong>Undefined behavior still exists</strong>: Buffer overruns, null derefs possible when using raw pointers/functions</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>✅ <strong><code>std::expected</code> (C++23)</strong>: Monadic error handling — composable, type-safe, explicit in signatures</li>
 <li>✅ <strong><code>std::optional</code> monadic operations (C++23)</strong>: <code>and_then</code>, <code>transform</code>, <code>or_else</code> enable composable absence handling</li>
@@ -1063,7 +1084,9 @@ div.csl-indent {
 <li>✅ <strong><code>std::stacktrace</code> (C++23)</strong>: Provides unwinding visibility, addressing historical debugging pain</li>
 <li>✅ <strong><code>std::variant</code></strong>: Type-safe discriminated union for error discrimination</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>⚠️ <strong>Shared mutable state default</strong>: Mutexes required, though lock-free patterns are achievable</li>
 <li>✅ <strong><code>std::jthread</code> (C++20)</strong>: Auto-joining threads with cancellation via <code>std::stop_token</code></li>
@@ -1072,14 +1095,18 @@ div.csl-indent {
 <li>❌ <strong>Data races are undefined behavior</strong>: No compile-time prevention (unlike Rust)</li>
 <li>⚠️ <strong>Memory model still complex</strong>: Atomic operations require deep understanding</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>Macros couple</strong>: Preprocessor doesn’t respect scope (though modules reduce header macro issues)</li>
-<li>❌ <strong>Global state common</strong>: Static variables, singletons (not enforced away)</li>
-<li>❌ <strong>Undefined behavior still exists</strong>: Buffer overruns, null derefs possible when using raw pointers/functions</li>
-<li>⚠️ <strong>Headers still exist for non-module code</strong>: <code>#include</code> coupling for code not yet migrated to C++20 modules</li>
+<li>✅ <strong>No vendor owner</strong>: The language is standardised by ISO/IEC and implemented independently by GCC, Clang, and MSVC, so no single vendor controls the standard</li>
+<li>✅ <strong>No required platform runtime</strong>: A program compiles to native code and needs no C++-specific virtual machine or vendor service</li>
+<li>✅ <strong>Every mainstream target is supported</strong>: Compilers and standard libraries exist for Linux, macOS, Windows, and embedded and bare-metal targets</li>
+<li>✅ <strong>One source base for several implementations</strong>: Code that stays in the portable subset compiles under GCC, Clang, and MSVC, so the project is not bound to one compiler</li>
 </ul>
-<p><strong>Trade-offs (not coupling):</strong></p>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
 <li><strong>RAII vs.&nbsp;Exceptions</strong>: Exception during construction couples cleanup to unwinding, may leak</li>
 <li><strong>Zero-Cost Abstractions vs.&nbsp;Compile Time</strong>: Templates (and now concepts + modules) couple build speed to abstraction usage</li>
@@ -1087,61 +1114,12 @@ div.csl-indent {
 <li><strong>Standard Versions</strong>: C++11/14/17/20/23 couple codebases to version choices; modern C++ is largely additive since C++11</li>
 <li><strong>Safety vs.&nbsp;Performance</strong>: <code>std::span</code> bounds-checking is opt-in; raw pointer escape hatches remain for performance</li>
 </ul>
-<p><strong>Core Coupling Score: 54/100</strong> (C++23 — modern idioms with smart pointers, expected, modules, concepts)</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 44%">
-<col style="width: 28%">
-<col style="width: 28%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>72</td>
-<td>Concepts, modules, spans, still UB escape hatches</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>72</td>
-<td>RAII, modules, concepts, but exceptions/macros remain</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>70</td>
-<td>Move semantics, designated initializers, but exception in ctor risk</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>65</td>
-<td>std::expected composes, but exceptions still coexist</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>58</td>
-<td>jthread, barriers, generator; still no compile-time race prevention</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>75</td>
-<td>Mature ecosystem, performance, legacy codebase availability</td>
-</tr>
-</tbody>
-</table>
-<blockquote class="blockquote">
-<p><strong>Note:</strong> C++98/03 would score ~30; C++11/14 would score ~45; C++17 would score ~55. The 67 score reflects C++23 with modern idioms (smart pointers ≥ raw pointers, <code>std::expected</code> ≥ exceptions, modules ≥ headers, concepts ≥ unconstrained templates). Teams stuck on older standards or pre-modern coding styles will experience significantly worse coupling properties.</p>
-</blockquote>
-<p><strong>Verdict:</strong> C++23 provides substantially better coupling than its reputation suggests. Modules decouple compilation units. <code>std::expected</code> provides composable error handling. Concepts eliminate template error message hell. <code>std::span</code>/<code>std::mdspan</code> provide safe non-owning views. Smart pointers are idiomatic and eliminate manual <code>new</code>/<code>delete</code>. Main strength: RAII + zero-cost abstractions + deterministic performance. Main weakness: the language retains unsafe escape hatches (raw pointers, macros, exceptions) and new features coexist with old ones, meaning teams must enforce modern idiom discipline. C++23 with Core Guidelines and static analysis is a different language from C++98.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 95/100</p>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>✅ <strong>Zero-overhead abstraction</strong>: Pay only for what you use</li>
 <li>✅ <strong>No GC</strong>: Deterministic, predictable</li>
@@ -1149,7 +1127,9 @@ div.csl-indent {
 <li>✅ <strong>Compile-time computation</strong>: constexpr (expanded in C++23 — now covers <code>std::bitset</code>, <code>std::unique_ptr</code>, <code>std::optional</code>, <code>std::variant</code>, <code>std::string</code>, <code>cmath</code> functions)</li>
 <li>⚠️ <strong>Binary bloat</strong>: Templates can explode size (mitigated by explicit instantiations, LTO)</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 65/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>⚠️ <strong>No standard package manager</strong>: CMake + Conan/vcpkg are de facto standards, but fragmentation persists</li>
 <li>⚠️ <strong>Compilation speed</strong>: Templates + concepts + modules improve but still slower than Go/Rust</li>
@@ -1157,14 +1137,18 @@ div.csl-indent {
 <li>✅ <strong>Vast library ecosystem</strong>: Decades of libraries, Boost, Qt, etc.</li>
 <li>⚠️ <strong>Build system convergence improving</strong>: CMake dominates; vcpkg/Conan converging</li>
 </ul>
-<p><strong>Language Evolution:</strong> 65/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>✅ <strong>Additive since C++11</strong>: Code from C++11+ largely compiles under C++23 (removed features are rare and deprecated first)</li>
 <li>⚠️ <strong>Legacy C++98 burden</strong>: Old codebases still exist, but not a language-level problem for new code</li>
 <li>✅ <strong>3-year standard cadence</strong>: Predictable evolution (C++23 → C++26 → C++29)</li>
 <li>⚠️ <strong>Feature complexity grows</strong>: Each standard adds more to learn</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 90/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for systems</strong>: Performance critical code</li>
 <li>✅ <strong>Great for games</strong>: Industry standard</li>
@@ -1172,21 +1156,27 @@ div.csl-indent {
 <li>✅ <strong>Good for high-performance</strong>: Finance, scientific computing</li>
 <li>⚠️ <strong>Not for web</strong>: Rare use case</li>
 </ul>
-<p><strong>Learning Curve:</strong> 25/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>❌ <strong>Very steep</strong>: Massive language surface area accumulated over 40+ years</li>
 <li>❌ <strong>C++23 idioms are learnable but the full language is not</strong>: Smart pointers, <code>expected</code>, ranges, modules add to surface</li>
 <li>❌ <strong>Undefined behavior</strong>: Still exists and requires understanding to avoid</li>
 <li>✅ <strong>Excellent resources</strong>: Effective Modern C++, C++ Core Guidelines, cppreference</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 60/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>✅ <strong>Modules reduce header boilerplate</strong>: <code>import std;</code> replaces many <code>#include</code>s</li>
 <li>⚠️ <strong>Template syntax</strong>: <code>&lt;&gt;</code> remains noisy, though concepts improve readability</li>
 <li>✅ <strong>Designated initializers</strong>: Named member initialization improves readability</li>
 <li>✅ <strong><code>auto</code>, structured bindings (C++17)</strong>: Reduce verbosity</li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 75/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>GTest, Catch2, doctest</strong>: Mature frameworks</li>
 <li>✅ <strong>Static analyzers</strong>: Clang-Tidy, CppCheck, MSVC Code Analysis catch UB before runtime</li>
@@ -1194,163 +1184,578 @@ div.csl-indent {
 <li>✅ <strong><code>std::stacktrace</code> (C++23)</strong>: Runtime stacktrace capture improves debugging</li>
 <li>⚠️ <strong>Template errors</strong>: Concepts (C++20) dramatically improve error messages, but edge cases remain</li>
 </ul>
-<p><strong>Security:</strong> 55/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>⚠️ <strong>Memory safety depends on idiom</strong>: <code>std::span</code>, <code>std::mdspan</code>, smart pointers are memory-safe; raw pointers and pointer arithmetic are not</li>
 <li>✅ <strong>Smart pointers + RAII eliminate most memory bugs in modern C++</strong>: <code>unique_ptr</code> prevents use-after-free, double-free</li>
 <li>✅ <strong>AddressSanitizer, MemorySanitizer</strong>: Compiler instrumentation catches memory bugs at test time</li>
 <li>❌ <strong>Unsafe escape hatches remain</strong>: <code>reinterpret_cast</code>, pointer arithmetic, manual <code>new</code>/<code>delete</code> still compile</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 76/100</strong> (C++23)</p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T2</code></td>
 <td>weak static</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
-<td><code>C2</code></td>
-<td>no immutability by default</td>
-<td style="text-align: right;">4</td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 54/100</strong> — total points removed = 46 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
 <td><code>Ec1</code></td>
 <td>no package manager</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>Ec2</code></td>
 <td>fragmented tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>L2</code></td>
 <td>large surface/multi-paradigm</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 76/100</strong> — total points removed = 24 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> C++23 provides substantially better coupling than its reputation suggests. Modules decouple compilation units. <code>std::expected</code> provides composable error handling. Concepts eliminate template error message hell. <code>std::span</code>/<code>std::mdspan</code> provide safe non-owning views. Smart pointers are idiomatic and eliminate manual <code>new</code>/<code>delete</code>. Main strength: RAII + zero-cost abstractions + deterministic performance. Main weakness: the language retains unsafe escape hatches (raw pointers, macros, exceptions) and new features coexist with old ones, meaning teams must enforce modern idiom discipline. C++23 with Core Guidelines and static analysis is a different language from C++98.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1361,6 +1766,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,19 +1026,198 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="luaMan"><a href="#ref-luaMan" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 43/100</strong> | <strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Lua uses tables as its single universal data structure serving as arrays, dictionaries, objects, and modules — this flexibility is powerful but couples structure to convention rather than type enforcement. Metatables allow customizing table behavior through the <code>__index</code> metamethod, decoupling object-like behavior from syntax. Coroutines decouple control flow by providing cooperative multitasking with explicit yield points. Dynamic typing defers coupling detection to runtime. Variables are global by default, which couples the namespace. The core language is intentionally simple and small.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Lua is excellent for game scripting, famously powering World of Warcraft and Roblox, and for embedded systems integration. The LuaJIT implementation provides exceptional performance through just-in-time compilation. The language has a very small footprint, making it easy to embed in C applications. The learning curve is gentle due to its simplicity. The ecosystem is moderate, centered on LuaRocks for package management. Performance is excellent for a scripting language.</p>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Lua in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>There is no static type check</strong>: every value is a tagged variant and <code>type()</code> answers at run time, so a wrong shape is found when the operation runs rather than when the file loads (T1).</li>
+<li>❌ <strong>Dispatch is a lookup, not a declared type</strong>: <code>obj:m()</code> reads the field <code>m</code> through the metatable chain, so which function runs depends on the table’s metatable rather than on a declared receiver type (T3).</li>
+<li>❌ <strong>There are no sum types</strong>: an alternative is a tag field beside the payload (<code>{kind = "circle", r = 1}</code>), and nothing checks that the branch matches the tag (T4).</li>
+<li>❌ <strong>There are no generics</strong>: reuse across element types is a naming convention or a documented contract, because the element type of a table is declared nowhere (T5).</li>
+<li>❌ <strong>There is no module boundary in the language</strong>: <code>require</code> returns a value and there is no <code>import</code> declaration or private field, so a module’s surface is whatever its table happens to expose (T6).</li>
+<li>⚠️ <strong>Metamethods overload the operators</strong>: <code>__add</code>, <code>__eq</code>, <code>__lt</code>, <code>__concat</code>, <code>__len</code>, and <code>__call</code> redefine the notation for a table, so an operator at a call site may run a function the reader cannot see (T8).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Globals are the default, so a construction site can write shared state</strong>: <code>x = 1</code> without <code>local</code> creates a field in the global table that every chunk sees (C1).</li>
+<li>❌ <strong>Nothing is immutable</strong>: there is no <code>const</code> and no frozen table, so any code that holds a table can change it (C2).</li>
+<li>✅ <strong>A table constructor and a closure are values</strong>: <code>{1, 2, 3}</code> and <code>function(x) return x * 2 end</code> are built where they are written, with no class or factory in the way.</li>
+<li>✅ <strong>A metatable gives construction its own meaning</strong>: <code>setmetatable(t, {__index = proto})</code> decides how the value answers a missing field, so the object-like behaviour is installed rather than inherited by the syntax.</li>
+<li>✅ <strong><code>__call</code> makes any table callable</strong>: a table with a <code>__call</code> metamethod can be used as a function, so a design need not wrap it in one.</li>
+<li>✅ <strong>An upvalue is private by construction</strong>: a variable declared <code>local</code> outside a nested function is reachable only through that function’s closure, so a private field needs no keyword.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>Collection is non-deterministic in its timing</strong>: the collector runs on its own schedule, so the moment a table’s storage is reclaimed is not the moment the last reference to it goes out of scope (M2).</li>
+<li>❌ <strong>There is no ownership model</strong>: the collector sees reachability rather than ownership, so nothing states which part of a program is responsible for dropping a reference (M4).</li>
+<li>⚠️ <strong>Most values have no destructor</strong>: a table’s <code>__gc</code> metamethod runs only if its metatable already carried <code>__gc</code> when it was set, so release is not tied to a scope by default (M3).</li>
+<li>✅ <strong>A to-be-closed variable releases deterministically</strong>: <code>local f &lt;close&gt; = res</code> calls the value’s <code>__close</code> metamethod when the block ends, including on an error (Lua 5.4).</li>
+<li>✅ <strong>A weak table lets the collector take an entry</strong>: with <code>__mode</code> set to <code>"k"</code>, <code>"v"</code>, or <code>"kv"</code>, an entry whose key or value is otherwise unreachable is removed, so a memo table does not pin its values.</li>
+<li>✅ <strong>The collector can be inspected and driven</strong>: <code>collectgarbage "count"</code> reports the footprint in kilobytes, and a program can request a step or select the incremental or generational mode (Lua 5.4).</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>An error carries no declared type</strong>: <code>error</code> accepts any value and <code>pcall</code> returns it unchanged, so there is no error type a handler can be checked against (Er2).</li>
+<li>❌ <strong>A nil result is easy to leave unchecked</strong>: <code>io.open</code> and <code>os.remove</code> report a failure by returning <code>nil</code> plus a message, and nothing requires the caller to look (Er3).</li>
+<li>✅ <strong><code>pcall</code> and <code>xpcall</code> state the protected call</strong>: a call is placed in a protected region and its status is returned, so the recovery path is an explicit second call.</li>
+<li>✅ <strong>A message handler is attached in the language</strong>: <code>xpcall(f, handler)</code> passes the error through a function, which is where a traceback from <code>debug.traceback</code> is added.</li>
+<li>✅ <strong><code>assert</code> states a precondition with its message</strong>: <code>assert(cond, "msg")</code> raises when the condition fails, so the check and its text are one call.</li>
+<li>✅ <strong>An error value can be a table</strong>: a structured error with a code and a message is an ordinary table, because <code>error</code> raises the value it is given.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Coroutines are the only concurrency in the core</strong>: <code>coroutine.create</code>, <code>resume</code>, <code>yield</code>, and <code>status</code> give a cooperative task, so there is no lock, no shared-memory race, and no preemption to reason about.</li>
+<li>✅ <strong>A yield point is explicit</strong>: control returns to the resumer only at a <code>coroutine.yield</code>, so the interleaving is visible at the line it happens.</li>
+<li>✅ <strong>A generator is a coroutine and a call site</strong>: an iterator is a function that yields, and <code>for x in gen() do</code> consumes it, so the producer does not know its consumer.</li>
+<li>✅ <strong><code>coroutine.wrap</code> and <code>coroutine.close</code> complete the protocol</strong>: <code>wrap</code> returns a callable that propagates the error, and <code>close</code> closes a suspended coroutine and runs its pending to-be-closed variables (Lua 5.4).</li>
+<li>⚠️ <strong>There is no scheduler and no parallelism</strong>: a coroutine runs only when it is resumed, so one blocking call stops the whole interpreter and parallel work needs a host with several interpreter states.</li>
+<li>⚠️ <strong>A table shared between coroutines is still shared mutable state</strong>: the language treats the state as one, so the discipline of not yielding mid-update is the programmer’s.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>The reference implementation is portable C</strong>: the interpreter builds from one small C library on any platform with a C compiler, and the embedding API (<code>luaL_newstate</code>, <code>lua_pcall</code>, the <code>lua_push*</code> and <code>lua_to*</code> stack functions) is the intended interface.</li>
+<li>✅ <strong>The host controls a script’s environment</strong>: a chunk can be loaded with a table as its <code>_ENV</code>, so the set of names a script can see is the host’s decision (Lua 5.2 and later).</li>
+<li>✅ <strong>Several independent implementations exist</strong>: PUC-Rio’s <code>lua</code>, <code>LuaJIT</code>, <code>Luau</code>, and hosted implementations in other languages each provide the language or a near variant.</li>
+<li>✅ <strong>A compiled chunk is data the host decides to load</strong>: <code>load</code> and <code>lua_load</code> take text or a binary chunk, so the host chooses what code runs and in which environment.</li>
+<li>⚠️ <strong>The implementations diverge</strong>: <code>LuaJIT</code> implements Lua 5.1 with extensions and <code>Luau</code> diverges for its host, so a script that uses <code>goto</code>, integer division, or <code>&lt;close&gt;</code> needs the reference implementation or a recent alternative.</li>
+<li>⚠️ <strong>The default library reaches the operating system</strong>: <code>os.execute</code>, <code>os.remove</code>, and <code>io.open</code> are in the standard library, so a host that needs a sandbox must remove them.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>One compound structure is a deliberate economy</strong>: the language trades a declared type for one constructor that covers arrays, records, objects, and modules.</li>
+<li><strong>Metatables are an opt-in object model</strong>: the core has no classes, and the idiom that adds them is chosen by the program rather than imposed.</li>
+<li><strong>Embedding is the primary use, so the host owns the runtime</strong>: the small library and the C API are the reason to choose the language, not a defect.</li>
+<li><strong>Cooperative scheduling is a design decision</strong>: with no preemption there is no thread of the language’s own, and the host decides about parallelism.</li>
+<li><strong>The global table is a scripting convenience</strong>: it keeps a short script short and lets a host inject functions, and avoiding it is a discipline.</li>
+<li><strong>A version pin is an adoption cost, not a mechanism</strong>: a library written for one version does not load on another, which follows from separate version lines rather than from a coupling in the language.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The reference implementation is a compact register-based virtual machine</strong>: the compiler emits bytecode for a small instruction set (<code>luac -l</code> prints it), so start-up is immediate.</li>
+<li>✅ <strong><code>LuaJIT</code> traces a hot loop into machine code</strong>: the tracing compiler specialises the recorded path, which is why a numeric or table loop runs far faster than in the interpreter (the implementation is Lua 5.1 with extensions).</li>
+<li>✅ <strong>Strings are interned, so a string key hashes once</strong>: every string is hash-consed and its hash is cached, so a table lookup by string is cheap.</li>
+<li>✅ <strong>Tail calls are proper and do not grow the stack</strong>: a tail call reuses the frame, so a state machine written as tail recursion runs in constant space.</li>
+<li>✅ <strong>The collector takes bounded steps</strong>: the incremental mode does a small amount of work between bytecodes, and Lua 5.4 adds a generational mode for the allocation-heavy case.</li>
+<li>⚠️ <strong>The array part and the hash part of a table are a performance fact of its shape</strong>: the same logical sequence is a fast array or a slow hash depending on how it was built, so a hot path must keep the dense part dense.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The library pool is small</strong>: <code>LuaRocks</code> carries many small modules and few large frameworks, so a project writes its own glue (Ec3).</li>
+<li>✅ <strong><code>LuaRocks</code> is a standard package manager and build tool</strong>: a rockspec declares a module and its dependencies, and <code>luarocks install</code> and <code>luarocks make</code> build and install it.</li>
+<li>✅ <strong>The language server and the linter are mature</strong>: <code>lua-language-server</code> checks the code against annotations such as <code>---@param</code> and <code>---@type</code>, and <code>luacheck</code> reports unused variables, globals, and a module’s public surface.</li>
+<li>✅ <strong>The C API is documented and versioned</strong>: the manual’s C API chapter and <code>lua.h</code>/<code>lauxlib.h</code> state the stack protocol, and bindings exist for C++, C#, Go, Rust, and Java.</li>
+<li>✅ <strong>The language runs wherever a C library runs</strong>: the interpreter is embedded in web servers, editors, games, and network equipment, which is why it is the standard embedded scripting layer.</li>
+<li>⚠️ <strong>The implementations split the ecosystem</strong>: a binding written for the <code>LuaJIT</code> foreign function interface or for <code>Luau</code> does not work in the reference interpreter, and the reverse.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>A release is a deliberate, documented step</strong>: each version has its own manual and a changes list, and the reference implementation is small enough to read.</li>
+<li>✅ <strong>The C API of a version line is stable within that line</strong>: a program builds against one set of headers and the matching library.</li>
+<li>✅ <strong>Feature additions are small and conservative</strong>: <code>goto</code>, integer division, the <code>&lt;close&gt;</code> attribute, and the generational collector were added as syntax or library functions rather than as a redesign of the language.</li>
+<li>⚠️ <strong>Source compatibility is not kept across minor versions</strong>: 5.2 replaced <code>setfenv</code>, <code>getfenv</code>, and <code>loadstring</code> with <code>_ENV</code> and <code>load</code>, and 5.3 introduced the integer subtype, so a codebase is usually pinned to one version.</li>
+<li>⚠️ <strong>The implementations lag the reference</strong>: <code>LuaJIT</code> remains at 5.1, so a program that wants the newer syntax gives up the tracing compiler.</li>
+<li>⚠️ <strong>A dialect can move the language forward on its own</strong>: <code>Luau</code> adds gradual typing and performance annotations to its host’s variant, which is not the standard language.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Embedding a scripting layer in a host program is the design point</strong>: the interpreter is a C library with no external dependency, and the host decides the API it exposes.</li>
+<li>✅ <strong>Game scripting is the widest adoption</strong>: the language is the scripting layer of World of Warcraft, Roblox (as Luau), and many engines.</li>
+<li>✅ <strong>Configuration and data description work by construction</strong>: a table literal is a data format, and <code>load</code> or <code>dofile</code> evaluates it into a value.</li>
+<li>✅ <strong>Prototype-style objects are expressible with <code>__index</code></strong>: the object model is a library idiom over tables rather than a language feature.</li>
+<li>⚠️ <strong>It is not a systems language</strong>: there is no pointer, no placement control, and no unchecked array, so work at that level belongs to the host C code.</li>
+<li>⚠️ <strong>A CPU-bound kernel needs <code>LuaJIT</code> or C</strong>: the interpreter is fast for a scripting language and is not a substitute for compiled numerical code.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The core syntax is small and regular</strong>: about two dozen keywords, one compound structure, and no declaration ceremony, so the language itself is learned quickly.</li>
+<li>✅ <strong>One document is the complete specification</strong>: the reference manual covers the syntax, the standard library, and the C API in a single short text.</li>
+<li>❌ <strong>The advanced layer is a second subject</strong>: metatables, <code>__index</code> chains, closures over coroutines, and the C API are where the difficulty is, and the core syntax does not announce them (L1).</li>
+<li>⚠️ <strong>The types live in the programmer’s head</strong>: with no declaration and no annotation, a reader infers a table’s shape from its uses unless the language server’s annotations or <code>Luau</code> types are added.</li>
+<li>✅ <strong>The interpreter reports the line and the call stack</strong>: an uncaught error prints its message with a Lua traceback, so a failure is located from the output.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>The syntax is small and uses words as delimiters</strong>: <code>local</code>, <code>if ... then ... else ... end</code>, <code>for ... do ... end</code>, and <code>function ... end</code>, with no braces and no required semicolons.</li>
+<li>✅ <strong>A table constructor is a compact data notation</strong>: <code>{x = 1, y = 2}</code> is a record and <code>{1, 2, 3}</code> is an array, in the same brackets.</li>
+<li>✅ <strong>Short forms carry the common idioms</strong>: <code>#t</code> is the length, <code>a .. b</code> concatenates, <code>t:k()</code> calls a method, and <code>...</code> is the variable argument list.</li>
+<li>✅ <strong>Multiple assignment and multiple return are one form</strong>: <code>local x, y = f()</code> and <code>return a, b</code> pass several values without a tuple type.</li>
+<li>⚠️ <strong>A missing <code>local</code> is a global write</strong>: <code>x = 1</code> inside a function writes a field of the global table, and the mistake is invisible at the line.</li>
+<li>⚠️ <strong>The notation does not state the structure</strong>: the same <code>{}</code> is an array, a record, an object, or a module, so the intent is a comment rather than a declaration.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>busted</code> gives a describe/it suite with matchers</strong>: a third-party runner with <code>luassert</code> matchers runs a <code>spec/</code> directory from the command line.</li>
+<li>✅ <strong><code>luaunit</code> gives a single-file test framework</strong>: one file supplies the assertions and the runner, which suits an embedded project.</li>
+<li>✅ <strong>A test can substitute a chunk’s environment</strong>: <code>load(src, name, "t", env)</code> runs the module against a table the test supplies, so a dependency is replaced without editing the source.</li>
+<li>✅ <strong>The debug library can instrument a run</strong>: <code>debug.sethook</code> counts calls and samples, and <code>debug.getinfo</code> reports the source line, so a profiler or a coverage tool is written in Lua itself.</li>
+<li>✅ <strong>Static checks catch mistakes before a run</strong>: the language server reports an annotation mismatch and <code>luacheck</code> reports an unused variable and a global leak.</li>
+<li>⚠️ <strong>Testing is not part of the standard library</strong>: <code>assert</code> is the only built-in check, so the runner and the fixtures are dependencies.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>⚠️ <strong>A binary chunk from an untrusted source is unsafe</strong>: the manual states that <code>load</code> does not check the consistency of a binary chunk and that a crafted one can crash the interpreter or run arbitrary machine code.</li>
+<li>✅ <strong><code>_ENV</code> gives a chunk a restricted global table</strong>: a sandbox loads a chunk with an environment that holds only the functions the host allows, and the chunk has no other path to the host’s state.</li>
+<li>⚠️ <strong>The <code>debug</code> library defeats a sandbox</strong>: <code>debug.setupvalue</code>, <code>debug.getregistry</code>, and <code>debug.sethook</code> reach past the environment, so a sandbox must remove the library and the host must not reopen it.</li>
+<li>⚠️ <strong>The standard library includes file and process access</strong>: <code>io.open</code>, <code>io.popen</code>, and <code>os.execute</code> are available unless the host removes them from the environment.</li>
+<li>✅ <strong>A pure Lua value cannot be a forged pointer</strong>: a value is a tagged variant, an out-of-bounds access is a table miss rather than an address, and there is no pointer type or pointer arithmetic in the language.</li>
+<li>✅ <strong>The interpreter imposes no host dependency of its own</strong>: it makes no call outside the C library unless the program does, so the attack surface of a script is the surface the host exposed.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1042,147 +1226,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T3</code></td>
-<td>dynamic/duck dispatch</td>
-<td style="text-align: right;">8</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T5</code></td>
-<td>no generics</td>
-<td style="text-align: right;">4</td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>T6</code></td>
-<td>no namespaces</td>
-<td style="text-align: right;">8</td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Er3</code></td>
 <td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 43/100</strong> — total points removed = 57 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Lua’s design yields the low core score of a dynamic scripting language, with the coupling concentrated in its data model. One table type serves as array, record, object, and module, so the shape of the data is a convention and every structure error waits for a run time; the global table is the default and errors are unchecked. The counterweight is that the language is small, orthogonal, and easy to embed, and that its separating constructs are real: <code>__index</code> decouples object-like behaviour from syntax, a coroutine makes every interleaving explicit, <code>&lt;close&gt;</code> and weak tables tie release to a block or to reachability, and the C API decouples the language from its host. Main strengths: exceptional performance for a scripting language, a very small footprint, and mature tooling. Main weaknesses: no static type check, globals by default, an unchecked error channel, and a library pool that is small beside the language’s adoption.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1193,6 +1771,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

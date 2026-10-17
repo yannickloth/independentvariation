@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,91 +1026,736 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="sparkAda"><a href="#ref-sparkAda" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 85/100</strong> | <strong>Platform &amp; Ecosystem Score: 69/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> SPARK is a formally verifiable subset of Ada. Flow analysis prevents information coupling by making data dependencies explicit and verifiable. The absence of runtime errors, proven at compile time by the GNATprove tool, decouples program correctness from testing coverage. No aliasing (no pointers) eliminates coupling through shared mutable references. Contracts (preconditions, postconditions, and invariants) are mathematically verified rather than merely asserted. Global variables require explicit data flow contracts stating which globals a subprogram reads and writes. The separation of concerns is not merely encouraged but proven by the toolchain.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> SPARK targets the highest-assurance systems in aviation, space, and medical devices where software failure costs lives. The learning curve is very steep, requiring both formal methods expertise and Ada knowledge. Tooling is excellent with GNATprove and SPARK Pro. Zero-defect software is achievable with sufficient verification effort. Performance matches Ada since SPARK compiles to the same native code. The ecosystem is a subset of Ada’s. Security is at the maximum possible level: buffer overflows, use-after-free, and other classic vulnerabilities are proven absent. SPARK is used by Airbus, Thales, and Lockheed Martin.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses SPARK in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 85/100</strong> · <strong>Ecosystem coupling 69/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>The static type system is Ada’s</strong>: every object, parameter, and function result has a declared type, and the compiler checks every assignment and call.</li>
+<li>✅ <strong>Subtypes carry range constraints</strong>: <code>subtype</code> narrows a base type with a range or a predicate, and in the proved subset a violation is a proof obligation rather than a run-time check.</li>
+<li>✅ <strong>Enumeration and discriminated record types express alternatives</strong>: an enumeration gives a finite value set, and a variant record’s discriminant states which branch is active.</li>
+<li>✅ <strong>Generics are checked at each instantiation</strong>: an Ada generic is analysed where it is instantiated, so a reusable abstraction is verified at its use site.</li>
+<li>✅ <strong><code>Type_Invariant</code> states a property of a private type</strong>: the invariant is an obligation on every value of the type.</li>
+<li>⚠️ <strong>Access types are admitted only under an ownership policy</strong>: SPARK allows a pointer when its owner is declared, so indirection is available but constrained.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>Contracts are part of the subprogram declaration</strong>: <code>Pre</code>, <code>Post</code>, and <code>Contract_Cases</code> state the obligation beside the parameters, so a caller reads it with the signature.</li>
+<li>✅ <strong>Flow contracts state what a subprogram reads and writes</strong>: <code>Global</code>, <code>Depends</code>, and <code>Refined_Global</code> make the data flow a declared artefact.</li>
+<li>✅ <strong>Abstract states confine a package’s state</strong>: <code>Abstract_State</code> declares the state as an abstraction, <code>Refined_State</code> binds it to concrete variables, and <code>Initializes</code> states what a package sets up.</li>
+<li>✅ <strong>Separation is proved rather than advised</strong>: the ownership policy, the flow aspects, and the contracts are analysed by GNATprove, so a declared separation is verified and not merely recommended.</li>
+<li>⚠️ <strong>The declarations carry more than the code needs</strong>: a proof requires a contract for every subprogram on the path, so construction carries an annotation burden.</li>
+<li>⚠️ <strong>A unit can opt out with <code>SPARK_Mode =&gt; Off</code></strong>: an analysed region and an unchecked region can sit in the same program.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>An ownership policy governs any access type</strong>: SPARK’s data-ownership regime gives a pointer a stated owner, so a dangling or duplicated reference is a proof failure rather than a run-time defect.</li>
+<li>✅ <strong>No manual deallocation in the subset</strong>: <code>Unchecked_Deallocation</code> is outside SPARK, so a program never frees memory by hand.</li>
+<li>✅ <strong>No garbage collector</strong>: SPARK compiles to native code and runs without a collector.</li>
+<li>✅ <strong>Bounded containers remove the heap</strong>: <code>Ada.Containers.Bounded_Vectors</code> and its siblings hold their storage in the object.</li>
+<li>✅ <strong>A local object’s lifetime is its scope</strong>: a stack variable’s extent is fixed by the block that declares it.</li>
+<li>⚠️ <strong>An owned access type still allocates at run time</strong>: the allocation is allowed and proved, but the allocator’s behaviour remains a run-time fact.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>✅ <strong>A failure is a proof obligation</strong>: GNATprove reports an unproved check, so a fault is found in the toolchain rather than in a test run.</li>
+<li>✅ <strong>A raise is stated in the contract</strong>: <code>Exceptional_Cases</code> names the exceptions a subprogram may propagate, so the failure set is declared.</li>
+<li>✅ <strong>Run-time checks are proved impossible rather than disabled</strong>: once GNATprove proves that an index, a range, or a division cannot fail, the check costs nothing.</li>
+<li>✅ <strong><code>Assert</code> becomes a proof obligation</strong>: <code>pragma Assert</code> states a property that the analysis must establish or report.</li>
+<li>✅ <strong><code>Assume</code> records an unproved fact explicitly</strong>: an assumption is written in the source and appears in the analysis report.</li>
+<li>⚠️ <strong>The proof is no stronger than its assumptions</strong>: an <code>Assume</code>, an unproved check, or a <code>SPARK_Mode =&gt; Off</code> unit leaves a gap in the guarantee.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Ada tasking is available and analysable</strong>: a <code>task</code> and a <code>protected</code> object are language constructs, and SPARK analyses the data flow of the supported subset.</li>
+<li>✅ <strong>A protected object is the synchronisation boundary</strong>: a protected operation enforces mutual exclusion and a barrier, so the lock is not written by hand.</li>
+<li>✅ <strong>The Ravenscar profile gives a static task set</strong>: no task is created dynamically, and the ceiling-locking protocol prevents priority inversion.</li>
+<li>✅ <strong>Shared state must be declared</strong>: a variable shared between tasks appears in a <code>Global</code> or <code>Depends</code> aspect, so the sharing is visible.</li>
+<li>⚠️ <strong>The analysed subset of tasking is smaller than Ada’s</strong>: an entry family, a dynamic rendezvous, or an unrestricted task is outside the analysed subset.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>❌ <strong>SPARK is a subset of Ada and a program is an Ada program</strong>: GNAT compiles the code, and the language has no existence apart from the Ada platform (P1).</li>
+<li>❌ <strong>A foreign call leaves the proved region</strong>: an interface to C or another language is declared outside SPARK, so it cannot be analysed with the rest.</li>
+<li>✅ <strong>GNAT is a mature and portable Ada compiler</strong>: the same source compiles for x86-64, ARM, and the embedded targets used in avionics.</li>
+<li>✅ <strong>The qualified toolchain targets the certificated platforms</strong>: GNAT Pro supports VxWorks, LynxOS-178, and bare metal with a qualification for DO-178C.</li>
+<li>⚠️ <strong>Full support is a commercial subscription</strong>: GNATprove is available in the community toolchain, and SPARK Pro adds support, libraries, and qualification.</li>
+<li>⚠️ <strong>The build is a GNAT project</strong>: <code>gprbuild</code> and a project file describe the build, so the project couples to the Ada toolchain.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The proved subset is smaller than Ada</strong>: a feature outside SPARK is left out or isolated behind a <code>SPARK_Mode =&gt; Off</code> boundary.</li>
+<li><strong>The restriction on pointers is a deliberate exchange</strong>: aliasing is removed in return for an ownership regime and an array or a bounded container in place of a linked structure.</li>
+<li><strong>The annotation burden is the price of the proof</strong>: a contract, an invariant, and a flow aspect are written for each unit on the path.</li>
+<li><strong>The target domain is high-assurance by design</strong>: aviation, space, and medical devices are the intended context, and the domain mark records that scope.</li>
+<li><strong>Verification effort is a project decision</strong>: zero-defect software is achievable given sufficient effort, which is a budget choice.</li>
+<li><strong>The proof checks the contract, not the requirement</strong>: a verified program can implement the wrong specification, which no toolchain detects.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The compiled output is an Ada program’s native binary</strong>: SPARK compiles to the same native code, so the verification adds no run-time cost.</li>
+<li>✅ <strong>A proved check need not execute</strong>: a check that GNATprove established can be suppressed at that point, so the verified code does not pay for the guard.</li>
+<li>✅ <strong>No collector and no interpreter</strong>: the run-time has neither a garbage collector nor a JIT, so the timing is the Ada run-time’s.</li>
+<li>✅ <strong>The Ravenscar profile bounds the run-time behaviour</strong>: the task set, the priorities, and the locking are static, which makes the timing analysable.</li>
+<li>⚠️ <strong>The run-time is the Ada run-time</strong>: tasking, the secondary stack, and exception propagation cost what GNAT’s run-time costs.</li>
+<li>⚠️ <strong>The proof is a build-time cost</strong>: GNATprove can take far longer than the compilation, which delays the build but not the program.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The SPARK ecosystem is a subset of Ada’s</strong>: a library must itself be in the SPARK subset to be analysed with the program (Ec3).</li>
+<li>✅ <strong>Ada’s tooling serves the project</strong>: <code>Alire</code> supplies packages and <code>gprbuild</code> builds the project.</li>
+<li>✅ <strong>GNATprove and SPARK Pro are purpose-built and mature</strong>: the analyser and the commercial support layer are actively developed.</li>
+<li>✅ <strong>The industrial community sustains the toolchain</strong>: the requirements of the certificated industries drive the analyser and the library work.</li>
+<li>✅ <strong>A verified library base exists</strong>: SPARK’s own libraries and verified components ship with the toolchain.</li>
+<li>⚠️ <strong>A library that uses pointers must be isolated</strong>: an Ada library outside the subset is reached through an unproved boundary.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>SPARK tracks a published Ada standard</strong>: the subset is defined against Ada 2012 and Ada 2022, so a language change follows the standard revision.</li>
+<li>✅ <strong>Successive SPARK releases widened the subset</strong>: the ownership policy, the functional contracts, and the proof of type invariants were added over several releases.</li>
+<li>✅ <strong>Ada’s compatibility record is strong</strong>: an older Ada program generally compiles under a later revision.</li>
+<li>⚠️ <strong>A new feature arrives with a toolchain release</strong>: the analyser states the subset it supports, so adoption follows the release.</li>
+<li>⚠️ <strong>A proof depends on the toolchain version</strong>: a check proved under one GNATprove release can need a new annotation under another.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>❌ <strong>The language exists for high-assurance systems</strong>: aviation, space, and medical devices, where DO-178C, EN 50128, or IEC 62304 applies, are the intended domains (D1).</li>
+<li>❌ <strong>Outside those domains it is rarely chosen</strong>: a general application gains little from the proof and pays the toolchain cost (D1).</li>
+<li>✅ <strong>The fit in the intended domain is excellent</strong>: the tools, the libraries, and the certification evidence all target it.</li>
+<li>✅ <strong>DO-333 credits the proof against the certification objectives</strong>: the formal-methods supplement to DO-178C lets the analysis substitute for some test objectives.</li>
+<li>✅ <strong>The shipping uses are real</strong>: Airbus, Thales, and Lockheed Martin build critical software on it.</li>
+<li>⚠️ <strong>The labour pool is small</strong>: an engineer with both Ada and formal-methods experience is hard to find.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>❌ <strong>Two skills must be learned, not one</strong>: SPARK requires Ada fluency and formal-methods practice, so contracts, invariants, and the proof tool must all be mastered (L1).</li>
+<li>❌ <strong>A proof failure must be read as a counterexample</strong>: GNATprove reports an unproved check with a path, and turning the report into a fix takes experience.</li>
+<li>✅ <strong>The analysis report is actionable</strong>: the tool names the check, the path, and the assumption that blocks the proof.</li>
+<li>✅ <strong>The learning material is complete</strong>: AdaCore’s tutorial and the SPARK course material cover the language and the proof method.</li>
+<li>⚠️ <strong>The learning curve is very steep</strong>: a first proved subprogram is quick to write, and a first proved package with an abstract state is not.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>The syntax is Ada’s</strong>: a package, a subprogram, and a loop read as they do in Ada, and a contract appears as an aspect or a pragma.</li>
+<li>✅ <strong>The block structure is explicit</strong>: a <code>begin</code>/<code>end</code> pair closes a block, and the <code>end</code> repeats the name it closes.</li>
+<li>✅ <strong>Contracts sit beside the parameters</strong>: <code>Pre =&gt;</code>, <code>Post =&gt;</code>, and <code>Global =&gt;</code> are part of the subprogram declaration.</li>
+<li>✅ <strong>Quantified expressions are first-class</strong>: <code>(for all I in A'Range =&gt; A (I) &gt; 0)</code> states a property in the source.</li>
+<li>⚠️ <strong>An aspect clause can be long</strong>: a <code>Depends</code> aspect over much state is a long expression that needs careful reading.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>The proof covers the property the contract states</strong>: an obligation is discharged for every value it quantifies, not for a sample.</li>
+<li>✅ <strong>The test suite no longer has to trigger every check</strong>: a bounds or range check proved impossible needs no test to reach it.</li>
+<li>✅ <strong><code>gnattest</code> generates a unit-test harness</strong>: it reads a package specification and emits AUnit test stubs.</li>
+<li>✅ <strong>AUnit covers the behaviour a contract does not state</strong>: the proof and the test suite answer different questions.</li>
+<li>⚠️ <strong>A property that no contract states is not proved</strong>: the analysis reaches exactly the contracts and invariants that are written.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>The classic memory-safety faults are proved absent</strong>: a buffer overflow, a use-after-free, and a null dereference are removed by the subset and the proof, so the vulnerability class does not exist in the analysed code.</li>
+<li>✅ <strong>Input validity is stated and checked</strong>: a range constraint or a <code>Pre</code> aspect states what the caller must guarantee, and the proof covers the rest.</li>
+<li>✅ <strong><code>Unchecked_Conversion</code> and pointer arithmetic are outside the subset</strong>: the unsafe operations are not available to analysed code.</li>
+<li>⚠️ <strong>The guarantee stops at the <code>SPARK_Mode =&gt; Off</code> boundary</strong>: an imported C function, a device driver, or an unchecked allocation is not proved.</li>
+<li>⚠️ <strong>The trusted base includes the prover and the compiler</strong>: a defect in GNATprove or in the code generator is outside the proof.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Type subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Error subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Platform</strong></td>
 <td><code>P1</code></td>
 <td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 85/100</strong> — total points removed = 15 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Domain</strong></td>
 <td><code>D1</code></td>
 <td>domain/vendor lock-in</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 69/100</strong> — total points removed = 31 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> SPARK’s design yields low core coupling for the work it is built for, and its platform cost is the price of a narrow domain. The static type system is Ada’s, the contracts and flow aspects make every global dependency explicit, an ownership policy removes coupling through shared references, and the toolchain proves the run-time checks that other languages leave to a test suite. The only scored core loss is <code>P1</code>: the language is a subset of Ada and does not exist apart from that platform. Main strengths: GNATprove, a toolchain qualified for DO-178C, DO-333 credit for the proof, and industrial use at Airbus, Thales, and Lockheed Martin; main weaknesses: an ecosystem that is a subset of Ada’s, a domain lock-in to high-assurance systems, and one of the steepest learning curves here.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1116,6 +1766,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

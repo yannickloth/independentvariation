@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,197 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="fishDocs"><a href="#ref-fishDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 43/100</strong> | <strong>Platform &amp; Ecosystem Score: 49/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Fish is a modern rethink of shell design. It uses functions instead of aliases, which provides better decoupling between invocation name and behavior. No variable quoting is needed because arrays are first-class citizens. Configuration is stored in separate files, decoupling shell setup from scripting logic. Autosuggestions help users discover commands without needing to memorize exact syntax. While values are still string-based, Fish provides better array and list handling than Bash. Not being POSIX-compatible couples script portability to Fish-specific syntax.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Fish excels at interactive use thanks to a polished out-of-box experience. It provides a web-based configuration GUI, built-in syntax highlighting, and fast autocompletions. The ecosystem is small but growing. Its lack of POSIX compatibility creates portability issues for scripts written in Fish. Performance is good because Fish is implemented in C++. The learning curve is gentle; Fish is cleaner and more consistent than Bash or Zsh.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Fish in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 49/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>Values are strings with no declaration</strong>: <code>set x 10</code> and <code>set x abc</code> are the same operation, and nothing states what a name holds (T1).</li>
+<li>❌ <strong>No sum types</strong>: an option that may be absent, numeric, or textual is a list of words, and the reader decodes the convention from the calling code (T4).</li>
+<li>❌ <strong>No generics</strong>: a function is specialised only by its positional arguments, so the same logic is written again for each shape of data (T5).</li>
+<li>❌ <strong>One namespace for every name</strong>: functions and variables share one flat space, so collisions are avoided by convention — the <code>__fish_</code>-prefixed helper names in the bundled completions are the visible result (T6, T11).</li>
+<li>❌ <strong>An unset name expands to an empty list</strong>: <code>set -q</code> tests whether a name is set, but nothing forces it to be, so a mistyped variable silently expands to nothing (T10).</li>
+<li>✅ <strong>Lists are values, not strings to be re-split</strong>: <code>set a 1 2 3</code> and <code>$a</code> expand to exactly three arguments, so element structure survives expansion without quoting.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Global is still the default</strong>: an assignment without a scope flag reaches the innermost existing scope or the global one, so an accidental write into the caller is easy (C1).</li>
+<li>❌ <strong>No immutability by default</strong>: there is no read-only binding, so any visible name can be reassigned (C2).</li>
+<li>✅ <strong><code>set -l</code> gives block scope</strong>: a variable declared local inside a function, a <code>begin</code>/<code>end</code> block, a <code>for</code>, a <code>while</code>, or an <code>if</code> disappears at the end of that block.</li>
+<li>✅ <strong><code>alias</code> is sugar over <code>function</code></strong>: an alias becomes a real function, so the invocation name and the body are separated instead of textually substituted.</li>
+<li>✅ <strong><code>argparse</code> validates options at the boundary</strong>: a function declares its own option spec, so callers do not hand-roll a <code>getopts</code> loop and a bad option fails before the body runs.</li>
+<li>✅ <strong>Configuration lives outside scripts</strong>: <code>~/.config/fish/config.fish</code>, the <code>conf.d/*.fish</code> snippets, and the universal-variable file separate shell setup from script logic.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>No allocation syntax</strong>: there is no pointer, no address, and no <code>free</code>; lists and strings are allocated by the interpreter.</li>
+<li>✅ <strong>Block scope bounds a value’s lifetime</strong>: a <code>set -l</code> list is released at the end of its block, so storage does not leak past the code that created it.</li>
+<li>✅ <strong>Export joins a list on the way out</strong>: a list assigned to an exported variable is joined with <code>:</code>, so <code>PATH</code> is edited as a list without building a string by hand.</li>
+<li>⚠️ <strong>Assignment copies the list</strong>: <code>set b $a</code> duplicates every element, and there is no way to reference a list without copying it.</li>
+<li>⚠️ <strong>Command substitution is materialised whole</strong>: <code>(cmd)</code> builds the entire output before the enclosing command runs, so a large output is held in memory.</li>
+<li>⚠️ <strong>Universal variables outlive the process</strong>: <code>set -U</code> writes to <code>fish_variables</code>, so a value persists after the shell exits until it is erased deliberately.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>No structured error path</strong>: a command reports success through <code>$status</code> and text on stderr; there is no exception and no error value (Er1).</li>
+<li>❌ <strong>Errors are not composable</strong>: <code>and</code> and <code>or</code> chain status codes, but a status carries no payload and cannot be returned from a function as data (Er4).</li>
+<li>❌ <strong>A non-zero status is easy to ignore</strong>: a function reports the status of its last command, so a failure in the middle of a block is discarded unless <code>or return</code> follows it (Er3).</li>
+<li>✅ <strong><code>$pipestatus</code> reports every stage</strong>: each stage of a pipeline keeps its own status, so a failure is not hidden by a successful last stage.</li>
+<li>⚠️ <strong>Syntax errors are reported with a source position</strong>: fish names the file, line, and column, but only for text it has parsed, so a fault inside a function body is reported when the function is defined.</li>
+<li>⚠️ <strong>An unknown command is a hookable event</strong>: <code>fish_command_not_found</code> runs when a command is missing, so the message can be replaced, but the failure remains a status code.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>No concurrency primitives</strong>: there is no thread, lock, channel, or await; the only parallel construct is backgrounding with <code>&amp;</code> (K5).</li>
+<li>✅ <strong>Event handlers decouple producer from consumer</strong>: <code>function --on-variable NAME</code>, <code>--on-event</code>, <code>--on-process-exit</code>, and <code>emit</code> let a consumer subscribe without the producer knowing it exists.</li>
+<li>✅ <strong>Processes are the unit of parallelism</strong>: concurrency is expressed with pipes and background jobs, so no shared address space has to be reasoned about.</li>
+<li>⚠️ <strong>Process events are the only synchronisation</strong>: a script coordinates jobs by watching exit events or by <code>wait</code>, and no value can be returned from a job.</li>
+<li>⚠️ <strong>Background jobs share the environment</strong>: a <code>&amp;</code> job inherits every global and universal variable, so ordering between jobs is unspecified unless the script waits.</li>
+<li>⚠️ <strong>No coprocess</strong>: fish cannot keep a two-way conversation with a child, so an interactive child must be driven through files or a <code>while read</code> loop.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>❌ <strong>Not a POSIX shell</strong>: fish does not implement the POSIX shell language, so a <code>#!/bin/sh</code> script is a different language and <code>sh -c</code> calls a separate program (P2).</li>
+<li>✅ <strong>One implementation defines the language</strong>: with no standard to satisfy, behaviour is fixed by the fish manual and its release notes.</li>
+<li>✅ <strong>Runs on every Unix-like target</strong>: fish ships on Linux, the BSDs, and macOS, and is packaged by every major distribution.</li>
+<li>⚠️ <strong>Windows support is through an emulation layer</strong>: fish relies on Unix APIs and their semantics, so Windows use goes through WSL, Cygwin, or MSYS2 rather than a native port.</li>
+<li>⚠️ <strong>One implementation is one point of failure</strong>: there is no second implementation to test the language’s contract against.</li>
+<li>⚠️ <strong>fish is the default login shell nowhere</strong>: a user installs it and sets it as their shell, so availability depends on the host’s configuration.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Fish is deliberately not POSIX</strong>: giving up <code>sh</code> compatibility buys the design freedom that removes word splitting and most quoting noise.</li>
+<li><strong>Universal variables are a convenience with a lifecycle cost</strong>: persisting a value outside the shell trades reproducibility for ergonomics.</li>
+<li><strong>Aliases became functions because functions are better</strong>: the change breaks the textual-substitution habit from other shells, which is the point of the change.</li>
+<li><strong>The web-based configuration UI is a front end</strong>: <code>fish_config</code> writes plain files under <code>~/.config/fish</code>, so the browser is not a runtime dependency.</li>
+<li><strong>Autosuggestions and highlighting are interactive features</strong>: they cost start-up work and terminal capability, and they are not part of the scripting language.</li>
+<li><strong>The Rust port is an implementation change</strong>: the language contract is unchanged; the gain is in the codebase, not in what a script may rely on.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>⚠️ <strong>Interpreted with no compilation</strong>: every command is parsed and executed as text, and fish offers no ahead-of-time path (R1).</li>
+<li>✅ <strong>The core is native code</strong>: fish was written in C++ through the 3.x series and was ported to Rust for 4.0, so parsing, expansion, and completion run in compiled code rather than in script.</li>
+<li>✅ <strong>Command substitution does not re-split</strong>: <code>(cmd)</code> performs no word splitting or globbing, so a large result is not re-parsed argument by argument.</li>
+<li>✅ <strong>Start-up can be profiled and trimmed</strong>: <code>fish --profile-startup</code> measures configuration work and <code>--no-config</code> skips it.</li>
+<li>⚠️ <strong>Start-up runs the configuration snippets</strong>: an interactive shell sources <code>config.fish</code> and every file in <code>conf.d</code>, so a heavy prompt or completion setup costs time on each new shell.</li>
+<li>⚠️ <strong><code>for</code> over a substitution materialises the output</strong>: a large <code>(cmd)</code> result is held in memory before the loop starts.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>No package manager in the language</strong>: there is no dependency resolver, so plugins are copied into <code>~/.config/fish</code> by third-party managers such as Fisher or Oh My Fish (Ec1).</li>
+<li>⚠️ <strong>The ecosystem is small but growing</strong>: completions and prompt themes exist for popular tools, and there are far fewer fish libraries than <code>sh</code> libraries (Ec3).</li>
+<li>✅ <strong>The bundled completion system is large</strong>: <code>complete -c</code> declarations ship with fish and cover hundreds of commands, so everyday completion needs no add-on.</li>
+<li>✅ <strong><code>fish_config</code> gives a built-in UI</strong>: prompts and themes are edited in a browser against files under <code>~/.config/fish</code>.</li>
+<li>✅ <strong>Documentation is first-class</strong>: the manual, the tutorial, and <code>help &lt;builtin&gt;</code> are maintained with each release.</li>
+<li>⚠️ <strong>Third-party plugin managers own the plugin ecosystem</strong>: Fisher and Oh My Fish are unofficial, so the plugin supply chain is not part of the language.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>No breaking-change culture</strong>: fish adds features and documents the few incompatible changes in the release notes.</li>
+<li>✅ <strong>Release notes record every incompatibility</strong>: the manual lists removals and behaviour changes for each version, so an upgrade is inspectable.</li>
+<li>✅ <strong>The project ships on a regular cadence</strong>: fish 4.0 was released in February 2025, and further 4.x releases followed it.</li>
+<li>⚠️ <strong>No standards body</strong>: the direction of the language follows its maintainers rather than a committee.</li>
+<li>⚠️ <strong>Non-POSIX means the language may keep diverging</strong>: with no standard to align to, fish is free to change and is not compelled to hold <code>sh</code> semantics.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>❌ <strong>It is not a POSIX shell</strong>: a fish script runs only under fish, so portable system scripts, <code>configure</code> scripts, and <code>#!/bin/sh</code> entry points cannot be written in fish (D2).</li>
+<li>✅ <strong>Strong for interactive work</strong>: syntax highlighting, autosuggestions, and completion make the terminal the primary domain.</li>
+<li>✅ <strong>Good for personal automation on a fixed host</strong>: where the interpreter is guaranteed, a fish script is shorter and clearer than its <code>sh</code> equivalent.</li>
+<li>✅ <strong>Lists map to the filesystem naturally</strong>: <code>$PATH</code> and command output are lists of paths, and <code>path</code> and <code>string split</code> operate on them directly.</li>
+<li>⚠️ <strong>Weak for distribution</strong>: a fish script cannot be shipped to a host without fish, which rules fish out for bootstrap, packaging, and installer code.</li>
+<li>⚠️ <strong>Not a general-purpose language</strong>: the model is a shell over external commands, so real data processing moves to other tools.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The tutorial and manual are written for newcomers</strong>: fish ships a tutorial and an FAQ, and each builtin has its own help page.</li>
+<li>✅ <strong>Error messages name the file, line, and column</strong>: a beginner sees where the problem is rather than a bare failure.</li>
+<li>✅ <strong>The language is smaller and more regular than <code>sh</code> or <code>zsh</code></strong>: one <code>end</code> closes every block, <code>set</code> is the only binding command, and there is no word splitting to learn.</li>
+<li>⚠️ <strong>Quoting habits from other shells misfire</strong>: <code>"$var"</code> and <code>[ -f x ]</code> do not apply, and <code>$var</code> is not split where an <code>sh</code> user expects it to be.</li>
+<li>⚠️ <strong>The builtin vocabulary is large</strong>: <code>string</code>, <code>math</code>, <code>path</code>, <code>set</code>, <code>argparse</code>, <code>complete</code>, and <code>status</code> each carry their own option set.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>No word splitting means fewer quotes</strong>: <code>$var</code> expands as written, so a path containing a space needs no quoting to survive.</li>
+<li>✅ <strong>One block terminator</strong>: <code>end</code> closes <code>if</code>, <code>for</code>, <code>while</code>, <code>switch</code>, and <code>function</code>.</li>
+<li>✅ <strong>One binding form</strong>: there is no <code>=</code>, no <code>setenv</code>, and no <code>typeset</code> to choose between.</li>
+<li>⚠️ <strong><code>and</code> and <code>or</code> begin a line</strong>: a boolean continuation puts the operator at the start of the next command, which reads unusually.</li>
+<li>⚠️ <strong>Piping a block needs a wrapper</strong>: a multi-command producer must be written as <code>begin ... end</code> before it can be piped.</li>
+<li>⚠️ <strong><code>switch</code> has no fallthrough</strong>: a case ends at the next <code>case</code>, so an intentional fallthrough must be written as a second case.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>❌ <strong>No test framework in the language</strong>: a test is a function that calls the code and checks <code>$status</code>, with no assertion or reporting facility (G1).</li>
+<li>❌ <strong>Debugging is <code>breakpoint</code> and <code>fish_trace</code></strong>: fish can pause with <code>breakpoint</code> and print a stack with <code>status stack-trace</code>, but it has no debugger with breakpoints, stepping, and inspection (G2).</li>
+<li>❌ <strong>Faults appear only on the branch that runs</strong>: with no static check, a mistyped variable or a bad list index is found during the run (G3).</li>
+<li>✅ <strong><code>fish --no-execute</code> checks syntax without running</strong>: a script can be parsed before it is executed.</li>
+<li>✅ <strong><code>fish_indent --check</code> fails on unformatted code</strong>: a shipped formatter gives a cheap consistency gate in a test path.</li>
+<li>✅ <strong><code>fish --private</code> isolates a test from user state</strong>: configuration, history, and universal variables are left untouched, so a test run is reproducible.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>❌ <strong>Text can re-enter the interpreter</strong>: input assembled from untrusted data and passed to <code>eval</code>, or interpolated into a substituted command, becomes code (Q3).</li>
+<li>✅ <strong>No word splitting removes a whole class of injection</strong>: an unquoted <code>$var</code> does not split or glob, so a value with spaces or <code>*</code> cannot become several arguments or an unexpected path list.</li>
+<li>✅ <strong><code>string escape</code> and <code>string collect</code> make quoting explicit</strong>: output can be quoted for re-input instead of being concatenated by hand.</li>
+<li>✅ <strong><code>argv</code> and <code>argparse</code> keep options out of the parser</strong>: a function receives its arguments as a list, so a value beginning with <code>-</code> is not silently taken as an option.</li>
+<li>✅ <strong>No memory-safety surface</strong>: lists and strings are interpreter-managed, so a fish script has no buffer to overflow.</li>
+<li>⚠️ <strong>History and universal variables are unencrypted state</strong>: command history and <code>set -U</code> values are written to disk in the user’s configuration, so a secret typed at the prompt is recorded by default.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,122 +1225,274 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>T11</code></td>
 <td>no module boundary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Er3</code></td>
-<td>errors ignored/non-exhaustive</td>
-<td style="text-align: right;">4</td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
-<td><code>K5</code></td>
-<td>no primitives</td>
-<td style="text-align: right;">4</td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>P2</code></td>
 <td>single-vendor but other uses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 43/100</strong> — total points removed = 57 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1167,83 +1501,265 @@ div.csl-indent {
 <td><strong>Performance</strong></td>
 <td><code>R1</code></td>
 <td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
 <td><code>Ec1</code></td>
 <td>no package manager</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Ec3</code></td>
-<td>small/niche/discontinued</td>
-<td style="text-align: right;">8</td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>D2</code></td>
 <td>poor domain fit</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Testing</strong></td>
 <td><code>G1</code></td>
 <td>weak tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>G2</code></td>
 <td>poor debugging</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>G3</code></td>
 <td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Q3</code></td>
 <td>known vulnerability/injection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 49/100</strong> — total points removed = 51 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Fish lowers the coupling that a scripting shell normally imposes on construction and on text handling: <code>set -l</code> gives block scope, <code>$var</code> never splits, lists are first-class, and functions replace textual aliases. Its core score still stops at 43, because the value model has no types, every name is global by default, and an error remains a status code rather than a value. The price is paid elsewhere: fish is not a POSIX shell, so a fish script runs only where fish is installed, and start-up configuration, an unofficial plugin supply chain, and the absence of a test framework hold the platform and ecosystem score to 49.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1254,6 +1770,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

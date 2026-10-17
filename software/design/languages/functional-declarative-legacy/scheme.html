@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,19 +1026,196 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="r7rs2013"><a href="#ref-r7rs2013" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 62/100</strong> | <strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Scheme’s minimalist design decouples a small, orthogonal core language from library-level extensions. First-class continuations decouple control flow from the call stack, enabling arbitrary control abstractions. Hygienic macros prevent namespace coupling by ensuring that macro-introduced names do not accidentally shadow or conflict with user code. Dynamic typing defers coupling detection to runtime. Global definitions couple the namespace since all top-level bindings share a single scope. Tail call optimization decouples recursion from stack growth, allowing unbounded recursion without overflow.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Scheme is primarily used in education, most famously through the SICP textbook, and in programming language research. The standard is fragmented across R5RS, R6RS, and R7RS, which are not fully compatible. The ecosystem is small. Scheme excels as a teaching language due to its minimal core. Performance varies significantly by implementation. The core is simple but enables powerful abstractions. Adoption is niche.</p>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Scheme in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 62/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>No static type check</strong>: a binding has no declared type and a call is resolved when it runs, so a type error is reported at run time rather than at load time (T1).</li>
+<li>❌ <strong>Dispatch is dynamic</strong>: an application checks its argument count and its operands’ types when it executes, so an over-application or an under-application is an error then (T3).</li>
+<li>❌ <strong>No sum types and no generics in the core</strong>: an alternative is a tagged list whose tag the code must test by hand, and a reusable procedure accepts any object and documents its expectation in a comment (T4, T5).</li>
+<li>⚠️ <strong><code>+</code> and the other arithmetic procedures are ordinary bindings</strong>: a redefinition changes what <code>(+ a b)</code> means, so an expression can invoke code the syntax does not show (T8).</li>
+<li>✅ <strong>Hygienic macros decouple a macro from its use site</strong>: <code>syntax-rules</code> renames the identifiers a template introduces, so a macro cannot accidentally capture a name from the caller.</li>
+<li>✅ <strong>Lexical scope is one small rule</strong>: a <code>lambda</code> binds its parameters and its internal definitions, and nothing else is visible.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>Constructors are ordinary procedures</strong>: a record constructor or a <code>lambda</code> that returns a list is built with the same mechanism, so construction does not couple to a class system.</li>
+<li>✅ <strong><code>define-record-type</code> declares the shape once</strong>: the R7RS form generates the constructor, the type predicate, and the field accessors from one declaration.</li>
+<li>✅ <strong>Proper tail recursion is a language guarantee</strong>: a tail call reuses the current frame, so a loop written as a tail-recursive procedure runs in constant stack space.</li>
+<li>✅ <strong><code>let</code> confines a binding to its body</strong>: a construction can build its state inside a <code>let</code> and expose only what it returns.</li>
+<li>⚠️ <strong><code>set!</code> lets a construction mutate a captured binding</strong>: a closure can change state that its caller still holds, so a value built by a procedure is not automatically immutable.</li>
+<li>⚠️ <strong>A plain program has one top-level environment</strong>: R7RS <code>define-library</code> with explicit <code>export</code> confines a set of bindings, but a program’s top-level <code>define</code>s share a single scope.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>A garbage collector reclaims memory</strong>: the implementation chooses the collector, and the program cannot free an object or predict when it dies (M2).</li>
+<li>❌ <strong>No RAII or scope-exit destructor</strong>: a resource is released by an explicit call, and <code>dynamic-wind</code> can wrap that call in a dynamic extent, but nothing runs automatically at the end of an arbitrary scope (M3).</li>
+<li>❌ <strong>No ownership or borrow model</strong>: a reference is an untracked alias, and the collector alone knows when an object is unreachable (M4).</li>
+<li>✅ <strong>No manual deallocation</strong>: there is no free operation in the language, so a program cannot release a live object by mistake.</li>
+<li>✅ <strong><code>dynamic-wind</code> binds a release to the dynamic extent</strong>: its <code>after</code> thunk runs on every exit, including a non-local one.</li>
+<li>✅ <strong>R7RS pairs acquisition with release in the common cases</strong>: <code>call-with-port</code>, <code>with-input-from-file</code>, and <code>with-output-to-file</code> close what they open.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>A failure is raised and is not described by a signature</strong>: a procedure promises nothing about the conditions it may raise, so the failure set is not readable from the call (Er2).</li>
+<li>✅ <strong><code>guard</code> gives a structured handler</strong>: an R7RS <code>guard</code> clause names a condition and a recovery expression, and the handler returns a value to the <code>guard</code>.</li>
+<li>✅ <strong><code>with-exception-handler</code> installs a handler for a dynamic extent</strong>: the handler is bound where it is installed, not at the raise point.</li>
+<li>✅ <strong>Condition types form a small hierarchy</strong>: <code>error-object?</code>, <code>file-error?</code>, and <code>read-error?</code> distinguish a raise by kind.</li>
+<li>✅ <strong><code>error</code> carries a message and irritants</strong>: the offending values travel with the condition.</li>
+<li>⚠️ <strong><code>raise</code> and <code>raise-continuable</code> differ</strong>: a non-continuable raise does not return to the raise point, so a handler must transfer control explicitly.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>The core defines no shared-memory concurrency</strong>: R7RS specifies no threads, so the standard makes no promise about a race the language does not create.</li>
+<li>✅ <strong>Continuations separate control flow from the call stack</strong>: <code>call/cc</code> captures the current continuation as a procedure, so a coroutine, a generator, or a backtracking search is a library over it.</li>
+<li>⚠️ <strong>Parallelism is an implementation extension</strong>: SRFI-18 supplies threads and SRFI-21 supplies synchronisation, and an implementation may support neither.</li>
+<li>⚠️ <strong>A thread extension fixes no memory model</strong>: SRFI-18 defines a mutex and a condition variable, but the report it extends states no ordering guarantee for a shared object.</li>
+<li>✅ <strong>A cooperative scheduler is expressible in the language</strong>: a queue of continuations plus a trampoline gives green threads without a runtime thread.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>No single implementation owns the language</strong>: the language is a published report, and Chez, Guile, Racket, CHICKEN, Gambit, MIT, and Chibi all implement it.</li>
+<li>✅ <strong><code>define-library</code> is the portability unit</strong>: an R7RS library with explicit <code>import</code> and <code>export</code> moves between implementations with its source.</li>
+<li>✅ <strong>The core is small enough for a small runtime</strong>: the report’s language fits a microcontroller interpreter and an embeddable one.</li>
+<li>✅ <strong>A program runs under several evaluation strategies</strong>: a compiler such as Chez and a simple interpreter both accept the report’s subset.</li>
+<li>⚠️ <strong>The standard is a family of reports, not one</strong>: R5RS, R6RS, and R7RS are not fully compatible, so the name “Scheme” alone does not say which report a program targets.</li>
+<li>⚠️ <strong>The library set beyond R7RS-small is the implementation’s</strong>: each dialect ships a different collection, so portability in practice follows the chosen implementation.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The minimalist core is a deliberate trade</strong>: the report defines a small language and leaves libraries to the SRFIs, so a program chooses its extensions.</li>
+<li><strong>The report split is a standards history</strong>: R5RS, R6RS, and R7RS followed a disagreement about how large the language should be.</li>
+<li><strong>Dynamic typing is a design choice</strong>: no type declaration is required, so the discipline is the programmer’s.</li>
+<li><strong><code>call/cc</code> is a powerful and uncommon operator</strong>: full continuations make control flow harder to reason about, and the expressiveness is the return.</li>
+<li><strong>The REPL-first workflow is a choice</strong>: a program is developed at the prompt, which suits exploration and is not required by the language.</li>
+<li><strong>Niche adoption is a scope outcome</strong>: the language targets education and research rather than industry.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Native compilers are available</strong>: Chez Scheme, Gambit, and CHICKEN compile Scheme to native code, so a program need not be interpreted.</li>
+<li>✅ <strong>The core is small enough to compile well</strong>: a compiler sees the whole language, so a straightforward optimiser covers it.</li>
+<li>✅ <strong>Tail calls do not consume stack</strong>: a recursive loop compiles to a jump.</li>
+<li>✅ <strong>Numeric code is fast in the strong implementations</strong>: a fixnum loop compiles to machine operations when the compiler proves the operands are fixnums.</li>
+<li>⚠️ <strong>Performance varies significantly by implementation</strong>: the same program can be fast under Chez and much slower under a simple interpreter.</li>
+<li>⚠️ <strong>A dynamically typed call is a checked call</strong>: the compiler inserts checks the program did not write, and their cost depends on how well it can eliminate them.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The ecosystem is small and spread over implementations</strong>: R7RS-small ships no library set, and the shared material is the SRFI collection plus each implementation’s own packages (Ec3).</li>
+<li>✅ <strong>The SRFIs are a portable library standard</strong>: a program requests a library by number, and an implementation reports the SRFIs it supports.</li>
+<li>✅ <strong>The implementation distributions are mature and maintained</strong>: Guile, Chez, Racket, Gambit, and CHICKEN are long-lived projects with their own package collections.</li>
+<li>✅ <strong><code>snow</code> and the implementation indexes collect R7RS libraries</strong>: a portable library can be published for several implementations at once.</li>
+<li>⚠️ <strong>Package management is implementation-specific</strong>: <code>raco pkg</code>, <code>chicken-install</code>, and Guix each serve one dialect, and the report fixes no package manager.</li>
+<li>⚠️ <strong>A library that uses a dialect extension is not portable</strong>: a program written against one implementation’s collection usually needs editing for another.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>SRFIs extend the language without changing the report</strong>: a new facility arrives as a numbered request, and each implementation adopts it independently.</li>
+<li>✅ <strong>A program written to R7RS-small keeps its meaning</strong>: the small report is stable, so its subset does not move under the program.</li>
+<li>✅ <strong><code>define-library</code> localises a change to its importers</strong>: an exported name is the interface, and a change inside a library is invisible to the code that imports it.</li>
+<li>⚠️ <strong>Three reports are in circulation and they differ</strong>: R5RS, R6RS, and R7RS disagree on libraries, on the details of <code>syntax-rules</code>, and on some standard procedures.</li>
+<li>⚠️ <strong>An improvement reaches a program when an implementation adopts it</strong>: there is no single body that ships the language, so the timing is the implementation’s decision.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent as a teaching language</strong>: a dozen special forms cover the core, and SICP uses the language as a complete course.</li>
+<li>✅ <strong>Excellent for programming-language research</strong>: a small core with hygienic macros and first-class continuations is a substrate for experiments.</li>
+<li>✅ <strong>A real scripting and extension language</strong>: Guile is the extension language of GNU packages, including the Guix package manager.</li>
+<li>✅ <strong>Embedding is a real use</strong>: a small Scheme interpreter is embedded in applications for configuration and scripting.</li>
+<li>⚠️ <strong>Commercial application work is rare</strong>: adoption is niche, so a team that picks Scheme for a product finds few precedents.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>❌ <strong>The distinctive abstractions take real effort</strong>: <code>call/cc</code>, continuation-passing style, and hygienic macro writing are each a skill that takes time (L1).</li>
+<li>✅ <strong>The core is small enough to learn quickly</strong>: the special forms are few, and a complete course in them exists.</li>
+<li>✅ <strong>A REPL returns the value immediately</strong>: the read-eval-print loop gives feedback on each expression.</li>
+<li>✅ <strong>The report is precise about the language it defines</strong>: the specification states the required behaviour of each procedure.</li>
+<li>⚠️ <strong>The report is a specification, not a tutorial</strong>: a beginner needs a text such as SICP alongside it.</li>
+<li>⚠️ <strong>A continuation is easy to use outside its intended extent</strong>: control that re-enters a captured continuation can surprise the programmer.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>The syntax is uniform</strong>: a program is a sequence of S-expressions, so there is almost no grammar to learn.</li>
+<li>✅ <strong>Prefix notation removes precedence rules</strong>: <code>(+ 1 (* 2 3))</code> states the order in brackets, so no operator-precedence table is needed.</li>
+<li>✅ <strong>Quasiquotation makes a template readable</strong>: <code>`(a ,b ,@c)</code> builds a list with holes at the point of use.</li>
+<li>✅ <strong>The reader recognises the literal syntaxes directly</strong>: <code>#\a</code> is a character, <code>#(1 2)</code> is a vector, and <code>#;</code> comments out the next datum.</li>
+<li>✅ <strong>A macro can add a readable form</strong>: <code>define-syntax</code> with <code>syntax-rules</code> introduces surface syntax without changing the core.</li>
+<li>⚠️ <strong>A deeply nested expression needs the editor’s indentation</strong>: the reader balances the brackets, and the human eye follows the layout.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>SRFI-64 defines a portable test framework</strong>: <code>test-begin</code>, <code>test-equal</code>, and <code>test-end</code> run under any implementation that supports the SRFI.</li>
+<li>✅ <strong><code>error</code> makes a check cheap to write</strong>: <code>(unless test (error "..." x))</code> fails a check and reports the offending value.</li>
+<li>✅ <strong>The REPL is the first test loop</strong>: an expression is evaluated and its value is compared at the prompt.</li>
+<li>✅ <strong>The implementation supplies a tracer and a debugger</strong>: Chez, Guile, and Racket each expose a trace facility and an inspector.</li>
+<li>⚠️ <strong>No test framework is in the standard</strong>: a project depends on its implementation’s SRFI coverage rather than on the report.</li>
+<li>⚠️ <strong>A test exercises the paths it runs</strong>: an unexecuted branch is unchecked, and a dynamic error in it appears only when the branch is reached.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>The implementation manages memory</strong>: the language exposes no pointer and no manual free, so a buffer overflow or a use-after-free is not expressible in Scheme source.</li>
+<li>✅ <strong>Hygienic macros remove a class of capture defect</strong>: a macro cannot bind a name it did not intend to bind.</li>
+<li>✅ <strong>The core has no unsafe memory operation</strong>: the report defines no pointer arithmetic and no address.</li>
+<li>⚠️ <strong><code>eval</code> and <code>read</code> execute data as code</strong>: <code>(eval (read port))</code> runs whatever the input contains, so untrusted input must never reach it.</li>
+<li>⚠️ <strong>A continuation can cross an intended check</strong>: a continuation captured before a permission test can be re-entered after it.</li>
+<li>⚠️ <strong>A foreign-function interface leaves the safe subset</strong>: an FFI in an implementation reaches native code, and the memory-safety guarantee stops there.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1042,117 +1224,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T3</code></td>
-<td>dynamic/duck dispatch</td>
-<td style="text-align: right;">8</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T5</code></td>
-<td>no generics</td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>T8</code></td>
-<td>operator overloading</td>
-<td style="text-align: right;">4</td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 62/100</strong> — total points removed = 38 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Scheme’s minimalist, orthogonal core keeps language-imposed coupling low, and its platform cost is moderate. Proper tail recursion removes stack growth from a recursive loop, hygienic macros prevent name capture, first-class continuations separate control flow from the call stack, and <code>define-library</code> confines a set of bindings behind explicit exports. The core score is held down by dynamic typing, absent sum types and generics, garbage-collected memory with no ownership model or RAII, and unchecked exceptions. Main weakness: the ecosystem is small and the standard is fragmented across R5RS, R6RS, and R7RS.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1163,6 +1769,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

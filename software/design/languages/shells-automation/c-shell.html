@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,196 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="posix2024"><a href="#ref-posix2024" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 43/100</strong> | <strong>Platform &amp; Ecosystem Score: 57/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> The C shell, created by Bill Joy in 1978, introduced a built-in expression grammar (borrowed from C) and a strong set of interactive features. But for scripting it scores among the lowest for coupling separation. Everything is words or strings with no type system. All shell variables are global by default, coupling the namespace. The language has no functions; aliases and script recursion are used as workarounds. The parser is ad hoc rather than recursive, so it cannot pipe between control structures (e.g., piping a <code>foreach</code> into <code>grep</code> fails) and produces cryptic errors. The syntax is inconsistent — <code>set</code>, <code>setenv</code>, and <code>alias</code> do the same thing but with different rules, and blocks terminate with <code>endif</code>, <code>endsw</code>, and <code>end</code> needlessly differently. Variable, command, and history substitution create implicit dependencies on execution context. Its strengths are interactive (history <code>!!</code>, aliases, tilde notation, directory stack, job control, path hashing), not separation of concerns.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> The C shell introduced many interactive innovations later copied by other shells (history, aliases, tilde notation, filename completion, job control). But it has never been popular for scripting, and the POSIX committee favored KornShell for both interactive and scripting use. The original csh has been frozen since 1993 (version 8.2); tcsh is the maintained successor and is what <code>csh</code> usually points to on macOS and many Linux systems. The implementation is criticized for its ad-hoc parser, missing features, and poor error messages (e.g., “0: Event not found.”). It remains on BSD, Linux, and macOS for interactive use and legacy scripts, but Bash and PowerShell are far better choices for scripting.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses the C shell in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 57/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>Every value is a word list</strong>: <code>set</code> binds a list of words to a name, and no declaration states what the name holds, so the same variable carries a path on one line and a number on the next (T1).</li>
+<li>❌ <strong>No sum types</strong>: an option that may be absent, numeric, or textual is one string, and the reader must decode the convention (<code>set flag</code> versus <code>set flag=0</code>) to tell them apart (T4).</li>
+<li>❌ <strong>No generics</strong>: a command is specialised only by the words passed to it, so the same logic is written again for each shape of data (T5).</li>
+<li>❌ <strong>Arithmetic is a second grammar</strong>: <code>@</code> and <code>if ( expr )</code> evaluate C operators over words, so a number is a word that is re-parsed at each use and silently evaluates to <code>0</code> when it is not numeric.</li>
+<li>❌ <strong>One flat namespace</strong>: <code>set</code> variables and <code>setenv</code> environment variables form two flat spaces with no lexical scope, so a <code>source</code>d file cannot hide a name from its caller (T6, T11).</li>
+<li>❌ <strong>An unset name expands to empty</strong>: csh has no <code>nounset</code> option — its letters are <code>-bcefimnstVvXx</code> — so a misspelled variable becomes an empty argument instead of an error (T10).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>No function scope</strong>: a variable set in a script is visible to every command the script runs, and a <code>source</code>d file writes directly into the caller’s namespace (C1).</li>
+<li>❌ <strong>No immutability by default</strong>: every name is writable everywhere, so a value read at the top of a script can change before it is used (C2).</li>
+<li>❌ <strong>Aliases are the only reuse mechanism</strong>: an <code>alias</code> is textually substituted with <code>\!*</code> arguments, so its body is expanded in the caller’s context instead of a protected one.</li>
+<li>❌ <strong>Recursion re-enters the script</strong>: with no function call, a recursive routine re-invokes <code>$0</code>, which couples the logic to the script path and to the positional parameters.</li>
+<li>⚠️ <strong>tcsh can freeze a variable</strong>: <code>set -r</code> marks a name read-only, but this is a tcsh extension and it is never the default.</li>
+<li>✅ <strong><code>path</code> is tied to <code>PATH</code></strong>: assigning the <code>path</code> word list re-exports <code>PATH</code>, so the search path is edited as a list rather than by string editing.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>No allocation syntax</strong>: the language has no pointer, no address, and no <code>free</code>, so word lists are allocated by the interpreter on assignment.</li>
+<li>✅ <strong>No deallocation to manage</strong>: <code>unset</code> drops a name and the interpreter reclaims the words, so a script has no free order and no double free to avoid.</li>
+<li>⚠️ <strong>Assignment copies the list</strong>: <code>set b = ($a)</code> duplicates every word, so a large list is held twice while the assignment runs.</li>
+<li>⚠️ <strong>Global scope extends lifetime</strong>: because every variable is global, data created early in a session stays resident until it is explicitly <code>unset</code>.</li>
+<li>✅ <strong>Word lists are the only aggregate</strong>: there are no user-visible buffers or arenas, so memory layout never enters a script.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>No structured error path</strong>: csh gives <code>onintr</code> for interrupts and <code>$status</code> for the last exit code, but there is no exception, no error value, and no handler that can return a result (Er1).</li>
+<li>❌ <strong><code>$status</code> is lost by the next command</strong>: any command resets it, so a test placed between a failure and its check silently discards the error (Er3).</li>
+<li>❌ <strong>Errors do not compose</strong>: a failure is a global word rather than a value that can be returned, combined, or stored, so recovery cannot be factored into a routine (Er4).</li>
+<li>⚠️ <strong>Diagnostics are short and late</strong>: the parser is ad hoc, so a fault such as <code>0: Event not found.</code> reaches the user only when the line runs and names nothing beyond the command.</li>
+<li>⚠️ <strong>The parser reads a command at a time</strong>: a syntax error later in a file is reported when execution reaches it, so earlier side effects are already committed.</li>
+<li>⚠️ <strong><code>onintr</code> couples cleanup to a label</strong>: the handler is a named target in the script rather than a scope, so cleanup cannot be attached to the thing it cleans up.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>No concurrency primitives</strong>: <code>&amp;</code> and job control start and steer jobs, but there is no lock, channel, or await, so coordination is done by signals and exit codes (K5).</li>
+<li>✅ <strong>Processes are the unit of parallelism</strong>: the language models concurrency as separate processes joined by pipes, so no shared address space has to be reasoned about.</li>
+<li>✅ <strong>Job control isolates the terminal</strong>: csh introduced job control, so a foreground or background decision does not require the script to manage the terminal itself.</li>
+<li>⚠️ <strong><code>wait</code> is the only join</strong>: <code>wait</code> blocks for all jobs or one named job and returns no value, so a result must travel through a file or a pipeline.</li>
+<li>⚠️ <strong>Background jobs inherit the whole environment</strong>: a <code>&amp;</code> job shares every global variable and the current directory, so ordering between jobs is unspecified unless the script waits.</li>
+<li>⚠️ <strong>No coprocess</strong>: unlike ksh’s <code>|&amp;</code>, csh offers no supported two-way conversation with a child, so a pipeline stage cannot be driven interactively.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>❌ <strong>Two implementations of one lineage</strong>: the language is defined by the frozen BSD <code>csh</code> 8.2 and by <code>tcsh</code>, so there is no third implementation to check behaviour against (P2).</li>
+<li>⚠️ <strong>The frozen and maintained dialects differ</strong>: <code>set -r</code>, <code>bindkey</code>, and the completion system are tcsh additions, so a script that uses them is not a csh script.</li>
+<li>⚠️ <strong>No standard to be portable to</strong>: the POSIX committee chose KornShell, so csh has no specification and its contracts live in two manuals.</li>
+<li>✅ <strong>tcsh is packaged nearly everywhere</strong>: tcsh ships on the BSDs, Linux, and macOS, where <code>csh</code> normally resolves to tcsh, so an interpreter is usually present.</li>
+<li>✅ <strong>Interactive configuration transfers within the family</strong>: <code>alias</code>, <code>history</code>, <code>!!</code>, tilde expansion, and the directory stack behave the same in csh and tcsh.</li>
+<li>⚠️ <strong>Scripting support is frozen</strong>: new portable automation targets other shells, so csh is maintained rather than extended.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Interactive first, scriptable second</strong>: the design targets the terminal, so a weak scripting surface is a priority choice rather than a defect in the language.</li>
+<li><strong>The C-like expression grammar is a deliberate borrowing</strong>: <code>@</code> and <code>if ( expr )</code> give a C programmer a familiar evaluation model; the cost is a second grammar, not a forced dependency.</li>
+<li><strong>The 1993 freeze is a maintenance decision</strong>: original csh is complete and unmaintained while tcsh continues the line, so the freeze is a project decision rather than a coupling mechanism.</li>
+<li><strong><code>set</code> and <code>setenv</code> are two commands by history</strong>: the split mirrors the shell-variable and environment-variable distinction that every shell must represent somehow.</li>
+<li><strong>The ad-hoc parser is one implementation’s shortcut</strong>: a different implementation could parse the same language properly, so the parser defect is not part of the language contract.</li>
+<li><strong>csh is not a general-purpose language</strong>: an interpreter plus a set of external commands is the assumed platform, which is a scope decision.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>⚠️ <strong>Interpreted with no compilation step</strong>: every command line is parsed and evaluated as text at run time, so a loop over files pays parser cost per iteration (R1).</li>
+<li>⚠️ <strong>Builtins are a short list</strong>: <code>cd</code>, <code>set</code>, <code>@</code>, and <code>echo</code> avoid a process, and almost everything else forks and executes.</li>
+<li>✅ <strong>Path hashing avoids repeated search</strong>: <code>rehash</code> and <code>hashstat</code> keep a table of resolved command paths, so command lookup does not rescan <code>PATH</code>.</li>
+<li>✅ <strong>Scripts start without interactive configuration</strong>: tcsh reads <code>.tcshrc</code> for interactive shells only, so a script pays no start-up cost for prompt and completion setup.</li>
+<li>⚠️ <strong>Arithmetic is re-parsed per evaluation</strong>: <code>@</code> evaluates its expression each time it runs, so a numeric loop is far slower than compiled code.</li>
+<li>⚠️ <strong>The shell is rarely the bottleneck</strong>: time goes to the external commands it spawns, so interpreter overhead matters mainly in arithmetic-heavy loops.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>No package manager</strong>: there is no distribution channel for csh code, so shared routines are copied between scripts or vendored as files (Ec1).</li>
+<li>⚠️ <strong>The user base is small and narrowing</strong>: csh survives as a login-shell option on the BSDs and macOS, and new scripting rarely targets it (Ec3).</li>
+<li>✅ <strong>Documentation is complete and stable</strong>: the csh and tcsh manuals describe the language fully and have changed little in decades.</li>
+<li>✅ <strong>Interactive tooling is mature in tcsh</strong>: <code>bindkey</code>, <code>complete</code>, and the <code>set</code> toggles are documented and widely configured.</li>
+<li>⚠️ <strong>No static analysis</strong>: ShellCheck does not analyse csh or tcsh, so a csh script has no mainstream linter.</li>
+<li>✅ <strong>Scripts are the interchange format</strong>: <code>csh</code> is invoked from <code>make</code>, <code>cron</code>, and login configuration without a binding layer.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>Backward compatibility is total</strong>: tcsh runs csh scripts unchanged and adds behaviour through new builtins and <code>set</code> variables.</li>
+<li>✅ <strong>No version treadmill</strong>: no breaking change can arrive for frozen csh, and decades-old scripts still run.</li>
+<li>⚠️ <strong>Fixes arrive only in tcsh</strong>: a defect or an unhelpful message in csh stays, and the remedy is to install tcsh and let <code>csh</code> point at it.</li>
+<li>⚠️ <strong>Two dialects share one manual</strong>: the tcsh manual marks tcsh-only behaviour with <code>(+)</code>, so a reader must know which shell they have.</li>
+<li>⚠️ <strong>No standardisation track</strong>: with POSIX committed to KornShell, no committee can modernise the language.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Adequate as an interactive login shell</strong>: history, aliases, tilde notation, the directory stack, and job control cover terminal work.</li>
+<li>⚠️ <strong>Weak as a scripting language</strong>: <code>foreach</code>, <code>while</code>, <code>if</code>, and <code>switch</code> cannot be piped into one another, so a data-processing script must be rebuilt around that limit.</li>
+<li>⚠️ <strong>Text handling calls out to other tools</strong>: there are no associative arrays and no substring operators beyond the <code>:r</code>, <code>:e</code>, <code>:h</code>, and <code>:t</code> modifiers, so <code>sed</code> and <code>awk</code> do the work.</li>
+<li>⚠️ <strong>Arithmetic is integer only in csh</strong>: <code>@</code> and <code>expr</code> cover integers, so floating-point calculation leaves the shell.</li>
+<li>✅ <strong>Configuration files are the native domain</strong>: <code>.cshrc</code>, <code>.login</code>, and <code>.logout</code> express an interactive environment directly.</li>
+<li>⚠️ <strong>Legacy maintenance persists</strong>: csh remains a login shell on some BSD and macOS accounts, so its configuration files still need care.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The interactive surface is gentle</strong>: history substitution, aliases, and tilde notation are learnable in an afternoon.</li>
+<li>✅ <strong>The grammar resembles C</strong>: <code>if ( $#argv &gt; 1 )</code> and <code>@</code> arithmetic read as expected to a C programmer.</li>
+<li>⚠️ <strong>The scripting limits are learned by failure</strong>: a beginner discovers that a control structure cannot be piped only when the pipeline fails.</li>
+<li>⚠️ <strong>Word modifiers must be memorised</strong>: <code>:r</code>, <code>:e</code>, <code>:h</code>, <code>:t</code>, <code>:g</code>, and <code>:q</code> are a compact but unguessable syntax for path and quoting work.</li>
+<li>⚠️ <strong><code>set</code> and <code>setenv</code> confuse newcomers</strong>: two binding commands with different rules produce silent mistakes when the wrong one is used.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>⚠️ <strong>Block terminators disagree</strong>: <code>if</code> closes with <code>endif</code>, <code>switch</code> with <code>endsw</code>, and <code>foreach</code> and <code>while</code> with <code>end</code>.</li>
+<li>⚠️ <strong><code>set</code>, <code>setenv</code>, and <code>alias</code> follow different rules</strong>: three ways to bind a name use three argument conventions.</li>
+<li>⚠️ <strong>No separate stderr redirection</strong>: <code>&gt;&amp;</code> merges the two streams and <code>|&amp;</code> pipes both, so a stream cannot be redirected on its own.</li>
+<li>✅ <strong>Terse for its work</strong>: <code>foreach f (*.c)</code> with <code>if (-e $f)</code> expresses a loop and a test in a few characters.</li>
+<li>✅ <strong>Word modifiers are short and local</strong>: <code>$file:r.c</code> and <code>$path:h</code> perform path surgery inline.</li>
+<li>⚠️ <strong><code>@</code> and <code>if ( expr )</code> add a second reading of a line</strong>: the same word is a string in one place and an expression in another.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>❌ <strong>No test framework in the language</strong>: a test is a script that calls the code and compares <code>$status</code>, with no assertion, fixture, or reporting facility (G1).</li>
+<li>❌ <strong>Debugging is <code>echo</code> and <code>set -x</code></strong>: csh prints commands with <code>set echo</code> and the <code>-x</code> option, but has no breakpoint, no state inspection, and no debugger (G2).</li>
+<li>❌ <strong>Faults appear only in the branch that runs</strong>: with no static check, a mistyped variable or a bad <code>foreach</code> pattern is found during the test run (G3).</li>
+<li>⚠️ <strong>A hand-built harness is possible</strong>: <code>$status</code> and <code>onintr</code> allow a script to record an outcome and report it.</li>
+<li>✅ <strong>Exit status is a usable oracle</strong>: after a command, <code>if ($status == 0)</code> tests the one outcome the language reports reliably.</li>
+<li>⚠️ <strong>Interactive behaviour needs a terminal</strong>: history, completion, and prompt behaviour are tty-driven, so they resist automated checks.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>❌ <strong>Unquoted expansion is re-parsed</strong>: because a value is a word list, an unquoted <code>$var</code> splits and globs, so untrusted text can change the number of arguments a command receives (Q2).</li>
+<li>⚠️ <strong><code>eval</code> and <code>$&lt;</code> feed outside text to the parser</strong>: both re-enter the interpreter with text that is not validated.</li>
+<li>⚠️ <strong>No restricted mode</strong>: csh offers no sandbox and no capability model, so a script’s protection is the file permissions of its user.</li>
+<li>✅ <strong><code>set noclobber</code> protects existing files</strong>: the option makes <code>&gt;</code> refuse to overwrite, so a mistake cannot silently destroy data.</li>
+<li>✅ <strong>Environment changes are explicit</strong>: <code>setenv</code> and <code>unsetenv</code> are named builtins, so a script’s effect on its children is visible in the text.</li>
+<li>✅ <strong>No memory-safety surface</strong>: there are no pointers and no manual allocation, so memory defects belong to the programs csh runs.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,122 +1224,274 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>T11</code></td>
 <td>no module boundary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Er3</code></td>
-<td>errors ignored/non-exhaustive</td>
-<td style="text-align: right;">4</td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
-<td><code>K5</code></td>
-<td>no primitives</td>
-<td style="text-align: right;">4</td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>P2</code></td>
 <td>single-vendor but other uses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 43/100</strong> — total points removed = 57 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1167,71 +1500,265 @@ div.csl-indent {
 <td><strong>Performance</strong></td>
 <td><code>R1</code></td>
 <td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
 <td><code>Ec1</code></td>
 <td>no package manager</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Ec3</code></td>
-<td>small/niche/discontinued</td>
-<td style="text-align: right;">8</td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Testing</strong></td>
 <td><code>G1</code></td>
 <td>weak tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>G2</code></td>
 <td>poor debugging</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>G3</code></td>
 <td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Q2</code></td>
 <td>dynamic/weak typing risk</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 57/100</strong> — total points removed = 43 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> The C shell gives the coupling profile of a word-based shell: values are words, names have one global scope, and an error is a global status word rather than a composable value, which puts a floor of 43 under the core score. Its own contributions are interactive — history, aliases, tilde notation, the directory stack, job control, and path hashing — and none of them separates concerns inside a script. The original shell has been frozen since 1993 and tcsh carries the line forward, so the language is stable but small, and tcsh-only extensions such as <code>set -r</code> and the completion system sit outside what a csh script may rely on.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1242,6 +1769,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

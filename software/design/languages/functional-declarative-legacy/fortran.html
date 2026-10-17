@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,150 +1026,471 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="isoFortran2023"><a href="#ref-isoFortran2023" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 32/100</strong> | <strong>Platform &amp; Ecosystem Score: 60/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Array operations in Fortran decouple iteration from computation by operating on entire arrays at once. Pure functions enforce the absence of side effects at the language level. Modules separate interface specifications from implementation. COMMON blocks, however, create a global coupling nightmare by sharing memory across compilation units. Implicit typing couples variable types to naming conventions — by default, variables starting with I through N are integers, and all others are real numbers — creating hidden type coupling. The GOTO statement couples control flow globally.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Fortran remains excellent for numerical and scientific computing, where its array operations and performance are a natural fit. It dominates legacy high-performance computing codebases. Modern Fortran (2003 and later) improved with proper modules, object-oriented features, and pure functions. The ecosystem is aging and adoption is declining. Performance rivals C for numerical workloads. The learning curve is moderate, but legacy syntax quirks and implicit typing conventions create friction for newcomers.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Fortran in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 32/100</strong> · <strong>Ecosystem coupling 60/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>⚠️ <strong>Typing is static but implicit typing is the default</strong>: without <code>implicit none</code>, a name beginning with I–N is an <code>integer</code> and every other name is a <code>real</code>, so a misspelled variable becomes a new one rather than an error (T2).</li>
+<li>❌ <strong>There are no sum types</strong>: an alternative is encoded as an integer tag beside the payload fields, and <code>select case</code> or <code>select type</code> must decode it, so nothing checks that the right branch was taken (T4).</li>
+<li>⚠️ <strong>There are no generics, and a generic interface overloads a name instead</strong>: an <code>interface</code> block binds one name to several specific procedures and the compiler resolves the call by argument type, which is overloading without a type parameter (T5).</li>
+<li>⚠️ <strong>Operator and assignment overloading is expressible</strong>: <code>interface operator(+)</code> and <code>interface assignment(=)</code> redefine <code>+</code> and <code>=</code> for a derived type, so the work behind an operator is invisible at the call site (T8).</li>
+<li>✅ <strong>A module is a namespace with a selective import</strong>: <code>use mymodule, only: a, b</code> brings in two names and nothing else, so no flat global namespace is imposed.</li>
+<li>✅ <strong><code>class(t)</code> and <code>select type</code> give checked run-time polymorphism</strong>: a polymorphic dummy argument dispatches on the dynamic type of the actual argument, and <code>select type</code> narrows it in a checked branch.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Global mutable state is the default storage class</strong>: a module variable and a <code>common</code> block are shared by every procedure that names them, and a variable marked <code>save</code> keeps its value between calls (C1).</li>
+<li>❌ <strong>There is no immutability by default</strong>: only a <code>parameter</code> names a constant, and a module variable is writable by any user unless it carries the Fortran 2003 <code>protected</code> attribute (C2).</li>
+<li>❌ <strong>A structure constructor validates nothing</strong>: <code>t(a, b)</code> fills the components in order or by keyword, and no invariant can be stated at the type, so a valid object exists only because the caller made it valid (C4).</li>
+<li>✅ <strong>A <code>pure</code> procedure states the absence of side effects</strong>: it may not write a global, an <code>intent(in)</code> argument, or a <code>save</code>d variable, and the compiler enforces the rule.</li>
+<li>✅ <strong><code>intent(in)</code>, <code>intent(out)</code>, and <code>intent(inout)</code> state the direction of an argument</strong>: the declaration says whether a routine reads, writes, or does both, and the compiler checks it at the call site.</li>
+<li>✅ <strong><code>elemental</code> states an elementwise operation</strong>: an <code>elemental</code> procedure applies to each element of an array, so a scalar definition composes with array construction without a written loop.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong><code>allocate</code> and <code>deallocate</code> are written by hand for a <code>pointer</code></strong>: the language tracks no owner and no bound, so a pointer target is freed by an explicit statement and a missing one leaks (M1).</li>
+<li>❌ <strong>There is no ownership model</strong>: a <code>pointer</code> may alias a <code>target</code>, dangle after <code>deallocate</code>, or be freed twice, and the compiler does not see the aliasing (M4).</li>
+<li>⚠️ <strong>Release tied to scope is partial</strong>: an allocatable local and a derived-type component with a <code>final</code> procedure are released at scope exit, but a <code>pointer</code> is not, so the rule differs by variable kind (M3).</li>
+<li>⚠️ <strong>An allocation failure must be tested</strong>: <code>allocate(a(n), stat=ierr)</code> returns a code the program has to check, and without <code>stat=</code> a failure aborts the program.</li>
+<li>✅ <strong><code>move_alloc</code> transfers an allocation without a copy</strong>: <code>call move_alloc(from, to)</code> moves the storage and deallocates the source, so a result array is returned without duplication.</li>
+<li>✅ <strong>Allocatable locals are released at procedure exit</strong>: an allocatable array declared inside a procedure is deallocated when the procedure returns, which is a scope-tied release the language provides.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>There is no exception mechanism</strong>: a failure is reported through a <code>stat=</code>/<code>iostat=</code> code or an <code>err=</code> label, and the caller has to test it (Er1).</li>
+<li>❌ <strong>A returned code can be ignored</strong>: nothing obliges a caller to look at <code>iostat</code>, so a failed <code>read</code>, <code>allocate</code>, or <code>deallocate</code> proceeds as though it had succeeded unless the program checks (Er3).</li>
+<li>❌ <strong>There is no composable result type</strong>: no value carries either a result or an error, so error state travels in an extra out argument or in a saved flag (Er4).</li>
+<li>✅ <strong><code>error stop</code> gives a defined abort</strong>: since Fortran 2008, <code>error stop</code> stops the program with a message and an optional <code>error=</code> code, so a fatal failure is stated rather than inferred from a negative status.</li>
+<li>⚠️ <strong>IEEE exceptional values are inspected through an intrinsic module</strong>: <code>ieee_arithmetic</code> and <code>ieee_exceptions</code> let a program test <code>ieee_is_nan</code> and select a halting mode, but the checks are ordinary calls rather than a language guarantee.</li>
+<li>✅ <strong>A <code>pure</code> procedure cannot perform I/O</strong>: an I/O failure is outside a <code>pure</code> procedure by construction, so a computational kernel has no I/O error channel to handle.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>Coarray images share memory by default</strong>: a coarray declared with <code>codimension</code> is written by one image and read by another, and nothing in the language prevents the race (K2).</li>
+<li>⚠️ <strong>Synchronisation is manual</strong>: <code>sync all</code>, <code>sync images</code>, <code>event post</code>/<code>event wait</code>, and <code>lock</code>/<code>unlock</code> are image control statements the program must place at the right point.</li>
+<li>✅ <strong><code>do concurrent</code> states an independent loop</strong>: the construct asserts that the iterations have no interdependencies, and Fortran 2018 adds <code>local</code>, <code>local_init</code>, and <code>shared</code> locality specifications, so the compiler may parallelise it.</li>
+<li>✅ <strong><code>atomic</code> and <code>critical</code> give a defined atomic access</strong>: <code>atomic define</code>/<code>atomic_ref</code> and a <code>critical</code> construct express one update that must not interleave.</li>
+<li>⚠️ <strong>The practical parallel model sits outside the language</strong>: coarray support varies across compilers, so most high-performance code uses OpenMP directives or MPI calls.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>One standard source runs on every major compiler</strong>: <code>gfortran</code>, <code>ifx</code>, <code>nagfor</code>, Cray, and LLVM <code>flang</code> accept standard-conforming Fortran on Linux, Windows, macOS, and the large HPC systems.</li>
+<li>✅ <strong><code>iso_c_binding</code> names the interoperable interface</strong>: <code>c_int</code>, <code>c_double</code>, <code>c_ptr</code>, and <code>c_funptr</code> let a Fortran routine be called from C and call C in return.</li>
+<li>✅ <strong><code>iso_fortran_env</code> names the portable kinds and units</strong>: <code>real64</code>, <code>int32</code>, and <code>input_unit</code> state a portable choice where <code>real(8)</code> names one machine’s representation.</li>
+<li>✅ <strong>A compiled module is a binary interface</strong>: a <code>module</code> is compiled to a file a consumer imports, so the interface is checked when the consumer is compiled.</li>
+<li>⚠️ <strong>Vendor directives are common in working code</strong>: <code>!DIR$</code> and <code>!DEC$</code> directives, <code>REAL*8</code>, and <code>STRUCTURE</code>/<code>RECORD</code> appear in legacy HPC source, which binds it to one compiler.</li>
+<li>⚠️ <strong>Coarray support varies by compiler and platform</strong>: a coarray program depends on the compiler’s image implementation and its transport library, so its portability is weaker than that of a serial program.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong><code>implicit none</code> is the modern practice, not the standard default</strong>: a project chooses to require it, and the language permits implicit typing for the old source.</li>
+<li><strong>Column-major order is a deliberate numerical choice</strong>: array expressions follow Fortran’s storage order, which is what the linear-algebra kernels are written for.</li>
+<li><strong>The aliasing rules are what the optimiser needs</strong>: the standard’s restrictions let the compiler vectorise a loop, which costs flexibility and buys speed.</li>
+<li><strong><code>goto</code> remains for compatibility</strong>: it is retained so that decades of code keeps compiling, and a new program need not use it.</li>
+<li><strong>Whole-array syntax exists so the compiler chooses the loop nest</strong>: the programmer gives up per-loop control in exchange for vectorisation.</li>
+<li><strong>The legacy corpus is working, tested numerical code</strong>: the aging ecosystem holds decades of validated physics and linear-algebra routines.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The program is compiled to machine code</strong>: <code>gfortran</code>, <code>ifx</code>, and <code>flang</code> emit native objects for the target CPU, and the performance of an array kernel rivals C.</li>
+<li>✅ <strong>Array syntax maps onto the machine’s loop nests</strong>: <code>a = b + c</code> over whole arrays lets the compiler fuse and vectorise the loops, and <code>matmul</code> and <code>dot_product</code> have library or instruction implementations.</li>
+<li>✅ <strong>Nothing between the source and the CPU interprets</strong>: a Fortran binary has no bytecode dispatch and no JIT warm-up.</li>
+<li>⚠️ <strong>The optimiser needs the aliasing facts</strong>: without <code>intent(in)</code>, <code>contiguous</code>, and <code>pure</code>, the compiler must assume a possible alias and cannot reorder the loops.</li>
+<li>⚠️ <strong>The floating-point contract is the compiler’s flags</strong>: <code>-O3</code> with <code>-ffast-math</code> or <code>-fp-model fast</code> changes the order of the operations, so the measured speed depends on the build options.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>There is no standard package manager for the language</strong>: dependencies are resolved by a language-agnostic manager such as Spack or Conda or by the system manager, and the <code>fpm</code> package manager is young and small (Ec3).</li>
+<li>✅ <strong>The numerical libraries are mature and standard</strong>: BLAS, LAPACK, and the vendor-tuned kernels (MKL, ESSL) are callable from Fortran directly.</li>
+<li>✅ <strong>A compiler is available on every system</strong>: a Fortran compiler is installed on every HPC cluster and is packaged for every common Linux distribution.</li>
+<li>✅ <strong>Interoperation with the C and Python ecosystems is standard</strong>: <code>iso_c_binding</code> and the Python wrapper generators make a Fortran kernel callable from a Python array library.</li>
+<li>⚠️ <strong>Tooling beyond the compiler is thin</strong>: formatting, lint, and documentation come from small community projects (<code>fprettify</code>, <code>ford</code>) rather than from a supported toolchain.</li>
+<li>⚠️ <strong>The community is aging</strong>: adoption is declining and maintenance is concentrated in the HPC and numerical community.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>The standard is backward compatible</strong>: Fortran 90 source mostly compiles with a Fortran 2023 compiler, and only a small set of features has been deleted.</li>
+<li>✅ <strong>The compilers retain the deleted features as extensions</strong>: <code>arithmetic IF</code> and <code>PAUSE</code>, both removed by the standard, are still accepted by the common compilers.</li>
+<li>✅ <strong>The intrinsic modules extend the language without editing it</strong>: <code>iso_c_binding</code>, <code>iso_fortran_env</code>, and the parallel features were added as modules and new syntax rather than as changes to existing syntax.</li>
+<li>⚠️ <strong>A revision takes about a decade</strong>: the editions are 2003, 2008, 2018, and 2023, so a needed feature waits years for the standard and lives as a compiler extension until then.</li>
+<li>⚠️ <strong>One program can hold several standards</strong>: a single codebase can mix a Fortran 77 <code>common</code> block with a Fortran 2008 module, so the version in use is a property of the file.</li>
+<li>⚠️ <strong>An extension can become load-bearing</strong>: a program that depends on a vendor directive cannot be moved to another compiler without an edit.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Numerical and scientific computing is the design target</strong>: array syntax, complex arithmetic, real kinds, and the IEEE intrinsic modules fit it directly.</li>
+<li>✅ <strong>High-performance computing is the deepest adoption</strong>: weather, climate, and physics codes are written in Fortran, so the language dominates legacy HPC codebases.</li>
+<li>✅ <strong><code>submodule</code> fits a large numerical codebase</strong>: a module can declare the interface and a <code>submodule</code> hold the implementation, so changing a kernel recompiles only that submodule (Fortran 2008).</li>
+<li>✅ <strong>Coarrays put a parallel program in the language</strong>: a distributed-memory program is written without a call from a separate parallel library.</li>
+<li>⚠️ <strong>The language assumes a numerical, batch-shaped workload</strong>: text handling, dynamic data structures, and event-driven logic get little support, and the standard library is mainly the intrinsic procedures.</li>
+<li>⚠️ <strong>A new project often keeps Fortran for the kernel only</strong>: the language is used where the inner loop must be native, and the orchestration moves to Python or C++.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The core is small once <code>implicit none</code> is in place</strong>: the statement forms, the intrinsic procedures, and the array expressions are a modest set.</li>
+<li>✅ <strong>The authoritative material is stable and complete</strong>: the ISO standard, the compiler references, and <em>Modern Fortran Explained</em> cover the language in one place.</li>
+<li>✅ <strong>The array idiom has a direct mathematical reading</strong>: a whole-array expression reads as the equation it computes.</li>
+<li>❌ <strong>Legacy syntax quirks create friction</strong>: fixed-form source with its column rules, implicit typing, and <code>common</code> blocks must be read to work on an existing codebase (L1).</li>
+<li>⚠️ <strong>The array and parallel idioms take practice</strong>: array sections, <code>where</code>, and <code>do concurrent</code> read differently from an explicit loop, and the cost of a temporary array is easy to miss.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>❌ <strong>Fixed-form source is column-sensitive</strong>: in a <code>.f</code> file a label sits in columns 1–5, a continuation mark in column 6, and a statement starts in column 7, so the layout carries meaning (S1).</li>
+<li>⚠️ <strong>The language is verbose</strong>: kind, <code>intent</code>, and dimension accumulate on every dummy argument, and the internals of a procedure need their own <code>contains</code> block.</li>
+<li>✅ <strong>Whole-array expressions are compact</strong>: <code>c = matmul(a, b) + alpha * c</code> states a matrix update in one line.</li>
+<li>✅ <strong>Free-form source is line-oriented and readable</strong>: with <code>implicit none</code> and <code>use, only:</code>, a modern module reads close to the mathematics.</li>
+<li>⚠️ <strong>A <code>common</code> block’s storage is positional</strong>: two declarations of the same block must list the fields in the same order with the same types, and the block’s layout is a convention rather than a checked interface.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>error stop</code> gives a test program a defined failure status</strong>: a failing check stops the program with a non-zero status that a harness can read.</li>
+<li>✅ <strong>Run-time checks can be compiled in</strong>: <code>-fcheck=all</code> (gfortran) and <code>-check all</code> (ifx) raise on an out-of-bounds subscript, an unassociated pointer, and a shape mismatch.</li>
+<li>✅ <strong>The numerical libraries ship their own test suites</strong>: LAPACK and BLAS carry a published suite that exercises each routine, which is the numerical community’s model.</li>
+<li>❌ <strong>There is no test framework in the language</strong>: a test is a program that runs and compares, and a runner such as <code>pFUnit</code> or <code>test-drive</code> is a third-party library.</li>
+<li>⚠️ <strong>There is no assertion intrinsic</strong>: a check is an explicit <code>if (cond) error stop</code>, so its presence is a written decision.</li>
+<li>⚠️ <strong>The result depends on the flags and the hardware</strong>: the summation order, <code>-ffast-math</code>, and the fused multiply-add change the last bits, so a test must fix the build and compare with a tolerance.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>⚠️ <strong>Memory safety depends on a checked build</strong>: an out-of-bounds subscript, an unassociated pointer, and a mismatch between an actual and a dummy argument are found only when the compiler is asked to check them, and the standard requires no run-time check.</li>
+<li>✅ <strong>There is no dynamic evaluation of source text</strong>: the language has no <code>eval</code>, no reflective call by name, and no string-to-code path, so a value cannot become code.</li>
+<li>✅ <strong><code>intent(in)</code> prevents a write through the callee</strong>: the compiler refuses an assignment to an <code>intent(in)</code> dummy argument, so the read-only direction is enforced.</li>
+<li>⚠️ <strong>The C interface hands safety to the neighbour</strong>: <code>c_ptr</code> and <code>type(c_funptr)</code> are raw addresses, and the guarantees of the C code on the other side become part of the program.</li>
+<li>⚠️ <strong>There is no capability model and no sandbox</strong>: a program runs with the authority of the process, and the mitigations come from the operating system and the linker.</li>
+<li>✅ <strong>A <code>pure</code> procedure cannot corrupt state through I/O or a global</strong>: the effect set of a <code>pure</code> procedure is empty by construction.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T2</code></td>
 <td>weak static</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>C4</code></td>
 <td>no constructor/validation</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
 <td><code>M1</code></td>
 <td>manual deallocation</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>Er3</code></td>
 <td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 32/100</strong> — total points removed = 68 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1173,65 +1499,265 @@ div.csl-indent {
 <td><strong>Performance</strong></td>
 <td><code>R1</code></td>
 <td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>D2</code></td>
 <td>poor domain fit</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Syntax</strong></td>
 <td><code>S1</code></td>
 <td>verbose</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Syntax subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 60/100</strong> — total points removed = 40 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Fortran’s design produces a low core score, because the constructs that make the numerical work fast are the constructs that couple. Array expressions and <code>pure</code> procedures are real separations, and a module with a <code>submodule</code> separates an interface from its implementation. But implicit typing hides a misspelled variable, <code>common</code> blocks and module variables are global mutable state, a <code>pointer</code> is freed by hand with no owner, and an error is a code the caller may ignore. Main strengths: the fit to numerical computing is exact, array performance rivals C, and one standard source runs on every major compiler. Main weaknesses: the ecosystem is small and aging, the revision cycle is slow, and the syntax of a legacy file depends on column positions.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1242,6 +1768,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1022,24 +1025,37 @@ div.csl-indent {
 </header>
 
 
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="typescriptDocs"><a href="#ref-typescriptDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses TypeScript in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 70/100</strong> · <strong>Ecosystem coupling 81/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Structural typing decouples from concrete types</strong>: Can pass any object with right shape</li>
 <li>✅ <strong>Union types separate cases</strong>: <code>string | number</code> makes alternatives explicit</li>
 <li>✅ <strong>Generics enable parametric polymorphism</strong>: Decouple from concrete types</li>
 <li>❌ <strong><code>any</code> escape hatch defeats type checking</strong>: Can bypass all compile-time checks, deferring coupling detection to runtime</li>
 <li>❌ <strong>Type assertions couple to implementation</strong>: <code>as Type</code> forces coupling</li>
+<li>❌ <strong>JavaScript runtime has no type safety</strong>: Types erased at runtime</li>
+<li>❌ <strong>Null/undefined everywhere</strong>: <code>undefined</code> is default, couples to absence handling</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>✅ <strong>Object literals decouple construction</strong>: <code>{ name: "Alice", age: 30 }</code> without classes</li>
 <li>⚠️ <strong>Class constructors can have side effects</strong>: Nothing prevents coupled initialization</li>
 <li>⚠️ <strong>Dependency injection requires manual wiring</strong>: No built-in mechanism</li>
+<li>❌ <strong>Module side effects</strong>: Imports can execute code, coupling load order</li>
+<li>❌ <strong>Global namespace pollution</strong>: <code>window</code>, <code>global</code> create hidden coupling</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>JavaScript GC decouples memory</strong>: Generational GC (V8, SpiderMonkey, etc.)</li>
 <li>✅ <strong>No manual memory management</strong>: Can’t have use-after-free</li>
@@ -1048,26 +1064,35 @@ div.csl-indent {
 <li>⚠️ <strong>Circular references with DOM</strong>: Can create leaks if not careful with event handlers</li>
 <li>⚠️ <strong>GC pauses affect latency</strong>: Non-deterministic pauses, though V8 GC is incremental</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>❌ <strong>Exceptions are unchecked</strong>: No <code>throws</code> clause, errors hidden from type system</li>
 <li>⚠️ <strong>Result types exist but not idiomatic</strong>: Libraries like <code>neverthrow</code> exist but uncommon</li>
 <li>❌ <strong>Promise rejection is unchecked</strong>: Async errors not tracked by types</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>✅ <strong>Async/await separates sync from async</strong>: <code>async function</code> makes concurrency explicit</li>
 <li>❌ <strong>Promises don’t track errors</strong>: <code>Promise&lt;T&gt;</code> doesn’t show failure type</li>
 <li>⚠️ <strong>Event loop is implicit</strong>: Single-threaded but callbacks create order coupling</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>JavaScript runtime has no type safety</strong>: Types erased at runtime</li>
-<li>❌ <strong>Module side effects</strong>: Imports can execute code, coupling load order</li>
-<li>❌ <strong>Global namespace pollution</strong>: <code>window</code>, <code>global</code> create hidden coupling</li>
-<li>❌ <strong>Null/undefined everywhere</strong>: <code>undefined</code> is default, couples to absence handling</li>
+<li>✅ <strong>The compiler is open source and emits a standard target</strong>: <code>tsc</code> is developed in the open under Apache 2.0, and its output is ECMAScript, so no proprietary runtime is required.</li>
+<li>✅ <strong>The emitted code runs on every major engine</strong>: the output runs on V8, SpiderMonkey, and JavaScriptCore and on Node.js, Deno, and Bun alike.</li>
+<li>✅ <strong>Several tools compile TypeScript</strong>: <code>tsc</code>, <code>esbuild</code>, <code>swc</code>, and Node.js type stripping all accept <code>.ts</code> source, so the build step is not locked to one implementation.</li>
+<li>✅ <strong>No language runtime is deployed</strong>: type checking happens at build time and the artifact is JavaScript, so nothing of TypeScript ships to the platform.</li>
+<li>✅ <strong>The compiler runs on all three desktop platforms</strong>: one npm package covers Windows, macOS, and Linux.</li>
 </ul>
-<p><strong>Trade-offs (not coupling):</strong></p>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
 <li><strong>Type Safety vs.&nbsp;Runtime Reality</strong>: Types are documentation only, no runtime enforcement couples safety to discipline</li>
 <li><strong>Gradual Typing vs.&nbsp;Type Holes</strong>: <code>any</code> escape hatch couples strict code to untyped code</li>
@@ -1075,58 +1100,12 @@ div.csl-indent {
 <li><strong>Type System Complexity vs.&nbsp;JavaScript Simplicity</strong>: Advanced types (conditional, mapped) couple to TS-specific knowledge</li>
 <li><strong>Build Step vs.&nbsp;Simplicity</strong>: Compilation adds complexity, couples deployment to build tools</li>
 </ul>
-<p><strong>Core Coupling Score: 70/100</strong></p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 44%">
-<col style="width: 28%">
-<col style="width: 28%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>65</td>
-<td>Structural typing good, but <code>any</code> and runtime</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>68</td>
-<td>Interfaces, unions, but lots of escape hatches</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>60</td>
-<td>Object literals, but classes allow side effects</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>45</td>
-<td>Unchecked exceptions, Promise rejection</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>70</td>
-<td>Async/await, but error tracking weak</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>92</td>
-<td>Massive ecosystem, great tooling</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Verdict:</strong> TypeScript adds types to JavaScript but inherits JS’s coupling problems. Structural typing reduces coupling, but unchecked exceptions, <code>any</code>, and type erasure create holes. Main strength: gradual typing lets you add coupling incrementally. Main weakness: type system doesn’t enforce runtime behavior.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 60/100</p>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>⚠️ <strong>JavaScript runtime</strong>: Inherits JS performance characteristics, JIT optimization</li>
 <li>⚠️ <strong>Type erasure</strong>: No runtime cost but also no runtime enforcement</li>
@@ -1134,7 +1113,9 @@ div.csl-indent {
 <li>❌ <strong>Unpredictable GC</strong>: No control over pause times</li>
 <li>⚠️ <strong>Bundle size couples to libraries</strong>: Frontend deployment couples to dependency graph</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 90/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>✅ <strong>Massive ecosystem</strong>: npm has everything</li>
 <li>✅ <strong>Excellent IDE support</strong>: VSCode, IntelliJ, WebStorm</li>
@@ -1142,162 +1123,623 @@ div.csl-indent {
 <li>⚠️ <strong>Too many build tools</strong>: Choice couples to toolchain complexity</li>
 <li>✅ <strong>TypeScript compiler fast</strong>: Incremental compilation</li>
 </ul>
-<p><strong>Language Evolution:</strong> 85/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>✅ <strong>Strong backward compatibility</strong>: Breaking changes rare</li>
 <li>✅ <strong>Regular releases</strong>: Predictable cadence</li>
 <li>✅ <strong>Gradual adoption</strong>: Can upgrade incrementally</li>
 <li>⚠️ <strong>Lib versioning</strong>: <code>@types</code> packages couple to library versions</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 90/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for frontend</strong>: Industry standard for React, Angular, Vue</li>
 <li>✅ <strong>Great for backend</strong>: Node.js/Deno with types</li>
 <li>✅ <strong>Full-stack</strong>: Shared types between frontend/backend</li>
 <li>⚠️ <strong>Systems programming</strong>: Not suitable, GC/interpreted</li>
 </ul>
-<p><strong>Learning Curve:</strong> 70/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>✅ <strong>Gentle for JS developers</strong>: Incremental adoption</li>
 <li>✅ <strong>Good documentation</strong>: Official handbook is excellent</li>
 <li>⚠️ <strong>Type system complexity</strong>: Conditional types, mapped types can be confusing</li>
 <li>✅ <strong>Familiar to C#/Java devs</strong>: Similar type system concepts</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 75/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>✅ <strong>JavaScript syntax</strong>: Familiar, minimal new syntax</li>
 <li>⚠️ <strong>Type annotations can be verbose</strong>: Generics get noisy</li>
 <li>✅ <strong>Type inference</strong>: Often don’t need explicit types</li>
 <li>⚠️ <strong>Any escape hatch</strong>: Too easy to bypass types</li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 85/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>Jest, Vitest, Mocha</strong>: Mature testing frameworks</li>
 <li>✅ <strong>Debugging tools</strong>: Browser DevTools, VSCode debugger</li>
 <li>✅ <strong>Source maps</strong>: Debug TypeScript directly</li>
 <li>⚠️ <strong>Runtime vs compile-time gap</strong>: Types don’t catch runtime issues</li>
 </ul>
-<p><strong>Security:</strong> 65/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>✅ <strong>Memory safe</strong>: GC prevents memory bugs</li>
 <li>⚠️ <strong>Type erasure</strong>: No runtime validation</li>
 <li>❌ <strong>Prototype pollution</strong>: Object mutation can create vulnerabilities</li>
 <li>⚠️ <strong>Dependency vulnerabilities</strong>: npm ecosystem size couples to attack surface</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 81/100</strong></p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
-<td><code>T2</code></td>
-<td>weak static</td>
-<td style="text-align: right;">8</td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T7</code></td>
-<td>type erasure/reflection</td>
-<td style="text-align: right;">4</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Er3</code></td>
-<td>errors ignored/non-exhaustive</td>
-<td style="text-align: right;">4</td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>Er4</code></td>
-<td>no composable result type</td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 70/100</strong> — total points removed = 30 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Testing</strong></td>
-<td><code>G3</code></td>
-<td>runtime-only errors</td>
-<td style="text-align: right;">4</td>
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Q2</code></td>
 <td>dynamic/weak typing risk</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>Q3</code></td>
 <td>known vulnerability/injection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 81/100</strong> — total points removed = 19 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> TypeScript adds types to JavaScript but inherits JS’s coupling problems. Structural typing reduces coupling, but unchecked exceptions, <code>any</code>, and type erasure create holes. Main strength: gradual typing lets you add coupling incrementally. Main weakness: type system doesn’t enforce runtime behavior.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1308,6 +1750,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1022,49 +1025,70 @@ div.csl-indent {
 </header>
 
 
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="haskellReport"><a href="#ref-haskellReport" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Haskell in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 80/100</strong> · <strong>Ecosystem coupling 56/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Pure functions separate side effects from pure logic</strong>: The type system (IO monad) keeps effects isolated, preventing hidden coupling to global state</li>
 <li>✅ <strong>Type classes enable polymorphism without inheritance coupling</strong>: Abstraction through type classes (Functor, Monad, etc.) decouples interface from implementation</li>
 <li>✅ <strong>Parametric polymorphism prevents coupling to concrete types</strong>: <code>map :: (a -&gt; b) -&gt; [a] -&gt; [b]</code> works for any types without knowing their internals</li>
 <li>⚠️ <strong>Monad transformers can create coupling</strong>: Stacking monads (ReaderT, StateT, ExceptT) creates order-dependent coupling</li>
+<li>❌ <strong>IO monad couples all effects</strong>: Can’t separate file IO from network IO from randomness at type level (without effect systems)</li>
+<li>❌ <strong>Global type class instances couple</strong>: Orphan instances create action-at-a-distance coupling</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>✅ <strong>Data constructors separate shape from creation logic</strong>: ADTs (Algebraic Data Types) decouple data structure from construction</li>
 <li>✅ <strong>Smart constructors enable validation without coupling</strong>: Can wrap raw constructors to add invariants</li>
 <li>✅ <strong>No shared mutable state</strong>: Construction doesn’t couple to global state</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>Garbage collection decouples memory from logic</strong>: Don’t think about deallocation</li>
 <li>✅ <strong>Immutability simplifies GC</strong>: No cyclic references from mutable structures</li>
 <li>⚠️ <strong>GC pauses couple to runtime</strong>: Non-deterministic pauses affect real-time requirements</li>
 <li>⚠️ <strong>Space leaks from lazy evaluation</strong>: Thunks accumulate, coupling evaluation strategy to memory usage</li>
 <li>✅ <strong>No manual memory management</strong>: Can’t have use-after-free or double-free bugs</li>
+<li>❌ <strong>Lazy evaluation couples computation order to memory management</strong>: Space leaks occur when evaluation strategy couples to resource usage</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>✅ <strong>Either/Maybe separate success from failure</strong>: <code>Either Error Result</code> makes error path explicit and separate from success path</li>
 <li>✅ <strong>Exceptions are typed</strong>: IO exceptions are contained in IO monad, preventing hidden coupling</li>
 <li>⚠️ <strong>Partial functions (<code>head</code>, <code>tail</code>) can couple</strong>: Runtime errors bypass type system unless avoided</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>✅ <strong>STM (Software Transactional Memory) decouples concurrency from logic</strong>: Composable transactions separate concurrent coordination from business logic</li>
 <li>✅ <strong>Immutability prevents temporal coupling</strong>: No shared mutable state means concurrent operations don’t interfere</li>
 <li>✅ <strong>Async/threading is explicit in types</strong>: Concurrency concerns are separate via type signatures</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>IO monad couples all effects</strong>: Can’t separate file IO from network IO from randomness at type level (without effect systems)</li>
-<li>❌ <strong>Lazy evaluation couples computation order to memory management</strong>: Space leaks occur when evaluation strategy couples to resource usage</li>
-<li>❌ <strong>Global type class instances couple</strong>: Orphan instances create action-at-a-distance coupling</li>
+<li>✅ <strong>No vendor owns the language</strong>: The Haskell 2010 report is a community standard, and GHC — the de facto reference compiler — is open source under a permissive BSD-style licence</li>
+<li>✅ <strong>Native-code targets</strong>: GHC emits native executables for Linux, macOS, and Windows, so no virtual machine must be installed on the target host</li>
+<li>✅ <strong>Free, redistributable toolchain</strong>: GHC, Cabal, and Stack are open source and freely redistributable, with no vendor licence gate</li>
+<li>✅ <strong>Open package distribution</strong>: Hackage and Stackage index open-source packages under open licences, so dependencies are not gated by a vendor registry</li>
 </ul>
-<p><strong>Trade-offs (not coupling):</strong></p>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
 <li><strong>Performance vs.&nbsp;Abstraction</strong>: Lazy evaluation optimizes for composability but couples performance to evaluation strategy</li>
 <li><strong>Purity vs.&nbsp;Practicality</strong>: IO monad is all-or-nothing—can’t separate different IO types without mtl/effect systems</li>
@@ -1072,252 +1096,644 @@ div.csl-indent {
 <li><strong>Laziness vs.&nbsp;Predictability</strong>: Space/time behavior depends on evaluation order, creating hidden coupling</li>
 <li><strong>Monad Transformer Order</strong>: <code>ReaderT (StateT (ExceptT ...))</code> ≠ <code>StateT (ReaderT (ExceptT ...))</code>, order matters</li>
 </ul>
-<p><strong>Core Coupling Score: 80/100</strong></p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>95</td>
-<td>Parametric polymorphism, type classes</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>90</td>
-<td>Pure functions, explicit effects</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>85</td>
-<td>ADTs, smart constructors</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>85</td>
-<td>Either/Maybe, but partial functions exist</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>90</td>
-<td>STM, immutability</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>70</td>
-<td>Steep learning curve, IO feels awkward</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Verdict:</strong> Haskell’s type system detects and prevents coupling at compile time. Pure functions, explicit effects, and immutability make coupling visible and preventable. Main weaknesses: IO monad is too coarse-grained, lazy evaluation creates non-obvious coupling, monad transformers stack coupling.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 65/100</p>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>⚠️ <strong>Lazy evaluation couples performance to evaluation strategy</strong>: Space/time behavior is non-obvious, creating coupling between logic and performance</li>
 <li>⚠️ <strong>GC pauses unpredictable</strong>: Non-deterministic pauses couple timing-sensitive code to runtime behavior</li>
 <li>✅ <strong>Immutability enables parallelism</strong>: No data races, can parallelize without coupling to synchronization</li>
 <li>❌ <strong>Thunk accumulation</strong>: Space leaks couple memory usage to evaluation order</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 75/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>✅ <strong>Cabal/Stack standardized</strong>: Build system is consistent</li>
 <li>⚠️ <strong>Package ecosystem smaller than mainstream</strong>: Library availability couples to niche community</li>
 <li>✅ <strong>GHC is excellent</strong>: Compiler quality decouples from platform-specific quirks</li>
 <li>❌ <strong>Dependency hell with base library versions</strong>: Breaking changes couple code to GHC version</li>
 </ul>
-<p><strong>Language Evolution:</strong> 70/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>✅ <strong>GHC extensions allow gradual adoption</strong>: Can opt into new features without breaking existing code</li>
 <li>⚠️ <strong>Extensions create fragmentation</strong>: Different codebases use different language subsets</li>
 <li>✅ <strong>Haskell 2010 standard stable</strong>: Core language doesn’t break compatibility</li>
 <li>❌ <strong>Extension proliferation</strong>: Code couples to specific GHC versions and extension combinations</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 70/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for parsers, compilers, DSLs</strong>: Type system supports these domains naturally</li>
 <li>⚠️ <strong>Struggles with I/O-heavy, stateful systems</strong>: IO monad creates friction for imperative domains</li>
 <li>❌ <strong>Poor for systems programming</strong>: GC, unpredictable performance couples to domain requirements</li>
 <li>✅ <strong>Strong for financial, formal verification</strong>: Correctness guarantees match domain needs</li>
 </ul>
-<p><strong>Learning Curve:</strong> 50/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>❌ <strong>Very steep</strong>: Monads, functors, type classes couple productivity to deep expertise</li>
 <li>❌ <strong>Lazy evaluation surprises</strong>: Space leaks require expertise to debug</li>
 <li>✅ <strong>Excellent documentation</strong>: Books, tutorials decouple learning from trial-and-error</li>
 <li>⚠️ <strong>Multiple ways to do things</strong>: mtl vs.&nbsp;transformers vs.&nbsp;effect systems couple to architectural choices</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 75/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>✅ <strong>Concise, expressive</strong>: Minimal boilerplate</li>
 <li>⚠️ <strong>Type signatures can be verbose</strong>: <code>:: Monad m =&gt; (a -&gt; m b) -&gt; ...</code> couples readability to type system knowledge</li>
 <li>✅ <strong>Function composition natural</strong>: <code>f . g . h</code> decouples steps</li>
 <li>❌ <strong>Operator overload</strong>: Custom operators (<code>&lt;$&gt;</code>, <code>&lt;*&gt;</code>, <code>&gt;&gt;=</code>) couple readability to library knowledge</li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 70/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>QuickCheck property testing</strong>: Built-in support for generative testing</li>
 <li>✅ <strong>Pure functions easy to test</strong>: No setup/teardown coupling</li>
 <li>❌ <strong>Debugging lazy code hard</strong>: Stack traces don’t show evaluation order</li>
 <li>⚠️ <strong>GHCi debugger limited</strong>: Couples debugging to printf-style techniques</li>
 </ul>
-<p><strong>Security:</strong> 90/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>✅ <strong>Memory safe</strong>: GC prevents use-after-free, buffer overflows</li>
 <li>✅ <strong>Type safety prevents many bugs</strong>: Can’t mix incompatible types</li>
 <li>✅ <strong>Immutability prevents mutation bugs</strong>: No race conditions on shared state</li>
 <li>⚠️ <strong>Timing attacks possible</strong>: Lazy evaluation can leak information through timing</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 56/100</strong></p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Er3</code></td>
 <td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 80/100</strong> — total points removed = 20 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>R2</code></td>
 <td>GC pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Evolution</strong></td>
 <td><code>V1</code></td>
 <td>breaking changes</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Evolution subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
-<td><strong>Learning</strong></td>
-<td><code>L1</code></td>
-<td>steep</td>
-<td style="text-align: right;">8</td>
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>L2</code></td>
 <td>large surface/multi-paradigm</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
 <tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>G2</code></td>
 <td>poor debugging</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 56/100</strong> — total points removed = 44 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Haskell’s type system detects and prevents coupling at compile time. Pure functions, explicit effects, and immutability make coupling visible and preventable. Main weaknesses: IO monad is too coarse-grained, lazy evaluation creates non-obvious coupling, monad transformers stack coupling.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1328,6 +1744,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

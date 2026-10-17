@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1023,10 +1026,15 @@ div.csl-indent {
 
 
 <p><em>Analysis against Go 1.26 (February 2026). Generics have been stable since 1.18 (March 2022) — over 4 years of production use. Go 1.24 added generic type aliases; Go 1.26 adds further generic and runtime improvements.</em></p>
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="goSpec"><a href="#ref-goSpec" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Go in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 58/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Implicit interfaces radical decoupling</strong>: No declaration of implementation, duck typing at compile time</li>
 <li>✅ <strong>Composition over inheritance</strong>: No inheritance, only struct embedding</li>
@@ -1035,14 +1043,21 @@ div.csl-indent {
 <li>✅ <strong>Range-over-func (1.23)</strong>: Custom iteration patterns via <code>iter.Seq[T]</code> decouple iteration protocol from data structure</li>
 <li>⚠️ <strong>No higher-kinded types</strong>: Generics are first-order type parameters only</li>
 <li>✅ <strong><code>min</code>/<code>max</code>/<code>clear</code> builtins (1.21)</strong>: Built-in operations eliminate unnecessary function coupling</li>
+<li>❌ <strong>Nil everywhere</strong>: <code>nil</code> pointers, nil interfaces couple code to nil checks (no sum types to replace nil)</li>
+<li>⚠️ <strong>Interfaces can be nil with non-nil value</strong>: (nil, *T) couples interface semantics</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>✅ <strong>Zero values make sense</strong>: Default initialization doesn’t couple to constructors</li>
 <li>✅ <strong>Constructors are conventions</strong>: <code>NewX()</code> functions, not special syntax</li>
 <li>⚠️ <strong>Can couple to package-level state</strong>: <code>init()</code> functions run at import</li>
+<li>❌ <strong>Global package state</strong>: Package-level variables couple to initialization order</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>Garbage collection decouples memory</strong>: Concurrent mark-sweep GC with sub-millisecond pause targets</li>
 <li>✅ <strong>No manual memory management</strong>: Can’t have use-after-free</li>
@@ -1051,15 +1066,20 @@ div.csl-indent {
 <li>⚠️ <strong>Defer couples cleanup to function exit</strong>: Not immediate, but predictable</li>
 <li>✅ <strong>Simple memory model</strong>: No complex ownership rules</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>✅ <strong>Explicit error returns</strong>: <code>func foo() (Result, error)</code> makes errors visible</li>
 <li>❌ <strong>No error composition</strong>: Can’t map/flatMap errors natively</li>
 <li>❌ <strong>if err != nil boilerplate</strong>: Error handling doesn’t compose</li>
 <li>⚠️ <strong>Panic exists but rare</strong>: Explicit, but not in type system</li>
 <li>⚠️ <strong><code>errors.Join</code> (1.20)</strong>: Can combine multiple errors, improving composition slightly</li>
+<li>❌ <strong>Error handling doesn’t compose</strong>: Repetitive if err != nil; generics enable Result types but not idiomatic</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>✅ <strong>Goroutines separate concurrency</strong>: Lightweight, easy to spawn</li>
 <li>✅ <strong>Channels separate communication</strong>: Message passing decouples</li>
@@ -1067,65 +1087,31 @@ div.csl-indent {
 <li>✅ <strong>Structured logging (slog, 1.21)</strong>: Decouples logging concerns from application logic</li>
 <li>⚠️ <strong>Can share memory</strong>: Mutexes allow traditional coupling, but discouraged</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
-<ul>
-<li>❌ <strong>Nil everywhere</strong>: <code>nil</code> pointers, nil interfaces couple code to nil checks (no sum types to replace nil)</li>
-<li>❌ <strong>Global package state</strong>: Package-level variables couple to initialization order</li>
-<li>❌ <strong>Error handling doesn’t compose</strong>: Repetitive if err != nil; generics enable Result types but not idiomatic</li>
-<li>⚠️ <strong>Interfaces can be nil with non-nil value</strong>: (nil, *T) couples interface semantics</li>
-</ul>
-<p><strong>Core Coupling Score: 58/100</strong> (Go 1.26 — mature generics, range-over-func, slog)</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 44%">
-<col style="width: 28%">
-<col style="width: 28%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>73</td>
-<td>Implicit interfaces + generics eliminate casts; nil still a problem</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>85</td>
-<td>Composition, small interfaces, generics</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>75</td>
-<td>Zero values, convention-based constructors</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>60</td>
-<td>Explicit but doesn’t compose; errors.Join helps</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>92</td>
-<td>Goroutines, channels excellent</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>92</td>
-<td>Simple, fast compilation, great tooling</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Verdict:</strong> Go’s implicit interfaces provide exceptionally low coupling by decoupling implementation from declaration without explicit <code>implements</code> clauses. Goroutines and channels separate concurrency from shared-memory synchronization. Generics, stable for over three years, eliminate <code>interface{}</code> casts. Range-over-func enables custom iteration without coupling to built-in loop constructs. Main strength: simplicity prevents complex coupling from emerging. Main weakness: nil is still everywhere, error handling does not compose, and the language has no sum types or pattern matching.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 85/100</p>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>Open-source toolchain</strong>: The Go compiler and standard library are BSD-3 licensed and developed in the open</li>
+<li>✅ <strong>Alternative implementations</strong>: gccgo (GCC front end) and TinyGo (microcontrollers, WebAssembly) implement Go independently of the main toolchain</li>
+<li>✅ <strong>Portable binaries</strong>: A Go program builds to a static native binary with no installed runtime or virtual machine</li>
+<li>✅ <strong>Broad cross-compilation</strong>: One toolchain emits Linux, macOS, Windows, and WebAssembly binaries by setting <code>GOOS</code> and <code>GOARCH</code></li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The language is deliberately small</strong>: Exceptions, operator overloading, and pattern matching are left out, so programs are longer and each construct is plain — a scope decision.</li>
+<li><strong>One formatter settles style</strong>: <code>gofmt</code> writes a single canonical layout, trading some expression for a uniform codebase — a tooling convention.</li>
+<li><strong>Tooling ships in the <code>go</code> command</strong>: Formatting, testing, vetting, and documentation come as one package, so the choice of tools is made by the toolchain rather than by the team.</li>
+<li><strong>The Go 1 promise freezes the standard library</strong>: The compatibility guarantee keeps old code building and makes early API decisions permanent — a stability trade.</li>
+<li><strong>The standard library is the framework</strong>: <code>net/http</code> and <code>encoding/json</code> are used directly rather than through a third-party layer, a design choice whose cost is the conveniences such a layer would add.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>✅ <strong>Fast compilation</strong>: Extremely fast builds</li>
 <li>✅ <strong>Fast startup</strong>: No JIT warmup</li>
@@ -1133,7 +1119,9 @@ div.csl-indent {
 <li>✅ <strong>Predictable</strong>: Simple performance model</li>
 <li>✅ <strong>Static binary</strong>: Single executable</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 90/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>✅ <strong>Standard tooling</strong>: go build, go test, go fmt</li>
 <li>✅ <strong>Great stdlib</strong>: Batteries included</li>
@@ -1141,14 +1129,18 @@ div.csl-indent {
 <li>✅ <strong>Growing ecosystem</strong>: Good library availability</li>
 <li>✅ <strong>Cross-compilation</strong>: Easy to build for different platforms</li>
 </ul>
-<p><strong>Language Evolution:</strong> 95/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>✅ <strong>Go 1 compatibility promise</strong>: Extremely stable</li>
 <li>✅ <strong>No breaking changes</strong>: Code from 2012 still compiles</li>
 <li>✅ <strong>Conservative evolution</strong>: Generics took 10 years</li>
 <li>✅ <strong>Predictable</strong>: No surprises</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 85/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for backend services</strong>: Cloud-native standard</li>
 <li>✅ <strong>Great for CLI tools</strong>: Fast startup, single binary</li>
@@ -1156,21 +1148,27 @@ div.csl-indent {
 <li>❌ <strong>Poor for frontend</strong>: Not applicable</li>
 <li>⚠️ <strong>Systems programming</strong>: GC limits use cases</li>
 </ul>
-<p><strong>Learning Curve:</strong> 90/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>✅ <strong>Extremely gentle</strong>: Simple, small language</li>
 <li>✅ <strong>Quick to productivity</strong>: Can be productive in days</li>
 <li>✅ <strong>Excellent docs</strong>: Tour, Effective Go</li>
 <li>✅ <strong>Few concepts</strong>: Generics are additive; core language remains small and learnable</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 75/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>✅ <strong>Simple, readable</strong>: Minimal syntax</li>
 <li>❌ <strong>Verbose error handling</strong>: <code>if err != nil</code> everywhere</li>
 <li>✅ <strong>Opinionated</strong>: gofmt eliminates style debates</li>
 <li>⚠️ <strong>Limited abstraction</strong>: Sometimes too simple</li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 90/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>Built-in testing</strong>: go test standard</li>
 <li>✅ <strong>Benchmarking</strong>: go test -bench</li>
@@ -1178,133 +1176,578 @@ div.csl-indent {
 <li>✅ <strong>Delve debugger</strong>: Good debugging experience</li>
 <li>✅ <strong>Table-driven tests</strong>: Idiomatic, clear</li>
 </ul>
-<p><strong>Security:</strong> 70/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>✅ <strong>Memory safe</strong>: GC prevents memory bugs</li>
 <li>❌ <strong>Nil everywhere</strong>: Panic on nil dereference</li>
 <li>✅ <strong>Type safe</strong>: Static typing</li>
 <li>⚠️ <strong>Error handling</strong>: Easy to ignore errors</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Type subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>K3</code></td>
-<td>manual sync no race detection</td>
-<td style="text-align: right;">8</td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 58/100</strong> — total points removed = 42 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Ec2</code></td>
 <td>fragmented tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
-<td><strong>Domain</strong></td>
-<td><code>D3</code></td>
-<td>framework forces architecture</td>
-<td style="text-align: right;">8</td>
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Go’s implicit interfaces provide exceptionally low coupling by decoupling implementation from declaration without explicit <code>implements</code> clauses. Goroutines and channels separate concurrency from shared-memory synchronization. Generics, stable for over three years, eliminate <code>interface{}</code> casts. Range-over-func enables custom iteration without coupling to built-in loop constructs. Main strength: simplicity prevents complex coupling from emerging. Main weakness: nil is still everywhere, error handling does not compose, and the language has no sum types or pattern matching.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1315,6 +1758,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

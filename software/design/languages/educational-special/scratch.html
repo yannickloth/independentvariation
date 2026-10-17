@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,189 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="scratchDocs"><a href="#ref-scratchDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 55/100</strong> | <strong>Platform &amp; Ecosystem Score: 65/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Scratch uses visual blocks to represent code, decoupling programming syntax from logic so beginners can focus on computational thinking rather than syntax errors. The event-driven model decouples triggers (green flag, key press, message received) from the actions they invoke. Sprites couple behavior to visual objects, making each sprite a self-contained unit. Global variables couple the namespace since all sprites can potentially read and write any variable. Broadcasts couple events globally — any sprite can listen for any broadcast. The absence of types defers all coupling detection to runtime, though the constrained environment limits the damage.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Scratch is excellent for education, designed for children and beginners learning programming concepts. It is a visual programming environment, not a text-based language. It is very limited for real-world applications beyond educational use. Scratch has massive adoption in K-12 education worldwide. The learning curve is effectively zero because the interface is drag-and-drop. It is not used in production environments. Security is provided by the sandboxed runtime environment. Scratch is developed by the MIT Media Lab.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Scratch in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 55/100</strong> · <strong>Ecosystem coupling 65/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>There is no static type check</strong>: a block accepts a value of any kind, and a mismatch appears only when the script runs (T1).</li>
+<li>❌ <strong>No sum types</strong>: an alternative is not a declared type; the script tests a value with an <code>if</code> or a sensing condition (T4).</li>
+<li>❌ <strong>No generics</strong>: a list block is not parameterised by an element type (T5).</li>
+<li>❌ <strong>One flat namespace per project</strong>: every variable and every message name is project-wide, so a name collision is a naming decision rather than a scope decision (T6).</li>
+<li>❌ <strong>No null safety</strong>: a variable that was never set reads as an empty value, and a block that needs a value can run with none (T10).</li>
+<li>❌ <strong>No module boundary</strong>: the project is one program, and a sprite exposes its blocks without a declared interface (T11).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Global mutable state is the default</strong>: a variable created “for all sprites” is writable by every script in the project (C1).</li>
+<li>❌ <strong>No immutability</strong>: a value in a variable can be changed by any script that names it (C2).</li>
+<li>✅ <strong>A sprite is a self-contained unit</strong>: costume, sound, and scripts live together, so one actor’s behaviour is defined in one place.</li>
+<li>✅ <strong>The event model separates the trigger from the action</strong>: the green flag, a key press, a sprite click, or a received message starts a script, and the script does not know who started it.</li>
+<li>✅ <strong>Cloning separates an instance from its definition</strong>: <code>create clone of myself</code> copies a sprite’s scripts at run time, so a repeated actor is written once.</li>
+<li>⚠️ <strong>A custom block is the only abstraction</strong>: <code>define</code> gives a named sequence with inputs, and “run without screen refresh” is the one control over its granularity.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>There is no memory management in the language</strong>: no allocation and no deallocation block exists, and the runtime owns every object.</li>
+<li>✅ <strong>Collection is invisible</strong>: a sprite, a costume, or a clone is reclaimed by the runtime, so a script never names memory.</li>
+<li>✅ <strong>A clone can be deleted explicitly</strong>: <code>delete this clone</code> bounds the number of live actors.</li>
+<li>⚠️ <strong>The clone count is the practical limit</strong>: Scratch caps the number of clones, so a <code>forever</code> loop that clones without a <code>delete</code> reaches the cap rather than exhausting memory.</li>
+<li>⚠️ <strong>The media assets are the project’s footprint</strong>: costumes, backdrops, and sounds dominate the size and the load time of a project.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>There is no structured error path</strong>: no exception and no error value exists, and a failed block simply does not produce the expected effect (Er1).</li>
+<li>❌ <strong>Nothing marks a failed operation</strong>: a block that cannot do what it says leaves the value unchanged or produces a placeholder, and the script continues (Er3).</li>
+<li>❌ <strong>No composable result type</strong>: a block returns one value, and no value can carry the fact that an operation failed (Er4).</li>
+<li>✅ <strong>The stage gives immediate feedback</strong>: an out-of-stage sprite is visibly off-stage, and a sensing block can test for a touch.</li>
+<li>⚠️ <strong>Debugging is by observation</strong>: there is no breakpoint, so the ordinary method is a variable monitor or a <code>say</code> block.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Scripts are concurrent by default</strong>: every hat block in the project runs in parallel, and no script starts or joins another by hand.</li>
+<li>⚠️ <strong>A broadcast is global</strong>: any sprite can listen for any message, so a broadcast couples the sender to every listener in the project.</li>
+<li>✅ <strong>The scheduler is cooperative and single-threaded</strong>: the scripts advance one after another within a frame, so an interleaved update does not arise in the middle of a block.</li>
+<li>✅ <strong>A clone runs its own copy of the script</strong>: <code>when I start as a clone</code> gives each instance an independent thread of control.</li>
+<li>⚠️ <strong>A shared variable is updated by many scripts without a lock</strong>: correctness depends on where each script yields, which the programmer must reason about.</li>
+<li>⚠️ <strong>One frame is the unit of timing</strong>: the green-flag scripts share the frame budget, so the loop rate is the scheduling contract.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>The runtime is the same on every target</strong>: a project runs in the browser player and in the offline editor with the same blocks.</li>
+<li>✅ <strong>The sandbox bounds what a project can do</strong>: a project reaches no file system and no network, so its effect is confined to the runtime.</li>
+<li>✅ <strong>MIT Media Lab maintains the runtime and the community site</strong>: the editor, the player, and the sharing site come from one organisation.</li>
+<li>✅ <strong>The project file is an open document</strong>: a <code>.sb3</code> project is a zip archive of JSON and assets, so a project can be read and converted.</li>
+<li>⚠️ <strong>Cloud variables are a hosted service</strong>: they work only on the Scratch site, so a project that uses them depends on that host.</li>
+<li>⚠️ <strong>An extension changes the runtime’s surface</strong>: the Music, Pen, and video-sensing extensions, and the hardware extensions, add blocks the player must supply.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Visual blocks trade expressiveness for legibility</strong>: the block shape carries the nesting rule, so a syntax error is not expressible — which is the design goal.</li>
+<li><strong>The block vocabulary is deliberately small</strong>: a small instruction set is the pedagogy, not an oversight.</li>
+<li><strong>The actor-based organisation mirrors the stage</strong>: a project is organised by sprite because the program is a scene.</li>
+<li><strong>The educational scope is a scope decision</strong>: the absence of files, network, and performance is the boundary of the design.</li>
+<li><strong>Sharing and remixing are community choices</strong>: the remix model is a policy of the site, not a property of the language.</li>
+<li><strong>Turbo Mode is an optional accelerator</strong>: it removes the frame wait, and the choice is the user’s.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The runtime executes the blocks directly</strong>: the player holds the block scripts and runs them, so there is no build step between the editor and the running project.</li>
+<li>✅ <strong>“Run without screen refresh” removes the frame yield</strong>: a custom block with that option runs to completion inside one frame, so a heavy computation can finish without waiting.</li>
+<li>✅ <strong>Turbo Mode removes the frame wait entirely</strong>: the option runs the project as fast as the runtime allows.</li>
+<li>⚠️ <strong>Animation is capped near the redraw rate</strong>: a loop yields each frame, so smooth motion is limited to the display rate.</li>
+<li>⚠️ <strong>A large script count degrades the frame</strong>: every script shares one frame budget, so the project slows as the script count and the clone count grow.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The ecosystem is the runtime and one community site</strong>: the blocks, the media library, and the sharing site are the whole environment, and there is no general package manager (Ec3).</li>
+<li>✅ <strong>The adoption in education is very large</strong>: the project is used in K-12 classrooms worldwide.</li>
+<li>✅ <strong>A large public project corpus exists</strong>: shared and remixed projects are a huge body of worked examples.</li>
+<li>✅ <strong>The media and sprite libraries are built in</strong>: backdrops, costumes, and sounds ship with the editor.</li>
+<li>⚠️ <strong>Third-party players and add-ons are the extension point</strong>: TurboWarp, Scratch Addons, and the extension gallery live outside the official editor.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>The project format carries a version and a converter</strong>: an older project is converted when it is opened in the current editor.</li>
+<li>✅ <strong>MIT maintains the editor as a product</strong>: the runtime, the editor, and the site receive continuing updates.</li>
+<li>✅ <strong>The offline editor mirrors the online one</strong>: a project runs without a connection to the site.</li>
+<li>⚠️ <strong>A block set can change between editor releases</strong>: a removed or renamed block can leave an older project needing an edit.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>❌ <strong>The domain is one thing: teaching programming to beginners</strong>: the design goal is computational thinking, and everything outside it is out of scope (D1).</li>
+<li>❌ <strong>It is not usable for a production application</strong>: there is no file access, no network, no performance target, and no general library (D2).</li>
+<li>✅ <strong>The classroom fit is exemplary</strong>: drag-and-drop, immediate feedback, and shareable projects match the teaching case.</li>
+<li>✅ <strong>It is the first language in many curricula</strong>: the adoption in schools is the evidence for the fit.</li>
+<li>⚠️ <strong>The move to a text language is the known gap</strong>: a learner must leave Scratch to continue, and the transfer is not automatic.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The curve is effectively zero</strong>: the interface is drag-and-drop, and there is no syntax to learn.</li>
+<li>✅ <strong>The block shape prevents the syntax error</strong>: a block that does not fit cannot be placed.</li>
+<li>✅ <strong>The stage returns immediate feedback</strong>: one click runs the project and shows the result.</li>
+<li>⚠️ <strong>The ceiling is low for a capable learner</strong>: after the core blocks there is little further depth.</li>
+<li>⚠️ <strong>“Run without screen refresh” is the one advanced idea</strong>: a heavy custom block must use it to finish inside a frame.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>The syntax is the block shape</strong>: an invalid nesting is impossible, because the editor accepts only a shape that fits.</li>
+<li>✅ <strong>The expression blocks nest visually</strong>: an operator block occupies an input slot, so the precedence is explicit without parentheses.</li>
+<li>✅ <strong>The blocks are named in the reader’s language</strong>: the editor localises the labels and the variable names.</li>
+<li>⚠️ <strong>A small computation becomes a tall column of blocks</strong>: the notation is compact per block and long per expression.</li>
+<li>⚠️ <strong>There is no text form in the editor</strong>: a script cannot be typed, searched, or diffed as text.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>❌ <strong>There is no test framework</strong>: no assertion and no runner exists, so a test is a manual run (G1).</li>
+<li>❌ <strong>An error appears only when a script runs</strong>: a wrong block is found by executing the project (G3).</li>
+<li>✅ <strong>The stage is a built-in observation harness</strong>: motion, sound, and <code>say</code> show the program state directly.</li>
+<li>✅ <strong>A variable monitor exposes a value on the stage</strong>: any variable can be shown and watched as it changes.</li>
+<li>⚠️ <strong>Verification is by inspection</strong>: the programmer checks the result by watching the project, not by a repeatable check.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>A project runs in a sandbox</strong>: it reaches no file system and no network, so its effect is confined to the runtime.</li>
+<li>✅ <strong>There is no I/O primitive in the block set</strong>: no block opens a file or a socket.</li>
+<li>✅ <strong>The runtime is the same for every project</strong>: a shared project cannot ship a native binary.</li>
+<li>⚠️ <strong>A cloud variable is shared global state</strong>: every player of the project can write it, so a project that trusts it can be misled.</li>
+<li>⚠️ <strong>The community features are moderated, not secured</strong>: the safety of the sharing site is a policy of the site, not a property of the language.</li>
+<li>⚠️ <strong>A third-party player can add an unsafe surface</strong>: an alternative player or an add-on can extend the runtime beyond the sandbox.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,153 +1217,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>T11</code></td>
 <td>no module boundary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Er3</code></td>
-<td>errors ignored/non-exhaustive</td>
-<td style="text-align: right;">4</td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>Er4</code></td>
-<td>no composable result type</td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 55/100</strong> — total points removed = 45 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
-<td><strong>Domain</strong></td>
-<td><code>D1</code></td>
-<td>domain/vendor lock-in</td>
-<td style="text-align: right;">15</td>
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>D2</code></td>
 <td>poor domain fit</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Testing</strong></td>
 <td><code>G1</code></td>
 <td>weak tooling</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>G3</code></td>
-<td>runtime-only errors</td>
-<td style="text-align: right;">4</td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 65/100</strong> — total points removed = 35 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Scratch’s design yields moderate core coupling, and the marks fall where the pedagogy put them. Global variables are the project namespace, a broadcast reaches every sprite, and there is no type check, no structured error path, and no module boundary; the constrained environment keeps the consequence small. The visual block model removes the syntax error entirely, the event model separates a trigger from the action it starts, and a sprite is a self-contained unit. Main strengths: a zero learning curve, an exemplary classroom fit, very large K-12 adoption, and a sandbox that bounds what a project can do. Main weaknesses: it is not usable for a production application, the domain is a single one, the block vocabulary is shallow, and testing is by inspection.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1200,6 +1762,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

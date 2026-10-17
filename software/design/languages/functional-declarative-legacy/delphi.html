@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,145 +1026,738 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="delphiDocs"><a href="#ref-delphiDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 57/100</strong> | <strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Delphi’s unit system cleanly separates interface specifications from their implementations. Properties decouple field access from getter and setter logic. Events decouple GUI interaction from business logic through the observer pattern. Rapid Application Development (RAD) components couple application code to the VCL or FireMonkey framework. Inheritance couples class hierarchies to the single-inheritance tree. Exceptions are unchecked. Raw pointers are available and allow unsafe memory coupling.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Delphi is excellent for Windows desktop applications, though this market is now legacy. RAD capabilities enable rapid UI construction. Adoption is declining. Embarcadero now owns and maintains Delphi. Cross-platform support through FireMonkey is improving but remains secondary. The learning curve is gentle for developers familiar with Pascal. Performance is good because Delphi compiles directly to native code.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Delphi in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 57/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Unit <code>interface</code> sections separate the declaration from the implementation</strong>: a consumer compiles against the <code>interface</code> part of a unit and never sees its <code>implementation</code> part, so either part can change without the consumer being rewritten.</li>
+<li>✅ <strong>Class, record, and interface types are declared and checked at compile time</strong>: a method call, a field access, and an argument are resolved against the declared type, so no name lookup happens at run time.</li>
+<li>✅ <strong>Dotted unit names give a namespace</strong>: <code>System.SysUtils</code>, <code>Vcl.Forms</code>, and the project’s unit scope names qualify every entity, so two units may declare the same identifier without a collision.</li>
+<li>⚠️ <strong>A variant record is a sum type without a checked tag</strong>: a <code>case</code> part in a record lays alternatives over the same storage, but reading the field of the wrong alternative is not diagnosed, so the tag lives in the programmer’s discipline (T4).</li>
+<li>⚠️ <strong>Generics exist but the constraint vocabulary is small</strong>: generic classes and records (<code>TList&lt;T&gt;</code>, <code>TDictionary&lt;TKey, TValue&gt;</code>) have been in the language since Delphi 2009, but a type parameter can be constrained only by a class, a record, a constructor, or an interface, so older library code still passes <code>TObject</code> and <code>TValue</code> (T5).</li>
+<li>⚠️ <strong><code>nil</code> is a value of every class, interface, and pointer type</strong>: there is no non-nullable reference type, so a call through <code>nil</code> is a run-time fault rather than a compile-time error.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>A property separates the name from the accessor</strong>: <code>property Count: Integer read GetCount write SetCount</code> lets a consumer use one name while the class moves between a field and a method without touching the consumer.</li>
+<li>✅ <strong>An event separates the publisher from the subscriber</strong>: <code>property OnClick: TNotifyEvent</code> and anonymous methods let the framework raise a notification without knowing which handler is attached, which is the observer pattern in the language.</li>
+<li>✅ <strong>A <code>class helper</code> extends an existing type from outside it</strong>: a helper adds a method to a class declared in another unit, so an extension does not require editing the type or inheriting it.</li>
+<li>✅ <strong>A constructor is an ordinary method named <code>Create</code></strong>: construction is a call rather than a special form, and <code>Create</code> may be <code>virtual</code>, so a factory returns the right subclass.</li>
+<li>✅ <strong><code>initialization</code> and <code>finalization</code> give a unit a declared start and end</strong>: the start-up and shutdown code of a unit has a named place, so a unit-level resource is not acquired in a random procedure.</li>
+<li>❌ <strong>Mutability is the default</strong>: a field, a global variable, and an ordinary parameter are writable unless the declaration says <code>const</code> or <code>constref</code>, so the default reading of a variable promises nothing about it being unchanged (C2).</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>Nothing ties a release to the end of a block</strong>: an object from <code>Create</code> is released by an explicit <code>.Free</code>, usually inside <code>try/finally</code>, and no destructor runs at scope exit, so cleanup is a written obligation (M3).</li>
+<li>❌ <strong>There is no ownership model</strong>: the compiler does not track which reference owns an instance, so a double <code>.Free</code>, a use after <code>.Free</code>, and a leak are neither diagnosed nor reported (M4).</li>
+<li>⚠️ <strong>Managed types are reference-counted and the rule differs by compiler</strong>: <code>string</code>, dynamic arrays, and interface references release their storage when the last reference goes away, but an object is reference-counted only on the mobile compilers, so the lifetime rule depends on the target (M2).</li>
+<li>⚠️ <strong>An interface reference cycle is never released</strong>: the reference count of a cycle never reaches zero and there is no tracing collector, so the cycle leaks unless a weak reference breaks it.</li>
+<li>✅ <strong><code>TComponent.Owner</code> gives a declared lifetime to a component graph</strong>: a component frees the components it owns when it is freed, so the object graph of a form is released deterministically.</li>
+<li>✅ <strong>A managed record extends scope-tied release to a value type</strong>: <code>Initialize</code>, <code>Finalize</code>, <code>AddRef</code>, and <code>RemoveRef</code> operators let a <code>record</code> run code at the end of the block that holds it (Delphi 10.4 and later).</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Exceptions are unchecked</strong>: <code>raise</code> needs no declaration in the signature and no caller is obliged to handle the exception type, so the failure set of a routine is not part of its interface (Er2).</li>
+<li>✅ <strong><code>except</code> with <code>on E: T do</code> binds the handler to a type</strong>: the handler names the exception class it catches and an unmatched exception propagates, so the recovery region is stated.</li>
+<li>✅ <strong><code>try</code>/<code>finally</code> separates cleanup from recovery</strong>: a <code>finally</code> block runs on both the normal exit and the exceptional one, which is where a release belongs.</li>
+<li>✅ <strong>An exception object carries its own data</strong>: a class derived from <code>Exception</code> can carry context and <code>raise</code> propagates it unchanged, so a caller does not parse a message string.</li>
+<li>⚠️ <strong>A bare <code>except</code> swallows the cause</strong>: an <code>except</code> block without <code>on</code> catches everything, including an access violation, and the recovery code may not know which failure it is covering.</li>
+<li>⚠️ <strong>A memory fault arrives as an exception</strong>: a read through a dangling pointer raises <code>EAccessViolation</code> at the faulting instruction, so an unsafe pointer becomes a run-time error that the program may or may not handle.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>Synchronisation is manual and unchecked</strong>: <code>System.SyncObjs</code> supplies <code>TCriticalSection</code>, <code>TMutex</code>, <code>TSemaphore</code>, <code>TEvent</code>, and <code>TInterlocked</code>, but the compiler does not check the locking discipline or diagnose a race (K3).</li>
+<li>✅ <strong><code>System.Threading</code> gives a task abstraction</strong>: <code>TTask.Run</code>, <code>TParallel.For</code>, and futures carry work across a thread pool, so a parallel loop is stated rather than hand-threaded.</li>
+<li>✅ <strong><code>TThread</code> wraps a thread as an object with a lifetime</strong>: the execution and the termination of a thread belong to one object, and <code>Synchronize</code> and <code>Queue</code> marshal a call back to another thread.</li>
+<li>✅ <strong>A queued call separates a worker from the UI thread</strong>: <code>TThread.Queue</code>, <code>TThread.ForceQueue</code>, and <code>PostMessage</code> deliver work without a shared lock.</li>
+<li>⚠️ <strong>Shared mutable state is the default</strong>: an ordinary field or global variable is reachable from every thread, and the language does not mark which state is confined to one thread.</li>
+<li>⚠️ <strong>The VCL is single-threaded by contract</strong>: the GUI may be touched only from the main thread, and that rule is documented rather than enforced.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>One source targets Windows, macOS, iOS, Android, and Linux</strong>: the Object Pascal front end and the RTL are shared, and only the GUI framework differs between the targets.</li>
+<li>✅ <strong>A second compiler implements the same language</strong>: Free Pascal and Lazarus compile Object Pascal in a Delphi-compatible mode (<code>{$MODE DELPHI}</code>), so a program is not bound to one vendor’s binary alone.</li>
+<li>✅ <strong>The RTL is usable without the GUI framework</strong>: a console or service program links the runtime alone, so a non-GUI program does not depend on a windowing framework.</li>
+<li>⚠️ <strong>FireMonkey is the cross-platform GUI path and it is second to the VCL</strong>: the component sets and the visual behaviour of the two frameworks differ, so a GUI program depends on the one it was written for.</li>
+<li>⚠️ <strong>A program that calls the Windows API is bound to Windows</strong>: the <code>Windows</code> unit, COM, and the registry are used beside the RTL, and that part of the program is not portable.</li>
+<li>⚠️ <strong>The compiler and the IDE are one vendor’s licensed product</strong>: the direction of the language follows that vendor, even though a compatible open compiler exists.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The VCL/FireMonkey choice is a GUI decision</strong>: a RAD component couples the program to the framework it was dropped onto, and the alternative is to build the user interface against the raw platform.</li>
+<li><strong>Single inheritance is a deliberate simplification</strong>: the language gives interface types for the shared-behaviour case and keeps the class tree one level deep.</li>
+<li><strong>The RAD model trades control for speed of construction</strong>: a designer-saved form and a live object graph are why the framework owns the lifetime of the components.</li>
+<li><strong><code>nil</code> is a convenience as much as a hazard</strong>: an unset reference has a natural empty value, and the discipline of an <code>assigned</code> check is the programmer’s.</li>
+<li><strong>Pointer arithmetic is opt-in in practice</strong>: <code>Pointer</code>, <code>GetMem</code>, and <code>System.Move</code> exist for the low-level case, and ordinary code need not use them.</li>
+<li><strong>The language is an Object Pascal dialect, not Pascal</strong>: the dialect follows from the RAD requirement, and the compatibility with Turbo Pascal is historical.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The compiler emits native machine code</strong>: <code>dcc32</code> and <code>dcc64</code> produce an executable directly, so no interpreter or JIT sits between the source and the CPU.</li>
+<li>✅ <strong>A desktop release does not scan the heap</strong>: with reference-counted strings, dynamic arrays, and interfaces, the runtime has no tracing collector, so there is no collection pause to plan around.</li>
+<li>✅ <strong><code>inline</code>, <code>const</code> parameters, and record passing control cost at the declaration</strong>: the call convention is stated beside the routine rather than inferred from its use.</li>
+<li>⚠️ <strong>The classic optimiser is modest beside a modern back end</strong>: the vendor compiler does not apply the cross-module inlining and vectorisation that Clang or LLVM at <code>-O2</code> applies, so a numerical kernel is usually delegated to a library.</li>
+<li>⚠️ <strong>An interface call is an indirect call</strong>: dispatch through an interface adds an indirection the compiler cannot resolve across units.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The library pool is small and centered on the vendor’s own packages</strong>: a project draws on <code>GetIt</code>, the bundled RTL/VCL/FireMonkey, and a small third-party set, so a missing library is often written in-house (Ec3).</li>
+<li>✅ <strong>The IDE is a complete tool</strong>: editor, visual designer, debugger, profiler, and refactoring sit in one product, with no plugin assembly required.</li>
+<li>✅ <strong><code>GetIt</code> and open source cover the common needs</strong>: the IDE’s package channel, and community projects such as <code>DUnitX</code>, <code>Spring4D</code>, and ORM and JSON libraries, supply the usual layer.</li>
+<li>✅ <strong>The vendor documentation is a reference work</strong>: the DocWiki holds an entry per type and per routine of the language, the RTL, and the VCL.</li>
+<li>⚠️ <strong>The platform is one vendor’s commercial product</strong>: the compiler, the IDE, and the frameworks are maintained by Embarcadero, so support and direction are commercial decisions.</li>
+<li>⚠️ <strong>Adoption is declining and the community is concentrated</strong>: the hiring pool and the library pool shrink with the Windows desktop market, and the active community is organized around a few sites.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>Annual releases add features with a published changelog</strong>: each <code>12.x</code> release records its language and RTL additions in the release notes.</li>
+<li>✅ <strong>Backward compatibility is long-lived</strong>: Turbo Pascal-era source mostly still compiles with warnings, so a codebase is rarely rewritten for the toolchain alone.</li>
+<li>✅ <strong>A deprecation is reported with a replacement</strong>: the compiler warns on a deprecated routine and names its successor, so a migration is guided.</li>
+<li>⚠️ <strong>The roadmap is one vendor’s</strong>: a needed language feature waits for the vendor’s release decision, and the community cannot change the language.</li>
+<li>⚠️ <strong>A program that uses the VCL cannot leave Windows</strong>: the framework choice fixes the platform, and the cross-platform path is a separate framework.</li>
+<li>⚠️ <strong>A project is often pinned to an older IDE</strong>: the compiler version becomes part of the codebase, and an upgrade is a project of its own.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Windows desktop line-of-business software is the native target</strong>: a database front end, a form, and a grid are the idiom the framework is built for.</li>
+<li>✅ <strong>Rapid UI construction is a documented strength</strong>: the visual designer, the data-aware components (<code>TDataSet</code>, <code>TDataSource</code>), and live bindings make a screen quick to build.</li>
+<li>✅ <strong>A cross-platform client is supported through FireMonkey</strong>: one source produces a Windows, macOS, iOS, and Android client, although that path is secondary to the VCL.</li>
+<li>✅ <strong>Native Windows integration is direct</strong>: the <code>Windows</code> unit, COM, and the registry are reachable from the same code as the language.</li>
+<li>⚠️ <strong>The market the language fits best is now a legacy market</strong>: new Windows desktop development is a smaller share than web and service development.</li>
+<li>⚠️ <strong>The fit outside a GUI application is thin</strong>: a service, a web back end, or an embedded program is written against the RTL alone, with little framework support.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>The curve is gentle for a Pascal or C-family developer</strong>: <code>begin</code>/<code>end</code>, a single-pass declaration order, and readable identifiers make the language quick to read.</li>
+<li>✅ <strong>The IDE teaches the framework interactively</strong>: dropping a component and reading the generated code is the standard on-ramp.</li>
+<li>✅ <strong>A reader sees each name’s type at hand</strong>: <code>var</code>, <code>const</code>, and <code>type</code> sections and typed parameters put the declaration beside its use.</li>
+<li>⚠️ <strong>The framework is a second subject beyond the language</strong>: the VCL/FireMonkey object model, the streaming of a form (<code>.dfm</code>), and the RTTI layer are knowledge the language does not imply.</li>
+<li>⚠️ <strong>The Windows mental model is required for real work</strong>: the message loop, handles, threads, and COM are needed as soon as the program touches the system.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Keywords delimit blocks and the statements read as English</strong>: <code>if ... then ... else</code>, <code>for ... do</code>, <code>while ... do</code>, and <code>begin</code>/<code>end</code>.</li>
+<li>✅ <strong>Identifiers are case-insensitive and the layout is free</strong>: the compiler ignores case, and the IDE’s formatter keeps the source uniform across a team.</li>
+<li>⚠️ <strong>The language is verbose</strong>: each declaration opens a <code>var</code>, <code>const</code>, or <code>type</code> section, and a unit needs an <code>interface</code>, an <code>implementation</code>, and a closing <code>end.</code> even for a few statements (S1).</li>
+<li>⚠️ <strong><code>try</code> and <code>begin</code> pairs nest into an <code>end</code> ladder</strong>: an ordinary routine with two <code>try/finally</code> blocks ends in a run of <code>end;</code> lines.</li>
+<li>⚠️ <strong>Attributes and compiler directives share the bracket notation</strong>: <code>[Weak]</code>, <code>{$IFDEF}</code>, and <code>{$WARN}</code> mix the language and the compiler controls in the same text.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>A test framework ships with the toolchain</strong>: <code>DUnitX</code>, and the older <code>DUnit</code>, provide fixtures, attributes, and assertions, and the IDE runs the suite.</li>
+<li>✅ <strong>The debugger steps through a test and shows the fault</strong>: the IDE debugger shows the call stack, the locals, and the thread state at the failure.</li>
+<li>✅ <strong><code>Assert</code> is in the RTL</strong>: <code>Assert(cond)</code> raises <code>EAssertionFailed</code> when assertions are enabled, so a precondition is stated in the code.</li>
+<li>⚠️ <strong>The checks that would catch a fault are off by default</strong>: range and overflow checking (<code>{$R+}</code>, <code>{$Q+}</code>) must be enabled per project, so an out-of-bounds index in a release build is undefined.</li>
+<li>⚠️ <strong>Assertions are compiled out of a release build</strong>: <code>{$ASSERTIONS OFF}</code> removes them, so their guarantee is a debug-time one.</li>
+<li>⚠️ <strong>Debugging is the vendor’s IDE’s</strong>: a command-line debug session is not the standard workflow, so a headless build server runs tests without the interactive state.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>⚠️ <strong>Memory safety is not guaranteed</strong>: <code>Pointer</code>, <code>GetMem</code>/<code>FreeMem</code>, <code>System.Move</code>, and <code>PChar</code> arithmetic are available, and nothing marks the part of a program that uses them.</li>
+<li>✅ <strong>Managed types carry their length and are checked when range checking is on</strong>: <code>{$R+}</code> makes an out-of-range index raise <code>ERangeError</code>, and a string or a dynamic array knows its own length.</li>
+<li>✅ <strong>There is no dynamic evaluation of source text</strong>: the language has no <code>eval</code> that compiles a string, and reflection reaches only published members through the RTTI, so an injection path needs the program to build the call itself.</li>
+<li>⚠️ <strong>The language offers no sandbox and no capability model</strong>: a program runs with the authority of the process, and the mitigations (DEP, ASLR, control-flow guard) are linker and loader options.</li>
+<li>⚠️ <strong>A raw pointer bypasses every check</strong>: in the part of a program that uses <code>GetMem</code> and <code>Move</code>, the type system is not in the path, and the safety of the code is the author’s claim.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
-<td><code>T4</code></td>
-<td>no sum types</td>
-<td style="text-align: right;">4</td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T5</code></td>
-<td>no generics</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M2</code></td>
-<td>GC non-deterministic pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 57/100</strong> — total points removed = 43 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Syntax</strong></td>
 <td><code>S1</code></td>
 <td>verbose</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Syntax subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Delphi’s design yields a middling core score, because its separating constructs sit beside its coupling ones. The <code>interface</code> section of a unit, a property, an event, and an interface type each decouple a consumer from an implementation, while the single-inheritance tree is the one hierarchy the language imposes. Main strengths: native compilation, a gentle Pascal-derived syntax, and a mature IDE and framework for Windows desktop work. Main weaknesses: exceptions are unchecked, a release is written rather than tied to scope, references are nilable with no ownership check, and the platform is one vendor’s commercial product in a declining market.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1170,6 +1768,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,127 +1026,735 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="dLangSpec"><a href="#ref-dLangSpec" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 61/100</strong> | <strong>Platform &amp; Ecosystem Score: 92/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> D is a systems language designed as a successor to C++, offering optional garbage collection alongside manual memory management. Its templates are more readable than C++ templates, avoiding the notorious angle-bracket verbosity. D’s module system decouples compilation units more cleanly than C++ headers, eliminating the need for include guards. UFCS (Universal Function Call Syntax) allows method-call syntax on any type without requiring the method to be defined inside the type, decoupling syntax from definition site. Contract programming with <code>in</code>, <code>out</code>, and <code>invariant</code> blocks separates preconditions, postconditions, and invariants from implementation logic. The <code>@safe</code>, <code>@trusted</code>, and <code>@system</code> attributes separate memory-safety guarantees at the function level. CTFE (Compile-Time Function Execution) decouples metaprogramming from runtime overhead by allowing arbitrary functions to execute during compilation. BetterC mode supports embedded and no-GC environments. D supports multiple paradigms: imperative, object-oriented, functional, and metaprogramming.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> D follows a design philosophy summarized as “Better C++”: it provides C++-level performance and low-level control while simplifying the language with cleaner templates, a proper module system, no preprocessor, and both garbage collected and manual memory management options. Its ecosystem is smaller than Rust or C++ and its adoption remains niche rather than mainstream. Performance is excellent because D compiles to native code; the reference compiler <code>dmd</code> uses its own Digital-Mars backend, while the alternative compilers <code>ldc</code> (LLVM) and <code>gdc</code> (GCC) provide LLVM- and GCC-based backends. BetterC mode targets embedded systems and no-garbage-collection environments. The learning curve is moderate for developers familiar with C++. Tooling is improving, with dub as the standard package manager. The syntax is cleaner than C++ while providing similar expressive power. D is a good fit for game development, and the vibe.d framework supports web development. Corporate backing is weak, and the community is small but dedicated.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses D in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 61/100</strong> · <strong>Ecosystem coupling 92/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Static typing with inference</strong>: <code>auto</code>, template argument deduction, and <code>typeof</code> infer most declarations, so the type is fixed at compile time without being written at every site.</li>
+<li>✅ <strong>Templates avoid the angle-bracket problem</strong>: instantiation uses the <code>!</code> syntax (<code>foo!int</code>, <code>foo!(int, string)</code>) with <code>if (isInputRange!R)</code> constraints, so generic code carries none of C++’s nested <code>&lt;&gt;</code> noise.</li>
+<li>✅ <strong>Modules are the compilation boundary</strong>: a module is declared with <code>module</code> in one source file and consumed with <code>import</code>, so there are no headers and no include guards tying a declaration to a textual include order.</li>
+<li>✅ <strong>UFCS decouples call syntax from the definition site</strong>: <code>x.f(y)</code> is rewritten to <code>f(x, y)</code>, so a free function composes into a method-call chain without being a member of the type.</li>
+<li>✅ <strong><code>immutable</code> and <code>const</code> are transitive</strong>: a qualifier reaches through pointers and members, so a read-only view is stated once rather than per access.</li>
+<li>⚠️ <strong>Operator overloading is not visible in cost</strong>: <code>opBinary</code>, <code>opCmp</code>, <code>opIndex</code>, and <code>opAssign</code> let a type redefine <code>+</code>, <code>&lt;</code>, <code>[]</code>, and <code>=</code>, so a dense expression can hide work the call site does not show (T8).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>Structs are constructed in place</strong>: <code>struct</code> is a value type, so a local, a field, or an array element is constructed where it is declared without a heap allocation.</li>
+<li>✅ <strong>Contract programming separates the specification from the body</strong>: <code>in</code>, <code>out</code>, and <code>invariant</code> blocks state preconditions, postconditions, and class invariants as separate declarations, so a check is not buried in the implementation.</li>
+<li>✅ <strong><code>scope</code> guards attach cleanup to the construction site</strong>: <code>scope(exit)</code>, <code>scope(success)</code>, and <code>scope(failure)</code> run at block exit beside the code that acquired the resource.</li>
+<li>✅ <strong><code>@disable this()</code> forbids an illegal construction</strong>: a type can delete a constructor, so an object cannot be built by calling <code>new</code>.</li>
+<li>⚠️ <strong>Mutability is the default</strong>: a variable is mutable unless it is declared <code>immutable</code> or <code>const</code>, so immutability is opt-in rather than the default reading of a declaration (C2).</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>Garbage collection pauses are non-deterministic</strong>: the default <code>new</code> path allocates on the collector’s heap, and a collection runs on the collector’s schedule rather than the program’s (M2).</li>
+<li>⚠️ <strong>RAII is partial</strong>: struct destructors (<code>~this</code>) and <code>scope(exit)</code> release a value type deterministically, but a <code>class</code> instance is collected, so its destructor has no defined run time (M3).</li>
+<li>❌ <strong>No ownership or lifetime checking</strong>: the compiler does not track which reference owns an allocation, so a dangling pointer or a double release in <code>@system</code> code is not diagnosed (M4).</li>
+<li>✅ <strong><code>@nogc</code> removes the collector from a call tree</strong>: a <code>@nogc</code> function may not allocate through the GC, so its pauses are excluded at compile time.</li>
+<li>✅ <strong><code>-betterC</code> excludes the runtime entirely</strong>: the program links without druntime or the collector, which is what the embedded and no-GC case needs.</li>
+<li>✅ <strong><code>destroy</code> releases a value at a chosen point</strong>: <code>destroy(x)</code> runs the destructor and resets the value, giving an explicit release where the collector would otherwise decide.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Unchecked exceptions are the only error channel</strong>: <code>throw</code> needs no declaration in the signature and the compiler does not check that a handler exists; <code>nothrow</code> is an opt-in promise (Er2).</li>
+<li>✅ <strong><code>nothrow</code> names the functions that cannot fail</strong>: a <code>nothrow</code> function may not throw, so the property is checked at the declaration.</li>
+<li>✅ <strong><code>scope(failure)</code> separates the recovery path from the normal path</strong>: cleanup written there runs only when the block leaves by an exception.</li>
+<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> is the standard shape</strong>: a <code>catch</code> clause names the type it handles, and <code>finally</code> runs on every exit.</li>
+<li>⚠️ <strong>Contracts and assertions disappear under <code>-release</code></strong>: <code>in</code>, <code>out</code>, and <code>assert</code> are compiled out in a release build, so their guarantee is a debug-time one.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>The <code>shared</code> qualifier makes cross-thread state visible</strong>: data declared <code>shared</code> cannot be read or written through an ordinary reference, so the cast that crosses a thread boundary is the place the synchronisation is declared.</li>
+<li>✅ <strong><code>std.concurrency</code> gives message passing</strong>: <code>spawn</code> starts a thread with its own message queue, and <code>send</code>/<code>receive</code> pass values between threads without a shared lock.</li>
+<li>✅ <strong><code>std.parallelism</code> gives structured parallel loops</strong>: <code>parallel</code> and <code>taskPool</code> map a loop body over a range, so the common data-parallel case is stated rather than hand-threaded.</li>
+<li>✅ <strong>Atomic primitives are in the standard library</strong>: <code>core.atomic</code> provides <code>atomicOp</code>, <code>cas</code>, and <code>atomicLoad</code>, so a lock-free update has a named primitive.</li>
+<li>❌ <strong>Synchronisation is manual and unchecked</strong>: <code>synchronized</code>, <code>Mutex</code>, and <code>core.atomic</code> are the only tools, and the compiler does not prove the locking discipline or detect a race (K3).</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>Three independent compilers target the same language</strong>: <code>dmd</code> uses its own Digital Mars backend, <code>ldc</code> uses LLVM, and <code>gdc</code> uses the GCC backend, so a program is not bound to one vendor’s toolchain.</li>
+<li>✅ <strong>Native code is produced for many targets</strong>: Linux, Windows, macOS, and the BSDs on x86, x86-64, ARM, and AArch64 are supported targets.</li>
+<li>✅ <strong>C and C++ interoperability is a language feature</strong>: <code>extern(C)</code>, <code>extern(C++)</code>, and the <code>importC</code> compiler feature let a D module call existing C and C++ binaries without a binding generator.</li>
+<li>✅ <strong><code>-betterC</code> removes the runtime dependency</strong>: a BetterC program links like a C program, without druntime or a GC.</li>
+<li>✅ <strong>The C preprocessor is not part of the language</strong>: there is no textual include and no macro layer above the module system.</li>
+<li>⚠️ <strong>The three compilers advance at different rates</strong>: <code>ldc</code> and <code>gdc</code> follow <code>dmd</code>’s front end with a lag, so a version-specific feature may not be available on every compiler at once.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Better C++ is a target, not a guarantee</strong>: porting C++ to D is a rewrite with its own cost, and the two languages interoperate at the ABI rather than at the source.</li>
+<li><strong>GC or manual memory is a per-program choice</strong>: <code>-betterC</code> and <code>@nogc</code> buy determinism at the cost of the collector’s convenience.</li>
+<li><strong>Compile-time execution is a deliberate shift of work</strong>: CTFE, <code>static if</code>, and string mixins move computation to the build, so it is not a runtime mechanism at all.</li>
+<li><strong>Multiple paradigms widen the surface</strong>: imperative, object-oriented, functional, and metaprogramming styles are all supported, and the choice is the programmer’s.</li>
+<li><strong>Niche adoption is a market fact, not a language defect</strong>: the smaller library pool follows from adoption, not from a construction of the language.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>Native compilation with no interpreter</strong>: <code>dmd</code>, <code>ldc</code>, and <code>gdc</code> emit machine code, so there is no bytecode dispatch or JIT warm-up between the source and the CPU.</li>
+<li>✅ <strong><code>ldc</code> and <code>gdc</code> reuse mature optimisers</strong>: the LLVM and GCC backends apply the optimisation pipeline that compiles C and C++.</li>
+<li>✅ <strong>CTFE moves work to compile time</strong>: <code>static if</code>, <code>mixin</code>, and template instantiation are evaluated by the compiler, so the runtime pays nothing for them.</li>
+<li>✅ <strong><code>@nogc</code> bounds the runtime cost of a call tree</strong>: a function that cannot allocate has no collector interaction at all.</li>
+<li>⚠️ <strong>The collector remains a latency risk</strong>: throughput is good, but a collection can still lengthen a pause in code that allocates, so a latency-sensitive path needs <code>@nogc</code>.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The library pool is small</strong>: <code>dub</code>’s package registry is far smaller than crates.io, npm, or Maven, so a project is more likely to write a library than to find one (Ec3).</li>
+<li>✅ <strong><code>dub</code> is a standard package manager and build tool</strong>: <code>dub.json</code> or <code>dub.sdl</code> declares dependencies and targets, and <code>dub build</code>, <code>dub run</code>, and <code>dub test</code> cover the ordinary workflow.</li>
+<li>✅ <strong>The C and C++ ecosystems are reachable</strong>: <code>extern(C)</code>, <code>extern(C++)</code>, and <code>importC</code> reduce the need for a D-specific binding.</li>
+<li>✅ <strong><code>vibe.d</code> supports web services</strong>: an asynchronous I/O framework covers HTTP and socket work on the D runtime.</li>
+<li>⚠️ <strong>Corporate backing is weak</strong>: the language is carried by its contributors rather than by a large vendor, so long-term support is the community’s.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>A deprecation cycle precedes a removal</strong>: a feature is deprecated for a release series before it is removed, and the changelog records both steps.</li>
+<li>✅ <strong><code>-preview</code> flags gate changes to the front end</strong>: a new language behaviour ships behind a flag first, so a change can be tested before it becomes the default.</li>
+<li>✅ <strong>The DIP process documents proposals publicly</strong>: the D Improvement Proposal repository holds the rationale for a language change.</li>
+<li>⚠️ <strong>Removals do happen</strong>: the changelog records deprecated features that were later dropped, so older source can need an edit at a major front-end step.</li>
+<li>⚠️ <strong>Front-end versions differ across the three compilers</strong>: a change fixed in <code>dmd</code> reaches <code>ldc</code> and <code>gdc</code> later, so a project can be pinned to one compiler for a period.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Systems and performance work is the design target</strong>: native code, value types, and direct C interop are the native idiom.</li>
+<li>✅ <strong>Game development is a stated fit</strong>: the GC can be excluded, structs stay in place, and templates specialise per case, which is what a game loop needs.</li>
+<li>✅ <strong>Embedded and no-runtime work is supported by <code>-betterC</code></strong>: the program links without druntime, so it fits a bare-metal or constrained target.</li>
+<li>✅ <strong>Web services are supported by <code>vibe.d</code></strong>: the framework covers asynchronous HTTP on the same runtime.</li>
+<li>⚠️ <strong>The collector is the wrong model for hard real-time</strong>: a latency bound requires <code>@nogc</code> or BetterC throughout the allocating path.</li>
+<li>⚠️ <strong>D is rarely the default choice in any of these domains</strong>: the fits are real, but the surrounding library and hiring pool is smaller.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>Moderate for an experienced C++ developer</strong>: templates, RAII-style cleanup, and value types have direct C++ analogues.</li>
+<li>✅ <strong>Templates are easier to read than C++ templates</strong>: the <code>!</code> instantiation syntax and <code>if</code> constraints remove the ambiguity of nested angle brackets.</li>
+<li>✅ <strong>Contract programming is a small notation</strong>: <code>in</code>, <code>out</code>, and <code>invariant</code> are a few keywords over the ordinary function body.</li>
+<li>⚠️ <strong>The metaprogramming surface is large</strong>: templates, <code>static if</code>, CTFE, traits, and string mixins each have their own rules.</li>
+<li>⚠️ <strong>The memory model is two models at once</strong>: a developer must know which allocations are collected and which are not, and <code>@nogc</code> makes the distinction a compile-time obligation.</li>
+<li>⚠️ <strong>Four paradigms are available at once</strong>: imperative, object-oriented, functional, and metaprogramming styles widen the surface a newcomer must choose from.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Cleaner than C++ for similar expressive power</strong>: a module is one file, there is no header text, and there is no preprocessor.</li>
+<li>✅ <strong><code>!</code> makes template instantiation unambiguous</strong>: <code>foo!int</code> cannot be confused with a comparison, which is C++’s parsing problem.</li>
+<li>✅ <strong><code>auto</code> removes a declaration without hiding the type</strong>: the type is inferred and still checked at compile time.</li>
+<li>✅ <strong><code>scope(exit)</code> is a compact cleanup notation</strong>: one line states the release that other languages spell as a <code>try</code>/<code>finally</code>.</li>
+<li>⚠️ <strong>Attributes accumulate on a signature</strong>: <code>@safe @nogc @property nothrow pure</code> and their variants stack up, and the combination is part of the contract.</li>
+<li>⚠️ <strong>String mixins hide the generated code</strong>: <code>mixin("...")</code> inserts source the reader cannot see in the file’s order.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>unittest</code> blocks are part of the language</strong>: a <code>unittest { ... }</code> block sits beside the code it tests, and it is compiled in when the <code>-unittest</code> flag is passed.</li>
+<li>✅ <strong><code>dub test</code> runs the blocks</strong>: the package manager builds and runs the test configuration.</li>
+<li>✅ <strong>Contracts are executable invariants</strong>: <code>in</code>, <code>out</code>, and <code>invariant</code> checks fail with a trace when a precondition is broken.</li>
+<li>✅ <strong>Coverage is built in</strong>: <code>dmd -cov</code> writes a per-line coverage report from a normal run.</li>
+<li>⚠️ <strong>Tests are compiled only with <code>-unittest</code></strong>: a release build carries no test code, so the test set is a build configuration rather than a language guarantee.</li>
+<li>⚠️ <strong>The test library is third-party</strong>: fixture, mocking, and property-test helpers come from packages such as <code>unit-threaded</code> rather than from the standard library.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong><code>@safe</code> is checked by the compiler</strong>: <code>@safe</code> code may not do pointer arithmetic, lose a type through a cast, or call <code>@system</code> code, so the unsafe operations are the ones that were declared.</li>
+<li>✅ <strong>Bounds checking is kept where it is required</strong>: an array or a slice carries its length, and <code>@safe</code> code retains the index check.</li>
+<li>✅ <strong>Variables are initialised by default</strong>: a variable starts at its <code>.init</code> value, so the uninitialised-read class of bug does not arise as it does in C.</li>
+<li>⚠️ <strong><code>@trusted</code> and <code>cast</code> are the escape hatch</strong>: a <code>@trusted</code> function or a pointer cast re-opens the unsafe surface, and its correctness is the author’s claim.</li>
+<li>⚠️ <strong>The collector and the runtime are part of the attack surface</strong>: a bug in druntime or the collector is reachable from a <code>@safe</code> program.</li>
+<li>⚠️ <strong><code>-release</code> removes the contract checks</strong>: assertions and contracts are compiled out, so a release build relies on the checks that <code>@safe</code> keeps.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
-<td><code>C2</code></td>
-<td>no immutability by default</td>
-<td style="text-align: right;">4</td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
-<td><code>Er2</code></td>
-<td>unchecked exceptions only</td>
-<td style="text-align: right;">8</td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
-<td><code>K3</code></td>
-<td>manual sync no race detection</td>
-<td style="text-align: right;">8</td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 61/100</strong> — total points removed = 39 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 92/100</strong> — total points removed = 8 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> D’s design yields moderate language-imposed coupling for a language of its reach. The module system replaces headers, UFCS separates call syntax from definition, and contract blocks separate the specification from the body. Predicates such as <code>@safe</code>, <code>@nogc</code>, and <code>nothrow</code> turn several memory and error properties into declared and checked facts. Main strengths: compile-time execution removes metaprogramming from the runtime, three independent compilers keep the toolchain from locking in, and <code>-betterC</code> reaches the embedded case. Main weaknesses: unchecked exceptions are the only error channel, the collector’s pauses are not deterministic, no ownership model detects aliasing, and the ecosystem stays niche with weak corporate backing.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1152,6 +1765,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

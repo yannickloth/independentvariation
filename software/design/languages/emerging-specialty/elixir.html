@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,19 +1026,195 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="elixirDocs"><a href="#ref-elixirDocs" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 69/100</strong> | <strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Erlang’s BEAM virtual machine with a modern, Ruby-inspired syntax. Macros via metaprogramming enable compile-time code generation, decoupling syntax from semantics. Protocols decouple polymorphism from types in the style of Clojure. The pipe operator <code>|&gt;</code> decouples data flow by passing results through a chain of transformations. Pattern matching is exhaustive and replaces if/else chains. All data is immutable by default. OTP supervision trees decouple error recovery from business logic. Phoenix LiveView, a server-rendered reactive UI framework, decouples frontend interactivity from JavaScript. Main weakness: dynamic typing, though Dialyzer provides static type checking and an effort is underway to add gradual set-theoretic types to the language.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> The growing ecosystem includes Phoenix for web applications, Nerves for embedded systems, Livebook for interactive notebooks, and Hex.pm for package management. Mix is the standard build tool, and ElixirLS provides language server support for IDEs. Elixir excels at real-time web applications through Phoenix Channels (real-time messaging) and LiveView (server-rendered reactive UIs). The learning curve is moderate; Ruby-like syntax lowers the barrier compared to Erlang. Nerves enables deploying Elixir to embedded devices. The BEAM VM provides a rock-solid foundation with decades of proven reliability. Documentation culture is excellent and the community is welcoming and actively growing.</p>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Elixir in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 69/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>Dynamic typing</strong>: a term carries its type at run time, so <code>Map.get/2</code> on a list fails only when the call executes (T1).</li>
+<li>❌ <strong>No declared types on functions</strong>: a <code>def</code> head names patterns, not types, and the language has no type parameter or generic (T5).</li>
+<li>❌ <strong>No sum types in the type system</strong>: alternatives are tagged tuples such as <code>{:ok, value}</code> and <code>{:error, reason}</code>, checked by pattern matching rather than by a type (T4).</li>
+<li>❌ <strong>Dispatch is by run-time shape</strong>: a protocol or a pattern chooses a clause from the value it receives, so no static check selects the branch (T3).</li>
+<li>✅ <strong><code>@spec</code> and Dialyzer give optional static analysis</strong>: a success-typing pass detects a call whose arguments contradict the specification.</li>
+<li>⚠️ <strong>Gradual set-theoretic types are being added</strong>: the work is in progress, so the language is dynamic today.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>Every value is immutable</strong>: a term cannot be changed in place, so construction never aliases mutable state.</li>
+<li>✅ <strong><code>defstruct</code> declares the record shape</strong>: <code>%User{name: "Ada"}</code> builds a struct, and an unknown key is a compile-time error.</li>
+<li>✅ <strong><code>@enforce_keys</code> validates at construction</strong>: a struct with required keys cannot be built without them.</li>
+<li>✅ <strong>The pipe operator decouples data flow from nesting</strong>: <code>data |&gt; parse() |&gt; validate()</code> reads left to right as a chain of transformations.</li>
+<li>✅ <strong>Processes hold state, not objects</strong>: a <code>GenServer</code> keeps its state inside its own process, and a caller reaches it by message.</li>
+<li>⚠️ <strong><code>Agent</code>, <code>ETS</code>, and <code>:persistent_term</code> hold mutable state by design</strong>: they are deliberate concurrency tools, not object state.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>BEAM collection is non-deterministic</strong>: a process collects its heap when it grows, so the program does not choose the moment (M2).</li>
+<li>✅ <strong>Each process has a private heap</strong>: a collection pause is per-process and short, and there is no global stop-the-world collection.</li>
+<li>✅ <strong>No manual deallocation</strong>: the VM reclaims memory, and a program never frees a term.</li>
+<li>✅ <strong>Large binaries live off-heap and are reference counted</strong>: a binary above the heap-binary threshold is shared between processes rather than copied.</li>
+<li>⚠️ <strong>A large live set costs more to collect</strong>: a long-lived <code>GenServer</code> that accumulates state pays a higher collection cost.</li>
+<li>⚠️ <strong>An ETS table lives outside the collector</strong>: the table persists until its owner deletes it or dies.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Exceptions are unchecked</strong>: <code>raise</code> and <code>throw</code> appear in no signature, so a caller cannot read the failure set from the type (Er2).</li>
+<li>✅ <strong>“Let it crash” plus supervision decouples recovery from business logic</strong>: a <code>Supervisor</code> restarts a failed child, so the recovery path is not interleaved with the normal path.</li>
+<li>✅ <strong>Tagged tuples are the idiom for an expected failure</strong>: <code>{:ok, value}</code> and <code>{:error, reason}</code> keep the failure inside the returned value.</li>
+<li>✅ <strong><code>with</code> composes a chain of expected results</strong>: each <code>&lt;-</code> clause fails through to the <code>else</code> branch without nesting.</li>
+<li>✅ <strong>Links and monitors make propagation explicit</strong>: <code>spawn_link</code> and <code>Process.monitor</code> define which process observes a failure.</li>
+<li>⚠️ <strong>The tagged-tuple convention is not a type</strong>: nothing forces a caller to match the <code>:error</code> case, so the discipline is social.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Processes are the unit of concurrency</strong>: a BEAM process shares no memory and communicates by message, so a race between processes cannot occur.</li>
+<li>✅ <strong>The BEAM schedules preemptively</strong>: a long computation is reduced and rescheduled, so one process cannot block a scheduler.</li>
+<li>✅ <strong>OTP gives structured, supervised concurrency</strong>: <code>Task</code>, <code>Task.Supervisor</code>, <code>GenServer</code>, and <code>Supervisor</code> are library primitives over the process model.</li>
+<li>✅ <strong>Immutability removes locks from the model</strong>: a message carries a value, and the receiver holds its own copy of the terms.</li>
+<li>✅ <strong><code>Task.async</code> and <code>Task.await</code> pair a spawn with a result</strong>: the caller collects results without a hand-written join.</li>
+<li>⚠️ <strong>A slow consumer accumulates messages</strong>: an unbounded mailbox grows until the process is restarted.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>The BEAM is the only requirement</strong>: Elixir code runs on any platform that runs an Erlang VM.</li>
+<li>✅ <strong>Erlang interop is direct</strong>: Elixir calls Erlang modules and libraries without a binding layer.</li>
+<li>✅ <strong>Releases bundle the runtime</strong>: <code>mix release</code> packages the BEAM, the application, and its dependencies into one deployable.</li>
+<li>✅ <strong>Nerves keeps the same model on embedded devices</strong>: the build produces a firmware image, and the runtime model is unchanged.</li>
+<li>⚠️ <strong>The runtime is not a native binary</strong>: a release carries the VM, so the artefact is larger than a compiled C program.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Dynamic typing is a deliberate trade</strong>: it buys the flexibility of pattern matching and hot code loading at the cost of static checking.</li>
+<li><strong>Ruby-like syntax is a familiarity choice</strong>: it lowers the barrier for developers from a scripting background.</li>
+<li><strong>LiveView keeps the UI state on the server</strong>: this is a deliberate architectural choice that removes client JavaScript, not a language mechanism.</li>
+<li><strong>Nerves adds an embedded build layer</strong>: the added layer is scope, not coupling.</li>
+<li><strong>Macros are a metaprogramming power</strong>: a macro rewrites code at compile time, and that power carries the usual hygiene discipline.</li>
+<li><strong>The BEAM is a virtual machine, not an operating system</strong>: the runtime boundary is scope, not a coupling defect.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The BEAM is a mature bytecode VM with a JIT</strong>: BeamAsm, added in OTP 24, compiles hot code, so bytecode is not always interpreted.</li>
+<li>✅ <strong>Excellent for I/O-bound workloads</strong>: hundreds of thousands of processes can wait on I/O without one thread each.</li>
+<li>✅ <strong>Per-process collection avoids global pauses</strong>: a collection affects one process, not the whole system.</li>
+<li>✅ <strong>Reduction-based scheduling keeps latency even</strong>: no process starves another for long.</li>
+<li>⚠️ <strong>Weaker for CPU-bound computation</strong>: the BEAM trails native-compiled languages on a tight numeric loop.</li>
+<li>⚠️ <strong>A NIF runs on a scheduler thread</strong>: a long-running native function can block other processes on the same scheduler.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>✅ <strong>Hex.pm is a mature registry and <code>mix</code> is the build tool</strong>: dependency resolution, build tasks, and release packaging come from one toolchain.</li>
+<li>✅ <strong>Phoenix, Ecto, and LiveView cover web applications end to end</strong>: routing, database access, and server-rendered UI are provided by one family.</li>
+<li>✅ <strong>Erlang libraries are usable through interop</strong>: the OTP libraries arrive with the runtime.</li>
+<li>✅ <strong>Livebook gives executable notebooks</strong>: interactive exploration and live documentation are part of the ecosystem.</li>
+<li>❌ <strong>The ecosystem is a monoculture around Phoenix and OTP</strong>: one framework family dominates, so alternatives are few (Ec6).</li>
+<li>⚠️ <strong>The library count is smaller than the JVM or npm</strong>: fewer general-purpose packages exist.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong><code>mix.exs</code> pins an Elixir requirement</strong>: a project states the version range it needs, and <code>mix</code> enforces it.</li>
+<li>✅ <strong>The BEAM is stable across decades</strong>: code written years ago continues to run.</li>
+<li>✅ <strong>Deprecations warn before removal</strong>: the compiler emits a deprecation warning ahead of a change.</li>
+<li>✅ <strong><code>mix format</code> settles style across the ecosystem</strong>: one formatter removes style drift.</li>
+<li>⚠️ <strong>A hot upgrade needs a state migration callback</strong>: <code>code_change/3</code> must convert old state to the new shape, so an upgrade is a design task.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for real-time web</strong>: Phoenix Channels push over WebSockets, and LiveView renders on the server.</li>
+<li>✅ <strong>Excellent fit for distributed, fault-tolerant systems</strong>: OTP supervision and the distribution protocol cover process and node failure.</li>
+<li>✅ <strong>Nerves deploys to embedded devices</strong>: the same runtime runs on a device image.</li>
+<li>✅ <strong>Back-pressure pipelines are a supported domain</strong>: <code>GenStage</code> and <code>Broadway</code> build pipeline stages over processes.</li>
+<li>⚠️ <strong>Not aimed at CPU-bound numerics</strong>: the BEAM is not designed for tight numerical loops.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>Ruby-like syntax lowers the barrier</strong>: developers from Ruby or another scripting language recognise the form.</li>
+<li>✅ <strong>The documentation culture is excellent</strong>: HexDocs, guides, and doctests sit with the code.</li>
+<li>✅ <strong>The community is welcoming and growing</strong>: questions are answered and the ecosystem keeps expanding.</li>
+<li>⚠️ <strong>The surface is large</strong>: the language, the OTP behaviours, macros, and the process model must all be learned (L2).</li>
+<li>⚠️ <strong>Macros and <code>quote</code>/<code>unquote</code> are hard</strong>: metaprogramming is powerful and easy to misuse.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Ruby-inspired syntax is readable</strong>: the <code>do</code>/<code>end</code> block form and the keyword style read naturally.</li>
+<li>✅ <strong>The pipe operator reads as data flow</strong>: <code>|&gt;</code> threads a value through a chain of calls.</li>
+<li>✅ <strong>Pattern matching replaces nested conditionals</strong>: a multi-clause function is a case analysis.</li>
+<li>✅ <strong>Structs and maps have literal syntax</strong>: <code>%User{name: "Ada"}</code> and <code>%{key: value}</code> build data directly.</li>
+<li>⚠️ <strong>Macros can hide the code they generate</strong>: a DSL built with macros is opaque without the expansion.</li>
+<li>⚠️ <strong>The pipe passes the first argument</strong>: an awkward argument order forces a wrapper function.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>ExUnit ships with the language</strong>: <code>mix test</code> runs the suite with structured assertions and tagged tests.</li>
+<li>✅ <strong>Doctests run the examples in documentation</strong>: an <code>iex&gt;</code> example in <code>@doc</code> is executed as a test.</li>
+<li>✅ <strong>Property-based testing is available</strong>: <code>StreamData</code> generates inputs from a property.</li>
+<li>✅ <strong><code>mix test --trace</code> and coverage reporting are built in</strong>: test order and line coverage are visible without extra tooling.</li>
+<li>❌ <strong>Errors surface at run time</strong>: dynamic typing defers a type mistake to the executed path (G3).</li>
+<li>⚠️ <strong>Testing concurrent code needs process-aware assertions</strong>: a test must wait for a message or a process state, so timing is a factor.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>Immutable data removes a class of shared-state faults</strong>: no two processes share a mutable value.</li>
+<li>✅ <strong>Process isolation contains a fault</strong>: a crashed process does not corrupt another process’s heap.</li>
+<li>✅ <strong>Pattern matching makes an unexpected shape fail loudly</strong>: a bad message raises a <code>FunctionClauseError</code> rather than corrupting state.</li>
+<li>⚠️ <strong><code>String.to_atom/1</code> on untrusted input can exhaust the atom table</strong>: atoms are not collected, so untrusted conversion is a denial-of-service risk.</li>
+<li>⚠️ <strong><code>Code.eval_string/1</code> executes arbitrary code</strong>: dynamic evaluation must be kept away from untrusted input.</li>
+<li>⚠️ <strong>A NIF and a <code>Port</code> reach unsafe code</strong>: native code can break the BEAM’s safety guarantees.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1042,111 +1223,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>T3</code></td>
-<td>dynamic/duck dispatch</td>
-<td style="text-align: right;">8</td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M2</code></td>
-<td>GC non-deterministic pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 69/100</strong> — total points removed = 31 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Ec6</code></td>
 <td>monoculture</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>L2</code></td>
 <td>large surface/multi-paradigm</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
-<td><strong>Testing</strong></td>
-<td><code>G3</code></td>
-<td>runtime-only errors</td>
-<td style="text-align: right;">4</td>
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Elixir’s design yields moderate language-imposed coupling. Immutable terms, the process model, and OTP supervision remove shared-memory races, turn failure into a supervision event, and keep state inside a process instead of in shared objects. Main strengths: the pipe operator and pattern matching decouple data flow and case analysis, the BEAM supports code loading without stopping the system, and the runtime is proven by decades of fault-tolerant operation. Main weaknesses: the language is dynamically typed, so a type fault surfaces at run time; exceptions are unchecked; collection is non-deterministic; and the ecosystem is a monoculture around Phoenix and OTP.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1157,6 +1768,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

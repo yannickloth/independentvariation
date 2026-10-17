@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,121 +1026,739 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="ocamlMan"><a href="#ref-ocamlMan" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 72/100</strong> | <strong>Platform &amp; Ecosystem Score: 84/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> OCaml’s module system, with functors (parameterized modules) and signatures (module interfaces), provides one of the most powerful abstraction mechanisms in any language. Variant types (sum types) make case distinctions explicit and checked by the compiler. Pattern matching is exhaustive, ensuring no case is overlooked. Data is immutable by default. Objects are optional and their use can violate coupling when inheritance replaces composition. First-class modules allow modules to be treated as values, enabling dynamic module selection and composition — a uniquely powerful abstraction.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> OCaml excels at building compilers, static analyzers, and financial systems. Performance is good because the language is compiled ahead-of-time to native code. The ecosystem is smaller than Haskell or Rust but growing. Tooling is excellent with Merlin for IDE support and dune for builds. The learning curve is moderate; OCaml is generally considered easier to learn than Haskell. The syntax can be terse but is consistent. OCaml 5 adds native support for parallelism and algebraic effects.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses OCaml in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 72/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Variant types declare a checked case distinction</strong>: <code>type shape = Circle of float | Square of float</code> is a closed sum, and the compiler checks that a <code>match</code> covers every constructor.</li>
+<li>✅ <strong>Types are static and inferred</strong>: the Hindley–Milner algorithm gives a principal type without annotations, and no value is untyped.</li>
+<li>✅ <strong>A signature hides a type behind an interface</strong>: a <code>.mli</code> file can export <code>type t</code> as abstract, so a consumer binds to the operations and not to the representation.</li>
+<li>✅ <strong>A functor makes a type a parameter</strong>: <code>Set.Make(String)</code> builds a set module for a given ordered type, so one algorithm is reused across types without run-time dispatch.</li>
+<li>⚠️ <strong>Operators are rebound in scope rather than overloaded (T8)</strong>: <code>+</code> is <code>int</code> addition and <code>+.</code> is <code>float</code> addition, and a module-qualified form such as <code>Int64.(a + b)</code> or a local <code>let (+) = ...</code> changes which operator is in scope, so the reader must track the binding.</li>
+<li>⚠️ <strong>The object layer is a second type system</strong>: classes and row-polymorphic object types sit beside the core types, so a codebase can mix two paradigms.</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Mutable state is the natural default container for shared data (C2)</strong>: the idiomatic way to hold module state is a <code>ref</code> cell, an <code>Array</code>, or a <code>Hashtbl</code>, each mutable, so any caller of the interface can change what the module holds.</li>
+<li>✅ <strong>A variant constructor is the only way to build a value of the type</strong>: <code>Node (l, x, r)</code> names the construction path, so every construction is visible in the type declaration.</li>
+<li>✅ <strong>A record literal states every field</strong>: <code>{ x = 1.; y = 2. }</code> must be complete unless <code>with</code> is used, so a field cannot be left unset silently.</li>
+<li>✅ <strong>A signature can hide the constructor of an abstract type</strong>: with <code>type t</code> abstract and <code>val create : unit -&gt; t</code>, construction goes through the module, so the invariant holds by construction.</li>
+<li>✅ <strong>A <code>let</code> binding evaluates its right-hand side once</strong>: <code>let x = expensive ()</code> evaluates at that point, and the result is a value rather than a re-evaluable expression.</li>
+<li>⚠️ <strong>A <code>mutable</code> field relaxes the invariant</strong>: a record field declared <code>mutable</code> can be assigned at any time, so an invariant over the record is maintained by the code rather than by the type.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>Collection is automatic with no manual free</strong>: the collector reclaims an unreachable block, and a program never calls <code>free</code>.</li>
+<li>❌ <strong>There is no RAII (M3)</strong>: there is no scope-bound destructor, so a file descriptor, a <code>Unix.file_descr</code>, or another non-memory handle is released by an explicit call or a bracket such as <code>Fun.protect</code>.</li>
+<li>❌ <strong>There is no ownership model (M4)</strong>: no static lifetime or aliasing rule ties a value to an owner, so a mutable structure that escapes its module is shared without a trace.</li>
+<li>✅ <strong><code>Fun.protect</code> brackets a resource</strong>: <code>Fun.protect ~finally:close body</code> runs the release on the normal path and on the exceptional path, so the release need not be repeated at every exit.</li>
+<li>⚠️ <strong>The major heap is measured and tuned by hand</strong>: <code>Gc.set</code> and <code>Gc.stat</code> control and report <code>space_overhead</code> and the major cycle, so a latency-sensitive program reads collector statistics itself.</li>
+<li>⚠️ <strong>C stubs and <code>Marshal</code> sit outside the collector’s view</strong>: a value held in a C global must be registered with <code>caml_register_generational_global_root</code>, and <code>Marshal.from_string</code> builds a value the collector then owns, so the boundary is the programmer’s to manage.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>Exceptions are unchecked (Er2)</strong>: <code>raise</code>, <code>Exception</code>, and <code>Not_found</code> are not declared in the type of a function, so a caller cannot see the failure set from a signature.</li>
+<li>✅ <strong><code>result</code> is a composable value</strong>: <code>('a, 'b) result</code> is <code>Ok of 'a | Error of 'b</code>, and <code>Result.map</code>, <code>Result.bind</code>, and <code>Result.fold</code> chain operations without a <code>match</code> at every step.</li>
+<li>✅ <strong>A variant closes the failure set</strong>: <code>type error = Not_found | Permission_denied</code> makes the cases finite, so a <code>match</code> over the failure is checked for exhaustiveness.</li>
+<li>✅ <strong><code>try ... with</code> separates the abnormal path</strong>: a handler can match an exception constructor such as <code>Sys_error _ | Unix.Unix_error _</code> and re-raise cheaply with <code>raise_notrace</code>.</li>
+<li>✅ <strong><code>Option</code> carries an absence without an exception</strong>: <code>Some x</code> and <code>None</code> give a missing result a value, and <code>Option.map</code> and <code>Option.get</code> compose it.</li>
+<li>⚠️ <strong>A wildcard handler hides a fault</strong>: <code>try f () with _ -&gt; default</code> catches every exception, including <code>Out_of_memory</code> and an unintended bug, so the cause disappears.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>OCaml 5 runs OCaml code on several cores</strong>: <code>Domain.spawn</code> starts a second domain, so the global runtime lock that serialised all code in earlier versions no longer applies.</li>
+<li>✅ <strong>Effects express a scheduler in the language</strong>: an effect handler such as <code>Effect.Deep.try_with</code> or <code>Effect.Shallow</code> defines what an effect does, so a concurrency library is ordinary OCaml.</li>
+<li>✅ <strong><code>Eio</code> supplies structured concurrency</strong>: <code>Eio_main.run</code> gives a scheduler with fibers, cancellation, and capability-scoped resources, so a program names a scope rather than a thread.</li>
+<li>✅ <strong><code>Atomic</code>, <code>Mutex</code>, and <code>Condition</code> are primitives of the runtime</strong>: a shared cell of type <code>'a Atomic.t</code> has defined operations, and <code>Mutex.lock</code> guards a critical section.</li>
+<li>✅ <strong>A channel passes values between domains</strong>: <code>Domainslib.Chan</code> with <code>Domain.spawn</code> gives a message-passing design instead of a shared one.</li>
+<li>⚠️ <strong>A library written for one domain must be revisited</strong>: code that relied on the single runtime’s atomicity now shares state across domains, so the migration is a review rather than a recompile.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>The native compiler emits machine code for many targets</strong>: <code>ocamlopt</code> produces a native executable for x86-64, ARM64, RISC-V, and Power, and <code>ocamlc</code> produces bytecode wherever the virtual machine runs.</li>
+<li>✅ <strong>A C stub reaches any system library</strong>: an <code>external</code> declaration plus a small C stub links a C library, so the language’s reach follows the reach of C.</li>
+<li>✅ <strong>MirageOS links an OCaml program into a unikernel</strong>: a set of modules builds a freestanding image, so the target needs no operating-system process.</li>
+<li>✅ <strong>The JavaScript backends target the browser</strong>: <code>js_of_ocaml</code> compiles bytecode to JavaScript, and <code>Melange</code> compiles OCaml to JavaScript modules.</li>
+<li>⚠️ <strong>The foreign-function interface is manual</strong>: an <code>external</code> declaration and its C stub must be kept in step by hand, so the boundary carries the correctness burden of both sides.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>The object layer is opt-in</strong>: classes and objects are separate from the module system, so a project can ignore them entirely.</li>
+<li><strong>Inheritance instead of a functor is a design decision</strong>: using class inheritance where a functor would do is a choice the language permits and does not require.</li>
+<li><strong>Terse syntax is a stated preference</strong>: <code>let f x = x + 1</code> and the <code>;;</code> toplevel separator are stylistic, and the adjustment period is not a forced dependency.</li>
+<li><strong>Persistent structures trade space for sharing</strong>: a version-keeping data structure retains the older versions, which is a space cost rather than a coupling mechanism.</li>
+<li><strong>Interface files are a convention</strong>: a project can omit the <code>.mli</code> file, and the abstraction benefit follows from the discipline rather than from the language.</li>
+<li><strong>Effect handlers are opt-in</strong>: a program can ignore effects and write plain code, so the paradigm adds no dependency unless it is used.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong><code>ocamlopt</code> compiles ahead of time to native code</strong>: there is no interpreter and no warm-up, so a program starts at full speed.</li>
+<li>✅ <strong>The core type system erases at compile time</strong>: an abstract type and a generic function carry no run-time dispatch, so the abstraction costs nothing to execute.</li>
+<li>✅ <strong>A functor is specialised at compile time</strong>: <code>Set.Make(String)</code> produces a module whose calls are direct, so the reuse costs no dynamic dispatch.</li>
+<li>✅ <strong>An unboxed representation is available per declaration</strong>: an all-float record and an <code>[@@unboxed]</code> declaration avoid a heap indirection, so a numeric structure can be dense.</li>
+<li>⚠️ <strong>A mixed record boxes its <code>float</code> field</strong>: <code>type t = { n : int; x : float }</code> stores <code>x</code> in a box, and only an all-float record or an annotation removes it, so the representation is a per-declaration detail.</li>
+<li>⚠️ <strong>Allocation rate drives the collection schedule</strong>: a high allocation rate fills the minor heap often, and the program cannot schedule that collection itself.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>The library ecosystem is small next to Haskell or Rust (Ec3)</strong>: fewer general-purpose packages exist, so some work starts from a blank module.</li>
+<li>✅ <strong><code>opam</code> is a mature package manager</strong>: <code>opam</code> resolves versions, pins a package to a revision, and keeps per-project switches, and the opam repository index is curated.</li>
+<li>✅ <strong><code>dune</code> builds, tests, and documents a project</strong>: one file describes a library, an executable, and a test, so no external build system is needed.</li>
+<li>✅ <strong><code>merlin</code> and <code>ocaml-lsp</code> give editor support</strong>: type-directed completion, jump-to-definition, and error reporting are available in Emacs, VS Code, and others.</li>
+<li>✅ <strong>Substantial systems are written in it</strong>: the Rocq (Coq) proof assistant, the Frama-C analyzer, Jane Street’s trading systems, and the Tezos blockchain are OCaml codebases.</li>
+<li>⚠️ <strong>A niche language means fewer answers</strong>: the community is smaller, so a team depends on the members it can find.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>OCaml 5 keeps the single-domain case working</strong>: a program that ran on 4.x recompiles on 5.x, and the multicore runtime is the same source language.</li>
+<li>✅ <strong>Version changes have been additive in practice</strong>: the core syntax and the standard library have stayed stable across decades.</li>
+<li>✅ <strong>A switch pins a compiler version per project</strong>: <code>opam switch</code> keeps an old compiler and a new one side by side, so a project upgrades on its own schedule.</li>
+<li>✅ <strong>The multicore change has a migration path</strong>: code that used <code>Threads</code> can move to <code>Domain</code> and a scheduler library such as <code>Eio</code>, with <code>Domainslib</code> bridging the two.</li>
+<li>⚠️ <strong>A single-domain library needs a review for OCaml 5</strong>: a global mutable structure that was safe under one runtime becomes shared state when several domains run.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for compilers and static analysis</strong>: algebraic data types, pattern matching, and a module system match a syntax tree and a typed pass directly, and the OCaml compiler itself is written in OCaml.</li>
+<li>✅ <strong>Proven in proof assistants and verification</strong>: Rocq (Coq) and Frama-C are OCaml programs, and their term representations are OCaml variants.</li>
+<li>✅ <strong>Proven in finance</strong>: Jane Street’s trading systems are OCaml, and the language is used for typed, low-latency systems.</li>
+<li>✅ <strong>A strong fit for parsers and interpreters</strong>: <code>menhir</code> generates a parser, and a variant-based abstract syntax tree keeps the grammar’s cases explicit.</li>
+<li>⚠️ <strong>Numeric and tensor work needs a library</strong>: dense array and tensor programming depends on a package such as <code>Owl</code> or on a C binding, not on the core language.</li>
+<li>⚠️ <strong>The object layer is rarely the right tool</strong>: most OCaml code uses modules and variants, and the object system is a separate, optional design.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>❌ <strong>The abstraction layer is steep even when the syntax is not (L1)</strong>: a newcomer learns inference, the module and functor system, and pattern matching together, although the language is generally considered easier to approach than Haskell.</li>
+<li>✅ <strong>Inference removes annotation work</strong>: <code>let rec fact n = if n = 0 then 1 else n * fact (n - 1)</code> is accepted without a type written by hand.</li>
+<li>✅ <strong>The error messages point at the mismatch</strong>: the compiler prints the inferred type and the conflicting type, and Merlin shows the type under the cursor.</li>
+<li>❌ <strong>The module language is a second language</strong>: functors, signatures, and <code>module type of</code> are a topic of their own beyond the expression language.</li>
+<li>⚠️ <strong>Reading an inferred signature is a skill</strong>: <code>val f : ('a -&gt; 'b) -&gt; 'a list -&gt; 'b list</code> must be read fluently before an interface is easy to write.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong><code>let</code>, <code>match</code>, and <code>type</code> share one shape</strong>: a binding, a case analysis, and a declaration all need no braces, and the toplevel ends a phrase with <code>;;</code>.</li>
+<li>✅ <strong>Pattern matching is written as data</strong>: <code>match xs with [] -&gt; 0 | x :: _ -&gt; x</code> states the cases directly.</li>
+<li>✅ <strong>The keyword set is small and consistent</strong>: the same <code>|</code>-case form serves a variant declaration, a <code>match</code>, and an exception handler.</li>
+<li>✅ <strong>Terse for the type information it carries</strong>: one line declares a record, and inference fills in the annotations.</li>
+<li>⚠️ <strong>Integer and float operators differ by a character</strong>: <code>+</code> is not <code>+.</code>, and <code>=</code> is structural while <code>==</code> is physical, so a sign or a repetition changes the meaning.</li>
+<li>⚠️ <strong>Extensions extend the notation</strong>: <code>let*</code> binding operators, ppx rewrites, and <code>[@@deriving]</code> attributes are not core syntax, so a reader must know which extensions a file uses.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong>A test framework lives in the package repository</strong>: <code>alcotest</code> and <code>ounit2</code> provide assertions and runners, and <code>dune runtest</code> runs the suite.</li>
+<li>✅ <strong>Inline and expect tests sit beside the code</strong>: <code>let%test</code> and <code>let%expect_test</code> (ppx_inline_test and ppx_expect) keep the expected output in the source and diff it on a run.</li>
+<li>✅ <strong>The type checker catches faults before a test does</strong>: an exhaustiveness check reports a missing <code>match</code> case at compile time, which removes a whole class of test.</li>
+<li>✅ <strong><code>bisect_ppx</code> measures coverage</strong>: an instrumented build reports which points were executed.</li>
+<li>⚠️ <strong>A hand-written module is the usual stand-in</strong>: there is no dynamic mocking of a module, so a seam must be a functor parameter or a signature.</li>
+<li>⚠️ <strong>An effectful path needs its handler installed</strong>: a test of a scheduler runs the effect handler, which is a different setup from a test of plain code.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong>Memory safety is the default</strong>: the collector and the type system prevent use-after-free, and an out-of-range <code>a.(i)</code> raises <code>Invalid_argument</code> instead of reading adjacent memory.</li>
+<li>✅ <strong>A signature hides the representation</strong>: with <code>type t</code> abstract in the <code>.mli</code>, a consumer can neither forge a value nor read its internals.</li>
+<li>✅ <strong>A typed function cannot receive a value of another type</strong>: a value that reaches a typed parameter is of that type, so a string cannot become a program structure at that boundary.</li>
+<li>✅ <strong>The runtime bounds an array access</strong>: the bounds check is part of the language, so an off-by-one index is a defined exception.</li>
+<li>⚠️ <strong><code>Marshal.from_string</code> trusts its input</strong>: a crafted byte string can build a value that the type system then trusts, so untrusted input must not be unmarshalled.</li>
+<li>⚠️ <strong><code>Obj.magic</code> and a C stub break the type system</strong>: <code>Obj.magic</code> reinterprets a value without a check, and a stub can return an ill-typed value.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>T8</code></td>
 <td>operator overloading</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
-<td><code>C2</code></td>
-<td>no immutability by default</td>
-<td style="text-align: right;">4</td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M3</code></td>
-<td>no RAII</td>
-<td style="text-align: right;">4</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 72/100</strong> — total points removed = 28 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>Ec3</code></td>
 <td>small/niche/discontinued</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 84/100</strong> — total points removed = 16 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> OCaml’s design yields low core coupling (72/100) because its abstraction is checked at compile time. A variant type closes a case set, an abstract type in a <code>.mli</code> hides its representation, a functor makes a type a module parameter, and the inference engine reports a mismatch before the program runs. The coupling that remains is mostly about state and lifetime: there is no ownership rule and no block-scoped release, exceptions are unchecked, and mutable containers are the natural way to hold module state. On the platform side, the small library ecosystem and the concepts of the module language are the real cost, while observation of the collector is a matter of tuning rather than of correctness.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1146,6 +1769,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

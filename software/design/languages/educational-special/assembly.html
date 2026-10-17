@@ -993,7 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link active" data-scroll-target="#scoring-detail"><span class="header-section-number">1</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1021,20 +1026,189 @@ div.csl-indent {
 
 
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="assemblyISA"><a href="#ref-assemblyISA" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Core Coupling Score: 17/100</strong> | <strong>Platform &amp; Ecosystem Score: 58/100</strong></p>
-<p><strong>Core Coupling Analysis:</strong> Assembly provides complete control over the machine, decoupling the programmer from any abstraction layer — because none exist. Registers are effectively global mutable state shared by all instructions. Labels couple jump and call targets to specific memory addresses within the code. Macros decouple repetitive instruction sequences by allowing the programmer to define reusable code blocks. Calling conventions couple function calls to a specific ABI (Application Binary Interface), tying code to a particular platform’s register and stack usage conventions. Platform-specific instructions couple the program to a particular CPU architecture. The absence of types couples everything to the programmer’s discipline: a register can hold an integer, a pointer, or garbage, and nothing checks which is intended.</p>
-<p><strong>Platform &amp; Ecosystem:</strong> Assembly is used for performance-critical kernels, embedded systems, and reverse engineering where no higher-level language provides sufficient control. The learning curve is extremely steep: the programmer must understand registers, instruction sets, and the target platform’s ABI. There are no abstractions. Syntax varies significantly between Intel and AT&amp;T dialects even for the same instruction set. Everything is manual. Security guarantees are nonexistent: all classic vulnerabilities (buffer overflows, use-after-free, return-oriented programming) are possible and nothing prevents them. Assembly is used only where C is too high-level.</p>
-<hr>
-<section id="scoring-detail" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="1.0.1">
-<h4 data-number="1.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.0.1</span> Core Dimensions</h4>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Assembly in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 17/100</strong> · <strong>Ecosystem coupling 58/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>❌ <strong>There is no type system</strong>: an operand is a register or a memory address of a fixed width, and the assembler does not check that an integer, a pointer, and an address are used consistently (T1).</li>
+<li>❌ <strong>No sum types</strong>: an alternative must be encoded by hand in a register or in a memory layout the programmer invents (T4).</li>
+<li>❌ <strong>No generics</strong>: a macro can repeat a sequence, but there is no type parameter through which a repeated sequence can be checked (T5).</li>
+<li>❌ <strong>No namespaces</strong>: every global symbol shares one flat namespace in the object file, so a collision is resolved by naming convention (T6).</li>
+<li>❌ <strong>No null safety</strong>: a null pointer is a zero register value, and a load from it is an ordinary instruction (T10).</li>
+<li>❌ <strong>No module boundary</strong>: separate translation units share the same global symbol space and ABI, and the only encapsulation is the assembler’s local label (T11).</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>❌ <strong>Registers are global mutable state</strong>: every instruction reads and writes the same fixed register file, so the meaning of a register depends on the whole instruction stream (C1).</li>
+<li>❌ <strong>Mutability is the only mode</strong>: nothing is immutable unless a section is marked read-only, and that is enforced by the loader rather than by a type (C2).</li>
+<li>❌ <strong>Construction is allocation</strong>: creating a value means writing a register or a memory cell that must already have been reserved (C3).</li>
+<li>❌ <strong>No constructor or validation</strong>: a value is legal only because the programmer kept it legal, and nothing checks it (C4).</li>
+<li>✅ <strong>Macros decouple a repeated sequence</strong>: <code>.macro</code> in GAS and <code>%macro</code> in NASM let a reusable instruction sequence be named and expanded, so a repeated pattern is written once.</li>
+<li>✅ <strong>Sections separate data from code</strong>: <code>.text</code>, <code>.data</code>, <code>.rodata</code>, and <code>.bss</code> place each kind of content in its own segment of the object file.</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>❌ <strong>Every allocation and deallocation is manual</strong>: the stack frame, the <code>malloc</code> call, and the <code>free</code> call are the programmer’s responsibility (M1).</li>
+<li>❌ <strong>No release tied to scope</strong>: there is no RAII; nothing runs at the end of a block (M3).</li>
+<li>❌ <strong>No ownership model</strong>: a pointer may alias, dangle, or be freed twice, and the assembler does not see pointers as a type (M4).</li>
+<li>✅ <strong>The stack is a structured allocation</strong>: <code>push</code>/<code>pop</code> and the <code>rsp</code>/<code>rbp</code> frame give a scoped allocation with a defined lifetime for the duration of a call.</li>
+<li>⚠️ <strong>The layout is the ABI’s, not the program’s</strong>: the System V AMD64 ABI fixes which registers are caller-saved and how the stack frame is formed, so the layout choices are constrained.</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>❌ <strong>There is no structured error path</strong>: no exception, no error type, and no return-result convention; a failed call is signalled by a flag or a register the caller must test (Er1).</li>
+<li>❌ <strong>An error can be ignored by design</strong>: a non-zero value in <code>rax</code> or a set carry flag does nothing unless the code branches on it (Er3).</li>
+<li>❌ <strong>No composable result type</strong>: an error cannot be returned as a value the caller’s code carries in a checked way (Er4).</li>
+<li>✅ <strong>Flags give a structured condition test</strong>: <code>cmp</code> and <code>test</code> set <code>ZF</code>, <code>CF</code>, <code>SF</code>, and <code>OF</code>, and a conditional jump branches on a named condition.</li>
+<li>⚠️ <strong>The recovery path is a jump target</strong>: recovery is a branch to a label, so its structure exists only in the programmer’s discipline.</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>❌ <strong>Shared mutable state is the default</strong>: registers and memory are equally visible to every core, and there is no notion of private state (K2).</li>
+<li>❌ <strong>Synchronisation is manual with no race detection</strong>: a lock is a <code>lock</code> prefix on one instruction or a call into a library, and nothing analyses the program for a race (K3).</li>
+<li>❌ <strong>No structured concurrency</strong>: a thread is a <code>clone</code> or <code>pthread_create</code> call, and nothing scopes or joins its lifetime (K4).</li>
+<li>✅ <strong>Atomic operations are instruction-level</strong>: <code>lock cmpxchg</code>, <code>lock xadd</code>, and <code>mfence</code> express a defined atomic primitive directly.</li>
+<li>✅ <strong>The <code>lock</code> prefix gives a defined ordering</strong>: it serialises the decorated instruction across the cores of the machine.</li>
+<li>⚠️ <strong>The memory ordering is reasoned about by hand</strong>: the x86-64 model is comparatively strong, but nothing in the language states or checks the ordering the algorithm needs.</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>❌ <strong>The program is bound to one instruction set</strong>: x86-64 opcodes do not run on AArch64 or RISC-V, so the source is not portable across architectures (P3).</li>
+<li>❌ <strong>The calling convention is one ABI</strong>: a call must agree with the System V AMD64 register and stack rules, so the function interface is fit for one platform’s convention.</li>
+<li>✅ <strong>The object format is documented and stable</strong>: an ELF object file is linked with the platform linker through a published format.</li>
+<li>✅ <strong>The assembler is a choice within the target</strong>: GAS and NASM, in either dialect, produce code for the same instruction set.</li>
+<li>⚠️ <strong>Windows uses a different x86-64 convention</strong>: the Microsoft x64 ABI differs from System V in its argument registers and its shadow space, so the source is bound to one operating-system convention as well.</li>
+<li>⚠️ <strong>Extension instructions need runtime dispatch</strong>: AVX-512 and the other vector extensions require a CPU feature check before they are used.</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Full machine control is the point</strong>: the absence of an abstraction layer is a deliberate removal, not a defect.</li>
+<li><strong>Assembly is a last resort by design</strong>: it is used where a higher-level language cannot express the operation.</li>
+<li><strong>A hand-written kernel can repay the discipline cost</strong>: the performance-critical kernel and the cryptographic primitive are the cases where it does.</li>
+<li><strong>Reverse engineering is a use, not an application</strong>: disassembly is read, not maintained as a product.</li>
+<li><strong>The dialect choice is a surface choice</strong>: the Intel and AT&amp;T notations name the same instruction set.</li>
+<li><strong>Inline assembly inside a host language is a scoping decision</strong>: what remains is a coupling to the compiler’s <code>asm</code> syntax.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>The program is the machine code</strong>: there is no interpreter, JIT, or runtime between the source and the CPU, so the cost of an instruction is the instruction.</li>
+<li>✅ <strong>Instruction selection is under program control</strong>: <code>lea</code>, fused operations, and vector instructions can be chosen for each site.</li>
+<li>✅ <strong>There is no runtime start-up cost</strong>: a static executable needs no runtime initialisation beyond the loader.</li>
+<li>⚠️ <strong>The CPU optimises beyond the instruction stream</strong>: out-of-order execution, branch prediction, and the micro-operation cache mean the source-order cost is not the measured cost.</li>
+<li>⚠️ <strong>A hand-written routine can lose to a compiler</strong>: without the optimiser’s cross-block analysis, hand-scheduled and hand-allocated code can be slower than <code>-O2</code> output.</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>❌ <strong>There is no package manager</strong>: a dependency is an object file or a linked library, resolved by the linker and the build script (Ec1).</li>
+<li>✅ <strong>The assemblers are standard and maintained</strong>: GAS, NASM, and the LLVM assembler are widely available.</li>
+<li>✅ <strong>The code interoperates with C at the ABI</strong>: an assembly routine can be called from C and can call C.</li>
+<li>⚠️ <strong>The reusable corpus is small</strong>: most assembly source is written for one program and its ABI, so few libraries exist as assembly source.</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>The instruction set is specified and backward compatible</strong>: x86-64 adds encodings and keeps the earlier ones.</li>
+<li>✅ <strong>New extensions are opt-in</strong>: SSE, AVX, and AVX-512 code is gated by CPU feature detection rather than by the instruction set as a whole.</li>
+<li>✅ <strong>The manuals are public and maintained</strong>: the Intel SDM and the AMD APM document each instruction.</li>
+<li>⚠️ <strong>Assembler syntax is not standardised across tools</strong>: GAS and NASM disagree on directives, operand order, and macro syntax.</li>
+<li>⚠️ <strong>A microarchitecture change invalidates tuning</strong>: code hand-scheduled for one CPU generation can be mistuned on the next.</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>The kernel-level operations are the native domain</strong>: hardware access, interrupt entry, context switch, and boot code.</li>
+<li>✅ <strong>Some instructions are reachable only here</strong>: the special registers, <code>cpuid</code>, <code>rdtsc</code>, and the privileged instructions have no higher-level equivalent.</li>
+<li>✅ <strong>Vector kernels benefit</strong>: a hand-tuned SIMD routine writes exactly the instruction the target supports.</li>
+<li>❌ <strong>It is a poor fit above the machine</strong>: with no types, no data abstraction, and no error handling, ordinary application logic is expensive to write and to change (D2).</li>
+<li>⚠️ <strong>Even kernel work is mostly C with small assembly islands</strong>: the fit is real but narrow.</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>❌ <strong>The curve is extremely steep</strong>: the programmer must hold the register file, the instruction set, and the target ABI in mind at once.</li>
+<li>❌ <strong>There is no abstraction to learn instead of the machine</strong>: nothing is hidden and nothing is named above the instruction level.</li>
+<li>✅ <strong>The reference material is complete and public</strong>: Intel and AMD document every instruction and every flag.</li>
+<li>✅ <strong>The machine gives immediate feedback</strong>: a debugger shows the registers and the memory directly.</li>
+<li>⚠️ <strong>Three bodies of knowledge are separate subjects</strong>: the instruction set, the ABI, and the toolchain must each be learned on its own.</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>⚠️ <strong>The Intel and AT&amp;T dialects differ in the same instruction set</strong>: operand order reverses and the register and constant prefixes differ, so the notation is a toolchain choice.</li>
+<li>⚠️ <strong>The directive syntax differs by assembler</strong>: GAS uses <code>.globl</code> and <code>.section</code>, NASM uses <code>global</code> and <code>section</code>.</li>
+<li>⚠️ <strong>Every operand form is spelled out</strong>: <code>%rax</code>, <code>$42</code>, and <code>8(%rbp)</code> write the addressing mode at each site.</li>
+<li>✅ <strong>The mnemonics are short and uniform</strong>: <code>mov</code>, <code>add</code>, and <code>jmp</code> each name one operation.</li>
+<li>⚠️ <strong>A label is a fixed position in the code</strong>: a label names a location for a jump, a call, or a data symbol, so a transfer target is coupled to that position in the listing.</li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>❌ <strong>There is no test framework in the language</strong>: a test is a program that runs and compares, and the harness lives outside the assembler (G1).</li>
+<li>❌ <strong>Debugging is low-level</strong>: the debugger exposes registers and raw memory, so a fault is found in machine state rather than in a named abstraction (G2).</li>
+<li>✅ <strong>A single-step debugger is exact</strong>: <code>gdb</code> and <code>lldb</code> can run one instruction and show every register and flag.</li>
+<li>✅ <strong>Repetition is deterministic</strong>: with no scheduler and no collector, the same input produces the same instruction sequence.</li>
+<li>⚠️ <strong>The usual check is a test in a higher-level language</strong>: the assembly routine is called from C and compared there.</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>❌ <strong>Every memory-safety class is open</strong>: a buffer overflow, a use-after-free, a double free, and an out-of-bounds write are all possible and nothing prevents them (Q1).</li>
+<li>❌ <strong>Return-oriented programming is possible</strong>: the stack holds return addresses that are writable, so a memory write can redirect control flow.</li>
+<li>❌ <strong>There is no bounds checking and no guard page by default</strong>: an array index is an address calculation.</li>
+<li>⚠️ <strong>Stack canaries, ASLR, and CET are external mitigations</strong>: they come from the toolchain flags, the loader, and the operating system, and the source must cooperate with them.</li>
+<li>✅ <strong>Non-executable and write-or-execute pages are available</strong>: the operating system can mark the stack non-executable and enforce <code>W^X</code>, which removes some code injection.</li>
+<li>✅ <strong>The sandbox is the operating system’s</strong>: a program runs with the privileges the loader grants it, not with a language-level capability model.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1043,231 +1217,541 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>T11</code></td>
 <td>no module boundary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>C3</code></td>
 <td>constructors coupled to allocation</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td><code>C4</code></td>
-<td>no constructor/validation</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
 <td><code>M1</code></td>
 <td>manual deallocation</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Er3</code></td>
-<td>errors ignored/non-exhaustive</td>
-<td style="text-align: right;">4</td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>Er4</code></td>
-<td>no composable result type</td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>K4</code></td>
 <td>no structured concurrency</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Platform</strong></td>
-<td><code>P3</code></td>
-<td>legacy/discontinued platform</td>
-<td style="text-align: right;">8</td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td><strong>Platform subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 17/100</strong> — total points removed = 83 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="1.0.2">
-<h4 data-number="1.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
 <td><strong>Ecosystem</strong></td>
 <td><code>Ec1</code></td>
 <td>no package manager</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>D2</code></td>
 <td>poor domain fit</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
+<tr class="even">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Testing</strong></td>
 <td><code>G1</code></td>
 <td>weak tooling</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>G2</code></td>
-<td>poor debugging</td>
-<td style="text-align: right;">8</td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
 <td><code>Q1</code></td>
 <td>memory-unsafe</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 58/100</strong> — total points removed = 42 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Assembly’s design produces the lowest core score in this comparison, because it removes every separating construct rather than misplacing one. There is no type system, no release tied to scope, no structured error path, and no concurrency construct; the register file is global mutable state, and the machine is the only abstraction. What the language does give is exact control: the programmer chooses the instruction, the register, and the schedule, and the flags give a defined condition test. Main strengths: no runtime overhead, direct access to the privileged instructions, and a fully public specification. Main weaknesses: the source is bound to one instruction set and one ABI, every memory-safety class is open, and the work is expensive to learn, to test, and to maintain.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1278,6 +1762,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

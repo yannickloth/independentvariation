@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1022,107 +1025,97 @@ div.csl-indent {
 </header>
 
 
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="perlDoc"><a href="#ref-perlDoc" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Perl in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 28/100</strong> · <strong>Ecosystem coupling 53/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>❌ <strong>No type system</strong>: Dynamic, weakly typed</li>
 <li>❌ <strong>TIMTOWTDI</strong>: “There’s More Than One Way To Do It” creates inconsistency</li>
 <li>⚠️ <strong>Sigils</strong>: <code>$scalar</code>, <code>@array</code>, <code>%hash</code> provide some structure</li>
 <li>❌ <strong>Context-sensitive</strong>: Same code behaves differently in scalar/list context</li>
 <li>⚠️ <strong>Moose</strong>: Object system add-on provides types, not core</li>
+<li>❌ <strong>Regular expressions</strong>: Write-only code, couples understanding to expertise</li>
+<li>❌ <strong>Context sensitivity</strong>: Behavior couples to calling context</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>❌ <strong>Bless</strong>: Primitive object system, <code>bless {}</code> is manual</li>
 <li>❌ <strong>No built-in classes</strong>: Have to build everything from scratch</li>
 <li>⚠️ <strong>Moose/Moo</strong>: Modern OOP libraries improve this significantly</li>
 <li>❌ <strong>Hash-based objects</strong>: No encapsulation enforcement</li>
+<li>❌ <strong>Global variables</strong>: <code>$_</code>, <code>@_</code>, <code>%ENV</code> everywhere</li>
+<li>❌ **Implicit $_**: Default variable creates hidden dependencies</li>
+<li>❌ <strong>Package variables</strong>: Global state pervasive</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>Reference counting</strong>: Deterministic deallocation</li>
 <li>⚠️ <strong>Cyclic references</strong>: Leak unless broken manually</li>
 <li>✅ <strong>Automatic</strong>: No manual malloc/free</li>
 <li>✅ <strong>Predictable</strong>: Deallocation when refcount hits zero</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>❌ <strong>Die/eval</strong>: Exceptions not typed, <code>eval</code> catches everything</li>
 <li>❌ <strong>Return undef</strong>: Many functions return <code>undef</code> on error, silent failures</li>
 <li>⚠️ <strong>$!</strong>: Global error variable couples error state</li>
 <li>❌ <strong>No signatures</strong>: Can’t see errors in function signatures</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>⚠️ <strong>Threads</strong>: Available but discouraged, heavyweight</li>
 <li>⚠️ <strong>Fork</strong>: Process-based concurrency common</li>
 <li>❌ <strong>No modern concurrency</strong>: No async/await, no actors</li>
 <li>❌ <strong>Shared state</strong>: Manual locking, error-prone</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
-<ul>
-<li>❌ <strong>Global variables</strong>: <code>$_</code>, <code>@_</code>, <code>%ENV</code> everywhere</li>
-<li>❌ **Implicit $_**: Default variable creates hidden dependencies</li>
-<li>❌ <strong>Package variables</strong>: Global state pervasive</li>
-<li>❌ <strong>Regular expressions</strong>: Write-only code, couples understanding to expertise</li>
-<li>❌ <strong>Context sensitivity</strong>: Behavior couples to calling context</li>
-</ul>
-<p><strong>Core Coupling Score: 28/100</strong></p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>10</td>
-<td>No types, weak typing</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>40</td>
-<td>Modules exist, but globals everywhere</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>25</td>
-<td>Bless is primitive, Moose helps</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>20</td>
-<td>Die/eval, return undef</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>30</td>
-<td>Threads discouraged, fork heavyweight</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>70</td>
-<td>CPAN is massive, regex powerful</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Verdict:</strong> Perl is era before static analysis was common. TIMTOWTDI creates inconsistent coupling patterns. Context sensitivity couples behavior to call site. Implicit $_ creates hidden dependencies. Main strength: CPAN ecosystem, regex power, system administration tasks. Main weakness: “write-only” code couples maintenance to original author’s knowledge.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 45/100</p>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>No company owns the language</strong>: Perl 5 is released by the Perl 5 Porters under the Artistic License and the GNU General Public License, and no vendor controls it</li>
+<li>✅ <strong>The interpreter is portable</strong>: The same C source builds on Linux, macOS, the BSDs, Windows through Strawberry Perl, and OpenVMS</li>
+<li>✅ <strong>CPAN is vendor-neutral</strong>: The archive is mirrored worldwide and serves any Perl distribution, not one vendor’s package service</li>
+<li>✅ <strong>A base interpreter ships with most Unix systems</strong>: Many Linux distributions and the BSDs install <code>perl</code> as part of the base system, so a script needs no extra platform</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Regexes are woven into the grammar</strong>: Pattern matching is syntax rather than a library, which makes text handling concise and the language hard to read — a syntax decision, not a coupling mechanism.</li>
+<li><strong>Sigils prefix every name</strong>: The leading <code>$</code>, <code>@</code>, or <code>%</code> encodes the noun in the identifier, a readability trade expressed in the name rather than in a type system.</li>
+<li><strong>Scalars carry both a number and a string</strong>: The dual-valued scalar is why <code>==</code> and <code>eq</code> are separate operators, a convenience whose cost falls on every comparison.</li>
+<li><strong>Backward compatibility is the default</strong>: Decades of behaviour remain in the language, and <code>use strict</code> and <code>use warnings</code> recover discipline one file at a time — a compatibility cost, not a forced dependency.</li>
+<li><strong>The successor was released as another language</strong>: Raku was developed separately from Perl 5, so Perl 5 continues on its own line — a project decision, not a coupling.</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>⚠️ <strong>Interpreted</strong>: Slower than compiled</li>
 <li>⚠️ <strong>Regex engine</strong>: Very fast for text processing</li>
 <li>❌ <strong>Memory usage</strong>: Higher than C, lower than Ruby/Python</li>
 <li>⚠️ <strong>JIT</strong>: Some versions have JIT (experimental)</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 75/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>✅ <strong>CPAN</strong>: Comprehensive Perl Archive Network, massive</li>
 <li>⚠️ <strong>Aging</strong>: Fewer new modules than modern ecosystems</li>
@@ -1130,14 +1123,18 @@ div.csl-indent {
 <li>✅ <strong>CPAN minus</strong>: Great dependency testing</li>
 <li>⚠️ <strong>Tooling dated</strong>: perldoc, prove, but aging</li>
 </ul>
-<p><strong>Language Evolution:</strong> 50/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>❌ <strong>Perl 6 → Raku</strong>: Split into separate language</li>
 <li>⚠️ <strong>Perl 5 stable</strong>: Very conservative, few changes</li>
 <li>❌ <strong>Declining use</strong>: Community shrinking</li>
 <li>⚠️ <strong>Legacy focus</strong>: Maintenance mode</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 65/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for text processing</strong>: Regex, sed/awk replacement</li>
 <li>✅ <strong>Good for system admin</strong>: DevOps, automation</li>
@@ -1145,47 +1142,62 @@ div.csl-indent {
 <li>❌ <strong>Not for applications</strong>: Modern alternatives better</li>
 <li>✅ <strong>Bioinformatics</strong>: BioPerl still used</li>
 </ul>
-<p><strong>Learning Curve:</strong> 40/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>❌ <strong>Steep</strong>: Sigils, context, special variables</li>
 <li>❌ <strong>Write-only code</strong>: Hard to read others’ code</li>
 <li>⚠️ <strong>Good docs</strong>: Perldoc comprehensive</li>
 <li>❌ <strong>Many gotchas</strong>: <code>$_</code>, context, references</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 30/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>❌ <strong>Sigils everywhere</strong>: <code>$@%</code> visual noise</li>
 <li>❌ <strong>Context sensitivity</strong>: Same code different results</li>
 <li>⚠️ <strong>Powerful</strong>: Can express complex logic concisely</li>
 <li>❌ <strong>Punctuation soup</strong>: Special variables like <code>$!</code>, <code>$?</code>, <code>$@</code></li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 70/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>Test::More</strong>: Good testing framework</li>
 <li>✅ <strong>Prove</strong>: Test runner works well</li>
 <li>⚠️ <strong>Debugger</strong>: perl -d works but basic</li>
 <li>✅ <strong>Testing culture</strong>: CPAN requires tests</li>
 </ul>
-<p><strong>Security:</strong> 50/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>✅ <strong>Taint mode</strong>: Tracks untrusted data</li>
 <li>⚠️ <strong>Type confusion</strong>: Dynamic typing allows anything</li>
 <li>⚠️ <strong>Eval risks</strong>: Code injection if used carelessly</li>
 <li>✅ <strong>No memory bugs</strong>: GC prevents use-after-free</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 53/100</strong></p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1194,164 +1206,274 @@ div.csl-indent {
 <td><strong>Type</strong></td>
 <td><code>T1</code></td>
 <td>dynamic no static check</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T4</code></td>
 <td>no sum types</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T5</code></td>
 <td>no generics</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T6</code></td>
 <td>no namespaces</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T9</code></td>
 <td>inheritance required for polymorphism</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T11</code></td>
 <td>no module boundary</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>C4</code></td>
 <td>no constructor/validation</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M3</code></td>
-<td>no RAII</td>
-<td style="text-align: right;">4</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
 <td><code>Er1</code></td>
 <td>no structured path</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>Er3</code></td>
 <td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Concurrency</strong></td>
 <td><code>K1</code></td>
 <td>GIL/no parallel</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">15</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>K3</code></td>
-<td>manual sync no race detection</td>
-<td style="text-align: right;">8</td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>K4</code></td>
-<td>no structured concurrency</td>
-<td style="text-align: right;">4</td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 28/100</strong> — total points removed = 72 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
@@ -1360,77 +1482,265 @@ div.csl-indent {
 <td><strong>Performance</strong></td>
 <td><code>R1</code></td>
 <td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="odd">
+<td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
 <td><strong>Learning</strong></td>
 <td><code>L1</code></td>
 <td>steep</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
+<tr class="odd">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
 <tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>S2</code></td>
 <td>inconsistent</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>S3</code></td>
 <td>punctuation-heavy</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Syntax subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>G3</code></td>
 <td>runtime-only errors</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td><strong>Testing subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
-<td><code>Q2</code></td>
-<td>dynamic/weak typing risk</td>
-<td style="text-align: right;">8</td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td><code>Q3</code></td>
-<td>known vulnerability/injection</td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
 <td><strong>Security subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 53/100</strong> — total points removed = 47 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Perl is era before static analysis was common. TIMTOWTDI creates inconsistent coupling patterns. Context sensitivity couples behavior to call site. Implicit $_ creates hidden dependencies. Main strength: CPAN ecosystem, regex power, system administration tasks. Main weakness: “write-only” code couples maintenance to original author’s knowledge.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1441,6 +1751,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 

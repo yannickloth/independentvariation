@@ -993,9 +993,12 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#coupling-analysis" id="toc-coupling-analysis" class="nav-link active" data-scroll-target="#coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</a></li>
-  <li><a href="#platform-ecosystem" id="toc-platform-ecosystem" class="nav-link" data-scroll-target="#platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</a></li>
-  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">3</span> Scoring Detail</a></li>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1022,11 +1025,16 @@ div.csl-indent {
 </header>
 
 
-<p><em>Analysis against Java 26 (March 2026). Java 8 would score ~45; modern Java (17+) dramatically improves the coupling profile.</em></p>
-<section id="coupling-analysis" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="coupling-analysis"><span class="header-section-number">1</span> Coupling Analysis</h2>
+<p><em>Analysis against Java 26 (March 2026). Earlier Java releases carry more of the mechanisms below; modern Java (17+) dramatically improves the coupling profile.</em></p>
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="javaJLS"><a href="#ref-javaJLS" role="doc-biblioref">[2]</a></span>.</em></p>
-<p><strong>Type System &amp; Abstraction:</strong></p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Java in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p><strong>Core coupling 53/100</strong> · <strong>Ecosystem coupling 69/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Interfaces decouple specification from implementation</strong>: Can program to interfaces</li>
 <li>✅ <strong>Generics enable type parameterization</strong>: <code>List&lt;T&gt;</code> decouples from concrete types</li>
@@ -1036,8 +1044,13 @@ div.csl-indent {
 <li>❌ <strong>No higher-kinded types</strong>: Can’t abstract over generic types</li>
 <li>⚠️ <strong>Type erasure couples generics</strong>: Runtime loses type information</li>
 <li>⚠️ <strong>Inheritance still available</strong>: Unchecked class extension possible (unless <code>final</code> or <code>sealed</code>)</li>
+<li>❌ <strong>Null still exists</strong>: <code>NullPointerException</code> possible (no non-nullable types in the language)</li>
+<li>⚠️ <strong>Module system (Java 9+) limits reflection</strong>: <code>--illegal-access=deny</code> (Java 17+, default) strictly limits reflective access to exported packages — reflection is no longer a free-for-all</li>
+<li>❌ <strong>Package-private couples to package structure</strong>: Visibility tied to organization</li>
 </ul>
-<p><strong>Object Construction:</strong></p>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>✅ <strong>Records are immutable by default</strong>: <code>record Point(int x, int y)</code> — no mutation coupling, auto-generated components</li>
 <li>✅ <strong>Immutable collections (Java 9+)</strong>: <code>List.of()</code>, <code>Set.of()</code>, <code>Map.of()</code> produce unmodifiable collections</li>
@@ -1045,8 +1058,11 @@ div.csl-indent {
 <li>✅ <strong>Dependency injection frameworks</strong>: Spring/Guice decouple construction from usage</li>
 <li>⚠️ <strong>Records eliminate builders for simple cases</strong>: Complex multi-step construction may still need builders</li>
 <li>⚠️ <strong>Constructors couple creation to initialization</strong>: Not eliminated, but records and patterns reduce the problem</li>
+<li>❌ <strong>Static methods couple to global state</strong>: Singleton pattern creates hidden dependencies</li>
 </ul>
-<p><strong>Memory Management &amp; Deallocation:</strong></p>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
 <li>✅ <strong>JVM GC decouples memory</strong>: Modern GCs (ZGC, Generational ZGC, Shenandoah) provide sub-millisecond pause times</li>
 <li>✅ <strong>No manual memory management</strong>: Can’t have dangling pointers</li>
@@ -1055,7 +1071,9 @@ div.csl-indent {
 <li>⚠️ <strong>GC pauses affect latency</strong>: Minimized by modern GCs but not deterministic</li>
 <li>❌ <strong>Memory leaks from static references</strong>: Static collections couple to application lifetime (still possible)</li>
 </ul>
-<p><strong>Error Handling:</strong></p>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>✅ <strong>Checked exceptions separate error paths</strong>: <code>throws IOException</code> makes errors explicit</li>
 <li>✅ <strong>Pattern matching for <code>switch</code> + sealed types (Java 21)</strong>: Exhaustive error handling — compiler verifies all error cases covered</li>
@@ -1063,7 +1081,9 @@ div.csl-indent {
 <li>❌ <strong>Try-catch doesn’t compose</strong>: Can’t map/flatMap over exceptions without wrapping</li>
 <li>⚠️ <strong>RuntimeException bypasses checks</strong>: Unchecked exceptions defer error-coupling detection to runtime (sealed hierarchies with pattern matching help)</li>
 </ul>
-<p><strong>Concurrency:</strong></p>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>✅ <strong>Virtual threads (stable, Java 21+)</strong>: Lightweight threads — each task gets its own thread, eliminating callback coupling</li>
 <li>✅ <strong>Structured concurrency (preview, Java 21+)</strong>: <code>StructuredTaskScope</code> — subtask lifetimes scoped to lexical block, preventing thread leaks</li>
@@ -1071,14 +1091,18 @@ div.csl-indent {
 <li>✅ <strong>CompletableFuture</strong>: Composable async primitives when needed</li>
 <li>⚠️ <strong>Shared mutable state still possible</strong>: <code>synchronized</code>, <code>volatile</code>, and manual lock patterns remain available</li>
 </ul>
-<p><strong>Language-imposed coupling costs:</strong></p>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>Null still exists</strong>: <code>NullPointerException</code> possible (no non-nullable types in the language)</li>
-<li>❌ <strong>Static methods couple to global state</strong>: Singleton pattern creates hidden dependencies</li>
-<li>⚠️ <strong>Module system (Java 9+) limits reflection</strong>: <code>--illegal-access=deny</code> (Java 17+, default) strictly limits reflective access to exported packages — reflection is no longer a free-for-all</li>
-<li>❌ <strong>Package-private couples to package structure</strong>: Visibility tied to organization</li>
+<li>✅ <strong>Open specifications</strong>: The Java Language Specification and the JVM Specification are public standards that any conforming implementation may implement</li>
+<li>✅ <strong>Multiple vendor runtimes</strong>: OpenJDK, Oracle JDK, Eclipse Temurin, Amazon Corretto, Azul Zulu, and GraalVM run the same class files</li>
+<li>✅ <strong>Open-source core</strong>: OpenJDK is developed in the open under the GPL with the Classpath Exception</li>
+<li>✅ <strong>Portable bytecode</strong>: Compiled classes run unchanged on every platform that hosts a JVM</li>
 </ul>
-<p><strong>Trade-offs (not coupling):</strong></p>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
 <li><strong>Checked Exceptions vs.&nbsp;Composition</strong>: Explicit errors don’t compose natively (no monadic operations), though sealed types + pattern matching provide exhaustive error handling</li>
 <li><strong>Backward Compatibility vs.&nbsp;Modern Features</strong>: 30 years of legacy — old codebases can lag behind modern idioms</li>
@@ -1086,61 +1110,12 @@ div.csl-indent {
 <li><strong>Type Erasure vs.&nbsp;Runtime Types</strong>: Generics erased at runtime couples generic code to raw types</li>
 <li><strong>Inheritance vs.&nbsp;Composition</strong>: Hierarchy coupling possible when teams choose extension over composition</li>
 </ul>
-<p><strong>Core Coupling Score: 53/100</strong> (Java 26 with modern idioms — records, sealed types, virtual threads, pattern matching)</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 44%">
-<col style="width: 28%">
-<col style="width: 28%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Dimension</th>
-<th>Score</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Type Safety</td>
-<td>78</td>
-<td>Sealed classes, records, pattern matching; still null/erasure</td>
-</tr>
-<tr class="even">
-<td>Separation of Concerns</td>
-<td>75</td>
-<td>Interfaces, sealed hierarchies, modules, composition possible</td>
-</tr>
-<tr class="odd">
-<td>Construction Decoupling</td>
-<td>72</td>
-<td>Records eliminate builder boilerplate; still null in standard library</td>
-</tr>
-<tr class="even">
-<td>Error Handling</td>
-<td>70</td>
-<td>Checked exceptions + sealed types + pattern matching improve composition</td>
-</tr>
-<tr class="odd">
-<td>Concurrency</td>
-<td>78</td>
-<td>Virtual threads, structured concurrency, scoped values</td>
-</tr>
-<tr class="even">
-<td>Practical Usability</td>
-<td>90</td>
-<td>Massive ecosystem, mature tooling, 6-month release cadence</td>
-</tr>
-</tbody>
-</table>
-<blockquote class="blockquote">
-<p><strong>Note:</strong> Java 8 would score ~45; Java 11 ~52; Java 17 ~60; Java 21 ~65. The 71 score reflects modern Java idioms: records over POJOs, sealed types over open hierarchies, virtual threads over thread pools, pattern matching over <code>instanceof</code> chains.</p>
-</blockquote>
-<p><strong>Verdict:</strong> Modern Java (17+) significantly improves coupling over its reputation. Records provide immutability by default. Sealed classes enable controlled hierarchies. Virtual threads transform concurrency from callback soup to structured blocking. Pattern matching with sealed types enables exhaustive error handling. Module system restricts reflection. Main strength: interfaces + records + sealed types + virtual threads create a strong coupling toolkit. Main weakness: null still exists, type erasure persists, and legacy codebases may not adopt modern idioms.</p>
 </section>
-<section id="platform-ecosystem" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="platform-ecosystem"><span class="header-section-number">2</span> Platform &amp; Ecosystem</h2>
-<p><strong>Performance Characteristics:</strong> 82/100</p>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
 <li>✅ <strong>JVM optimization</strong>: Excellent JIT, fast steady-state</li>
 <li>✅ <strong>Virtual threads</strong>: Low-overhead concurrency scales to millions of threads</li>
@@ -1150,7 +1125,9 @@ div.csl-indent {
 <li>✅ <strong>HTTP/3 client (Java 26)</strong>: Native HTTP/3 support decouples networking from legacy protocol constraints</li>
 <li>✅ <strong>Mature profilers</strong>: Excellent performance tooling</li>
 </ul>
-<p><strong>Ecosystem &amp; Tooling:</strong> 95/100</p>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>✅ <strong>Massive ecosystem</strong>: Maven Central has everything</li>
 <li>✅ <strong>Standardized build</strong>: Maven/Gradle industry standard</li>
@@ -1158,7 +1135,9 @@ div.csl-indent {
 <li>✅ <strong>Mature tooling</strong>: Debuggers, profilers, monitoring</li>
 <li>✅ <strong>Cross-platform</strong>: Write once, run anywhere (mostly true)</li>
 </ul>
-<p><strong>Language Evolution:</strong> 80/100</p>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
 <li>✅ <strong>Strong backward compatibility</strong>: Rarely breaks</li>
 <li>✅ <strong>Regular releases</strong>: 6-month cadence, LTS every 2 years</li>
@@ -1166,7 +1145,9 @@ div.csl-indent {
 <li>⚠️ <strong>Legacy burden</strong>: Old APIs accumulate (though deprecated-for-removal process is active; applet API removed in Java 26)</li>
 <li>✅ <strong><code>final</code> strengthened (Java 26)</strong>: <code>final</code> fields are now truly final, preventing reassignment even through reflection</li>
 </ul>
-<p><strong>Domain Suitability:</strong> 85/100</p>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
 <li>✅ <strong>Excellent for backend/enterprise</strong>: Industry standard</li>
 <li>✅ <strong>Good for Android</strong>: Primary language (with Kotlin)</li>
@@ -1174,28 +1155,36 @@ div.csl-indent {
 <li>⚠️ <strong>Poor for frontend</strong>: Applet API removed (Java 26); JavaFX remains niche</li>
 <li>⚠️ <strong>Not for systems programming</strong>: GC, overhead</li>
 </ul>
-<p><strong>Learning Curve:</strong> 68/100</p>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>✅ <strong>Gentle</strong>: Widely taught, lots of resources</li>
 <li>⚠️ <strong>Modern Java is growing in surface</strong>: Records, sealed types, pattern matching, virtual threads, modules — more to learn than Java 8</li>
 <li>✅ <strong>Excellent docs</strong>: Javadoc, tutorials, books</li>
 <li>⚠️ <strong>Legacy/Modern split</strong>: Learning the “right” modern way requires guidance</li>
 </ul>
-<p><strong>Syntax &amp; Ergonomics:</strong> 62/100</p>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
 <li>✅ <strong>Records eliminate getter/setter boilerplate</strong>: <code>record Person(String name, int age)</code> replaces 50-line POJO</li>
 <li>✅ <strong>Pattern matching reduces verbosity</strong>: <code>switch</code> expressions + sealed types</li>
 <li>⚠️ <strong>Still verbose compared to Kotlin/Scala</strong>: Type erasure, generics syntax</li>
 <li>⚠️ <strong>Checked exception syntax</strong>: Verbose, couples signatures</li>
 </ul>
-<p><strong>Testing &amp; Debugging:</strong> 90/100</p>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>JUnit industry standard</strong>: Mature testing</li>
 <li>✅ <strong>Excellent debuggers</strong>: Step-through, breakpoints, virtual thread debugging</li>
 <li>✅ <strong>Mocking frameworks</strong>: Mockito, EasyMock</li>
 <li>✅ <strong>Profiling tools</strong>: VisualVM, YourKit, JFR</li>
 </ul>
-<p><strong>Security:</strong> 78/100</p>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
 <li>✅ <strong>Memory safe</strong>: GC prevents memory bugs</li>
 <li>✅ <strong>Type safe</strong>: Static typing</li>
@@ -1203,174 +1192,572 @@ div.csl-indent {
 <li>⚠️ <strong>Null</strong>: NullPointerException still possible</li>
 <li>⚠️ <strong>Serialization vulnerabilities</strong>: Deserialization attacks (mitigated by records + modern serialization frameworks)</li>
 </ul>
-<p><strong>Platform &amp; Ecosystem Score: 69/100</strong> (Java 26)</p>
-<hr>
 </section>
-<section id="scoring-detail" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">3</span> Scoring Detail</h2>
-<section id="core-dimensions" class="level4" data-number="3.0.1">
-<h4 data-number="3.0.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">3.0.1</span> Core Dimensions</h4>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.3</span> Scoring detail</h3>
+<section id="core-dimensions" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="core-dimensions"><span class="header-section-number">1.3.1</span> Core Dimensions</h4>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 26%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>T7</code></td>
 <td>type erasure/reflection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td><strong>Type subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>12</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Construction subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
-<td><code>M2</code></td>
-<td>GC non-deterministic pauses</td>
-<td style="text-align: right;">8</td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td></td>
 <td><code>M3</code></td>
 <td>no RAII</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>Er2</code></td>
 <td>unchecked exceptions only</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Concurrency subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Core Dimensions score: 53/100</strong> — total points removed = 47 (per-dimension subtotals are clamped at 15).</p>
 </section>
-<section id="meta-dimensions" class="level4" data-number="3.0.2">
-<h4 data-number="3.0.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">3.0.2</span> Meta Dimensions</h4>
+<section id="meta-dimensions" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Mechanism</th>
-<th>How the language performs</th>
+<th>Description</th>
+<th style="text-align: center;">Present</th>
 <th style="text-align: right;">Points removed</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>R3</code></td>
 <td>JIT warmup</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr class="even">
 <td><strong>Performance subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
-<td><code>Ec6</code></td>
-<td>monoculture</td>
-<td style="text-align: right;">8</td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
-<td><code>Ec7</code></td>
-<td>legacy burden</td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
 <td><strong>Ecosystem subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>15</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
 <td><code>D3</code></td>
 <td>framework forces architecture</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td><strong>Domain subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td><code>L2</code></td>
 <td>large surface/multi-paradigm</td>
+<td style="text-align: center;">✅</td>
 <td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Learning subtotal</strong></td>
 <td></td>
 <td></td>
+<td style="text-align: center;"></td>
 <td style="text-align: right;"><strong>4</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 69/100</strong> — total points removed = 31 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Verdict:</strong> Modern Java (17+) significantly improves coupling over its reputation. Records provide immutability by default. Sealed classes enable controlled hierarchies. Virtual threads transform concurrency from callback soup to structured blocking. Pattern matching with sealed types enables exhaustive error handling. Module system restricts reflection. Main strength: interfaces + records + sealed types + virtual threads create a strong coupling toolkit. Main weakness: null still exists, type erasure persists, and legacy codebases may not adopt modern idioms.</p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> The score reflects modern Java idioms: records over POJOs, sealed types over open hierarchies, virtual threads over thread pools, pattern matching over <code>instanceof</code> chains.</p>
+</blockquote>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
@@ -1381,6 +1768,7 @@ div.csl-indent {
 
 
 
+</section>
 </section>
 </section>
 
