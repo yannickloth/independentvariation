@@ -10,7 +10,184 @@
 <atom:link href="https://yannickloth.github.io/independentvariation/blog.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Thu, 27 Aug 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 18 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Clean Architecture Is Conditional: A Formal Response to Rico Fritzsche</title>
+  <link>https://yannickloth.github.io/independentvariation/posts/2026-10-18-clean-architecture-is-conditional-a-formal-response-to-rico-fritzsche-7d2x.html</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Rico Fritzsche recently published <a href="https://ricofritzsche.me/why-are-we-still-talking-about-clean-architecture/">“Why Are We Still Talking About Clean Architecture?”</a>, an argument to retire Clean Architecture, Hexagonal Architecture, Onion Architecture, and the layered family in favor of a Functional Core / Imperative Shell split.</p>
+<p>A large part of his diagnosis is correct, and the Independent Variation Principle (IVP) says exactly why. The argument stops one step short, though. It treats the family’s defect as the prescription itself. The defect is the quantifier. Clean Architecture is conditionally right — but the condition is narrower than the style’s own justification admits, and that justification is the first thing to examine. Fritzsche’s replacement inherits a version of the same condition, unstated.</p>
+<p><strong>IVP (structural formulation).</strong> Given the element set <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math> and the change-driver assignment <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Gamma(e)</annotation></semantics></math> — the set of change drivers whose state changes create a modification requirement for element <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math> — the principle is the conjunction of four conditions <span class="citation" data-cites="loth2026ivpgraph">[1]</span>:</p>
+<ol type="1">
+<li><strong>Admissibility</strong> — every element has at least one change driver: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∀</mo><mi>e</mi><mo>∈</mo><mi>E</mi><mo>,</mo><mspace width="0.222em"></mspace><mo stretchy="false" form="prefix">|</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>≥</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\forall e \in E,\ |\Gamma(e)| \geq 1</annotation></semantics></math>.</li>
+<li><strong>Element Form</strong> — every element is either pure (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><mi>e</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">|\Gamma(e)| = 1</annotation></semantics></math>) or irreducibly composite: no proper subset of its driver set can achieve its purpose, and no decomposition into sub-elements with strictly smaller driver sets jointly preserves that purpose.</li>
+<li><strong>Separation</strong> — elements assigned different sets of change drivers reside in different modules: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>≠</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>⇒</mo><mi>M</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>≠</mo><mi>M</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Gamma(e_1) \neq \Gamma(e_2) \Rightarrow M(e_1) \neq M(e_2)</annotation></semantics></math>.</li>
+<li><strong>Unification</strong> — elements assigned the same set of change drivers reside in the same module: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>⇒</mo><mi>M</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>M</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Gamma(e_1) = \Gamma(e_2) \Rightarrow M(e_1) = M(e_2)</annotation></semantics></math>.</li>
+</ol>
+<p>Equivalently, the modules of an IVP-compliant system are the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>-equivalence classes of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>, so the partition is the quotient <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">𝒫</mi><mi mathvariant="normal">Γ</mi></msub><mo>=</mo><mi>E</mi><mi>/</mi><mspace width="-0.167em"></mspace><msub><mo>∼</mo><mi mathvariant="normal">Γ</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal{P}_\Gamma = E/\!\sim_\Gamma</annotation></semantics></math>; the uniqueness theorem proves it is the unique cost-minimising modularisation <span class="citation" data-cites="loth2026ivpgraph">[1]</span>. Separation and Unification are the partition content: failing Separation is <em>contamination</em> (elements driven by different conditions co-reside), and failing Unification is <em>scatter</em> (elements that change together are split across modules).</p>
+<p>A <strong>change driver</strong> is an exogenous forcing condition whose change creates a requirement for governed elements to change — a condition anchored in a regulation, a contract, an interface specification, or another domain artifact whose authority is external to the system. Drivers are discovered, not chosen.</p>
+<hr>
+<section id="what-fritzsche-gets-right" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="what-fritzsche-gets-right"><span class="header-section-number">1</span> What Fritzsche gets right</h2>
+<section id="dependency-inversion-changes-placement-not-drivers" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="dependency-inversion-changes-placement-not-drivers"><span class="header-section-number">1.1</span> Dependency inversion changes placement, not drivers</h3>
+<p>Fritzsche writes: “Dependency inversion makes it possible to reverse source code dependencies… However, the functional dependencies remain.”</p>
+<p>That is the placement result. A change driver is external and fixed by the domain. No design move adds, removes, or transmutes one. Dependency inversion changes where a dependency sits in the source. It does not change the driver that forces the dependency to exist. The <code>BookingService</code> in his example still needs the reservation data before it can apply its rules — whether it reaches that data through a driver, an adapter, or an interface.</p>
+</section>
+<section id="an-abstraction-can-relocate-coupling-not-delete-it" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="an-abstraction-can-relocate-coupling-not-delete-it"><span class="header-section-number">1.2</span> An abstraction can relocate coupling, not delete it</h3>
+<p>Fritzsche: an abstraction “can hide these differences, but it cannot simply eliminate them.”</p>
+<p>This is the essential-versus-accidental coupling distinction. Coupling is <em>essential</em> when a domain artifact requires two elements to share a resource. The domain artifact is the reason the shared access exists; remove the artifact and the sharing disappears. Essential coupling cannot be eliminated by any abstraction, because the obligation that creates it does not live in the code. It can only be relocated — and relocation makes the knowledge reappear somewhere else.</p>
+</section>
+<section id="boundaries-by-architectural-role-are-not-anchored" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="boundaries-by-architectural-role-are-not-anchored"><span class="header-section-number">1.3</span> Boundaries by architectural role are not anchored</h3>
+<p>Fritzsche wants to stop “dividing an application based on technical concerns.” The cohesion analysis already says why that is right <span class="citation" data-cites="loth2026cohesion">[2]</span>. A layer groups elements by technical role — “what kind of code is this?” A port is defined by the application, not by an external domain artifact. These boundaries fail the conditions a partitioning rule must meet: they are not determinate (two designers can disagree on where the port goes, with no fact of the matter) and not externally anchored (no artifact outside the software says which elements belong together). The accent is on the right syllable.</p>
+<p>So the diagnosis holds. The conclusion does not.</p>
+<hr>
+</section>
+</section>
+<section id="the-step-fritzsche-does-not-take-the-core-is-conditional" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-step-fritzsche-does-not-take-the-core-is-conditional"><span class="header-section-number">2</span> The step Fritzsche does not take: the core is conditional</h2>
+<p>The family of styles prescribes one structural thing: a domain layer whose modules embody no knowledge of infrastructure systems. Call this the <strong>infra-ignorant core</strong>.</p>
+<p>The question is not whether that core is desirable. The question is whether it <em>exists</em> for a given domain. The analysis in <em>The Domain–Infrastructure Boundary as a Structural Property of the Driver Set</em> answers with a biconditional. An infra-ignorant core exists <strong>if and only if</strong> no domain change-driver has correctness conditions that require knowledge of an infrastructure system. Call this condition <strong>H (Knowledge Independence)</strong>.</p>
+<p>H is a property of the domain’s governing artifacts. It is not a design choice. The architect cannot decide H; the architect can only discover it.</p>
+<p>A stronger condition, <strong>H0 (Behavioural Self-Containment)</strong>, holds when a module computes everything it needs from its own inputs, with no dependence on external state of any kind. H0 implies H. The converse fails: a module can read external <em>domain</em> state — a customer’s recorded credit history — while remaining entirely ignorant of infrastructure.</p>
+<p>Two conditions that can fail independently give exactly three cases:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Case</th>
+<th>Condition</th>
+<th>The core</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>(a)</td>
+<td>H0 holds</td>
+<td>A pure functional core exists.</td>
+</tr>
+<tr class="even">
+<td>(b)</td>
+<td>H holds, H0 fails</td>
+<td>An infra-ignorant core exists, but the module needs external domain state.</td>
+</tr>
+<tr class="odd">
+<td>(c)</td>
+<td>H fails</td>
+<td>The infra-ignorant core is impossible.</td>
+</tr>
+</tbody>
+</table>
+<p>Fritzsche’s argument works in case (a) and treats it as if it were the whole territory.</p>
+<section id="how-h-fails" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="how-h-fails"><span class="header-section-number">2.1</span> How H fails</h3>
+<p>H fails in two ways, and neither is a modelling mistake.</p>
+<p><strong>Direct.</strong> A governing artifact states a correctness condition in terms of infrastructure behaviour. “A patient record must be retrievable within 500 ms under peak load” is a change driver anchored in a medical-device regulation. Its correctness condition is a statement about storage and indexing performance. No implementation ignorant of storage semantics satisfies it.</p>
+<p><strong>Indirect.</strong> A domain rule’s correctness depends on the outcome of an infrastructure process. A credit rule says: “approve an order only if the customer’s outstanding balance, including committed but not yet settled orders, stays within the credit limit.” “Committed but not yet settled” refers to persistence state under concurrent write. Two storage architectures with different isolation levels produce different answer sets for the same underlying events, and therefore different approval outcomes. The domain rule’s correctness is functionally determined by the storage layer’s guarantee.</p>
+<p>This second case is where Fritzsche’s own example points. He writes: “Query capabilities, transaction behaviour, and consistency guarantees are largely determined by the database used.” Correct — and when a domain rule’s correctness condition depends on those guarantees, the database is not a detail. It is part of the domain’s causal structure.</p>
+<p>The result is decisive: when H fails, no reformulation of the domain removes the required knowledge while preserving correctness. The infra-ignorant core is not hard to reach. It is impossible.</p>
+<hr>
+</section>
+</section>
+<section id="clean-architectures-own-criterion-is-dependency-toward-stability" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="clean-architectures-own-criterion-is-dependency-toward-stability"><span class="header-section-number">3</span> Clean Architecture’s own criterion is dependency toward stability</h2>
+<p>Clean Architecture is not merely “conditionally right” for the reason H gives. There is a second, prior defect in the style itself.</p>
+<p>The Dependency Rule — “source-code dependencies point inward” — rests on a <strong>stability ordering</strong>: the domain rules are said to be more stable than the frameworks, databases, and delivery mechanisms that serve them, so dependencies should point toward the domain. Martin quantifies stability with two structural metrics <span class="citation" data-cites="martin2017clean">[3]</span>. Instability is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><msub><mi>C</mi><mi>e</mi></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>C</mi><mi>a</mi></msub><mo>+</mo><msub><mi>C</mi><mi>e</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">I = C_e/(C_a + C_e)</annotation></semantics></math>, the ratio of efferent to total coupling. Abstractness is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>, the fraction of abstract types. The Main Sequence <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>+</mo><mi>I</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">A + I = 1</annotation></semantics></math> is the claimed optimal locus.</p>
+<p>Neither metric references a change driver. <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math> counts packages in the import graph; <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math> counts abstract type declarations. They measure <em>structural self-containment</em> — an element counts as “stable” because nothing imports force it to change — not actual change frequency, and not change-driver identity. “Depend toward stability” is therefore a <strong>proxy</strong> for the change-driver structure, not a measurement of it <span class="citation" data-cites="loth2026couplingnature">[4]</span>.</p>
+<p>And it is a proxy with no formal support. No cost objective derives it. The IVP proof does not use it: the optimum is fixed by <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Γ</mi><annotation encoding="application/x-tex">\Gamma</annotation></semantics></math>-equality, and stability does not appear in the argument. The Main Sequence is, at best, a one-directional diagnostic — IVP-compliant designs land on it as a byproduct, but landing on it does not imply IVP compliance. So the ordering the style rests on is a heuristic that correlates with the change-driver structure in some domains and is silent in the rest. It cannot certify that a ring boundary is the correct one.</p>
+<p>This is why Clean Architecture is not merely conditional. The band in which it is right is narrow: its rings coincide with the IVP partition only where role tracks the change driver <em>and</em> ring position tracks real stability — the single-capability, substitutable-provider domain the style was calibrated against. Outside that band the ordering inverts or flattens: a volatile domain core, or a concrete-but-inert framework, and the Dependency Rule points dependencies toward the most volatile elements. The <a href="../software/design/verdicts/clean.html">Clean Architecture verdict</a> works this out ring by ring.</p>
+<p>The inversion is sharpest exactly where H fails. If a domain rule’s correctness condition requires storage isolation semantics, the domain rule is no longer the more stable element; the infrastructure behaviour whose outcome the rule depends on is. A faithful application of Martin’s own stability principle would then move that behaviour toward the dependency target — the opposite of what the rings do. The style’s stability ordering and its infra-ignorant core pull in opposite directions the moment H fails. That tension stays invisible to the style, because the style has no criterion but stability to see it with.</p>
+<hr>
+</section>
+<section id="where-the-remedy-repeats-the-error" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="where-the-remedy-repeats-the-error"><span class="header-section-number">4</span> Where the remedy repeats the error</h2>
+<p>Fritzsche’s answer is the Functional Core / Imperative Shell split: a business calculation with no external interactions and no side effects, surrounded by a shell that retrieves inputs and persists results. He wants “business logic that does not perform any external interactions, does not cause any side effects, and whose result depends solely on the values passed to it.”</p>
+<p>That is a precise description of case (a) — H0 exactly. And it is the right answer there. But it is a special case promoted to a universal rule, which is the same move the family makes.</p>
+<p>Two consequences follow.</p>
+<p><strong>The ports he dismisses are the correct answer in case (b).</strong> Fritzsche says we need “neither to reverse the direction of dependencies nor to introduce technical interfaces whose sole purpose is to hide infrastructure implementations.” He is right about interfaces whose <em>purpose</em> is to hide infrastructure. But in case (b) the module genuinely needs external state, and that state is entirely domain-governed. The port is not a hiding device. It is the faithful expression of a domain obligation, written in domain vocabulary. The hexagonal prescription is not a mistake in case (b); it is the complete and correct response. Dismissing it wholesale discards the case it was designed for.</p>
+<p><strong>Consistency is not automatically a shell detail.</strong> Fritzsche puts “responsibility for consistency” in the shell. In case (c) this is a coupling-classification error. When a domain rule’s correctness condition depends on transaction isolation or retry-and-idempotency semantics, that consistency knowledge is <em>relevant causal domain knowledge</em> — knowledge the module must embody to respond correctly to its drivers. Moving it to the shell does not remove it from the domain. It hides it. And an obligation that is hidden cannot be verified against the governing artifact.</p>
+<section id="the-proposed-boundary-has-the-same-defect" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="the-proposed-boundary-has-the-same-defect"><span class="header-section-number">4.1</span> The proposed boundary has the same defect</h3>
+<p>Fritzsche proposes new boundaries: “the natural boundaries of these units are the domain capabilities,” and each capability “remains cohesive within its own boundaries.”</p>
+<p>“Capability” is an organisational construct. Its boundary shifts with reorganisation. Two organisations structure the same business differently. Grouping by business capability fails the same admissibility conditions as grouping by architectural role: it is not externally anchored in a stable domain artifact, and it is not determinate. It is Conway-shaped in disguise.</p>
+<p>And “cohesive” here is used colloquially. Cohesion has a precise meaning: correctness relative to a partitioning rule. A claim of cohesion is only as good as the rule it is measured against. “Capability” is not such a rule, so the cohesion claim is not yet supported.</p>
+<hr>
+</section>
+</section>
+<section id="the-empirical-argument-is-the-wrong-argument" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="the-empirical-argument-is-the-wrong-argument"><span class="header-section-number">5</span> The empirical argument is the wrong argument</h2>
+<p>Fritzsche’s case against interchangeability is empirical: “how often have I seen someone come up with the idea of replacing the database technology in an existing application? Exactly zero times!”</p>
+<p>Frequency is not the criterion. Whether a domain rule’s correctness conditions require infrastructure knowledge is a question about the governing artifacts, not about how often a change happens in practice. “Infrastructure changes less often than business rules” is the same stability-ordering move that Martin uses to justify the dependency rule <span class="citation" data-cites="martin2017clean">[3]</span>. It is the wrong kind of support for a structural claim.</p>
+<p>There is also a symmetry Fritzsche misses. “The database is a detail” is true from the client’s perspective and false from the database’s. From the order-management domain, the relational engine is infrastructure. From the engine’s own perspective, durability, isolation, and recovery semantics <em>are</em> the domain, governed by the SQL standard and hardware contracts. A transaction manager ignorant of storage semantics cannot implement its own obligations. The infra-versus-domain boundary is relative to the observer’s change-driver scope. It is not a fixed property of software.</p>
+<hr>
+</section>
+<section id="what-to-do-instead" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="what-to-do-instead"><span class="header-section-number">6</span> What to do instead</h2>
+<p>The lesson is not “Clean Architecture, forever” and not “Clean Architecture, never.” It is that the core-oriented styles are conditional guides, and the prior question is which case a domain belongs to. For each domain module, two questions, answered from the governing artifacts:</p>
+<ol type="1">
+<li>Does any correctness condition require knowledge of an infrastructure system? (This decides H.)</li>
+<li>Does the module depend on any external state at all? (This decides H0.)</li>
+</ol>
+<p>The three cases then prescribe different responses:</p>
+<ul>
+<li><strong>Case (a), H0.</strong> A pure functional core. No repository, port, or adapter. Adding one is unnecessary indirection. This is Fritzsche’s Functional Core, and it is right here.</li>
+<li><strong>Case (b), H holds.</strong> A port or repository expressed in domain vocabulary. The module needs external state, but the state is domain-governed, so the contract is expressible in domain terms. This is the case the hexagonal prescription was designed for, and it is right here.</li>
+<li><strong>Case (c), H fails.</strong> Accommodate the infrastructure knowledge. Either keep it in the domain module, or move it to an explicitly domain-scoped adapter whose change-driver assignment is stated and whose behaviour is independently testable against the domain change-driver. What is not sound is enforcing infra-ignorance and accepting an incorrect or unverifiable model as the cost of structural conformance.</li>
+</ul>
+<p>The style does not choose the case. The domain does.</p>
+<hr>
+</section>
+<section id="wrapping-up" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="wrapping-up"><span class="header-section-number">7</span> Wrapping up</h2>
+<p>Fritzsche is right that dependency inversion moves a dependency without removing the driver behind it. He is right that an abstraction cannot delete essential coupling, only relocate it. He is right that role-based layers are not domain boundaries. Where a domain’s business logic is genuinely self-contained — case (a) — his Functional Core is exactly correct.</p>
+<p>He is wrong to make a conditional property into a universal one. The infra-ignorant core exists if and only if H holds, and H is discovered from the domain’s governing artifacts, not assumed. When H fails, every style in the family — Clean, Hexagonal, Onion, and Functional Core / Imperative Shell alike — arrives at the same fork: embody the required knowledge, or ship a model that is quietly wrong.</p>
+<p>The question is not whether we should still talk about Clean Architecture. It is which domains Clean Architecture was ever talking about. That question has an answer, and it is a property of the domain, not a matter of taste.</p>
+<hr>
+<p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
+<ul>
+<li><em>The Independent Variation Principle: Deriving Optimal Module Boundaries from the Element–Change-Driver Graph</em> — Zenodo, 2026 — <a href="https://doi.org/10.5281/zenodo.20794332">doi:10.5281/zenodo.20794332</a></li>
+<li><em>On the Nature of Coupling: All Coupling as Shared Resource Access</em> — Zenodo, 2026 — <a href="https://doi.org/10.5281/zenodo.21925122">doi:10.5281/zenodo.21925122</a></li>
+<li><em>On the Nature of Cohesion: Cohesion as Correctness Relative to a Partitioning Rule</em> — Zenodo, 2026 — <a href="https://doi.org/10.5281/zenodo.21703193">doi:10.5281/zenodo.21703193</a></li>
+</ul>
+<p>The conditional analysis of the infra-ignorant core is developed in <em>The Domain–Infrastructure Boundary as a Structural Property of the Driver Set</em>.</p>
+<p><a href="../reference/papers.html">All published papers</a></p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0">
+<div id="ref-loth2026ivpgraph" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">Y. Loth, <span>“The independent variation principle.”</span> Zenodo, Jun. 2026. doi: <a href="https://doi.org/10.5281/zenodo.20794332">10.5281/zenodo.20794332</a>.</div>
+</div>
+<div id="ref-loth2026cohesion" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">Y. Loth, <span>“On the nature of cohesion: Cohesion as correctness relative to a partitioning rule.”</span> Zenodo, Jul. 2026. doi: <a href="https://doi.org/10.5281/zenodo.21703193">10.5281/zenodo.21703193</a>.</div>
+</div>
+<div id="ref-martin2017clean" class="csl-entry">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">R. C. Martin, <em>Clean architecture: A craftsman’s guide to software structure and design</em>. Prentice Hall, 2017.</div>
+</div>
+<div id="ref-loth2026couplingnature" class="csl-entry">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">Y. Loth, <span>“On the nature of coupling: All coupling as shared resource access.”</span> Zenodo, Aug. 2026. doi: <a href="https://doi.org/10.5281/zenodo.21925122">10.5281/zenodo.21925122</a>.</div>
+</div>
+</div></section></div> ]]></description>
+  <category>ivp</category>
+  <category>engineering</category>
+  <category>architecture</category>
+  <category>coupling</category>
+  <guid>https://yannickloth.github.io/independentvariation/posts/2026-10-18-clean-architecture-is-conditional-a-formal-response-to-rico-fritzsche-7d2x.html</guid>
+  <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Inheritance vs Composition: What the Independent Variation Principle Actually Tells Us</title>
   <link>https://yannickloth.github.io/independentvariation/posts/2026-08-27-inheritance-vs-composition.html</link>
