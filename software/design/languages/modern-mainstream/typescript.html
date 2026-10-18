@@ -1035,7 +1035,7 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses TypeScript in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 70/100</strong> · <strong>Ecosystem coupling 73/100</strong></p>
+<p><strong>Core coupling 28/100</strong> · <strong>Ecosystem coupling 73/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
@@ -1058,6 +1058,7 @@ div.csl-indent {
 <li>⚠️ <strong>Dependency injection requires manual wiring</strong>: No built-in mechanism</li>
 <li>❌ <strong>Module side effects</strong>: Imports can execute code, coupling load order</li>
 <li>❌ <strong>Global namespace pollution</strong>: <code>window</code>, <code>global</code> create hidden coupling</li>
+<li>❌ <strong>Objects are mutable unless marked <code>readonly</code> (C2)</strong>: <code>readonly</code> is opt-in, so any holder of a reference can change the object</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
@@ -1068,7 +1069,8 @@ div.csl-indent {
 <li>⚠️ <strong>Closure captures extend lifetimes</strong>: Closures hold references, prevent collection</li>
 <li>⚠️ <strong>Event listeners create memory leaks</strong>: Forgotten listeners couple to DOM/event system</li>
 <li>⚠️ <strong>Circular references with DOM</strong>: Can create leaks if not careful with event handlers</li>
-<li>⚠️ <strong>GC pauses affect latency</strong>: Non-deterministic pauses, though V8 GC is incremental</li>
+<li>⚠️ <strong>Collection follows the JavaScript runtime’s schedule (M2)</strong>: A value stays allocated until V8’s collector decides, and the pause is non-deterministic, so the heap’s release schedule is not the program’s to name</li>
+<li>✅ <strong><code>using</code> ties a release to the scope (M3 absent)</strong>: TypeScript 5.2 adds <code>using</code> and <code>await using</code>, so a value with a <code>Symbol.dispose</code> method releases at block exit</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
@@ -1084,7 +1086,8 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>Async/await separates sync from async</strong>: <code>async function</code> makes concurrency explicit</li>
 <li>❌ <strong>Promises don’t track errors</strong>: <code>Promise&lt;T&gt;</code> doesn’t show failure type</li>
-<li>⚠️ <strong>Event loop is implicit</strong>: Single-threaded but callbacks create order coupling</li>
+<li>⚠️ <strong>The event loop is the only unit of work (K1)</strong>: Single-threaded, so a long callback blocks every other task and no second core is available for CPU-bound work, and callbacks create order coupling</li>
+<li>⚠️ <strong>Shared module state has no concurrency discipline (K2, K3)</strong>: A module-level binding is reachable from every callback, and nothing detects a race across interleaved tasks</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
@@ -1295,15 +1298,15 @@ div.csl-indent {
 <td><strong>Construction</strong></td>
 <td><code>C1</code></td>
 <td>global mutable state by default</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">15</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>C2</code></td>
 <td>no immutability by default</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1324,7 +1327,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Memory</strong></td>
@@ -1337,8 +1340,8 @@ div.csl-indent {
 <td></td>
 <td><code>M2</code></td>
 <td>GC non-deterministic pauses</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1351,15 +1354,15 @@ div.csl-indent {
 <td></td>
 <td><code>M4</code></td>
 <td>no ownership model</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td><strong>Memory subtotal</strong></td>
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Error</strong></td>
@@ -1386,36 +1389,36 @@ div.csl-indent {
 <td></td>
 <td><code>Er4</code></td>
 <td>no composable result type</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td><strong>Error subtotal</strong></td>
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>15</strong></td>
+<td style="text-align: right;"><strong>12</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Concurrency</strong></td>
 <td><code>K1</code></td>
 <td>GIL/no parallel</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">15</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1436,7 +1439,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>15</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Platform</strong></td>
@@ -1468,7 +1471,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Core Dimensions score: 70/100</strong> — total points removed = 30 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Core Dimensions score: 28/100</strong> — total points removed = 72 (per-dimension subtotals are clamped at 15).</p>
 </section>
 <section id="meta-dimensions" class="level4" data-number="1.3.2">
 <h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
@@ -1745,7 +1748,7 @@ div.csl-indent {
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 73/100</strong> — total points removed = 27 (per-dimension subtotals are clamped at 15).</p>
-<p><strong>Verdict:</strong> TypeScript adds types to JavaScript but inherits JS’s coupling problems. Structural typing reduces coupling, but unchecked exceptions, <code>any</code>, and type erasure create holes. Main strength: gradual typing lets you add coupling incrementally. Main weakness: type system doesn’t enforce runtime behavior.</p>
+<p><strong>Verdict:</strong> TypeScript’s types exist in the editor and the build, not in the running program, so the coupling a TypeScript program imposes at run time is the JavaScript runtime’s: a single-threaded event loop, a collector the program cannot schedule, mutable-by-default objects, and failures that no type tracks. The type layer removes the dynamic-typing mechanisms at compile time and adds <code>using</code>, but the per-dimension clamp is already saturated by JavaScript’s dynamic typing, so the removal does not move the score. TypeScript’s gain is earlier detection, not lower coupling.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
