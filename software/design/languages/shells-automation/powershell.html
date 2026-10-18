@@ -1028,7 +1028,7 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="powershellDocs"><a href="#ref-powershellDocs" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses PowerShell in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses PowerShell in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 65/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
@@ -1060,7 +1060,7 @@ div.csl-indent {
 <li>✅ <strong>.NET GC</strong>: Automatic garbage collection</li>
 <li>✅ <strong>Dispose pattern</strong>: IDisposable for resources</li>
 <li>⚠️ <strong>GC pauses</strong>: Non-deterministic .NET GC</li>
-<li>✅ <strong>Using statement</strong>: PowerShell 5+ ensures disposal</li>
+<li>⚠️ <strong>Disposal is explicit</strong>: There is no <code>using</code> block for a resource, so a value is released with <code>try</code>/<code>finally</code> or the <code>clean</code> block added in PowerShell 7.3</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
@@ -1077,9 +1077,9 @@ div.csl-indent {
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>✅ <strong>Jobs</strong>: Background jobs with Receive-Job</li>
-<li>✅ <strong>Workflows</strong>: PowerShell workflows for parallel execution</li>
+<li>⚠️ <strong>Workflows are Windows PowerShell only</strong>: The <code>workflow</code> keyword is not implemented in PowerShell 7</li>
 <li>⚠️ <strong>Runspaces</strong>: Low-level threading, complex</li>
-<li>⚠️ <strong>No async/await</strong>: (Until PowerShell 7+)</li>
+<li>⚠️ <strong>No async/await</strong>: The language has no <code>await</code> keyword, even in PowerShell 7</li>
 <li>✅ <strong>ForEach-Object -Parallel</strong>: PowerShell 7+ parallel pipelines</li>
 <li>⚠️ <strong>Pipeline variable</strong>: <code>$_</code> implicit like Perl</li>
 </ul>
@@ -1087,21 +1087,21 @@ div.csl-indent {
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>The runtime is open source under the MIT licence</strong>: PowerShell 7 is developed in the open at github.com/PowerShell/PowerShell and has no proprietary runtime component.</li>
-<li>✅ <strong>The engine is .NET</strong>: PowerShell 7 runs on .NET (formerly .NET Core), so one runtime assembly runs on every platform .NET supports.</li>
-<li>✅ <strong>Builds ship for Windows, macOS, and Linux</strong>: Microsoft publishes a Windows installer, a signed macOS package, and packages for Debian/Ubuntu, RHEL, and Alpine.</li>
-<li>✅ <strong>A module is a portable .NET assembly</strong>: a cmdlet written in C# against the .NET API loads on any host running the Core runtime.</li>
-<li>✅ <strong>Nothing in the core language names a Windows API</strong>: the built-in cmdlets cover files, processes, and text, so a script that avoids WMI, COM, and the registry providers runs unchanged off Windows.</li>
+<li>✅ <strong>The runtime is open source under the MIT licence</strong>: PowerShell 7 is developed in the open at github.com/PowerShell/PowerShell and has no proprietary runtime component</li>
+<li>✅ <strong>The engine is .NET</strong>: PowerShell 7 runs on .NET (formerly .NET Core), so one runtime assembly runs on every platform .NET supports</li>
+<li>✅ <strong>Builds ship for Windows, macOS, and Linux</strong>: Microsoft publishes a Windows installer, a signed macOS package, and packages for Debian/Ubuntu, RHEL, and Alpine</li>
+<li>✅ <strong>A module is a portable .NET assembly</strong>: A cmdlet written in C# against the .NET API loads on any host running the Core runtime</li>
+<li>✅ <strong>Nothing in the core language names a Windows API</strong>: The built-in cmdlets cover files, processes, and text, so a script that avoids WMI, COM, and the registry providers runs unchanged off Windows</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>The type system is borrowed</strong>: The types are .NET types, so the language adds convenience syntax and inherits .NET’s type behaviour rather than defining a model of its own.</li>
-<li><strong>The language ships with a host and a remoting layer</strong>: PowerShell is a shell, a session, and a language in one product, so its scope reaches past programming into administration.</li>
-<li><strong>Help is part of the runtime</strong>: <code>Get-Help</code> and <code>Get-Command</code> read metadata from the loaded modules, a design decision that ties documentation to the session rather than to a separate manual.</li>
-<li><strong>Aliases ship as part of the surface</strong>: <code>ls</code>, <code>cd</code>, and <code>cat</code> map to cmdlets, a convenience whose meaning depends on what the session has loaded.</li>
-<li><strong>Two products share the name</strong>: Windows PowerShell 5.1 ships with Windows while PowerShell 7 is the cross-platform line, so a script states which one it targets — a version split, not a language dependency.</li>
+<li><strong>The type system is borrowed</strong>: The types are .NET types, so the language adds convenience syntax and inherits .NET’s type behaviour rather than defining a model of its own</li>
+<li><strong>The language ships with a host and a remoting layer</strong>: PowerShell is a shell, a session, and a language in one product, so its scope reaches past programming into administration</li>
+<li><strong>Help is part of the runtime</strong>: <code>Get-Help</code> and <code>Get-Command</code> read metadata from the loaded modules, a design decision that ties documentation to the session rather than to a separate manual</li>
+<li><strong>Aliases ship as part of the surface</strong>: <code>ls</code>, <code>cd</code>, and <code>cat</code> map to cmdlets, a convenience whose meaning depends on what the session has loaded</li>
+<li><strong>Two products share the name</strong>: Windows PowerShell 5.1 ships with Windows while PowerShell 7 is the cross-platform line, so a script states which one it targets — a version split, not a language dependency</li>
 </ul>
 </section>
 </section>

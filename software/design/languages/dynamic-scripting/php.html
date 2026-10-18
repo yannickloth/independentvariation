@@ -1028,7 +1028,7 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="phpManual"><a href="#ref-phpManual" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses PHP in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses PHP in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 28/100</strong> · <strong>Ecosystem coupling 69/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
@@ -1036,12 +1036,11 @@ div.csl-indent {
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>⚠️ <strong>Type declarations (PHP 7+)</strong>: Gradual typing, improving</li>
-<li>⚠️ <strong>Interfaces decouple</strong>: Can program to interfaces</li>
+<li>✅ <strong>Interfaces decouple</strong>: Can program to interfaces</li>
 <li>❌ <strong>Weak typing historically</strong>: Type juggling couples</li>
 <li>⚠️ <strong>Traits</strong>: Multiple inheritance-like, can couple</li>
 <li>❌ <strong>Inconsistent stdlib</strong>: <code>strpos</code> vs <code>str_replace</code> couples to memorization</li>
-<li>❌ <strong>Type juggling couples</strong>: Implicit conversions hide intent</li>
-<li>❌ <strong>Global namespace historically</strong>: Modern namespaces help</li>
+<li>✅ <strong>Namespaces scope every name</strong>: A namespace declaration qualifies a class, function, or constant, so two libraries can define the same short name</li>
 <li>⚠️ <strong>Magic methods can hide coupling</strong>: <code>__get</code>, <code>__call</code> obscure behavior</li>
 </ul>
 </section>
@@ -1052,7 +1051,6 @@ div.csl-indent {
 <li>❌ <strong>No immutability by default</strong>: Everything mutable</li>
 <li>⚠️ <strong>Dependency injection available</strong>: Frameworks support it</li>
 <li>❌ <strong>Global state tempting</strong>: <code>$_GET</code>, <code>$_POST</code>, <code>$_SESSION</code> couple</li>
-<li>❌ <strong>Superglobals couple</strong>: <code>$_GET</code>, <code>$_POST</code>, <code>$_SESSION</code>, <code>$_SERVER</code> everywhere</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
@@ -1061,7 +1059,6 @@ div.csl-indent {
 <li>✅ <strong>Reference counting</strong>: Immediate deallocation when references drop to zero</li>
 <li>✅ <strong>Cycle collector</strong>: Detects and breaks circular references</li>
 <li>✅ <strong>Request-scoped by default</strong>: Each request has isolated memory, cleared after request</li>
-<li>⚠️ <strong>Destructors timing predictable</strong>: <code>__destruct</code> runs when refcount hits zero</li>
 <li>❌ <strong>Long-running processes leak</strong>: Traditional PHP has no long-lived processes, but Swoole/ReactPHP do</li>
 <li>✅ <strong>No manual memory management</strong>: Can’t have use-after-free in pure PHP</li>
 <li>⚠️ <strong>Extensions can leak</strong>: C extensions may have memory issues</li>
@@ -1083,7 +1080,6 @@ div.csl-indent {
 <li>✅ <strong>Fibers (PHP 8.1)</strong>: Built-in cooperative concurrency — enables async I/O without external extensions</li>
 <li>⚠️ <strong>No built-in async event loop</strong>: Fibers need a framework (ReactPHP, Swoole) for full async; however Revolt/Amp provide fiber-based event loops</li>
 <li>❌ <strong>Global state couples across requests</strong>: Sessions, databases</li>
-<li>⚠️ <strong>Request-per-process prevents some coupling</strong>: But wastes resources</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
@@ -1099,11 +1095,11 @@ div.csl-indent {
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>The language began as a page preprocessor</strong>: PHP grew from a templating tool, so markup and logic still share one file — a design origin whose cost is mixed presentation and behaviour.</li>
-<li><strong>Every variable carries a <code>$</code></strong>: The sigil marks a variable at a glance and cannot be omitted, a notation decision rather than a type-system one.</li>
-<li><strong>The core library assumes one short request</strong>: Functions such as <code>header()</code> and <code>session_start()</code> act on the current request, an assumption that costs when the same code must run in a long-lived worker.</li>
-<li><strong>Frameworks define the architecture</strong>: PSR interfaces and the Laravel or Symfony conventions shape practice more than the language does — an ecosystem convention, not a dependency the language forces.</li>
-<li><strong>Feature growth is version-gated</strong>: Enums, readonly classes, and property hooks arrive release by release, so the style a codebase may use follows its minimum supported version — an evolution cost, not a coupling.</li>
+<li><strong>The language began as a page preprocessor</strong>: PHP grew from a templating tool, so markup and logic still share one file — a design origin whose cost is mixed presentation and behaviour</li>
+<li><strong>Every variable carries a <code>$</code></strong>: The sigil marks a variable at a glance and cannot be omitted, a notation decision rather than a type-system one</li>
+<li><strong>The core library assumes one short request</strong>: Functions such as <code>header()</code> and <code>session_start()</code> act on the current request, an assumption that costs when the same code must run in a long-lived worker</li>
+<li><strong>Frameworks define the architecture</strong>: PSR interfaces and the Laravel or Symfony conventions shape practice more than the language does — an ecosystem convention, not a dependency the language forces</li>
+<li><strong>Feature growth is version-gated</strong>: Enums, readonly classes, and property hooks arrive release by release, so the style a codebase may use follows its minimum supported version — an evolution cost, not a coupling</li>
 </ul>
 </section>
 </section>

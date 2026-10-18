@@ -1029,7 +1029,7 @@ div.csl-indent {
 <p><em>Analysis against Python 3.14 (free-threaded mode officially supported).</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Python in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Python in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 32/100</strong> · <strong>Ecosystem coupling 73/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
@@ -1037,11 +1037,11 @@ div.csl-indent {
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>❌ <strong>Dynamic typing</strong>: All coupling at runtime</li>
-<li>✅ <strong>Duck typing radical</strong>: If it quacks, it’s a duck—maximum runtime decoupling</li>
-<li>✅ <strong><code>match</code>/<code>case</code> structural pattern matching (3.10+)</strong>: Exhaustive dispatch on data structures, like Rust/Swift</li>
+<li>⚠️ <strong>Duck typing</strong>: Any object with a matching method name is accepted, so the interface a call expects is an assumption at the call site</li>
+<li>❌ <strong><code>match</code>/<code>case</code> is not exhaustive (3.10+)</strong>: A value that matches no case falls through without an error, so completeness is the programmer’s claim</li>
 <li>✅ <strong><code>|</code> union type syntax (3.10+)</strong>: <code>str | int</code> cleaner than <code>Union[str, int]</code></li>
 <li>⚠️ <strong>Type hints (PEP 484) help</strong>: Gradual typing, but not enforced by the runtime; <code>mypy</code>/<code>pyright</code> provide enforcement at build time</li>
-<li>⚠️ <strong>Protocols (PEP 544)</strong>: Structural typing like Go, but runtime only</li>
+<li>⚠️ <strong>Protocols (PEP 544) declare a structure for the type checker</strong>: An object satisfies the protocol implicitly, and the runtime does not enforce it</li>
 <li>❌ <strong><code>None</code> everywhere</strong>: Couples to absence checking</li>
 </ul>
 </section>
@@ -1066,7 +1066,7 @@ div.csl-indent {
 <li>⚠️ <strong>Reference cycles need GC</strong>: Cycle detector runs periodically</li>
 <li>⚠️ <strong>GC pauses affect latency</strong>: Cycle collection can pause</li>
 <li>❌ <strong><code>__del__</code> timing non-deterministic</strong>: Finalizers unreliable for resource cleanup</li>
-<li>✅ <strong>Context managers for resources</strong>: <code>with</code> statement provides deterministic cleanup</li>
+<li>⚠️ <strong>Context managers cover the block they wrap</strong>: <code>with</code> releases a resource at block exit, but a resource acquired outside one has no automatic release</li>
 <li>❌ <strong>Global references common</strong>: Module-level variables extend lifetimes</li>
 </ul>
 </section>
@@ -1082,8 +1082,7 @@ div.csl-indent {
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>Free-threaded Python (3.14, officially supported)</strong>: GIL removed as opt-in — threads can use multiple cores. Single-threaded performance overhead ~5-10%.</li>
-<li>⚠️ <strong>GIL still default</strong>: Free-threaded mode is opt-in via <code>--disable-gil</code> build or <code>python3.14t</code></li>
+<li>⚠️ <strong>The GIL is still the default</strong>: Free-threaded mode is opt-in through a <code>--disable-gil</code> build or the <code>python3.14t</code> executable, and threads then use multiple cores at a single-thread cost of about 5-10%</li>
 <li>✅ <strong>Async/await separates</strong>: Explicit async functions</li>
 <li>⚠️ <strong>Multiprocessing decouples</strong>: Separate processes, but manual (less necessary with free-threaded mode)</li>
 <li>⚠️ <strong>Free-threaded mode is new</strong>: Ecosystem still adapting; many C extensions need GIL</li>
@@ -1098,7 +1097,7 @@ div.csl-indent {
 <li>✅ <strong>No company owns the language</strong>: Python is governed by the Python Software Foundation and released under the PSF Licence</li>
 <li>✅ <strong>Several implementations exist</strong>: CPython is the reference implementation, and PyPy, GraalPy, Jython, and IronPython are independent runtimes</li>
 <li>✅ <strong>The runtime is portable</strong>: CPython builds on Linux, macOS, Windows, and on many other platforms, including IBM z/OS</li>
-<li>✅ <strong>The packaging tools are vendor-neutral</strong>: pip, venv, and the Python Package Index are not tied to one vendor’s platform</li>
+<li>✅ <strong>The packaging tools are vendor-neutral</strong>: Pip, venv, and the Python Package Index are not tied to one vendor’s platform</li>
 <li>✅ <strong>No vendor controls the roadmap</strong>: Language changes are public Python Enhancement Proposals (PEPs) decided by the Steering Council</li>
 </ul>
 </section>
@@ -1131,7 +1130,7 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>Massive ecosystem</strong>: PyPI has everything</li>
 <li>✅ <strong>Excellent for data science</strong>: NumPy, pandas, scikit-learn</li>
-<li>✅ <strong>Great tooling</strong>: pip, venv, Poetry, uv</li>
+<li>✅ <strong>Great tooling</strong>: Pip, venv, Poetry, uv</li>
 <li>✅ <strong>IDE support</strong>: PyCharm, VSCode excellent</li>
 <li>✅ <strong>Jupyter notebooks</strong>: Interactive development</li>
 </ul>
@@ -1178,7 +1177,7 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>pytest, unittest</strong>: Excellent frameworks</li>
 <li>✅ <strong>pdb debugger</strong>: Built-in</li>
-<li>✅ <strong>Type checkers</strong>: mypy, pyright</li>
+<li>✅ <strong>Type checkers</strong>: Mypy, pyright</li>
 <li>⚠️ <strong>Runtime errors</strong>: No compile-time checks</li>
 </ul>
 </section>

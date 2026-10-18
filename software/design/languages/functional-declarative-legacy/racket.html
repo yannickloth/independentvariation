@@ -1028,85 +1028,85 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="racketRef"><a href="#ref-racketRef" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Racket in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Racket in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 62/100</strong> · <strong>Ecosystem coupling 84/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>❌ <strong>Typing is dynamic with no static check (T1)</strong>: a value carries its type at run time, so a wrong-typed use fails when the expression executes.</li>
-<li>❌ <strong>Dispatch is resolved at run time (T3)</strong>: <code>(send obj 'msg)</code> and a generic method resolve when called, so a missing method fails there rather than at compile time.</li>
-<li>❌ <strong>There are no sum types and no core generics (T4, T5)</strong>: an alternative is a struct, a symbol, or a tagged list plus a contract, and no type parameter exists in the core language.</li>
-<li>❌ <strong>The numeric operators dispatch on a hidden type (T8)</strong>: <code>+</code>, <code>*</code>, and <code>=</code> accept any number, and the exact or the inexact result follows the values at run time, so the arithmetic is overloaded without a declared type.</li>
-<li>✅ <strong>A contract checks the module boundary at run time</strong>: <code>(provide/contract [f (-&gt; integer? integer?)])</code> and <code>define/contract</code> reject a wrong call at the boundary and name the module at fault.</li>
-<li>⚠️ <strong><code>#lang typed/racket</code> types part of a program</strong>: a typed module imports an untyped one through <code>require/typed</code> and a contract, so static and dynamic code meet at a checked boundary.</li>
+<li>❌ <strong>Typing is dynamic with no static check (T1)</strong>: A value carries its type at run time, so a wrong-typed use fails when the expression executes</li>
+<li>❌ <strong>Dispatch is resolved at run time (T3)</strong>: <code>(send obj 'msg)</code> and a generic method resolve when called, so a missing method fails there rather than at compile time</li>
+<li>❌ <strong>There are no sum types and no core generics (T4, T5)</strong>: An alternative is a struct, a symbol, or a tagged list plus a contract, and no type parameter exists in the core language</li>
+<li>❌ <strong>The numeric operators dispatch on a hidden type (T8)</strong>: <code>+</code>, <code>*</code>, and <code>=</code> accept any number, and the exact or the inexact result follows the values at run time, so the arithmetic is overloaded without a declared type</li>
+<li>✅ <strong>A contract checks the module boundary at run time</strong>: <code>(provide/contract [f (-&gt; integer? integer?)])</code> and <code>define/contract</code> reject a wrong call at the boundary and name the module at fault</li>
+<li>⚠️ <strong><code>#lang typed/racket</code> types part of a program</strong>: A typed module imports an untyped one through <code>require/typed</code> and a contract, so static and dynamic code meet at a checked boundary</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>✅ <strong><code>struct</code> declares the constructor with its invariant</strong>: <code>(struct posn (x y) #:transparent #:guard check)</code> creates the constructor, the predicate, and the accessors together, and the guard rejects a bad argument.</li>
-<li>✅ <strong>A macro extends the language at compile time</strong>: a <code>define-syntax</code> form sees its syntax objects and expands to core forms, so a construct is added without a run-time library.</li>
-<li>✅ <strong>Hygiene prevents accidental name capture</strong>: a binding the macro introduces cannot collide with a name at the use site, so the expansion does not depend on the caller’s names.</li>
-<li>✅ <strong>A module scopes what it defines</strong>: a binding is private until it is <code>provide</code>d, so a helper constructor stays invisible outside the module.</li>
-<li>✅ <strong><code>#lang</code> fixes the whole surface of a file</strong>: a module states its language on the first line, so a DSL and the base language do not mix by accident.</li>
-<li>⚠️ <strong><code>set!</code> reaches any binding in the core language</strong>: a variable can be reassigned unless the language of the file forbids it, so immutability is not enforced by the core.</li>
+<li>✅ <strong><code>struct</code> declares the constructor with its invariant</strong>: <code>(struct posn (x y) #:transparent #:guard check)</code> creates the constructor, the predicate, and the accessors together, and the guard rejects a bad argument</li>
+<li>✅ <strong>A macro extends the language at compile time</strong>: A <code>define-syntax</code> form sees its syntax objects and expands to core forms, so a construct is added without a run-time library</li>
+<li>✅ <strong>Hygiene prevents accidental name capture</strong>: A binding the macro introduces cannot collide with a name at the use site, so the expansion does not depend on the caller’s names</li>
+<li>✅ <strong>A module scopes what it defines</strong>: A binding is private until it is <code>provide</code>d, so a helper constructor stays invisible outside the module</li>
+<li>✅ <strong><code>#lang</code> fixes the whole surface of a file</strong>: A module states its language on the first line, so a DSL and the base language do not mix by accident</li>
+<li>⚠️ <strong><code>set!</code> reaches any binding in the core language</strong>: A variable can be reassigned unless the language of the file forbids it, so immutability is not enforced by the core</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>A <code>call-with-*</code> form brackets a resource</strong>: <code>(call-with-input-file path proc)</code> opens and closes around the call, and <code>with-handlers</code> covers the exceptional path.</li>
-<li>✅ <strong>A place collects its own heap</strong>: a <code>place</code> runs on a separate thread with a separate store, so parallel work does not extend one collection pause.</li>
-<li>❌ <strong>Collection is non-deterministic (M2)</strong>: the collector runs on its own schedule, and <code>(collect-garbage)</code> or the <code>PLTSTDERR</code> collection log is the only control a program has.</li>
-<li>❌ <strong>There is no RAII (M3)</strong>: there is no scope-bound destructor, so a port, a TCP listener, or a subprocess is released by an explicit <code>close-input-port</code> or by a bracket the author writes.</li>
-<li>❌ <strong>There is no ownership model (M4)</strong>: no static lifetime or aliasing rule ties a value to an owner, so a shared mutable structure escapes its module without a trace.</li>
-<li>⚠️ <strong>A custodian groups resources only when it is created</strong>: <code>make-custodian</code> and <code>custodian-shutdown-all</code> shut down a group of threads and ports together, and the code must ask for that grouping.</li>
+<li>✅ <strong>A <code>call-with-*</code> form brackets a resource</strong>: <code>(call-with-input-file path proc)</code> opens and closes around the call, and <code>with-handlers</code> covers the exceptional path</li>
+<li>✅ <strong>A place collects its own heap</strong>: A <code>place</code> runs on a separate thread with a separate store, so parallel work does not extend one collection pause</li>
+<li>❌ <strong>Collection is non-deterministic (M2)</strong>: The collector runs on its own schedule, and <code>(collect-garbage)</code> or the <code>PLTSTDERR</code> collection log is the only control a program has</li>
+<li>❌ <strong>There is no RAII (M3)</strong>: There is no scope-bound destructor, so a port, a TCP listener, or a subprocess is released by an explicit <code>close-input-port</code> or by a bracket the author writes</li>
+<li>❌ <strong>There is no ownership model (M4)</strong>: No static lifetime or aliasing rule ties a value to an owner, so a shared mutable structure escapes its module without a trace</li>
+<li>⚠️ <strong>A custodian groups resources only when it is created</strong>: <code>make-custodian</code> and <code>custodian-shutdown-all</code> shut down a group of threads and ports together, and the code must ask for that grouping</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>Exceptions are unchecked (Er2)</strong>: <code>raise</code>, <code>error</code>, and <code>raise-user-error</code> are not declared in a signature, so a caller cannot see the failure set from the definition.</li>
-<li>✅ <strong><code>with-handlers</code> selects the recovery by predicate</strong>: <code>(with-handlers ([(lambda (e) (exn:fail? e)) handler]) body)</code> chooses the handler from the exception’s type rather than from a code number.</li>
-<li>✅ <strong>An exception is a struct with fields</strong>: <code>(exn-message e)</code>, <code>(exn:fail:contract? e)</code>, and the continuation marks of <code>exn:fail</code> make a failure an inspectable value.</li>
-<li>✅ <strong>A failure can be a value instead of a throw</strong>: a struct with an <code>ok</code> and an <code>error</code> variant, or a pair of values, carries the outcome without an exception.</li>
-<li>✅ <strong>A contract violation blames a party</strong>: an <code>exn:fail:contract</code> carries the offending value, the contract, and the module blamed, so a boundary fault is localised.</li>
-<li>⚠️ <strong>A catch-all handler hides the cause</strong>: <code>(with-handlers ([void void]) ...)</code> discards the reason, and any cleanup must be arranged with <code>dynamic-wind</code> rather than by the handler.</li>
+<li>❌ <strong>Exceptions are unchecked (Er2)</strong>: <code>raise</code>, <code>error</code>, and <code>raise-user-error</code> are not declared in a signature, so a caller cannot see the failure set from the definition</li>
+<li>✅ <strong><code>with-handlers</code> selects the recovery by predicate</strong>: <code>(with-handlers ([(lambda (e) (exn:fail? e)) handler]) body)</code> chooses the handler from the exception’s type rather than from a code number</li>
+<li>✅ <strong>An exception is a struct with fields</strong>: <code>(exn-message e)</code>, <code>(exn:fail:contract? e)</code>, and the continuation marks of <code>exn:fail</code> make a failure an inspectable value</li>
+<li>✅ <strong>A failure can be a value instead of a throw</strong>: A struct with an <code>ok</code> and an <code>error</code> variant, or a pair of values, carries the outcome without an exception</li>
+<li>✅ <strong>A contract violation blames a party</strong>: An <code>exn:fail:contract</code> carries the offending value, the contract, and the module blamed, so a boundary fault is localised</li>
+<li>⚠️ <strong>A catch-all handler hides the cause</strong>: <code>(with-handlers ([void void]) ...)</code> discards the reason, and any cleanup must be arranged with <code>dynamic-wind</code> rather than by the handler</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>A place gives shared-nothing parallelism</strong>: <code>place-create</code> runs a computation on its own thread and store, and <code>place-channel-put</code> and <code>place-channel-get</code> pass values, so several cores are used without shared memory.</li>
-<li>✅ <strong>A future parallelises an expression</strong>: <code>(future expr)</code> runs on a thread from the pool and <code>(touch f)</code> forces the result, and the runtime keeps a future’s computation safe on its own.</li>
-<li>✅ <strong>A thread is a lightweight green thread</strong>: <code>(thread proc)</code> starts one, <code>(sync evt)</code> waits on an event, and <code>channel-put</code> and <code>channel-get</code> pass values between threads.</li>
-<li>✅ <strong>Non-blocking I/O composes through events</strong>: <code>sync</code> on a port or on an <code>async-channel</code> waits for whichever is ready, so no callback pyramid is needed.</li>
-<li>✅ <strong>A custodian bounds a thread group</strong>: a supervisor custodian shuts down its threads and ports together, so a group of tasks is torn down as a unit.</li>
-<li>⚠️ <strong>A shared box still needs a lock</strong>: a <code>box</code> or a <code>vector</code> written from two threads needs a <code>semaphore</code> or an <code>atomic-box</code>, and the runtime reports no race.</li>
+<li>✅ <strong>A place gives shared-nothing parallelism</strong>: <code>place</code> runs a computation on its own thread and store, and <code>place-channel-put</code> and <code>place-channel-get</code> pass values, so several cores are used without shared memory</li>
+<li>✅ <strong>A future parallelises an expression</strong>: <code>(future expr)</code> runs on a thread from the pool and <code>(touch f)</code> forces the result, and the runtime keeps a future’s computation safe on its own</li>
+<li>✅ <strong>A thread is a lightweight green thread</strong>: <code>(thread proc)</code> starts one, <code>(sync evt)</code> waits on an event, and <code>channel-put</code> and <code>channel-get</code> pass values between threads</li>
+<li>✅ <strong>Non-blocking I/O composes through events</strong>: <code>sync</code> on a port or on an <code>async-channel</code> waits for whichever is ready, so no callback pyramid is needed</li>
+<li>✅ <strong>A custodian bounds a thread group</strong>: A supervisor custodian shuts down its threads and ports together, so a group of tasks is torn down as a unit</li>
+<li>⚠️ <strong>A shared box still needs a lock</strong>: A <code>box</code> or a <code>vector</code> written from two threads needs a <code>semaphore</code> or <code>box-cas!</code>, and the runtime reports no race</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>A program compiles to a native executable</strong>: <code>raco exe</code> produces a standalone binary and bundles the runtime and the libraries it needs.</li>
-<li>✅ <strong>The runtime runs on the major platforms</strong>: Windows, macOS, Linux, and the BSDs are supported from one source.</li>
-<li>✅ <strong>Racket CS builds on Chez Scheme</strong>: the default runtime compiles with Chez’s compiler, and the earlier bytecode runtime with its JIT remained available as the alternative.</li>
-<li>✅ <strong><code>raco</code> covers install, build, and delivery</strong>: <code>raco pkg</code>, <code>raco exe</code>, and <code>raco distribute</code> are one tool family for a project’s whole lifecycle.</li>
-<li>⚠️ <strong>The runtime must be present unless it is bundled</strong>: a source program needs an installed Racket, and <code>raco distribute</code> is the step that removes that dependency.</li>
-<li>⚠️ <strong>Cross-compilation is limited</strong>: an executable targets the platform that built it unless a cross build is arranged.</li>
+<li>✅ <strong>A program compiles to a native executable</strong>: <code>raco exe</code> produces a standalone binary and bundles the runtime and the libraries it needs</li>
+<li>✅ <strong>The runtime runs on the major platforms</strong>: Windows, macOS, Linux, and the BSDs are supported from one source</li>
+<li>✅ <strong>Racket CS builds on Chez Scheme</strong>: The default runtime compiles with Chez’s compiler, and the earlier bytecode runtime with its JIT remained available as the alternative</li>
+<li>✅ <strong><code>raco</code> covers install, build, and delivery</strong>: <code>raco pkg</code>, <code>raco exe</code>, and <code>raco distribute</code> are one tool family for a project’s whole lifecycle</li>
+<li>⚠️ <strong>The runtime must be present unless it is bundled</strong>: A source program needs an installed Racket, and <code>raco distribute</code> is the step that removes that dependency</li>
+<li>⚠️ <strong>Cross-compilation is limited</strong>: An executable targets the platform that built it unless a cross build is arranged</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Language-oriented programming is the premise</strong>: building a DSL is the design centre of the language, and the work of designing the notation is the price of a task-specific language.</li>
-<li><strong>Contracts are opt-in</strong>: a module can leave a boundary unchecked, and the per-call cost of a contract follows from asking for the check.</li>
-<li><strong><code>#lang</code> fixes the language for a whole file</strong>: a module cannot change its language halfway, which is a deliberate uniformity rather than a coupling defect.</li>
-<li><strong>A macro can obscure its expansion</strong>: a macro is powerful, and the readability cost of an unusual expansion is a style decision.</li>
-<li><strong>A linked list is the core sequence type</strong>: <code>cons</code>, <code>car</code>, and <code>cdr</code> model a sequence as a pair chain, so the cost in memory locality is a representation choice.</li>
-<li><strong>The λ-calculus core is deliberately small</strong>: the core language is tiny because a macro expands to it, which is a design decision.</li>
+<li><strong>Language-oriented programming is the premise</strong>: Building a DSL is the design centre of the language, and the work of designing the notation is the price of a task-specific language</li>
+<li><strong>Contracts are opt-in</strong>: A module can leave a boundary unchecked, and the per-call cost of a contract follows from asking for the check</li>
+<li><strong><code>#lang</code> fixes the language for a whole file</strong>: A module cannot change its language halfway, which is a deliberate uniformity rather than a coupling defect</li>
+<li><strong>A macro can obscure its expansion</strong>: A macro is powerful, and the readability cost of an unusual expansion is a style decision</li>
+<li><strong>A linked list is the core sequence type</strong>: <code>cons</code>, <code>car</code>, and <code>cdr</code> model a sequence as a pair chain, so the cost in memory locality is a representation choice</li>
+<li><strong>The λ-calculus core is deliberately small</strong>: The core language is tiny because a macro expands to it, which is a design decision</li>
 </ul>
 </section>
 </section>
@@ -1115,88 +1115,88 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>✅ <strong>Racket CS compiles through Chez Scheme</strong>: a module is compiled to native code ahead of time, so an interpreted step is not in the hot path.</li>
-<li>✅ <strong>Hot code is compiled rather than interpreted</strong>: the compiler and the JIT of the runtime remove repeated interpretation of a loop.</li>
-<li>✅ <strong>A future and a place use several cores</strong>: a computation split across futures runs on the available threads and places.</li>
-<li>⚠️ <strong>Numeric code is moderate</strong>: a boxed number and a generic arithmetic operation over the numeric tower cost more than unboxed arithmetic in a compiled language.</li>
-<li>⚠️ <strong>A contract adds a check per boundary crossing</strong>: a contract on a hot function is a run-time check on every call.</li>
-<li>⚠️ <strong>A continuation capture does real work</strong>: <code>call/cc</code> and <code>dynamic-wind</code> save and restore the control state, so a control abstraction is not free.</li>
+<li>✅ <strong>Racket CS compiles through Chez Scheme</strong>: A module is compiled to native code ahead of time, so an interpreted step is not in the hot path</li>
+<li>✅ <strong>Hot code is compiled rather than interpreted</strong>: The compiler and the JIT of the runtime remove repeated interpretation of a loop</li>
+<li>✅ <strong>A future and a place use several cores</strong>: A computation split across futures runs on the available threads and places</li>
+<li>⚠️ <strong>Numeric code is moderate</strong>: A boxed number and a generic arithmetic operation over the numeric tower cost more than unboxed arithmetic in a compiled language</li>
+<li>⚠️ <strong>A contract adds a check per boundary crossing</strong>: A contract on a hot function is a run-time check on every call</li>
+<li>⚠️ <strong>A continuation capture does real work</strong>: <code>call/cc</code> and <code>dynamic-wind</code> save and restore the control state, so a control abstraction is not free</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>The package ecosystem is small (Ec3)</strong>: the count of published packages is well below a mainstream language’s, so a project may write what it cannot find.</li>
-<li>✅ <strong><code>raco pkg</code> is a first-class package manager</strong>: <code>raco pkg install</code> takes a package name, a file, or a Git URL, so a dependency needs no manual vendoring step.</li>
-<li>✅ <strong>The distribution ships a large library</strong>: <code>racket/base</code>, <code>racket/list</code>, <code>racket/contract</code>, <code>racket/class</code>, <code>racket/draw</code>, and <code>racket/gui</code> come in one installation.</li>
-<li>✅ <strong>DrRacket is an IDE for both beginner and expert</strong>: the editor, the REPL, and the stepper are part of the distribution, and the stepper shows one reduction at a time.</li>
-<li>✅ <strong>Scribble documents a package in the language itself</strong>: Scribble writes prose with Racket syntax and produces HTML, PDF, and the reference pages from one source.</li>
-<li>⚠️ <strong>The community is small</strong>: questions are answered, but by fewer people than in a mainstream ecosystem.</li>
+<li>❌ <strong>The package ecosystem is small (Ec3)</strong>: The count of published packages is well below a mainstream language’s, so a project may write what it cannot find</li>
+<li>✅ <strong><code>raco pkg</code> is a first-class package manager</strong>: <code>raco pkg install</code> takes a package name, a file, or a Git URL, so a dependency needs no manual vendoring step</li>
+<li>✅ <strong>The distribution ships a large library</strong>: <code>racket/base</code>, <code>racket/list</code>, <code>racket/contract</code>, <code>racket/class</code>, <code>racket/draw</code>, and <code>racket/gui</code> come in one installation</li>
+<li>✅ <strong>DrRacket is an IDE for both beginner and expert</strong>: The editor, the REPL, and the stepper are part of the distribution, and the stepper shows one reduction at a time</li>
+<li>✅ <strong>Scribble documents a package in the language itself</strong>: Scribble writes prose with Racket syntax and produces HTML, PDF, and the reference pages from one source</li>
+<li>⚠️ <strong>The community is small</strong>: Questions are answered, but by fewer people than in a mainstream ecosystem</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>The language is stable and backward compatible</strong>: Racket 8.x runs code written for earlier releases, and the compatibility promise covers the core.</li>
-<li>✅ <strong><code>#lang</code> isolates a change</strong>: a DSL fixes the language of its own files, so a change to the base language does not reach a <code>#lang</code> that pins it.</li>
-<li>✅ <strong>The change of runtime kept the language</strong>: Racket CS replaced the bytecode runtime beneath the language, and existing source recompiled.</li>
-<li>✅ <strong>A package can be held at a version</strong>: an installation can be pinned to a version or to a repository revision, so a build can be made reproducible.</li>
-<li>⚠️ <strong>A library API can change between releases</strong>: the core is stable, and a library outside it may change, so an upgrade needs a test run.</li>
+<li>✅ <strong>The language is stable and backward compatible</strong>: Racket 8.x runs code written for earlier releases, and the compatibility promise covers the core</li>
+<li>✅ <strong><code>#lang</code> isolates a change</strong>: A DSL fixes the language of its own files, so a change to the base language does not reach a <code>#lang</code> that pins it</li>
+<li>✅ <strong>The change of runtime kept the language</strong>: Racket CS replaced the bytecode runtime beneath the language, and existing source recompiled</li>
+<li>✅ <strong>A package can be held at a version</strong>: An installation can be pinned to a version or to a repository revision, so a build can be made reproducible</li>
+<li>⚠️ <strong>A library API can change between releases</strong>: The core is stable, and a library outside it may change, so an upgrade needs a test run</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Excellent fit for language research and DSLs</strong>: macros, <code>#lang</code>, and the reader produce a new language from a module, as the paper “Languages as Libraries” documents.</li>
-<li>✅ <strong>Strong fit for teaching</strong>: DrRacket, <em>How to Design Programs</em>, and the teaching languages such as <code>#lang htdp/bsl</code> are built for a first course.</li>
-<li>✅ <strong>Good for compilers and interpreters</strong>: <code>#lang</code> plus <code>raco</code> makes a language implementation a package, and the <em>Beautiful Racket</em> book builds several.</li>
-<li>✅ <strong><code>racket/gui</code> covers a desktop application</strong>: the GUI toolkit and <code>racket/draw</code> ship in the distribution, so a windowed program needs no external dependency.</li>
-<li>⚠️ <strong>Commercial adoption is small with notable exceptions</strong>: Naughty Dog’s game scripting language and the Arc dialect behind Hacker News run on Racket, but the general production footprint is small.</li>
-<li>⚠️ <strong>Heavy numeric work belongs in a library</strong>: array and tensor computation depends on a package rather than on the core language.</li>
+<li>✅ <strong>Excellent fit for language research and DSLs</strong>: Macros, <code>#lang</code>, and the reader produce a new language from a module, as the paper “Languages as Libraries” documents</li>
+<li>✅ <strong>Strong fit for teaching</strong>: DrRacket, <em>How to Design Programs</em>, and the teaching languages such as <code>#lang htdp/bsl</code> are built for a first course</li>
+<li>✅ <strong>Good for compilers and interpreters</strong>: <code>#lang</code> plus <code>raco</code> makes a language implementation a package, and the <em>Beautiful Racket</em> book builds several</li>
+<li>✅ <strong><code>racket/gui</code> covers a desktop application</strong>: The GUI toolkit and <code>racket/draw</code> ship in the distribution, so a windowed program needs no external dependency</li>
+<li>⚠️ <strong>Commercial adoption is small with notable exceptions</strong>: Naughty Dog’s game scripting language and the Arc dialect behind Hacker News run on Racket, but the general production footprint is small</li>
+<li>⚠️ <strong>Heavy numeric work belongs in a library</strong>: Array and tensor computation depends on a package rather than on the core language</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>❌ <strong>The concepts are many even when the syntax is small (L1)</strong>: macros, continuations, modules, and contracts are separate topics, and each takes practice.</li>
-<li>❌ <strong>A macro is a topic of its own</strong>: writing a macro requires the syntax-object model and the phase distinctions, which are separate from ordinary programming.</li>
-<li>✅ <strong>DrRacket and the stepper make evaluation visible</strong>: a beginner steps an expression and sees each reduction of the program.</li>
-<li>✅ <strong>A complete curriculum exists</strong>: <em>How to Design Programs</em> and its teaching languages are free and aligned with the IDE.</li>
-<li>✅ <strong>The documentation is comprehensive</strong>: the Racket Reference and the Racket Guide cover the language and each library with examples.</li>
-<li>⚠️ <strong>A Scheme background helps and misleads</strong>: the parentheses and the λ-calculus core transfer, while the module system, structs, and <code>#lang</code> differ from a bare Scheme.</li>
+<li>❌ <strong>The concepts are many even when the syntax is small (L1)</strong>: Macros, continuations, modules, and contracts are separate topics, and each takes practice</li>
+<li>❌ <strong>A macro is a topic of its own</strong>: Writing a macro requires the syntax-object model and the phase distinctions, which are separate from ordinary programming</li>
+<li>✅ <strong>DrRacket and the stepper make evaluation visible</strong>: A beginner steps an expression and sees each reduction of the program</li>
+<li>✅ <strong>A complete curriculum exists</strong>: <em>How to Design Programs</em> and its teaching languages are free and aligned with the IDE</li>
+<li>✅ <strong>The documentation is comprehensive</strong>: The Racket Reference and the Racket Guide cover the language and each library with examples</li>
+<li>⚠️ <strong>A Scheme background helps and misleads</strong>: The parentheses and the λ-calculus core transfer, while the module system, structs, and <code>#lang</code> differ from a bare Scheme</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>The syntax is uniform</strong>: every form is a parenthesised list, so a reader learns one shape and applies it everywhere.</li>
-<li>✅ <strong>A user form looks like a built-in form</strong>: a macro-defined form has the same shape as <code>let</code> or <code>define</code>, so no new grammar is needed.</li>
-<li>✅ <strong>A reader extension can change the surface</strong>: <code>#lang</code> plus a readtable defines a different notation for one file without changing the language.</li>
-<li>✅ <strong>Prefix notation removes precedence rules</strong>: <code>(+ (* a b) c)</code> states the order of operations in its nesting, so no precedence table must be learned.</li>
-<li>⚠️ <strong>The parentheses are dense</strong>: a deeply nested expression needs careful counting, and most editors use a paredit or rainbow-paren mode to help.</li>
-<li>⚠️ <strong>A quoted form blurs data and code</strong>: <code>'(a b)</code> is a list and <code>(a b)</code> is a call, so one character changes the meaning of a form.</li>
+<li>✅ <strong>The syntax is uniform</strong>: Every form is a parenthesised list, so a reader learns one shape and applies it everywhere</li>
+<li>✅ <strong>A user form looks like a built-in form</strong>: A macro-defined form has the same shape as <code>let</code> or <code>define</code>, so no new grammar is needed</li>
+<li>✅ <strong>A reader extension can change the surface</strong>: <code>#lang</code> plus a readtable defines a different notation for one file without changing the language</li>
+<li>✅ <strong>Prefix notation removes precedence rules</strong>: <code>(+ (* a b) c)</code> states the order of operations in its nesting, so no precedence table must be learned</li>
+<li>⚠️ <strong>The parentheses are dense</strong>: A deeply nested expression needs careful counting, and most editors use a paredit or rainbow-paren mode to help</li>
+<li>⚠️ <strong>A quoted form blurs data and code</strong>: <code>'(a b)</code> is a list and <code>(a b)</code> is a call, so one character changes the meaning of a form</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong><code>rackunit</code> ships with the language</strong>: <code>check-equal?</code>, <code>check-true</code>, and <code>test-case</code> are in the distribution, and <code>raco test</code> runs a directory of tests.</li>
-<li>✅ <strong>A test can live in the module it tests</strong>: a <code>(module+ test ...)</code> submodule holds the tests, so no separate test file is needed.</li>
-<li>✅ <strong>A contract is an executable invariant</strong>: a contract on an exported function rejects a wrong call, so a test need not re-check the boundary.</li>
-<li>✅ <strong>A failure reports both values</strong>: a failed <code>check-equal?</code> prints the expected value, the actual value, and the source location.</li>
-<li>✅ <strong>The debugger and the stepper inspect a real run</strong>: DrRacket’s debugger steps the evaluation, and the stepper shows the reduction sequence.</li>
-<li>⚠️ <strong>Dynamic typing defers a fault to the executed path</strong>: a wrong-typed call passes the build and fails a run, so the covered paths matter.</li>
+<li>✅ <strong><code>rackunit</code> ships with the language</strong>: <code>check-equal?</code>, <code>check-true</code>, and <code>test-case</code> are in the distribution, and <code>raco test</code> runs a directory of tests</li>
+<li>✅ <strong>A test can live in the module it tests</strong>: A <code>(module+ test ...)</code> submodule holds the tests, so no separate test file is needed</li>
+<li>✅ <strong>A contract is an executable invariant</strong>: A contract on an exported function rejects a wrong call, so a test need not re-check the boundary</li>
+<li>✅ <strong>A failure reports both values</strong>: A failed <code>check-equal?</code> prints the expected value, the actual value, and the source location</li>
+<li>✅ <strong>The debugger and the stepper inspect a real run</strong>: DrRacket’s debugger steps the evaluation, and the stepper shows the reduction sequence</li>
+<li>⚠️ <strong>Dynamic typing defers a fault to the executed path</strong>: A wrong-typed call passes the build and fails a run, so the covered paths matter</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>✅ <strong>The runtime is memory-safe</strong>: no pointer arithmetic and no manual free exist, so a use-after-free or a buffer overflow cannot be written in Racket source.</li>
-<li>✅ <strong>A contract guards a trust boundary</strong>: a contract on a value that arrives from outside rejects a wrong shape at the boundary and names the party at fault.</li>
-<li>✅ <strong><code>racket/sandbox</code> runs untrusted code with limits</strong>: a sandboxed evaluator carries its own language, a memory limit, and a custodian that bounds its run time.</li>
-<li>✅ <strong><code>eval</code> is explicit and scoped</strong>: <code>eval</code> and <code>dynamic-require</code> are visible calls, and the namespace decides what the evaluated code can reach.</li>
-<li>⚠️ <strong><code>eval</code> on a term built from input is the injection pattern</strong>: <code>(eval (read input))</code> executes the text, and <code>read</code> itself can allocate on a crafted input.</li>
-<li>⚠️ <strong>Two places share the file system</strong>: a place shares no memory with another, but two places can still corrupt one file, which the language does not prevent.</li>
+<li>✅ <strong>The runtime is memory-safe</strong>: No pointer arithmetic and no manual free exist, so a use-after-free or a buffer overflow cannot be written in Racket source</li>
+<li>✅ <strong>A contract guards a trust boundary</strong>: A contract on a value that arrives from outside rejects a wrong shape at the boundary and names the party at fault</li>
+<li>✅ <strong><code>racket/sandbox</code> runs untrusted code with limits</strong>: A sandboxed evaluator carries its own language, a memory limit, and a custodian that bounds its run time</li>
+<li>✅ <strong><code>eval</code> is explicit and scoped</strong>: <code>eval</code> and <code>dynamic-require</code> are visible calls, and the namespace decides what the evaluated code can reach</li>
+<li>⚠️ <strong><code>eval</code> on a term built from input is the injection pattern</strong>: <code>(eval (read input))</code> executes the text, and <code>read</code> itself can allocate on a crafted input</li>
+<li>⚠️ <strong>Two places share the file system</strong>: A place shares no memory with another, but two places can still corrupt one file, which the language does not prevent</li>
 </ul>
 </section>
 </section>

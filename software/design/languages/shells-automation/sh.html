@@ -1028,85 +1028,85 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="posix2024"><a href="#ref-posix2024" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses sh in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses sh in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 57/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>❌ <strong>All values are strings, and numbers live in a second grammar</strong>: <code>x=1</code> and <code>x=abc</code> are the same assignment, and <code>$(( ... ))</code> evaluates a signed-integer expression that is re-parsed at each use (T1).</li>
-<li>❌ <strong>No arrays and no associative arrays</strong>: a list is a string split on <code>IFS</code>, and the specification provides no indexed or keyed aggregate (T4).</li>
-<li>❌ <strong>No generics and no dispatch by type</strong>: a routine is specialised only by its positional parameters, and behaviour is selected by the command name (T5, T9).</li>
-<li>❌ <strong>One flat namespace</strong>: the specification gives a function no local scope, so a function’s working variables are the caller’s variables (T6, T11).</li>
-<li>❌ <strong>An unset name and an empty name are indistinguishable</strong>: <code>set -u</code> turns a reference to an unset name into an error, but it is off by default and an empty value still passes (T10).</li>
-<li>✅ <strong>Default and alternate expansions are part of the language</strong>: <code>${var:-default}</code> and <code>${var:+alternate}</code> carry the missing-value case in the expansion itself, so many ad-hoc checks disappear.</li>
+<li>❌ <strong>All values are strings, and numbers live in a second grammar</strong>: <code>x=1</code> and <code>x=abc</code> are the same assignment, and <code>$(( ... ))</code> evaluates a signed-integer expression that is re-parsed at each use (T1)</li>
+<li>❌ <strong>No arrays and no associative arrays</strong>: A list is a string split on <code>IFS</code>, and the specification provides no indexed or keyed aggregate (T4)</li>
+<li>❌ <strong>No generics and no dispatch by type</strong>: A routine is specialised only by its positional parameters, and behaviour is selected by the command name (T5, T9)</li>
+<li>❌ <strong>One flat namespace</strong>: The specification gives a function no local scope, so a function’s working variables are the caller’s variables (T6, T11)</li>
+<li>❌ <strong>An unset name and an empty name are indistinguishable</strong>: <code>set -u</code> turns a reference to an unset name into an error, but it is off by default and an empty value still passes (T10)</li>
+<li>✅ <strong>Default and alternate expansions are part of the language</strong>: <code>${var:-default}</code> and <code>${var:+alternate}</code> carry the missing-value case in the expansion itself, so many ad-hoc checks disappear</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>❌ <strong>Global by default and mutable by default</strong>: an assignment writes the single namespace, and only <code>readonly</code> fixes a value (C1, C2).</li>
-<li>❌ <strong>No constructor or validation at the point of assignment</strong>: nothing checks a value when it is bound, so validation is written as a separate <code>case</code> statement or <code>test</code> (C4).</li>
-<li>❌ <strong>Functions share the caller’s variables</strong>: the standard provides no local declaration — <code>local</code> is a ksh and Bash extension, and shells that offer it differ in detail — so a helper must save and restore every name it touches, or run in a subshell.</li>
-<li>✅ <strong>A subshell is a scope</strong>: <code>( ... )</code> runs in a child process, so a subroutine is isolated from the parent’s values by wrapping it.</li>
-<li>✅ <strong>Positional parameters are the argument list</strong>: a function or a <code>sh -c</code> string reads its inputs as <code>$1</code>, <code>$2</code>, and so on, so a routine consumes its arguments instead of reading a global.</li>
-<li>✅ <strong><code>ENV</code> separates interactive setup from scripts</strong>: an interactive shell reads its personalisation file from <code>$ENV</code>, so a non-interactive script starts with none of it.</li>
+<li>❌ <strong>Global by default and mutable by default</strong>: An assignment writes the single namespace, and only <code>readonly</code> fixes a value (C1, C2)</li>
+<li>❌ <strong>No constructor or validation at the point of assignment</strong>: Nothing checks a value when it is bound, so validation is written as a separate <code>case</code> statement or <code>test</code> (C4)</li>
+<li>❌ <strong>Functions share the caller’s variables</strong>: The standard provides no local declaration — <code>local</code> is a ksh and Bash extension, and shells that offer it differ in detail — so a helper must save and restore every name it touches, or run in a subshell</li>
+<li>✅ <strong>A subshell is a scope</strong>: <code>( ... )</code> runs in a child process, so a subroutine is isolated from the parent’s values by wrapping it</li>
+<li>✅ <strong>Positional parameters are the argument list</strong>: A function or a <code>sh -c</code> string reads its inputs as <code>$1</code>, <code>$2</code>, and so on, so a routine consumes its arguments instead of reading a global</li>
+<li>✅ <strong><code>ENV</code> separates interactive setup from scripts</strong>: An interactive shell reads its personalisation file from <code>$ENV</code>, so a non-interactive script starts with none of it</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>No allocation or free in the language</strong>: there is no pointer and no deallocation builtin; the shell owns every string.</li>
-<li>✅ <strong>A subshell releases its memory at exit</strong>: <code>( ... )</code> ends and its environment is discarded, so temporary state does not survive it.</li>
-<li>✅ <strong><code>unset</code> drops a name</strong>: the shell reclaims the storage, so no free order and no double free can arise.</li>
-<li>⚠️ <strong>Assignment copies the value</strong>: <code>b=$a</code> duplicates the string, and there is no way to reference a value without copying it.</li>
-<li>⚠️ <strong>A pipeline is a set of processes</strong>: the shell forks each stage, so the memory cost of a pipeline is the sum of its parts.</li>
-<li>⚠️ <strong>Command substitution is buffered whole</strong>: <code>$(cmd)</code> collects the entire output before the enclosing command runs, so the whole result is held in memory and then split.</li>
+<li>✅ <strong>No allocation or free in the language</strong>: There is no pointer and no deallocation builtin; the shell owns every string</li>
+<li>✅ <strong>A subshell releases its memory at exit</strong>: <code>( ... )</code> ends and its environment is discarded, so temporary state does not survive it</li>
+<li>✅ <strong><code>unset</code> drops a name</strong>: The shell reclaims the storage, so no free order and no double free can arise</li>
+<li>⚠️ <strong>Assignment copies the value</strong>: <code>b=$a</code> duplicates the string, and there is no way to reference a value without copying it</li>
+<li>⚠️ <strong>A pipeline is a set of processes</strong>: The shell forks each stage, so the memory cost of a pipeline is the sum of its parts</li>
+<li>⚠️ <strong>Command substitution is buffered whole</strong>: <code>$(cmd)</code> collects the entire output before the enclosing command runs, so the whole result is held in memory and then split</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>No structured error path</strong>: the entire apparatus is <code>$?</code> and <code>trap</code>, with no exception and no error value (Er1).</li>
-<li>❌ <strong><code>$?</code> is lost by the next command</strong>: any command resets it, so an interposed test discards the failure (Er3).</li>
-<li>❌ <strong>Errors do not compose</strong>: a failure is an exit status, so it cannot carry a payload, be returned as data, or be combined with another (Er4).</li>
-<li>⚠️ <strong><code>set -e</code> is not a reliable policy</strong>: <code>errexit</code> does not fire in <code>&amp;&amp;</code> and <code>||</code> chains, in conditions, or after a negation, so a wrapper that suppresses it changes the behaviour of the whole script.</li>
-<li>⚠️ <strong>There is no <code>ERR</code> trap in the standard</strong>: reporting and cleanup must be attached to <code>EXIT</code>, to a named signal, or to an explicit check after each command.</li>
-<li>✅ <strong><code>trap ... EXIT</code> runs on every exit path</strong>: cleanup can be attached once and will run on a normal exit or on a handled signal.</li>
+<li>❌ <strong>No structured error path</strong>: The entire apparatus is <code>$?</code> and <code>trap</code>, with no exception and no error value (Er1)</li>
+<li>❌ <strong><code>$?</code> is lost by the next command</strong>: Any command resets it, so an interposed test discards the failure (Er3)</li>
+<li>❌ <strong>Errors do not compose</strong>: A failure is an exit status, so it cannot carry a payload, be returned as data, or be combined with another (Er4)</li>
+<li>⚠️ <strong><code>set -e</code> is not a reliable policy</strong>: <code>errexit</code> does not fire in <code>&amp;&amp;</code> and <code>||</code> chains, in conditions, or after a negation, so a wrapper that suppresses it changes the behaviour of the whole script</li>
+<li>⚠️ <strong>There is no <code>ERR</code> trap in the standard</strong>: Reporting and cleanup must be attached to <code>EXIT</code>, to a named signal, or to an explicit check after each command</li>
+<li>✅ <strong><code>trap ... EXIT</code> runs on every exit path</strong>: Cleanup can be attached once and will run on a normal exit or on a handled signal</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>❌ <strong>No concurrency primitives</strong>: no lock, channel, semaphore, or await exists; the only parallel construct is <code>&amp;</code> (K5).</li>
-<li>✅ <strong>Pipelines are a first-class composition</strong>: the pipeline is a core operator of the language, so stages are connected without the script manipulating file descriptors.</li>
-<li>✅ <strong><code>wait</code> and <code>$!</code> make a job addressable</strong>: <code>cmd &amp;</code> records the process id in <code>$!</code>, so a script can wait for one job rather than for all of them.</li>
-<li>✅ <strong>A subshell isolates concurrent state</strong>: <code>( ... ) &amp;</code> gives a job its own copy of the environment, so the job cannot change the parent’s values.</li>
-<li>⚠️ <strong>Background jobs share files and the working directory</strong>: a <code>&amp;</code> job inherits the environment, the umask, and the current directory, so ordering is unspecified unless the script waits.</li>
-<li>⚠️ <strong>No value comes back from a job</strong>: a status arrives through <code>wait</code>, and a result must travel through a file, a pipe, or a named pipe.</li>
+<li>❌ <strong>No concurrency primitives</strong>: No lock, channel, semaphore, or await exists; the only parallel construct is <code>&amp;</code> (K5)</li>
+<li>✅ <strong>Pipelines are a first-class composition</strong>: The pipeline is a core operator of the language, so stages are connected without the script manipulating file descriptors</li>
+<li>✅ <strong><code>wait</code> and <code>$!</code> make a job addressable</strong>: <code>cmd &amp;</code> records the process id in <code>$!</code>, so a script can wait for one job rather than for all of them</li>
+<li>✅ <strong>A subshell isolates concurrent state</strong>: <code>( ... ) &amp;</code> gives a job its own copy of the environment, so the job cannot change the parent’s values</li>
+<li>⚠️ <strong>Background jobs share files and the working directory</strong>: A <code>&amp;</code> job inherits the environment, the umask, and the current directory, so ordering is unspecified unless the script waits</li>
+<li>⚠️ <strong>No value comes back from a job</strong>: A status arrives through <code>wait</code>, and a result must travel through a file, a pipe, or a named pipe</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong><code>sh</code> is an implementable name, not an implementation</strong>: POSIX defines the language but not which program provides it, so <code>/bin/sh</code> is dash, ash, bash in POSIX mode, or a vendor shell depending on the system, and only the standard subset is portable (P2).</li>
-<li>✅ <strong>POSIX guarantees that a shell exists</strong>: every conforming system provides <code>sh</code>, so a script invokes an interpreter without installing anything.</li>
-<li>✅ <strong>The standard is written for maximum reach</strong>: the language contains no optional syntax that a conforming shell may omit.</li>
-<li>⚠️ <strong>Implementations are not equally complete</strong>: an older <code>sh</code> may lack behaviour added in Issue 8, so a script that uses <code>pipefail</code> or <code>$'...'</code> is portable only to newer systems.</li>
-<li>⚠️ <strong><code>sh -c</code> is the universal entry point</strong>: <code>system()</code>, <code>make</code>, containers, and <code>cron</code> all use it, which makes the shell the assumed execution layer even when no script is written.</li>
-<li>⚠️ <strong>Extensions are common and not portable</strong>: <code>local</code>, <code>[[ ... ]]</code>, arrays, and <code>function</code> are available in many <code>sh</code> implementations but are outside the standard.</li>
+<li>❌ <strong><code>sh</code> is an implementable name, not an implementation</strong>: POSIX defines the language but not which program provides it, so <code>/bin/sh</code> is dash, ash, bash in POSIX mode, or a vendor shell depending on the system, and only the standard subset is portable (P2)</li>
+<li>✅ <strong>POSIX guarantees that a shell exists</strong>: Every conforming system provides <code>sh</code>, so a script invokes an interpreter without installing anything</li>
+<li>✅ <strong>The standard is written for maximum reach</strong>: The language contains no optional syntax that a conforming shell may omit</li>
+<li>⚠️ <strong>Implementations are not equally complete</strong>: An older <code>sh</code> may lack behaviour added in Issue 8, so a script that uses <code>pipefail</code> or <code>$'...'</code> is portable only to newer systems</li>
+<li>⚠️ <strong><code>sh -c</code> is the universal entry point</strong>: <code>system()</code>, <code>make</code>, containers, and <code>cron</code> all use it, which makes the shell the assumed execution layer even when no script is written</li>
+<li>⚠️ <strong>Extensions are common and not portable</strong>: <code>local</code>, <code>[[ ... ]]</code>, arrays, and <code>function</code> are available in many <code>sh</code> implementations but are outside the standard</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Minimalism is the point</strong>: the language is small because every construct must be implementable on every conforming system, so the absence of arrays is a scope decision.</li>
-<li><strong>Portability costs expressiveness</strong>: writing to the standard means doing without associative arrays, pattern-replacement expansions, and floating point.</li>
-<li><strong>No interactive features is a deliberate omission</strong>: line editing, history, and completion are terminal concerns and are kept out of the standard.</li>
-<li><strong><code>/bin/sh</code> is a policy choice on each system</strong>: a distribution links it to dash, bash, or another shell, and that choice is not the language’s.</li>
-<li><strong>Integer arithmetic is the standard’s floor</strong>: a script that needs floating point calls an external tool, which is a design boundary rather than a defect.</li>
-<li><strong>The specification is written for implementers</strong>: its precision makes it slow to read, and that is the price of one text that many shells obey.</li>
+<li><strong>Minimalism is the point</strong>: The language is small because every construct must be implementable on every conforming system, so the absence of arrays is a scope decision</li>
+<li><strong>Portability costs expressiveness</strong>: Writing to the standard means doing without associative arrays, pattern-replacement expansions, and floating point</li>
+<li><strong>No interactive features is a deliberate omission</strong>: Line editing, history, and completion are terminal concerns and are kept out of the standard</li>
+<li><strong><code>/bin/sh</code> is a policy choice on each system</strong>: A distribution links it to dash, bash, or another shell, and that choice is not the language’s</li>
+<li><strong>Integer arithmetic is the standard’s floor</strong>: A script that needs floating point calls an external tool, which is a design boundary rather than a defect</li>
+<li><strong>The specification is written for implementers</strong>: Its precision makes it slow to read, and that is the price of one text that many shells obey</li>
 </ul>
 </section>
 </section>
@@ -1115,89 +1115,89 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>⚠️ <strong>Interpreted with no compilation</strong>: each command is parsed and executed as text, and there is no artifact and no JIT (R1).</li>
-<li>✅ <strong>A minimal implementation starts fast</strong>: <code>dash</code> and <code>ash</code> reach the first command in a fraction of the time a feature-rich shell needs, which matters for the many <code>sh -c</code> calls in a build or a boot.</li>
-<li>✅ <strong>Builtins replace processes for common work</strong>: <code>printf</code>, <code>read</code>, <code>test</code>, <code>getopts</code>, and parameter expansion avoid an external command.</li>
-<li>⚠️ <strong>Every external command forks</strong>: the builtin set is small, so a loop that calls <code>sed</code>, <code>grep</code>, or <code>basename</code> per item pays a process per iteration.</li>
-<li>⚠️ <strong>Command substitution is buffered and re-split</strong>: <code>$(cmd)</code> reads the whole output and then splits it on <code>IFS</code>, so a large result is walked twice.</li>
-<li>✅ <strong>Scripts pay no start-up configuration</strong>: the <code>ENV</code> file is read only by an interactive shell, so a non-interactive script pays nothing for user setup.</li>
+<li>⚠️ <strong>Interpreted with no compilation</strong>: Each command is parsed and executed as text, and there is no artifact and no JIT (R1)</li>
+<li>✅ <strong>A minimal implementation starts fast</strong>: <code>dash</code> and <code>ash</code> reach the first command in a fraction of the time a feature-rich shell needs, which matters for the many <code>sh -c</code> calls in a build or a boot</li>
+<li>✅ <strong>Builtins replace processes for common work</strong>: <code>printf</code>, <code>read</code>, <code>test</code>, <code>getopts</code>, and parameter expansion avoid an external command</li>
+<li>⚠️ <strong>Every external command forks</strong>: The builtin set is small, so a loop that calls <code>sed</code>, <code>grep</code>, or <code>basename</code> per item pays a process per iteration</li>
+<li>⚠️ <strong>Command substitution is buffered and re-split</strong>: <code>$(cmd)</code> reads the whole output and then splits it on <code>IFS</code>, so a large result is walked twice</li>
+<li>✅ <strong>Scripts pay no start-up configuration</strong>: The <code>ENV</code> file is read only by an interactive shell, so a non-interactive script pays nothing for user setup</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>No package manager</strong>: there is no dependency mechanism for shell code, so shared routines are sourced from a directory or vendored (Ec1).</li>
-<li>✅ <strong>Every UNIX-like system has an implementation</strong>: dash, ash and BusyBox <code>ash</code>, FreeBSD <code>sh</code>, ksh, and bash in POSIX mode all provide an <code>sh</code> mode, so a script always has a host.</li>
-<li>✅ <strong>The standard is published and maintained</strong>: the Open Group Base Specifications define the language in one stable document with a change history.</li>
-<li>✅ <strong>Analysers target <code>sh</code> by default</strong>: ShellCheck and similar tools treat <code>sh</code> as the base case, so a minimal script is the best-supported one.</li>
-<li>✅ <strong><code>checkbashisms</code> detects non-portable constructs</strong>: a script can be checked against the POSIX surface before it is released.</li>
-<li>⚠️ <strong>Most published shell libraries assume Bash</strong>: they use arrays and <code>[[ ... ]]</code>, so they cannot be used in a strictly conforming script.</li>
+<li>❌ <strong>No package manager</strong>: There is no dependency mechanism for shell code, so shared routines are sourced from a directory or vendored (Ec1)</li>
+<li>✅ <strong>Every UNIX-like system has an implementation</strong>: Dash, ash and BusyBox <code>ash</code>, FreeBSD <code>sh</code>, ksh, and bash in POSIX mode all provide an <code>sh</code> mode, so a script always has a host</li>
+<li>✅ <strong>The standard is published and maintained</strong>: The Open Group Base Specifications define the language in one stable document with a change history</li>
+<li>✅ <strong>Analysers target <code>sh</code> by default</strong>: ShellCheck and similar tools treat <code>sh</code> as the base case, so a minimal script is the best-supported one</li>
+<li>✅ <strong><code>checkbashisms</code> detects non-portable constructs</strong>: A script can be checked against the POSIX surface before it is released</li>
+<li>⚠️ <strong>Most published shell libraries assume Bash</strong>: They use arrays and <code>[[ ... ]]</code>, so they cannot be used in a strictly conforming script</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>❌ <strong>The standard moves slowly</strong>: Issue 7 appeared in 2018 and Issue 8 in 2024, so a needed feature waits years for the committee (V4).</li>
-<li>✅ <strong>The standard is backward compatible</strong>: Issue 8 adds features and removes only what was already marked obsolescent, so old scripts keep running.</li>
-<li>✅ <strong>Removals are signposted for years</strong>: <code>test</code>’s <code>-a</code> and <code>-o</code> primaries were marked obsolescent in Issue 7 before Issue 8 removed them.</li>
-<li>✅ <strong>The change history ships with the text</strong>: every change from the previous issue is recorded in the specification rationale.</li>
-<li>⚠️ <strong>Adoption lags publication</strong>: a shipped <code>sh</code> may implement an older issue for years, so a script written to Issue 8 may not run on the host it is deployed to.</li>
-<li>⚠️ <strong>The committee decides on defect reports</strong>: a change enters the standard only through an accepted interpretation, so the process is deliberate rather than responsive.</li>
+<li>❌ <strong>The standard moves slowly</strong>: Issue 7 appeared in 2018 and Issue 8 in 2024, so a needed feature waits years for the committee (V4)</li>
+<li>✅ <strong>The standard is backward compatible</strong>: Issue 8 adds features and removes only what was already marked obsolescent, so old scripts keep running</li>
+<li>✅ <strong>Removals are signposted for years</strong>: <code>test</code>’s <code>-a</code> and <code>-o</code> primaries were marked obsolescent in Issue 7 before Issue 8 removed them</li>
+<li>✅ <strong>The change history ships with the text</strong>: Every change from the previous issue is recorded in the specification rationale</li>
+<li>⚠️ <strong>Adoption lags publication</strong>: A shipped <code>sh</code> may implement an older issue for years, so a script written to Issue 8 may not run on the host it is deployed to</li>
+<li>⚠️ <strong>The committee decides on defect reports</strong>: A change enters the standard only through an accepted interpretation, so the process is deliberate rather than responsive</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Excellent fit for its intended domain</strong>: boot scripts, installers, container entrypoints, and <code>configure</code> scripts need the one interpreter that is always present.</li>
-<li>✅ <strong>Stop-gap automation is a native use</strong>: a two-line <code>sh -c</code> avoids a build step and a binary, which is why build tools, <code>cron</code>, and orchestrators embed it.</li>
-<li>✅ <strong>Portable text filtering composes well</strong>: pipelines over <code>grep</code>, <code>sed</code>, and <code>awk</code> are the idiom the language was designed around.</li>
-<li>✅ <strong>Configuration and environment setup read cleanly</strong>: exporting variables, setting <code>umask</code>, and changing directories is a few lines.</li>
-<li>⚠️ <strong>Data structures push the script elsewhere</strong>: without arrays, a keyed or indexed collection becomes a temporary file and a series of <code>awk</code> invocations.</li>
-<li>⚠️ <strong>Not a general-purpose language</strong>: the model is a shell over external commands, so a program with real logic belongs in another language.</li>
+<li>✅ <strong>Excellent fit for its intended domain</strong>: Boot scripts, installers, container entrypoints, and <code>configure</code> scripts need the one interpreter that is always present</li>
+<li>✅ <strong>Stop-gap automation is a native use</strong>: A two-line <code>sh -c</code> avoids a build step and a binary, which is why build tools, <code>cron</code>, and orchestrators embed it</li>
+<li>✅ <strong>Portable text filtering composes well</strong>: Pipelines over <code>grep</code>, <code>sed</code>, and <code>awk</code> are the idiom the language was designed around</li>
+<li>✅ <strong>Configuration and environment setup read cleanly</strong>: Exporting variables, setting <code>umask</code>, and changing directories is a few lines</li>
+<li>⚠️ <strong>Data structures push the script elsewhere</strong>: Without arrays, a keyed or indexed collection becomes a temporary file and a series of <code>awk</code> invocations</li>
+<li>⚠️ <strong>Not a general-purpose language</strong>: The model is a shell over external commands, so a program with real logic belongs in another language</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>✅ <strong>A small surface to learn</strong>: assignments, <code>if</code>, <code>case</code>, and pipelines cover most scripts, and the standard is short compared with <code>bash</code> or <code>zsh</code>.</li>
-<li>✅ <strong>Skills transfer upward</strong>: everything learned in <code>sh</code> applies to Bash, ksh, and zsh, which is why it is the usual starting point.</li>
-<li>✅ <strong>The specification is the reference</strong>: a precise description of every construct exists in one place.</li>
-<li>⚠️ <strong>Quoting and word splitting trap newcomers</strong>: <code>$var</code> unquoted splits and globs, so a space or an asterisk in a value changes the command.</li>
-<li>⚠️ <strong><code>[</code> is a command, not syntax</strong>: <code>test</code> parses its arguments, so an unquoted empty variable changes the argument count and can turn a test into an error or a truth.</li>
-<li>⚠️ <strong>The specification is written for implementers</strong>: it is precise about behaviour and thin on explanation, so learners need other material.</li>
+<li>✅ <strong>A small surface to learn</strong>: Assignments, <code>if</code>, <code>case</code>, and pipelines cover most scripts, and the standard is short compared with <code>bash</code> or <code>zsh</code></li>
+<li>✅ <strong>Skills transfer upward</strong>: Everything learned in <code>sh</code> applies to Bash, ksh, and zsh, which is why it is the usual starting point</li>
+<li>✅ <strong>The specification is the reference</strong>: A precise description of every construct exists in one place</li>
+<li>⚠️ <strong>Quoting and word splitting trap newcomers</strong>: <code>$var</code> unquoted splits and globs, so a space or an asterisk in a value changes the command</li>
+<li>⚠️ <strong><code>[</code> is a command, not syntax</strong>: <code>test</code> parses its arguments, so an unquoted empty variable changes the argument count and can turn a test into an error or a truth</li>
+<li>⚠️ <strong>The specification is written for implementers</strong>: It is precise about behaviour and thin on explanation, so learners need other material</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>The language is small and predictable</strong>: assignments, <code>if</code>, <code>while</code>, <code>for</code>, <code>case</code>, and pipelines cover the whole grammar.</li>
-<li>✅ <strong>Here-documents handle multi-line input</strong>: <code>&lt;&lt;</code> and <code>&lt;&lt;-</code> embed a block of text in a script without escaping.</li>
-<li>⚠️ <strong>Expansion has five forms to remember</strong>: <code>%</code>, <code>%%</code>, <code>#</code>, <code>##</code>, and <code>${var:offset:length}</code> are compact but each has its own rule.</li>
-<li>⚠️ <strong>Quoting rules are context-dependent</strong>: single quotes, double quotes, and backslash escapes each treat <code>$</code>, backtick, and newline differently.</li>
-<li>⚠️ <strong><code>[</code> and <code>test</code> need the operands spaced out</strong>: the bracket form requires a space after <code>[</code> and before <code>]</code>, which is easy to forget.</li>
-<li>⚠️ <strong>No <code>[[ ... ]]</code> in the standard</strong>: the construct was removed from the shell language description in an early POSIX proposal, so richer tests are written with <code>case</code> or with <code>expr</code>.</li>
+<li>✅ <strong>The language is small and predictable</strong>: Assignments, <code>if</code>, <code>while</code>, <code>for</code>, <code>case</code>, and pipelines cover the whole grammar</li>
+<li>✅ <strong>Here-documents handle multi-line input</strong>: <code>&lt;&lt;</code> and <code>&lt;&lt;-</code> embed a block of text in a script without escaping</li>
+<li>⚠️ <strong>Expansion has five forms to remember</strong>: <code>%</code>, <code>%%</code>, <code>#</code>, <code>##</code>, and <code>${#var}</code> are compact but each has its own rule</li>
+<li>⚠️ <strong>Quoting rules are context-dependent</strong>: Single quotes, double quotes, and backslash escapes each treat <code>$</code>, backtick, and newline differently</li>
+<li>⚠️ <strong><code>[</code> and <code>test</code> need the operands spaced out</strong>: The bracket form requires a space after <code>[</code> and before <code>]</code>, which is easy to forget</li>
+<li>⚠️ <strong>No <code>[[ ... ]]</code> in the standard</strong>: The construct was removed from the shell language description in an early POSIX proposal, so richer tests are written with <code>case</code> or with <code>expr</code></li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>❌ <strong>No test framework in the language</strong>: a test is a script that checks <code>$?</code>, with no assertion, fixture, or reporting facility (G1).</li>
-<li>❌ <strong>Faults appear only on the branch that runs</strong>: with no static check, a mistyped variable or a missing file is found during the run (G3).</li>
-<li>✅ <strong>A syntax check runs without execution</strong>: <code>sh -n</code> parses a script and reports errors without running it.</li>
-<li>✅ <strong><code>set -x</code> shows the expansion</strong>: the traced command reveals how a value was split and quoted before it ran.</li>
-<li>✅ <strong>Exit status is a reliable oracle</strong>: <code>$?</code> after a command gives one unambiguous value to assert on.</li>
-<li>✅ <strong>A test can be isolated with a subshell</strong>: <code>( ... )</code> gives each case a fresh copy of the environment, so one case cannot leak into the next.</li>
+<li>❌ <strong>No test framework in the language</strong>: A test is a script that checks <code>$?</code>, with no assertion, fixture, or reporting facility (G1)</li>
+<li>❌ <strong>Faults appear only on the branch that runs</strong>: With no static check, a mistyped variable or a missing file is found during the run (G3)</li>
+<li>✅ <strong>A syntax check runs without execution</strong>: <code>sh -n</code> parses a script and reports errors without running it</li>
+<li>✅ <strong><code>set -x</code> shows the expansion</strong>: The traced command reveals how a value was split and quoted before it ran</li>
+<li>✅ <strong>Exit status is a reliable oracle</strong>: <code>$?</code> after a command gives one unambiguous value to assert on</li>
+<li>✅ <strong>A test can be isolated with a subshell</strong>: <code>( ... )</code> gives each case a fresh copy of the environment, so one case cannot leak into the next</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>❌ <strong>Command construction from text is the classic injection path</strong>: a value expanded into a command line or passed to <code>eval</code> becomes code, so unquoted expansion of untrusted input is unsafe (Q3).</li>
-<li>❌ <strong>Weak typing removes a check the shell cannot make</strong>: a value that should be a number, a path, or a flag is a string, and only the command that receives it can object (Q2).</li>
-<li>✅ <strong><code>test</code> can be made argument-safe</strong>: <code>[ "X$response" = "Xexpected" ]</code> or <code>${var:+...}</code> expansion removes the ambiguity that an unquoted variable introduces.</li>
-<li>✅ <strong><code>set -f</code> disables globbing</strong>: <code>noglob</code> stops an expanded <code>*</code> from becoming a path list.</li>
-<li>✅ <strong><code>umask</code> is part of the language</strong>: file-creation permissions are set inside the script rather than left to the ambient environment.</li>
-<li>✅ <strong>No memory-safety surface</strong>: strings are interpreter-managed, so a script has no buffer to overflow.</li>
+<li>❌ <strong>Command construction from text is the classic injection path</strong>: A value expanded into a command line or passed to <code>eval</code> becomes code, so unquoted expansion of untrusted input is unsafe (Q3)</li>
+<li>❌ <strong>Weak typing removes a check the shell cannot make</strong>: A value that should be a number, a path, or a flag is a string, and only the command that receives it can object (Q2)</li>
+<li>✅ <strong><code>test</code> can be made argument-safe</strong>: <code>[ "X$response" = "Xexpected" ]</code> or <code>${var:+...}</code> expansion removes the ambiguity that an unquoted variable introduces</li>
+<li>✅ <strong><code>set -f</code> disables globbing</strong>: <code>noglob</code> stops an expanded <code>*</code> from becoming a path list</li>
+<li>✅ <strong><code>umask</code> is part of the language</strong>: File-creation permissions are set inside the script rather than left to the ambient environment</li>
+<li>✅ <strong>No memory-safety surface</strong>: Strings are interpreter-managed, so a script has no buffer to overflow</li>
 </ul>
 </section>
 </section>

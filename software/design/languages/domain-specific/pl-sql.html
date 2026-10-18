@@ -1028,83 +1028,82 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="isoSql2023"><a href="#ref-isoSql2023" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses PL/SQL in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses PL/SQL in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 46/100</strong> · <strong>Ecosystem coupling 61/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>✅ <strong>Static typing over SQL data types</strong>: every variable, constant, parameter, and function return declares a type, and a mismatch is a compilation error.</li>
-<li>✅ <strong><code>%TYPE</code> and <code>%ROWTYPE</code> anchor a declaration to the schema</strong>: <code>emp%ROWTYPE</code> follows the table’s column list, so a column change does not require editing the declaration.</li>
-<li>✅ <strong>Subtypes declare a constrained domain once</strong>: <code>SUBTYPE</code> and a constrained type such as <code>NUMBER(7,2)</code> state a range or a shape and reuse it.</li>
-<li>❌ <strong>NULL is not type-safe absence (T10)</strong>: an unassigned variable and an unused column are NULL, and NULL propagates through expressions, so <code>IF x = 5</code> is not true when <code>x</code> is NULL.</li>
-<li>✅ <strong>A <code>REF CURSOR</code> carries a row set without fixing its row type</strong>: <code>SYS_REFCURSOR</code> passes a result between program units, so the producer and the consumer need not share a record type.</li>
-<li>⚠️ <strong>Implicit conversion is allowed</strong>: Oracle converts between numeric and character types on its own, so a mismatch can pass compilation and fail at run time.</li>
+<li>✅ <strong>Static typing over SQL data types</strong>: Every variable, constant, parameter, and function return declares a type, and a mismatch is a compilation error</li>
+<li>✅ <strong><code>%TYPE</code> and <code>%ROWTYPE</code> anchor a declaration to the schema</strong>: <code>emp%ROWTYPE</code> follows the table’s column list, so a column change does not require editing the declaration</li>
+<li>✅ <strong>Subtypes declare a constrained domain once</strong>: <code>SUBTYPE</code> and a constrained type such as <code>NUMBER(7,2)</code> state a range or a shape and reuse it</li>
+<li>❌ <strong>NULL is not type-safe absence (T10)</strong>: An unassigned variable and an unused column are NULL, and NULL propagates through expressions, so <code>IF x = 5</code> is not true when <code>x</code> is NULL</li>
+<li>✅ <strong>A <code>REF CURSOR</code> carries a row set without fixing its row type</strong>: <code>SYS_REFCURSOR</code> passes a result between program units, so the producer and the consumer need not share a record type</li>
+<li>⚠️ <strong>Implicit conversion is allowed</strong>: Oracle converts between numeric and character types on its own, so a mismatch can pass compilation and fail at run time</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>✅ <strong>The package separates specification from body</strong>: the spec declares the public interface — types, variables, constants, exceptions, cursors, and subprograms — and the body holds the implementation, so a consumer binds to the spec.</li>
-<li>✅ <strong>Subprogram overloading is available in a package</strong>: two subprograms with one name differ by parameter list, so a family of operations shares one name.</li>
-<li>✅ <strong>A cursor <code>FOR ... LOOP</code> couples the loop to the query result</strong>: iteration ends at the result’s last row, so the code does not track a row count.</li>
-<li>❌ <strong>Global mutable state by default (C1)</strong>: a package variable is declared once and lives for the whole session, so every caller that touches the package sees and changes the same value.</li>
-<li>⚠️ <strong>Package initialisation runs on first use</strong>: an initialisation block in the body runs when the package is first touched in the session, so setup timing follows call order.</li>
-<li>⚠️ <strong>Triggers fire implicitly</strong>: a trigger runs in response to an insert, update, or delete, so the writer of a statement cannot see from the statement which code will run.</li>
+<li>✅ <strong>The package separates specification from body</strong>: The spec declares the public interface — types, variables, constants, exceptions, cursors, and subprograms — and the body holds the implementation, so a consumer binds to the spec</li>
+<li>✅ <strong>Subprogram overloading is available in a package</strong>: Two subprograms with one name differ by parameter list, so a family of operations shares one name</li>
+<li>✅ <strong>A cursor <code>FOR ... LOOP</code> iterates the query result directly</strong>: Iteration ends at the result’s last row, so the code does not track a row count</li>
+<li>❌ <strong>Global mutable state by default (C1)</strong>: A package variable is declared once and lives for the whole session, so every caller that touches the package sees and changes the same value</li>
+<li>⚠️ <strong>Package initialisation runs on first use</strong>: An initialisation block in the body runs when the package is first touched in the session, so setup timing follows call order</li>
+<li>⚠️ <strong>Triggers fire implicitly</strong>: A trigger runs in response to an insert, update, or delete, so the writer of a statement cannot see from the statement which code will run</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>No manual memory management</strong>: the Oracle server owns SGA and PGA memory, and a block never names an address or frees a byte.</li>
-<li>✅ <strong>The server sizes the work areas</strong>: automatic PGA management gives a sort or a hash operation its memory from <code>PGA_AGGREGATE_TARGET</code>, so the block does not reserve it.</li>
-<li>⚠️ <strong>A session-scoped collection holds its memory</strong>: an associative array or nested table kept in a package variable stays for the session, so retained state is a standing cost.</li>
-<li>⚠️ <strong>A bulk fetch needs a deliberate size limit</strong>: <code>BULK COLLECT ... LIMIT</code> bounds a fetch, and its absence can materialise a whole result set in PGA.</li>
-<li>✅ <strong>A cursor is released by <code>CLOSE</code></strong>: the server reclaims the cursor’s memory, so the program does not track bytes.</li>
+<li>✅ <strong>No manual memory management</strong>: The Oracle server owns SGA and PGA memory, and a block never names an address or frees a byte</li>
+<li>✅ <strong>The server sizes the work areas</strong>: Automatic PGA management gives a sort or a hash operation its memory from <code>PGA_AGGREGATE_TARGET</code>, so the block does not reserve it</li>
+<li>⚠️ <strong>A session-scoped collection holds its memory</strong>: An associative array or nested table kept in a package variable stays for the session, so retained state is a standing cost</li>
+<li>⚠️ <strong>A bulk fetch needs a deliberate size limit</strong>: <code>BULK COLLECT ... LIMIT</code> bounds a fetch, and its absence can materialise a whole result set in PGA</li>
+<li>✅ <strong>A cursor is released by <code>CLOSE</code></strong>: The server reclaims the cursor’s memory, so the program does not track bytes</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>✅ <strong>The block separates the normal path from the recovery path</strong>: <code>DECLARE ... BEGIN ... EXCEPTION ... END;</code> gives a named handler section.</li>
-<li>✅ <strong>Exceptions are matched by name</strong>: a predefined exception (<code>NO_DATA_FOUND</code>, <code>TOO_MANY_ROWS</code>, <code>ZERO_DIVIDE</code>) and a user-declared <code>EXCEPTION</code> are caught by name, and <code>WHEN OTHERS</code> catches the remainder.</li>
-<li>✅ <strong><code>RAISE_APPLICATION_ERROR</code> sets a code and a message</strong>: a custom failure carries a number in the application range −20000 to −20999, so a caller can branch on it.</li>
-<li>⚠️ <strong><code>WHEN OTHERS</code> hides the class of the failure (Er3)</strong>: a handler that catches everything without logging <code>SQLCODE</code> and <code>SQLERRM</code>, or that does not re-raise, lets the block continue past a failure.</li>
-<li>⚠️ <strong>A handler without a <code>RAISE</code> absorbs the error</strong>: the enclosing block sees a normal return where the inner block failed.</li>
-<li>⚠️ <strong>No composable result type (Er4)</strong>: a failure cannot be returned as a value the caller must inspect, so error information does not compose through a call chain.</li>
+<li>✅ <strong>The block separates the normal path from the recovery path</strong>: <code>DECLARE ... BEGIN ... EXCEPTION ... END;</code> gives a named handler section</li>
+<li>✅ <strong>Exceptions are matched by name</strong>: A predefined exception (<code>NO_DATA_FOUND</code>, <code>TOO_MANY_ROWS</code>, <code>ZERO_DIVIDE</code>) and a user-declared <code>EXCEPTION</code> are caught by name, and <code>WHEN OTHERS</code> catches the remainder</li>
+<li>✅ <strong><code>RAISE_APPLICATION_ERROR</code> sets a code and a message</strong>: A custom failure carries a number in the application range −20000 to −20999, so a caller can branch on it</li>
+<li>⚠️ <strong><code>WHEN OTHERS</code> hides the class of the failure (Er3)</strong>: A handler that catches everything without logging <code>SQLCODE</code> and <code>SQLERRM</code>, or that does not re-raise, lets the enclosing block see a normal return where the inner block failed</li>
+<li>⚠️ <strong>No composable result type (Er4)</strong>: A failure cannot be returned as a value the caller must inspect, so error information does not compose through a call chain</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>Transactions are the unit of concurrency</strong>: <code>COMMIT</code>, <code>ROLLBACK</code>, and <code>SAVEPOINT</code> make a unit of work atomic, so a block does not coordinate with other sessions statement by statement.</li>
-<li>✅ <strong>An autonomous transaction decouples a log write</strong>: <code>PRAGMA AUTONOMOUS_TRANSACTION</code> commits on its own, so the entry survives the caller’s rollback.</li>
-<li>✅ <strong><code>SELECT ... FOR UPDATE</code> names the rows to lock</strong>: the lock is declared by the cursor text rather than by a separate call.</li>
-<li>❌ <strong>Shared mutable state by default (K2)</strong>: a package variable is shared with every session that calls the package, and nothing in the declaration marks it private.</li>
-<li>⚠️ <strong>No language-level synchronisation and no race detection</strong>: PL/SQL has no mutex or atomic primitive, so serialisation rests on Oracle’s row locks and on the application’s lock ordering.</li>
-<li>✅ <strong><code>DBMS_LOCK</code> provides an explicit lock service</strong>: a named user lock serialises a critical section across sessions.</li>
+<li>✅ <strong>Transactions are the unit of concurrency</strong>: <code>COMMIT</code>, <code>ROLLBACK</code>, and <code>SAVEPOINT</code> make a unit of work atomic, so a block does not coordinate with other sessions statement by statement</li>
+<li>✅ <strong>An autonomous transaction decouples a log write</strong>: <code>PRAGMA AUTONOMOUS_TRANSACTION</code> commits on its own, so the entry survives the caller’s rollback</li>
+<li>✅ <strong><code>SELECT ... FOR UPDATE</code> names the rows to lock</strong>: The lock is declared by the cursor text rather than by a separate call</li>
+<li>❌ <strong>Shared mutable state by default (K2)</strong>: A package variable is shared with every program unit that runs in the session, and nothing in the declaration marks it private</li>
+<li>⚠️ <strong>No language-level synchronisation and no race detection</strong>: PL/SQL has no mutex or atomic primitive, so serialisation rests on Oracle’s row locks and on the application’s lock ordering</li>
+<li>✅ <strong><code>DBMS_LOCK</code> provides an explicit lock service</strong>: A named user lock serialises a critical section across sessions</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>It implements the ISO SQL/PSM stored-module standard</strong>: persistent stored modules are specified in ISO/IEC 9075 Part 4, so the package and block model is standard in concept.</li>
-<li>⚠️ <strong>It is implemented outside Oracle Database</strong>: TimesTen and IBM Db2 support PL/SQL, so there is more than one implementation, though the dialects are not fully interchangeable.</li>
-<li>❌ <strong>Cannot function outside one vendor (P1)</strong>: a PL/SQL program needs an Oracle-family database, so the unit of deployment is an Oracle schema.</li>
-<li>❌ <strong>The useful surface is Oracle-specific</strong>: <code>DBMS_*</code> server packages, <code>ROWNUM</code>, sequences, and <code>SQL%ROWCOUNT</code> are Oracle features, so the code cannot move to another engine unedited.</li>
-<li>⚠️ <strong>A port to Transact-SQL is a rewrite, not a translation</strong>: feature differences and different concurrency and locking models separate the two dialects.</li>
+<li>✅ <strong>It implements the ISO SQL/PSM stored-module standard</strong>: Persistent stored modules are specified in ISO/IEC 9075 Part 4, so the package and block model is standard in concept</li>
+<li>⚠️ <strong>It is implemented outside Oracle Database</strong>: TimesTen and IBM Db2 support PL/SQL, so there is more than one implementation, though the dialects are not fully interchangeable</li>
+<li>❌ <strong>Cannot function outside one vendor (P1)</strong>: A PL/SQL program needs an Oracle-family database, so the unit of deployment is an Oracle schema</li>
+<li>❌ <strong>The useful surface is Oracle-specific</strong>: <code>DBMS_*</code> server packages, <code>ROWNUM</code>, sequences, and <code>SQL%ROWCOUNT</code> are Oracle features, so the code cannot move to another engine unedited</li>
+<li>⚠️ <strong>A port to Transact-SQL is a rewrite, not a translation</strong>: Feature differences and different concurrency and locking models separate the two dialects</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>A session-scoped package variable is a deliberate cache</strong>: keeping a value for the session trades hidden shared state for a repeated read.</li>
-<li><strong>Implicit conversion is convenient in short blocks</strong>: letting numeric and character types mix keeps ad-hoc code short, at a cost that appears in code that must be reliable.</li>
-<li><strong>A trigger is a data-integrity mechanism</strong>: a rule kept in the database is enforced for every writer, where the same rule in the application would be visible at each call site.</li>
-<li><strong>Logic beside the data is the purpose of the language</strong>: a procedure that runs in the database avoids shipping rows to a client.</li>
-<li><strong>PL/SQL is not a general-purpose language</strong>: the assumption of an Oracle database is a scope decision.</li>
-<li><strong>Dynamic SQL buys flexibility</strong>: <code>EXECUTE IMMEDIATE</code> runs DDL and changes object names in a statement, which static SQL cannot do.</li>
+<li><strong>A session-scoped package variable is a deliberate cache</strong>: Keeping a value for the session trades hidden shared state for a repeated read</li>
+<li><strong>Implicit conversion is convenient in short blocks</strong>: Letting numeric and character types mix keeps ad-hoc code short, at a cost that appears in code that must be reliable</li>
+<li><strong>A trigger is a data-integrity mechanism</strong>: A rule kept in the database is enforced for every writer, where the same rule in the application would be visible at each call site</li>
+<li><strong>Logic beside the data is the purpose of the language</strong>: A procedure that runs in the database avoids shipping rows to a client</li>
+<li><strong>PL/SQL is not a general-purpose language</strong>: The assumption of an Oracle database is a scope decision</li>
+<li><strong>Dynamic SQL buys flexibility</strong>: <code>EXECUTE IMMEDIATE</code> runs DDL and changes object names in a statement, which static SQL cannot do</li>
 </ul>
 </section>
 </section>
@@ -1113,83 +1112,83 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>✅ <strong>Compilation happens at deployment</strong>: a package or procedure is compiled once and the stored form is reused, so a call does not re-parse the source.</li>
-<li>✅ <strong>Native compilation is selectable</strong>: <code>PLSQL_CODE_TYPE = NATIVE</code> compiles to machine code, so a hot subprogram does not pay the interpreter.</li>
-<li>✅ <strong>Bulk processing amortises the SQL boundary</strong>: <code>FORALL</code> and <code>BULK COLLECT</code> move many rows per round trip, so per-row context switches do not dominate.</li>
-<li>✅ <strong>The optimiser and the SGA serve the data path</strong>: plan selection and buffer caching are the server’s job, not the block’s.</li>
-<li>⚠️ <strong>Cost follows the plan and the retained state</strong>: a poorly chosen plan, or a package variable holding a large collection, is a cost the unit cannot see.</li>
+<li>✅ <strong>Compilation happens at deployment</strong>: A package or procedure is compiled once and the stored form is reused, so a call does not re-parse the source</li>
+<li>✅ <strong>Native compilation is selectable</strong>: <code>PLSQL_CODE_TYPE = NATIVE</code> compiles to machine code, so a hot subprogram does not pay the interpreter</li>
+<li>✅ <strong>Bulk processing amortises the SQL boundary</strong>: <code>FORALL</code> and <code>BULK COLLECT</code> move many rows per round trip, so per-row context switches do not dominate</li>
+<li>✅ <strong>The optimiser and the SGA serve the data path</strong>: Plan selection and buffer caching are the server’s job, not the block’s</li>
+<li>⚠️ <strong>Cost follows the plan and the retained state</strong>: A poorly chosen plan, or a package variable holding a large collection, is a cost the unit cannot see</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>The ecosystem is proprietary (Ec4)</strong>: the engine, the tooling, and the support come from Oracle under licence.</li>
-<li>✅ <strong>Tooling is mature and long-established</strong>: SQL*Plus, SQL Developer, and third-party IDEs have existed for decades.</li>
-<li>✅ <strong>Published practice is extensive</strong>: the PL/SQL language reference, the database manuals, and decades of books and courses document the language in detail.</li>
-<li>⚠️ <strong>Capability follows the licence</strong>: tooling, support, and advanced features are licensed per seat or per processor, so a team reaches only what it has bought.</li>
-<li>⚠️ <strong>Enterprise code bases are long-lived and heavy</strong>: a schema commonly spans many versions, so a change has to keep the oldest callers working.</li>
+<li>❌ <strong>The ecosystem is proprietary (Ec4)</strong>: The engine, the tooling, and the support come from Oracle under licence</li>
+<li>✅ <strong>Tooling is mature and long-established</strong>: SQL*Plus, SQL Developer, and third-party IDEs have existed for decades</li>
+<li>✅ <strong>Published practice is extensive</strong>: The PL/SQL language reference, the database manuals, and decades of books and courses document the language in detail</li>
+<li>⚠️ <strong>Capability follows the licence</strong>: Tooling, support, and advanced features are licensed per seat or per processor, so a team reaches only what it has bought</li>
+<li>⚠️ <strong>Enterprise code bases are long-lived and heavy</strong>: A schema commonly spans many versions, so a change has to keep the oldest callers working</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>Backward compatibility is strong</strong>: a program written for an early Oracle release generally still compiles and runs in the current one.</li>
-<li>✅ <strong>Edition-based redefinition supports an online change</strong>: <code>EDITIONABLE</code> objects let a new version of a package be deployed and switched over without downtime.</li>
-<li>✅ <strong>Deprecation is announced before removal</strong>: Oracle documents deprecated features, so an upgrade is planned rather than discovered.</li>
-<li>⚠️ <strong>A language feature arrives with a database release</strong>: adoption timing therefore follows the customer’s upgrade cycle, not a separate language release.</li>
-<li>⚠️ <strong>A new feature is unavailable on a pinned older database</strong>: code that must run on an old release cannot use a recent construct.</li>
+<li>✅ <strong>Backward compatibility is strong</strong>: A program written for an early Oracle release generally still compiles and runs in the current one</li>
+<li>✅ <strong>Edition-based redefinition supports an online change</strong>: <code>EDITIONABLE</code> objects let a new version of a package be deployed and switched over without downtime</li>
+<li>✅ <strong>Deprecation is announced before removal</strong>: Oracle documents deprecated features, so an upgrade is planned rather than discovered</li>
+<li>⚠️ <strong>A language feature arrives with a database release</strong>: Adoption timing therefore follows the customer’s upgrade cycle, not a separate language release</li>
+<li>⚠️ <strong>A new feature is unavailable on a pinned older database</strong>: Code that must run on an old release cannot use a recent construct</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Excellent fit for data-centric business logic</strong>: a procedure operates on tables with SQL directly, so a rule runs where the data is.</li>
-<li>✅ <strong>The language is a full procedural language inside SQL</strong>: loops, records, collections, and subprograms live in the same unit as the queries.</li>
-<li>✅ <strong>Server packages reach outside the schema</strong>: <code>UTL_FILE</code>, <code>UTL_HTTP</code>, and <code>DBMS_SCHEDULER</code> give file, network, and job facilities from inside the database.</li>
-<li>❌ <strong>Domain and vendor lock-in (D1)</strong>: the language exists to run inside an Oracle database, so the Oracle data tier is the only domain.</li>
-<li>⚠️ <strong>A trigger can hide a domain rule</strong>: an invariant implemented in a trigger is enforced for every writer, but a reader of the application source cannot see it.</li>
-<li>⚠️ <strong>The language is not a general-purpose runtime</strong>: a user interface, a heavy text workload, or a high-rate service belongs in another language beside PL/SQL.</li>
+<li>✅ <strong>Excellent fit for data-centric business logic</strong>: A procedure operates on tables with SQL directly, so a rule runs where the data is</li>
+<li>✅ <strong>The language is a full procedural language inside SQL</strong>: Loops, records, collections, and subprograms live in the same unit as the queries</li>
+<li>✅ <strong>Server packages reach outside the schema</strong>: <code>UTL_FILE</code>, <code>UTL_HTTP</code>, and <code>DBMS_SCHEDULER</code> give file, network, and job facilities from inside the database</li>
+<li>❌ <strong>Domain and vendor lock-in (D1)</strong>: The language exists to run inside an Oracle database, so the Oracle data tier is the only domain</li>
+<li>⚠️ <strong>A trigger can hide a domain rule</strong>: An invariant implemented in a trigger is enforced for every writer, but a reader of the application source cannot see it</li>
+<li>⚠️ <strong>The language is not a general-purpose runtime</strong>: A user interface, a heavy text workload, or a high-rate service belongs in another language beside PL/SQL</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>✅ <strong>Moderate for a SQL-plus-Pascal background</strong>: the block structure follows Ada and Pascal, so a developer from those languages reads it quickly.</li>
-<li>⚠️ <strong>The SQL-to-PL/SQL boundary needs practice</strong>: a <code>SELECT</code> inside a block must return exactly one row, so <code>NO_DATA_FOUND</code> and <code>TOO_MANY_ROWS</code> are everyday cases.</li>
-<li>⚠️ <strong>Package semantics take time</strong>: spec versus body, per-session package state, and initialisation timing are not visible in the syntax.</li>
-<li>⚠️ <strong>Exception semantics reward careful reading</strong>: an exception in a nested block propagates to the enclosing handler unless it is handled there.</li>
-<li>✅ <strong>The reference documentation is complete</strong>: the Oracle Database PL/SQL Language Reference documents every construct with examples.</li>
+<li>✅ <strong>Moderate for a SQL-plus-Pascal background</strong>: The block structure follows Ada and Pascal, so a developer from those languages reads it quickly</li>
+<li>⚠️ <strong>The SQL-to-PL/SQL boundary needs practice</strong>: A <code>SELECT</code> inside a block must return exactly one row, so <code>NO_DATA_FOUND</code> and <code>TOO_MANY_ROWS</code> are everyday cases</li>
+<li>⚠️ <strong>Package semantics take time</strong>: Spec versus body, per-session package state, and initialisation timing are not visible in the syntax</li>
+<li>⚠️ <strong>Exception semantics reward careful reading</strong>: An exception in a nested block propagates to the enclosing handler unless it is handled there</li>
+<li>✅ <strong>The reference documentation is complete</strong>: The Oracle Database PL/SQL Language Reference documents every construct with examples</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>Readable and keyword-led</strong>: statements read as verbs — <code>INSERT INTO</code>, <code>FETCH</code>, <code>RAISE</code> — so intent is visible.</li>
-<li>✅ <strong>Blocks nest visibly</strong>: an inner <code>BEGIN ... END</code> holds its own declarations and handler, so scope follows the indentation.</li>
-<li>❌ <strong>Verbose (S1)</strong>: even a small unit needs a declaration section, a <code>BEGIN ... END</code>, and an exception section, so the block structure adds lines to every subprogram.</li>
-<li>⚠️ <strong><code>END</code> closes several constructs</strong>: <code>END IF;</code>, <code>END LOOP;</code>, and a package <code>END</code> must each be matched, so a long body is read against its terminators.</li>
-<li>⚠️ <strong>A large package body is one long file</strong>: the spec and the body are a unit boundary, not a file-per-subprogram rule.</li>
+<li>✅ <strong>Readable and keyword-led</strong>: Statements read as verbs — <code>INSERT INTO</code>, <code>FETCH</code>, <code>RAISE</code> — so intent is visible</li>
+<li>✅ <strong>Blocks nest visibly</strong>: An inner <code>BEGIN ... END</code> holds its own declarations and handler, so scope follows the indentation</li>
+<li>❌ <strong>Verbose (S1)</strong>: Even a small unit needs a declaration section, a <code>BEGIN ... END</code>, and an exception section, so the block structure adds lines to every subprogram</li>
+<li>⚠️ <strong><code>END</code> closes several constructs</strong>: <code>END IF;</code>, <code>END LOOP;</code>, and a package <code>END</code> must each be matched, so a long body is read against its terminators</li>
+<li>⚠️ <strong>A large package body is one long file</strong>: The spec and the body are a unit boundary, not a file-per-subprogram rule</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong><code>utPLSQL</code> is the established framework</strong>: an open-source test framework runs suites with assertions and reporting, so tests need not be hand-rolled.</li>
-<li>✅ <strong>Transaction control isolates a test</strong>: a test can run and <code>ROLLBACK</code>, leaving the database unchanged.</li>
-<li>✅ <strong>The toolchain traces execution</strong>: <code>DBMS_PROFILER</code>, <code>DBMS_TRACE</code>, and the hierarchical profiler report call counts and coverage.</li>
-<li>⚠️ <strong>The base product ships no unit-test framework</strong>: SQL Developer offers a unit-testing feature, but the language itself has no test construct.</li>
-<li>⚠️ <strong>A suite depends on grants and deployment</strong>: the framework is installed in the database it tests, so permissions and schema state are preconditions.</li>
+<li>✅ <strong><code>utPLSQL</code> is the established framework</strong>: An open-source test framework runs suites with assertions and reporting, so tests need not be hand-rolled</li>
+<li>✅ <strong>Transaction control isolates a test</strong>: A test can run and <code>ROLLBACK</code>, leaving the database unchanged</li>
+<li>✅ <strong>The toolchain traces execution</strong>: <code>DBMS_PROFILER</code>, <code>DBMS_TRACE</code>, and the hierarchical profiler report call counts and coverage</li>
+<li>⚠️ <strong>The base product ships no unit-test framework</strong>: SQL Developer offers a unit-testing feature, but the language itself has no test construct</li>
+<li>⚠️ <strong>A suite depends on grants and deployment</strong>: The framework is installed in the database it tests, so permissions and schema state are preconditions</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>✅ <strong>Bind variables remove the injection surface</strong>: <code>EXECUTE IMMEDIATE 'SELECT ... WHERE x = :1' USING v</code> passes the value out of band, so it cannot change the parse.</li>
-<li>✅ <strong><code>DBMS_ASSERT</code> validates an identifier before interpolation</strong>: <code>SIMPLE_SQL_NAME</code>, <code>QUALIFIED_SQL_NAME</code>, and <code>ENQUOTE_NAME</code> check the string.</li>
-<li>✅ <strong>The rights model is explicit</strong>: <code>AUTHID DEFINER</code> and <code>AUTHID CURRENT_USER</code> select whether a unit runs with its owner’s privileges or the caller’s.</li>
-<li>✅ <strong>Privileges are granted per object</strong>: <code>GRANT EXECUTE ON pkg TO role</code> scopes access, and the package specification is the grantable interface.</li>
-<li>❌ <strong>Known vulnerability/injection (Q3)</strong>: <code>EXECUTE IMMEDIATE</code> and <code>DBMS_SQL</code> build a statement as text, so concatenated input can become code.</li>
-<li>⚠️ <strong>Definer’s-rights code can escalate</strong>: a unit that runs with its definer’s rights reaches more than the caller, so it needs an audit.</li>
+<li>✅ <strong>Bind variables remove the injection surface</strong>: <code>EXECUTE IMMEDIATE 'SELECT ... WHERE x = :1' USING v</code> passes the value out of band, so it cannot change the parse</li>
+<li>✅ <strong><code>DBMS_ASSERT</code> validates an identifier before interpolation</strong>: <code>SIMPLE_SQL_NAME</code>, <code>QUALIFIED_SQL_NAME</code>, and <code>ENQUOTE_NAME</code> check the string</li>
+<li>✅ <strong>The rights model is explicit</strong>: <code>AUTHID DEFINER</code> and <code>AUTHID CURRENT_USER</code> select whether a unit runs with its owner’s privileges or the caller’s</li>
+<li>✅ <strong>Privileges are granted per object</strong>: <code>GRANT EXECUTE ON pkg TO role</code> scopes access, and the package specification is the grantable interface</li>
+<li>❌ <strong>Known vulnerability/injection (Q3)</strong>: <code>EXECUTE IMMEDIATE</code> and <code>DBMS_SQL</code> build a statement as text, so concatenated input can become code</li>
+<li>⚠️ <strong>Definer’s-rights code can escalate</strong>: A unit that runs with its definer’s rights reaches more than the caller, so it needs an audit</li>
 </ul>
 </section>
 </section>

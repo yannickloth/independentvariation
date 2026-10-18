@@ -1028,85 +1028,85 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="tclDocs"><a href="#ref-tclDocs" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Tcl in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Tcl in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 58/100</strong> · <strong>Ecosystem coupling 77/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>❌ <strong>No static type checking</strong>: a variable holds any value and a command converts its arguments when it runs, so a type error appears at the point of use rather than at compile time (T1).</li>
-<li>❌ <strong>No sum types and no generics</strong>: a choice between alternatives is a string, a list, or a <code>dict</code> with a discriminating key, and a <code>proc</code> declares no type parameter, so neither the alternative read nor the types a body expects are checked (T4, T5).</li>
-<li>❌ <strong>No null-safety</strong>: there is no null type; an empty string, an empty list, and an unset variable are distinct states, and <code>$x</code> on an unset variable aborts the script (T10).</li>
-<li>❌ <strong>One global namespace and no module boundary</strong>: a <code>proc</code> declared at the top level is a global command, <code>namespace eval</code> is opt-in, and <code>source</code> evaluates a file into the current interpreter without restricting what that file makes visible (T6, T11).</li>
-<li>❌ <strong>A protocol is not a declared type</strong>: TclOO, in the core since 8.5, provides classes, mixins, and multiple inheritance, so a shared protocol is captured by a class hierarchy or a mixin rather than by an interface the interpreter checks (T9).</li>
-<li>✅ <strong>A value’s subtype is inspectable</strong>: <code>string is</code> and the <code>expr</code> conversions such as <code>int()</code>, <code>double()</code>, and <code>boolean()</code> let a script test a value before it is used.</li>
+<li>❌ <strong>No static type checking</strong>: A variable holds any value and a command converts its arguments when it runs, so a type error appears at the point of use rather than at compile time (T1)</li>
+<li>❌ <strong>No sum types and no generics</strong>: A choice between alternatives is a string, a list, or a <code>dict</code> with a discriminating key, and a <code>proc</code> declares no type parameter, so neither the alternative read nor the types a body expects are checked (T4, T5)</li>
+<li>❌ <strong>No null-safety</strong>: There is no null type; an empty string, an empty list, and an unset variable are distinct states, and <code>$x</code> on an unset variable aborts the script (T10)</li>
+<li>❌ <strong>One global namespace and no module boundary</strong>: A <code>proc</code> declared at the top level is a global command, <code>namespace eval</code> is opt-in, and <code>source</code> evaluates a file into the current interpreter without restricting what that file makes visible (T6, T11)</li>
+<li>❌ <strong>A protocol is not a declared type</strong>: TclOO, in the core since 8.6, provides classes, mixins, and multiple inheritance, so a shared protocol is captured by a class hierarchy or a mixin rather than by an interface the interpreter checks (T9)</li>
+<li>✅ <strong>A value’s subtype is inspectable</strong>: <code>string is</code> and the <code>expr</code> conversions such as <code>int()</code>, <code>double()</code>, and <code>boolean()</code> let a script test a value before it is used</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>❌ <strong>Global state appears at the first assignment</strong>: at the top level a name becomes a global variable when it is assigned, so two scripts in one interpreter share those variables (C1).</li>
-<li>❌ <strong>Nothing is immutable</strong>: <code>set</code> is the only declaration a variable receives, and it can reassign or <code>unset</code> the value at any time (C2).</li>
-<li>❌ <strong>No constructor or validation hook</strong>: a value is whatever a command stored, and a <code>proc</code> cannot reject a malformed argument unless it checks by hand (C4).</li>
-<li>✅ <strong><code>proc</code> gives a body its own local scope</strong>: a procedure is a named command with a parameter list, and its parameters and locals do not touch a caller’s variables unless <code>global</code>, <code>variable</code>, or <code>upvar</code> says so.</li>
-<li>✅ <strong><code>namespace eval</code> gives a scope of its own</strong>: a namespace holds its own variables and commands, so a package need not write into the global scope.</li>
-<li>⚠️ <strong><code>upvar</code> and <code>uplevel</code> reach into the caller’s frame</strong>: a procedure that binds a caller’s variable, or evaluates in the caller’s scope, depends on where it was called from, and <code>global</code> and <code>variable</code> make a shared variable explicit but still shared.</li>
+<li>❌ <strong>Global state appears at the first assignment</strong>: At the top level a name becomes a global variable when it is assigned, so two scripts in one interpreter share those variables (C1)</li>
+<li>❌ <strong>Nothing is immutable</strong>: <code>set</code> is the only declaration a variable receives, and it can reassign or <code>unset</code> the value at any time (C2)</li>
+<li>❌ <strong>No constructor or validation hook</strong>: A value is whatever a command stored, and a <code>proc</code> cannot reject a malformed argument unless it checks by hand (C4)</li>
+<li>✅ <strong><code>proc</code> gives a body its own local scope</strong>: A procedure is a named command with a parameter list, and its parameters and locals do not touch a caller’s variables unless <code>global</code>, <code>variable</code>, or <code>upvar</code> says so</li>
+<li>✅ <strong><code>namespace eval</code> gives a scope of its own</strong>: A namespace holds its own variables and commands, so a package need not write into the global scope</li>
+<li>⚠️ <strong><code>upvar</code> and <code>uplevel</code> reach into the caller’s frame</strong>: A procedure that binds a caller’s variable, or evaluates in the caller’s scope, depends on where it was called from, and <code>global</code> and <code>variable</code> make a shared variable explicit but still shared</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>The interpreter owns the heap</strong>: there is no allocate or free command, and a script never names an address.</li>
-<li>✅ <strong>A value is reclaimed when its last reference goes away</strong>: reference counting releases a <code>Tcl_Obj</code> without a lifetime written in the script.</li>
-<li>✅ <strong>The dual representation keeps a compiled form beside the string</strong>: a <code>Tcl_Obj</code> holds its string and, once used as a list or an integer, an internal representation that is reused.</li>
-<li>✅ <strong>A C extension allocates through the interpreter</strong>: an extension uses <code>Tcl_Alloc</code> and <code>Tcl_Free</code>, so the interpreter’s accounting still applies.</li>
-<li>⚠️ <strong>A reference cycle is not reclaimed by counting alone</strong>: two objects that reference each other are released only by the interpreter’s cycle collection, and a cycle held by an extension is not collected at all.</li>
-<li>⚠️ <strong>Taking the string form discards the internal representation</strong>: an operation that needs the string regenerates it, so a hot loop can pay the same conversion more than once.</li>
+<li>✅ <strong>The interpreter owns the heap</strong>: There is no allocate or free command, and a script never names an address</li>
+<li>✅ <strong>A value is reclaimed when its last reference goes away</strong>: Reference counting releases a <code>Tcl_Obj</code> without a lifetime written in the script</li>
+<li>✅ <strong>The dual representation keeps a compiled form beside the string</strong>: A <code>Tcl_Obj</code> holds its string and, once used as a list or an integer, an internal representation that is reused</li>
+<li>✅ <strong>A C extension allocates through the interpreter</strong>: An extension uses <code>Tcl_Alloc</code> and <code>Tcl_Free</code>, so the interpreter’s accounting still applies</li>
+<li>⚠️ <strong>A reference cycle is not reclaimed by counting alone</strong>: Two objects that reference each other are released only by the interpreter’s cycle collection, and a cycle held by an extension is not collected at all</li>
+<li>⚠️ <strong>Taking the string form discards the internal representation</strong>: An operation that needs the string regenerates it, so a hot loop can pay the same conversion more than once</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>A failure can be ignored by design</strong>: <code>catch</code> returns a status and nothing requires the caller to test it, so an unchecked return value discards the failure (Er3).</li>
-<li>✅ <strong>Every failure is a value</strong>: <code>catch</code> returns a status such as <code>ok</code>, <code>error</code>, <code>return</code>, <code>break</code>, or <code>continue</code>, together with the result and the error options.</li>
-<li>✅ <strong><code>errorInfo</code> and <code>errorCode</code> carry the detail</strong>: after an error the interpreter records the stack trace and a machine-readable code such as <code>POSIX ENOENT</code>.</li>
-<li>✅ <strong><code>error</code> raises and <code>return -code</code> states a status</strong>: a command states the status it wants to propagate to its caller.</li>
-<li>⚠️ <strong>A handler that matches the message text is bound to the wording</strong>: the message is a string, and <code>errorCode</code> is the documented field to test instead.</li>
-<li>⚠️ <strong><code>catch</code> also catches <code>return</code> and <code>break</code></strong>: a nested return arrives as a status, so it must be passed on deliberately rather than by accident.</li>
+<li>❌ <strong>A failure can be ignored by design</strong>: <code>catch</code> returns a status and nothing requires the caller to test it, so an unchecked return value discards the failure (Er3)</li>
+<li>✅ <strong>Every failure is a value</strong>: <code>catch</code> returns a status such as <code>ok</code>, <code>error</code>, <code>return</code>, <code>break</code>, or <code>continue</code>, together with the result and the error options</li>
+<li>✅ <strong><code>errorInfo</code> and <code>errorCode</code> carry the detail</strong>: After an error the interpreter records the stack trace and a machine-readable code such as <code>POSIX ENOENT</code></li>
+<li>✅ <strong><code>error</code> raises and <code>return -code</code> states a status</strong>: A command states the status it wants to propagate to its caller</li>
+<li>⚠️ <strong>A handler that matches the message text is bound to the wording</strong>: The message is a string, and <code>errorCode</code> is the documented field to test instead</li>
+<li>⚠️ <strong><code>catch</code> also catches <code>return</code> and <code>break</code></strong>: A nested return arrives as a status, so it must be passed on deliberately rather than by accident</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>Channels are the concurrency primitive</strong>: <code>chan</code> reads and writes a stream, so a program composes I/O without naming a file descriptor.</li>
-<li>✅ <strong><code>after</code> and <code>vwait</code> give an event loop</strong>: a callback runs on the interpreter’s event loop, and the script does not block the process while it waits.</li>
-<li>✅ <strong>Coroutines are in the core since Tcl 8.6</strong>: <code>coroutine</code>, <code>yield</code>, and <code>tailcall</code> express a suspendable computation as an ordinary command.</li>
-<li>✅ <strong>Threads are available when the core is built with them</strong>: each thread runs its own interpreter and threads exchange values through a thread-safe channel queue rather than shared variables.</li>
-<li>⚠️ <strong>A script runs on the thread that calls it</strong>: one <code>Tcl_Interp</code> is not usable from two threads at once, so state is partitioned per thread.</li>
-<li>⚠️ <strong>A callback can outlive its intended state</strong>: an <code>after</code> script or a channel handler holds the interpreter’s state, so a cancelled operation must be cancelled explicitly.</li>
+<li>✅ <strong>I/O is a channel</strong>: <code>chan</code> reads and writes a stream, so a program composes I/O without naming a file descriptor</li>
+<li>✅ <strong><code>after</code> and <code>vwait</code> give an event loop</strong>: A callback runs on the interpreter’s event loop, and the script does not block the process while it waits</li>
+<li>✅ <strong>Coroutines are in the core since Tcl 8.6</strong>: <code>coroutine</code>, <code>yield</code>, and <code>tailcall</code> express a suspendable computation as an ordinary command</li>
+<li>✅ <strong>Threads are available when the core is built with them</strong>: Each thread runs its own interpreter and threads exchange values through a thread-safe channel queue rather than shared variables</li>
+<li>⚠️ <strong>A script runs on the thread that calls it</strong>: One <code>Tcl_Interp</code> is not usable from two threads at once, so state is partitioned per thread</li>
+<li>⚠️ <strong>A callback can outlive its intended state</strong>: An <code>after</code> script or a channel handler holds the interpreter’s state, so a cancelled operation must be cancelled explicitly</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>One implementation is portable across platforms</strong>: the core builds and runs on Windows, macOS, and Unix-like systems from one source base.</li>
-<li>✅ <strong>Embedding is a first-class use</strong>: the C API (<code>Tcl_CreateInterp</code>, <code>Tcl_Eval</code>, <code>Tcl_CreateObjCommand</code>) lets a host application embed an interpreter and expose its own commands.</li>
-<li>✅ <strong>A script needs no build step</strong>: a <code>.tcl</code> file runs as written through <code>tclsh</code>.</li>
-<li>❌ <strong>The implementation is one project</strong>: Tcl and Tk are maintained by a single core team that sets the language direction, so the platform has one centre (P2).</li>
-<li>⚠️ <strong>Tk and every extension are separate packages</strong>: GUI work requires Tk beside the core, and a package must be found on <code>auto_path</code> or <code>TCLLIBPATH</code>.</li>
-<li>⚠️ <strong>A native extension is built per platform</strong>: a package that wraps a C library ships a compiled binary for each target, and the binary must match the interpreter version.</li>
+<li>✅ <strong>One implementation is portable across platforms</strong>: The core builds and runs on Windows, macOS, and Unix-like systems from one source base</li>
+<li>✅ <strong>Embedding is a first-class use</strong>: The C API (<code>Tcl_CreateInterp</code>, <code>Tcl_Eval</code>, <code>Tcl_CreateObjCommand</code>) lets a host application embed an interpreter and expose its own commands</li>
+<li>✅ <strong>A script needs no build step</strong>: A <code>.tcl</code> file runs as written through <code>tclsh</code></li>
+<li>❌ <strong>The implementation is one project</strong>: Tcl and Tk are maintained by a single core team that sets the language direction, so the platform has one centre (P2)</li>
+<li>⚠️ <strong>Tk and every extension are separate packages</strong>: GUI work requires Tk beside the core, and a package must be found on <code>auto_path</code> or <code>TCLLIBPATH</code></li>
+<li>⚠️ <strong>A native extension is built per platform</strong>: A package that wraps a C library ships a compiled binary for each target, and the binary must match the interpreter version</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Everything is a string is a design choice</strong>: one representation for scripts, lists, and data buys uniform introspection at a conversion cost.</li>
-<li><strong>A command is the only abstraction</strong>: the language has no operator table and no macro layer, so a domain language is built by writing commands.</li>
-<li><strong>A small core plus packages is a scope decision</strong>: Tcllib, Tk, and Expect are separate distributions, and a program chooses which to depend on.</li>
-<li><strong>There is no compile step by design</strong>: a syntax error appears when the script reaches the command.</li>
-<li><strong>Tcl 9.0 treats compatibility with 8.6 extensions as a non-goal</strong>: the project states that ABI compatibility was not an aim, so the rebuild cost is a stated trade rather than an accident.</li>
-<li><strong>A Tcl program is meant to be a layer over a host</strong>: the design point is a C or C++ program with a Tcl configuration and control layer.</li>
+<li><strong>Everything is a string is a design choice</strong>: One representation for scripts, lists, and data buys uniform introspection at a conversion cost</li>
+<li><strong>A command is the only abstraction</strong>: The language has no operator table and no macro layer, so a domain language is built by writing commands</li>
+<li><strong>A small core plus packages is a scope decision</strong>: Tcllib, Tk, and Expect are separate distributions, and a program chooses which to depend on</li>
+<li><strong>There is no compile step by design</strong>: A syntax error appears when the script reaches the command</li>
+<li><strong>Tcl 9.0 treats compatibility with 8.6 extensions as a non-goal</strong>: The project states that ABI compatibility was not an aim, so the rebuild cost is a stated trade rather than an accident</li>
+<li><strong>A Tcl program is meant to be a layer over a host</strong>: The design point is a C or C++ program with a Tcl configuration and control layer</li>
 </ul>
 </section>
 </section>
@@ -1115,88 +1115,88 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>✅ <strong>The core compiles a script to bytecode</strong>: the bytecode compiler added in the 8.x series means a loop body is not re-parsed at each iteration.</li>
-<li>✅ <strong><code>expr</code> compiles arithmetic</strong>: an expression is compiled to instructions rather than dispatched as a sequence of commands.</li>
-<li>✅ <strong>A C extension removes the interpreter from the hot path</strong>: a command implemented in C runs compiled code, which is how performance-critical work is normally done.</li>
-<li>⚠️ <strong>Each command still costs a dispatch</strong>: a loop written in Tcl pays parse and dispatch overhead per iteration, so the speed comes from moving the loop into C or into <code>expr</code> and <code>string</code> operations.</li>
-<li>⚠️ <strong>A re-generated string form costs again</strong>: an operation that needs the string representation discards the internal one, so a hot loop can convert repeatedly.</li>
-<li>⚠️ <strong>Tk redraw bounds GUI throughput</strong>: a large widget tree redraws at the rate the toolkit can service it.</li>
+<li>✅ <strong>The core compiles a script to bytecode</strong>: The bytecode compiler added in the 8.x series means a loop body is not re-parsed at each iteration</li>
+<li>✅ <strong><code>expr</code> compiles arithmetic</strong>: An expression is compiled to instructions rather than dispatched as a sequence of commands</li>
+<li>✅ <strong>A C extension removes the interpreter from the hot path</strong>: A command implemented in C runs compiled code, which is how performance-critical work is normally done</li>
+<li>⚠️ <strong>Each command still costs a dispatch</strong>: A loop written in Tcl pays parse and dispatch overhead per iteration, so the speed comes from moving the loop into C or into <code>expr</code> and <code>string</code> operations</li>
+<li>⚠️ <strong>A re-generated string form costs again</strong>: An operation that needs the string representation discards the internal one, so a hot loop can convert repeatedly</li>
+<li>⚠️ <strong>Tk redraw bounds GUI throughput</strong>: A large widget tree redraws at the rate the toolkit can service it</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>The ecosystem is small and largely legacy</strong>: the active package field is far smaller than that of a mainstream language, and much Tcl code still in use was written decades ago (Ec3).</li>
-<li>✅ <strong>Tcllib and Tklib are maintained standard libraries</strong>: pure-Tcl packages for containers, lists, and protocols, distributed separately from the core.</li>
-<li>✅ <strong>The distribution is a complete tool</strong>: <code>tclsh</code> and <code>wish</code> need nothing else installed to run a script.</li>
-<li>✅ <strong>A package system names and resolves packages</strong>: <code>package provide</code>, <code>package require</code>, and the <code>teacup</code> distribution machinery locate and version a package.</li>
-<li>⚠️ <strong>A binary package is distributed per platform</strong>: a compiled extension must match the platform and the interpreter version, so a pure-Tcl package travels more easily.</li>
-<li>⚠️ <strong>The documentation corpus is stable but old</strong>: the manual pages are complete, and most tutorials and examples date from the 1990s and 2000s.</li>
+<li>❌ <strong>The ecosystem is small and largely legacy</strong>: The active package field is far smaller than that of a mainstream language, and much Tcl code still in use was written decades ago (Ec3)</li>
+<li>✅ <strong>Tcllib and Tklib are maintained standard libraries</strong>: Pure-Tcl packages for containers, lists, and protocols, distributed separately from the core</li>
+<li>✅ <strong>The distribution is a complete tool</strong>: <code>tclsh</code> and <code>wish</code> need nothing else installed to run a script</li>
+<li>✅ <strong>A package system names and resolves packages</strong>: <code>package provide</code>, <code>package require</code>, and the <code>teacup</code> distribution machinery locate and version a package</li>
+<li>⚠️ <strong>A binary package is distributed per platform</strong>: A compiled extension must match the platform and the interpreter version, so a pure-Tcl package travels more easily</li>
+<li>⚠️ <strong>The documentation corpus is stable but old</strong>: The manual pages are complete, and most tutorials and examples date from the 1990s and 2000s</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>Tcl 9.0 is an actively released line</strong>: Tcl/Tk 9.0 appeared in September 2024 after the long 8.x series, and 9.0.x maintenance releases continue.</li>
-<li>✅ <strong>Scripts are largely backward compatible</strong>: the migration notes list a small set of removed pre-8.0 legacies such as the old <code>case</code>, <code>puts</code>, and <code>read</code> forms.</li>
-<li>⚠️ <strong>Tcl 9.0 broke the C extension interface</strong>: <code>Tcl_Size</code> replaced <code>int</code> for lengths and indices and <code>Tcl_UniChar</code> became 32-bit, so an extension built for 8.6 must be rebuilt.</li>
-<li>⚠️ <strong>A major release arrives rarely</strong>: 9.0 came 27 years after 8.0, so a core change can wait a long time.</li>
-<li>✅ <strong>The project publishes a migration guide for scripts and for extensions</strong>: “Migrating scripts to Tcl 9” and “Migrating C extensions to Tcl 9” state each required change.</li>
+<li>✅ <strong>Tcl 9.0 is an actively released line</strong>: Tcl/Tk 9.0 appeared in September 2024 after the long 8.x series, and 9.0.x maintenance releases continue</li>
+<li>✅ <strong>Scripts are largely backward compatible</strong>: The migration notes list a small set of removed pre-8.0 legacies such as the old <code>case</code>, <code>puts</code>, and <code>read</code> forms</li>
+<li>⚠️ <strong>Tcl 9.0 broke the C extension interface</strong>: <code>Tcl_Size</code> replaced <code>int</code> for lengths and indices and <code>Tcl_UniChar</code> became 32-bit, so an extension built for 8.6 must be rebuilt</li>
+<li>⚠️ <strong>A major release arrives rarely</strong>: 9.0 came 27 years after 8.0, so a core change can wait a long time</li>
+<li>✅ <strong>The project publishes a migration guide for scripts and for extensions</strong>: “Migrating scripts to Tcl 9” and “Migrating C extensions to Tcl 9” state each required change</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Embedded scripting is the native domain</strong>: a C or C++ host embeds an interpreter and exposes its own commands, which is how Tcl is most often used.</li>
-<li>✅ <strong>Tk is a mature cross-platform GUI toolkit</strong>: Tcl/Tk remains a workable choice for a simple desktop GUI.</li>
-<li>✅ <strong>Expect automates an interactive program</strong>: the Expect extension drives a terminal program through its prompts and is the standard tool for that job.</li>
-<li>✅ <strong>Tcl is used as a test and build harness</strong>: the core’s own test suite and many command-line tools use a Tcl driver.</li>
-<li>⚠️ <strong>General application work is rare</strong>: outside embedded scripting, GUI, and automation a new project rarely chooses Tcl.</li>
-<li>⚠️ <strong>The heavy computation is normally in C</strong>: a Tcl program is usually a thin layer over an extension that does the work.</li>
+<li>✅ <strong>Embedded scripting is the native domain</strong>: A C or C++ host embeds an interpreter and exposes its own commands, which is how Tcl is most often used</li>
+<li>✅ <strong>Tk is a mature cross-platform GUI toolkit</strong>: Tcl/Tk remains a workable choice for a simple desktop GUI</li>
+<li>✅ <strong>Expect automates an interactive program</strong>: The Expect extension drives a terminal program through its prompts and is the standard tool for that job</li>
+<li>✅ <strong>Tcl is used as a test and build harness</strong>: The core’s own test suite and many command-line tools use a Tcl driver</li>
+<li>⚠️ <strong>General application work is rare</strong>: Outside embedded scripting, GUI, and automation a new project rarely chooses Tcl</li>
+<li>⚠️ <strong>The heavy computation is normally in C</strong>: A Tcl program is usually a thin layer over an extension that does the work</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>✅ <strong>The syntax is tiny</strong>: a script is a sequence of commands, and <code>set</code>, <code>proc</code>, <code>if</code>, and <code>foreach</code> cover most of the surface.</li>
-<li>✅ <strong>The manual is uniform</strong>: every command has a manual page with the same sections, so the reference is easy to navigate.</li>
-<li>✅ <strong>An interactive shell is part of the tool</strong>: <code>tclsh</code> evaluates a line as it is typed, so an experiment is immediate.</li>
-<li>⚠️ <strong>Substitution and quoting need care</strong>: <code>$var</code>, <code>[command]</code>, braces, and backslash interact, so a command that builds another command is a skill of its own.</li>
-<li>⚠️ <strong>The single-value model surprises a newcomer</strong>: a list, a number, and a script are values of one kind, and the difference appears only when a command interprets the value.</li>
-<li>⚠️ <strong>The object systems are additional</strong>: TclOO is built in and [incr Tcl] is an extension, so object-oriented Tcl is a layer above the command core.</li>
+<li>✅ <strong>The syntax is tiny</strong>: A script is a sequence of commands, and <code>set</code>, <code>proc</code>, <code>if</code>, and <code>foreach</code> cover most of the surface</li>
+<li>✅ <strong>The manual is uniform</strong>: Every command has a manual page with the same sections, so the reference is easy to navigate</li>
+<li>✅ <strong>An interactive shell is part of the tool</strong>: <code>tclsh</code> evaluates a line as it is typed, so an experiment is immediate</li>
+<li>⚠️ <strong>Substitution and quoting need care</strong>: <code>$var</code>, <code>[command]</code>, braces, and backslash interact, so a command that builds another command is a skill of its own</li>
+<li>⚠️ <strong>The single-value model surprises a newcomer</strong>: A list, a number, and a script are values of one kind, and the difference appears only when a command interprets the value</li>
+<li>⚠️ <strong>The object systems are additional</strong>: TclOO is built in and [incr Tcl] is an extension, so object-oriented Tcl is a layer above the command core</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>A command is words separated by whitespace</strong>: <code>puts hello</code> is a command with one argument, and the language uses almost no operator punctuation.</li>
-<li>✅ <strong>Braces group a block without substitution</strong>: <code>{ ... }</code> passes the enclosed text unevaluated, which is how <code>if</code>, <code>proc</code>, and <code>foreach</code> receive a body.</li>
-<li>✅ <strong>A script is data</strong>: because a script is a list of words, a command can build and evaluate one.</li>
-<li>⚠️ <strong><code>expr</code> has its own grammar</strong>: an expression uses operators and functions rather than command words, so the syntax changes inside its braces.</li>
-<li>⚠️ <strong>Substitution is dense</strong>: <code>$</code>, <code>[</code>, and <code>\</code> each start a substitution, and a missing escape changes the meaning of a line.</li>
-<li>⚠️ <strong>An unbalanced brace or bracket changes the parse</strong>: a newline ends a command, so an unclosed group swallows the following lines.</li>
+<li>✅ <strong>A command is words separated by whitespace</strong>: <code>puts hello</code> is a command with one argument, and the language uses almost no operator punctuation</li>
+<li>✅ <strong>Braces group a block without substitution</strong>: <code>{ ... }</code> passes the enclosed text unevaluated, which is how <code>if</code>, <code>proc</code>, and <code>foreach</code> receive a body</li>
+<li>✅ <strong>A script is data</strong>: Because a script is a list of words, a command can build and evaluate one</li>
+<li>⚠️ <strong><code>expr</code> has its own grammar</strong>: An expression uses operators and functions rather than command words, so the syntax changes inside its braces</li>
+<li>⚠️ <strong>Substitution is dense</strong>: <code>$</code>, <code>[</code>, and <code>\</code> each start a substitution, and a missing escape changes the meaning of a line</li>
+<li>⚠️ <strong>An unbalanced brace or bracket changes the parse</strong>: A newline ends a command, so an unclosed group swallows the following lines</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong><code>tcltest</code> is part of the core</strong>: the standard test package supplies <code>test</code>, <code>testConstraint</code>, and a summary, so a suite needs no external framework.</li>
-<li>✅ <strong>A test is a script the same interpreter runs</strong>: the check and the code under test share one language.</li>
-<li>✅ <strong><code>catch</code> makes a failure assertable</strong>: a test states the expected status and message, and the return value of <code>catch</code> is the assertion.</li>
-<li>✅ <strong><code>trace</code> observes a variable or a command</strong>: a test can watch a variable write or a command call without changing the code.</li>
-<li>✅ <strong><code>tclsh</code> is the debugger</strong>: an interactive shell with <code>info</code> and <code>trace</code> exposes the state without a separate tool.</li>
-<li>⚠️ <strong>Nothing checks a command before it runs</strong>: a misspelled command name or a wrong argument count appears only when that line executes.</li>
+<li>✅ <strong><code>tcltest</code> is part of the core</strong>: The standard test package supplies <code>test</code>, <code>testConstraint</code>, and a summary, so a suite needs no external framework</li>
+<li>✅ <strong>A test is a script the same interpreter runs</strong>: The check and the code under test share one language</li>
+<li>✅ <strong><code>catch</code> makes a failure assertable</strong>: A test states the expected status and message, and the return value of <code>catch</code> is the assertion</li>
+<li>✅ <strong><code>trace</code> observes a variable or a command</strong>: A test can watch a variable write or a command call without changing the code</li>
+<li>✅ <strong><code>tclsh</code> is the debugger</strong>: An interactive shell with <code>info</code> and <code>trace</code> exposes the state without a separate tool</li>
+<li>⚠️ <strong>Nothing checks a command before it runs</strong>: A misspelled command name or a wrong argument count appears only when that line executes</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>❌ <strong>Untrusted input can become code</strong>: <code>eval</code>, <code>subst</code>, <code>uplevel</code>, and <code>expr</code> evaluate text, so a value built from input can be executed as a command (Q3).</li>
-<li>❌ <strong>The single-value model cannot reject a malformed input at the boundary</strong>: because every value is a string, an injection that forms a valid command is not distinguishable from a legitimate one by the type system (Q2).</li>
-<li>✅ <strong>A safe interpreter removes the dangerous commands</strong>: <code>interp create -safe</code> makes an interpreter without <code>exec</code>, <code>open</code>, <code>source</code>, and <code>load</code>.</li>
-<li>✅ <strong>A host can define the whole command surface</strong>: an embedded interpreter exposes only the commands the host creates, which is the usual Tcl sandbox.</li>
-<li>✅ <strong><code>catch</code> and <code>error</code> bound a failure</strong>: a failing command can be reported instead of ending the interpreter.</li>
-<li>⚠️ <strong>Correct quoting is the mitigation and it must be uniform</strong>: <code>list</code> and <code>lindex</code> build a command safely, but only at every site where input becomes code.</li>
+<li>❌ <strong>Untrusted input can become code</strong>: <code>eval</code>, <code>subst</code>, <code>uplevel</code>, and <code>expr</code> evaluate text, so a value built from input can be executed as a command (Q3)</li>
+<li>❌ <strong>The single-value model cannot reject a malformed input at the boundary</strong>: Because every value is a string, an injection that forms a valid command is not distinguishable from a legitimate one by the type system (Q2)</li>
+<li>✅ <strong>A safe interpreter removes the dangerous commands</strong>: <code>interp create -safe</code> makes an interpreter without <code>exec</code>, <code>open</code>, <code>source</code>, and <code>load</code></li>
+<li>✅ <strong>A host can define the whole command surface</strong>: An embedded interpreter exposes only the commands the host creates, which is the usual Tcl sandbox</li>
+<li>✅ <strong><code>catch</code> and <code>error</code> bound a failure</strong>: A failing command can be reported instead of ending the interpreter</li>
+<li>⚠️ <strong>Correct quoting is the mitigation and it must be uniform</strong>: <code>list</code> and <code>lindex</code> build a command safely, but only at every site where input becomes code</li>
 </ul>
 </section>
 </section>

@@ -1025,88 +1025,88 @@ div.csl-indent {
 </header>
 
 
-<p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="zshManual"><a href="#ref-zshManual" role="doc-biblioref">[2]</a></span>.</em></p>
+<p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="posix2024"><a href="#ref-posix2024" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Ksh in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Ksh in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 68/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>❌ <strong>Values are strings with run-time attributes</strong>: <code>typeset -i</code>, <code>-F</code>, <code>-E</code>, <code>-l</code>, and <code>-u</code> decide how a name is read and written, but the parser performs no static check and the attribute is enforced when the value is used (T1).</li>
-<li>❌ <strong>No sum types</strong>: a tagged alternative is a word plus a convention, because <code>typeset -T</code> gives a named structure rather than a choice between variants (T4).</li>
-<li>❌ <strong>No generics and no dispatch by type</strong>: a routine is specialised only by its positional parameters, and behaviour is selected by the string in <code>$0</code> or by the command name, never by a declared type (T5, T9).</li>
-<li>❌ <strong>One flat global namespace</strong>: <code>typeset</code> inside a <code>function</code> body makes a name local, but a plain assignment writes the global, and no module boundary hides anything from the process (T6, T11).</li>
-<li>❌ <strong>An unset name reads as empty by default</strong>: <code>set -o nounset</code> turns a reference to an unset name into an error, but the option is off by default and nothing forces a variable to be initialised (T10).</li>
-<li>⚠️ <strong><code>typeset -T</code> defines a real named type</strong>: a type can own discipline functions (<code>.get</code>, <code>.set</code>, <code>.unset</code>) and a <code>create</code> routine invoked for each instance, which is more than text binding — yet an instance is still a compound of words with no static check.</li>
+<li>❌ <strong>Values are strings with run-time attributes</strong>: <code>typeset -i</code>, <code>-F</code>, <code>-E</code>, <code>-l</code>, and <code>-u</code> decide how a name is read and written, but the parser performs no static check and the attribute is enforced when the value is used (T1)</li>
+<li>❌ <strong>No sum types</strong>: A tagged alternative is a word plus a convention, because <code>typeset -T</code> gives a named structure rather than a choice between variants (T4)</li>
+<li>❌ <strong>No generics and no dispatch by type</strong>: A routine is specialised only by its positional parameters, and behaviour is selected by the string in <code>$0</code> or by the command name, never by a declared type (T5, T9)</li>
+<li>❌ <strong>One flat global namespace</strong>: <code>typeset</code> inside a <code>function</code> body makes a name local, but a plain assignment writes the global, and no module boundary hides anything from the process (T6, T11)</li>
+<li>❌ <strong>An unset name reads as empty by default</strong>: <code>set -o nounset</code> turns a reference to an unset name into an error, but the option is off by default and nothing forces a variable to be initialised (T10)</li>
+<li>⚠️ <strong><code>typeset -T</code> defines a real named type</strong>: A type can own discipline functions (<code>.get</code>, <code>.set</code>, <code>.unset</code>) and a <code>create</code> routine invoked for each instance, which is more than text binding — yet an instance is still a compound of words with no static check</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>❌ <strong>Global by default and mutable by default</strong>: a plain assignment writes the global namespace, and no binding is immutable unless <code>readonly</code> or <code>typeset -r</code> is applied (C1, C2).</li>
-<li>⚠️ <strong>Validation is not attached to a plain variable</strong>: a name accepts any word, and the checking that exists comes from an attribute or from a discipline function added with <code>typeset</code> (C4).</li>
-<li>✅ <strong><code>function</code> bodies get local variables</strong>: a variable declared <code>typeset</code> in a <code>function</code> body is local, so a routine keeps its working state out of the caller’s namespace.</li>
-<li>✅ <strong>Discipline functions are real set and get hooks</strong>: <code>x.set</code>, <code>x.get</code>, and <code>x.unset</code> run on assignment and reference, so a rule about a value is attached to the value’s name instead of to every write site.</li>
-<li>✅ <strong>Name spaces and <code>FPATH</code> separate a library’s names</strong>: <code>namespace lib { ... }</code> keeps internal names out of the flat space, and a function on <code>FPATH</code> is loaded on first reference.</li>
-<li>✅ <strong><code>typeset -n</code> gives a nameref</strong>: a function can operate on a caller’s variable by name without string concatenation and <code>eval</code>.</li>
+<li>❌ <strong>Global by default and mutable by default</strong>: A plain assignment writes the global namespace, and no binding is immutable unless <code>readonly</code> or <code>typeset -r</code> is applied (C1, C2)</li>
+<li>⚠️ <strong>Validation is not attached to a plain variable</strong>: A name accepts any word, and the checking that exists comes from an attribute or from a discipline function added with <code>typeset</code> (C4)</li>
+<li>✅ <strong><code>function</code> bodies get local variables</strong>: A variable declared <code>typeset</code> in a <code>function</code> body is local, so a routine keeps its working state out of the caller’s namespace</li>
+<li>✅ <strong>Discipline functions are real set and get hooks</strong>: <code>x.set</code>, <code>x.get</code>, and <code>x.unset</code> run on assignment and reference, so a rule about a value is attached to the value’s name instead of to every write site</li>
+<li>✅ <strong>Name spaces and <code>FPATH</code> separate a library’s names</strong>: <code>namespace lib { ... }</code> keeps internal names out of the flat space, and a function on <code>FPATH</code> is loaded on first reference</li>
+<li>✅ <strong><code>typeset -n</code> gives a nameref</strong>: A function can operate on a caller’s variable by name without string concatenation and <code>eval</code></li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>No allocation or free in the language</strong>: there is no pointer, no address, and no deallocation builtin; the shell owns every value.</li>
-<li>✅ <strong>Scope and <code>unset</code> bound a lifetime</strong>: a local variable disappears when its <code>function</code> returns, and <code>unset</code> drops a name, so working state does not persist by accident.</li>
-<li>✅ <strong>Associative arrays are managed by the shell</strong>: <code>typeset -A</code> allocates and grows its own storage, so no capacity handling is written.</li>
-<li>⚠️ <strong>Assignment copies compound values</strong>: a <code>typeset -T</code> instance and a compound variable are copied on assignment, so a large structure is duplicated in full.</li>
-<li>⚠️ <strong>Parsed functions stay resident</strong>: ksh93 compiles a script to an internal tree and caches it, so a long session keeps the parsed definitions in memory.</li>
-<li>⚠️ <strong><code>typeset -E</code>, <code>-F</code>, and <code>-X</code> choose a representation, not a lifetime</strong>: the attribute pins a value to double, float, or long-double storage, which couples the number to a precision decision made once.</li>
+<li>✅ <strong>No allocation or free in the language</strong>: There is no pointer, no address, and no deallocation builtin; the shell owns every value</li>
+<li>✅ <strong>Scope and <code>unset</code> bound a lifetime</strong>: A local variable disappears when its <code>function</code> returns, and <code>unset</code> drops a name, so working state does not persist by accident</li>
+<li>✅ <strong>Associative arrays are managed by the shell</strong>: <code>typeset -A</code> allocates and grows its own storage, so no capacity handling is written</li>
+<li>⚠️ <strong>Assignment copies compound values</strong>: A <code>typeset -T</code> instance and a compound variable are copied on assignment, so a large structure is duplicated in full</li>
+<li>⚠️ <strong>Parsed functions stay resident</strong>: ksh93 compiles a script to an internal tree and caches it, so a long session keeps the parsed definitions in memory</li>
+<li>⚠️ <strong><code>typeset -E</code>, <code>-F</code>, and <code>-X</code> choose a representation, not a lifetime</strong>: The attribute pins a value to double, float, or long-double storage, which couples the number to a precision decision made once</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>No structured error path</strong>: <code>$?</code> and <code>trap ... ERR</code> are the whole apparatus, with no exception and no error value (Er1).</li>
-<li>❌ <strong>The ERR trap is global and undifferentiated</strong>: one handler covers the whole script, it receives no description of the failure, and it fires only where an explicit check or <code>set -o errexit</code> applies (Er3).</li>
-<li>❌ <strong>Errors cannot be returned</strong>: a function’s outcome is its exit status, so an error carries no payload and cannot be combined with another (Er4).</li>
-<li>⚠️ <strong><code>set -o errexit</code> is fragile</strong>: the option does not fire inside <code>&amp;&amp;</code> and <code>||</code> chains, in conditions, or after a negation, so a wrapper that suppresses it changes error behaviour.</li>
-<li>✅ <strong><code>trap</code> covers named signals and <code>EXIT</code></strong>: cleanup can be attached to <code>EXIT</code> and to specific signals, so a script releases resources on any exit path.</li>
-<li>✅ <strong><code>$?</code> is unambiguous at the test, and <code>pipefail</code> extends it</strong>: the status of the last command is read directly, and <code>set -o pipefail</code> makes a mid-pipeline failure visible.</li>
+<li>❌ <strong>No structured error path</strong>: <code>$?</code> and <code>trap ... ERR</code> are the whole apparatus, with no exception and no error value (Er1)</li>
+<li>❌ <strong>The ERR trap is global and undifferentiated</strong>: One handler covers the whole script, it receives no description of the failure, and it fires only where an explicit check or <code>set -o errexit</code> applies (Er3)</li>
+<li>❌ <strong>Errors cannot be returned</strong>: A function’s outcome is its exit status, so an error carries no payload and cannot be combined with another (Er4)</li>
+<li>⚠️ <strong><code>set -o errexit</code> is fragile</strong>: The option does not fire inside <code>&amp;&amp;</code> and <code>||</code> chains, in conditions, or after a negation, so a wrapper that suppresses it changes error behaviour</li>
+<li>✅ <strong><code>trap</code> covers named signals and <code>EXIT</code></strong>: Cleanup can be attached to <code>EXIT</code> and to specific signals, so a script releases resources on any exit path</li>
+<li>✅ <strong><code>$?</code> is unambiguous at the test, and <code>pipefail</code> extends it</strong>: The status of the last command is read directly, and <code>set -o pipefail</code> makes a mid-pipeline failure visible</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>❌ <strong>No concurrency primitives</strong>: there is no lock, channel, or await; the only parallel construct is a background job (K5).</li>
-<li>✅ <strong>Coprocesses give two-way communication</strong>: <code>cmd |&amp;</code> with <code>print -p</code> and <code>read -p</code> keeps a child in conversation without a named pipe or a temporary file.</li>
-<li>✅ <strong>Processes are the unit of parallelism</strong>: concurrency is expressed with pipes and background jobs, so no shared address space has to be reasoned about.</li>
-<li>⚠️ <strong>Background jobs inherit the global environment</strong>: a <code>&amp;</code> job shares every global variable, the umask, and the current directory, so ordering is unspecified unless the script waits.</li>
-<li>⚠️ <strong><code>wait</code> returns a status, not a value</strong>: the join exists, but a result must travel through a pipe, a file, or a coprocess.</li>
-<li>⚠️ <strong>No structured concurrency</strong>: nothing guarantees that a job started inside a function finishes before the function returns.</li>
+<li>❌ <strong>No concurrency primitives</strong>: There is no lock, channel, or await; the only parallel construct is a background job (K5)</li>
+<li>✅ <strong>Coprocesses give two-way communication</strong>: <code>cmd |&amp;</code> with <code>print -p</code> and <code>read -p</code> keeps a child in conversation without a named pipe or a temporary file</li>
+<li>✅ <strong>Processes are the unit of parallelism</strong>: Concurrency is expressed with pipes and background jobs, so no shared address space has to be reasoned about</li>
+<li>⚠️ <strong>Background jobs inherit the global environment</strong>: A <code>&amp;</code> job shares every global variable, the umask, and the current directory, so ordering is unspecified unless the script waits</li>
+<li>⚠️ <strong><code>wait</code> returns a status, not a value</strong>: The join exists, but a result must travel through a pipe, a file, or a coprocess</li>
+<li>⚠️ <strong>No structured concurrency</strong>: Nothing guarantees that a job started inside a function finishes before the function returns</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>One lineage defines ksh93</strong>: the language comes from AT&amp;T’s KornShell and its maintained fork <code>ksh93u+m</code>, while the BSD-derived <code>pdksh</code> and <code>mksh</code> implement an older dialect, so behaviour is not interchangeable (P2).</li>
-<li>✅ <strong>POSIX with extensions</strong>: a script written to the POSIX shell language runs under ksh93, so it can move between systems that have a KornShell.</li>
-<li>⚠️ <strong>Two dialects share the name ksh</strong>: <code>mksh</code> and <code>pdksh</code> lack associative arrays, discipline functions, and floating point, so <code>#!/bin/ksh</code> means different things on different systems.</li>
-<li>⚠️ <strong>Availability is not uniform</strong>: ksh93 ships on AIX and Solaris and is packaged for Linux, but it is not the default shell on any mainstream Linux distribution.</li>
-<li>✅ <strong>A manual and a test suite define the language</strong>: the ksh93 manual and the AT&amp;T test suite, now maintained in <code>ksh93u+m</code>, are the reference for behaviour.</li>
-<li>⚠️ <strong>One implementation carries the extensions</strong>: with no standard covering them, an omission or a defect in ksh93 is a property of the language as practised.</li>
+<li>❌ <strong>One lineage defines ksh93</strong>: The language comes from AT&amp;T’s KornShell and its maintained fork <code>ksh93u+m</code>, while the BSD-derived <code>pdksh</code> and <code>mksh</code> implement an older dialect, so behaviour is not interchangeable (P2)</li>
+<li>✅ <strong>POSIX with extensions</strong>: A script written to the POSIX shell language runs under ksh93, so it can move between systems that have a KornShell</li>
+<li>⚠️ <strong>Two dialects share the name ksh</strong>: <code>mksh</code> and <code>pdksh</code> lack associative arrays, discipline functions, and floating point, so <code>#!/bin/ksh</code> means different things on different systems</li>
+<li>⚠️ <strong>Availability is not uniform</strong>: ksh93 ships on AIX and Solaris and is packaged for Linux, but it is not the default shell on any mainstream Linux distribution</li>
+<li>✅ <strong>A manual and a test suite define the language</strong>: The ksh93 manual and the AT&amp;T test suite, now maintained in <code>ksh93u+m</code>, are the reference for behaviour</li>
+<li>⚠️ <strong>One implementation carries the extensions</strong>: With no standard covering them, an omission or a defect in ksh93 is a property of the language as practised</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>The ksh88 lineage is a separate language</strong>: <code>mksh</code> and <code>pdksh</code> continue the older design on BSD and Android, and that divergence is a history of implementations rather than a coupling mechanism.</li>
-<li><strong>Rich builtins are a deliberate choice</strong>: <code>print</code>, <code>typeset</code>, and the <code>.sh.*</code> variables lengthen the learning curve to remove whole categories of external command.</li>
-<li><strong>The floating-point attribute is a representation choice</strong>: <code>typeset -E</code>, <code>-F</code>, and <code>-X</code> select storage precision, which is a modelling decision about the numbers a script handles.</li>
-<li><strong>Discipline functions are a heavy mechanism</strong>: a <code>.get</code> hook runs on every reference, so encapsulation is paid for with an unpredictable per-access cost.</li>
-<li><strong><code>namespace</code> is not a module system</strong>: it prevents name collisions inside one script but hides nothing from the process, which is a scope decision.</li>
-<li><strong>POSIX mode is available but not the goal</strong>: <code>set -o posix</code> narrows ksh to the standard, and a script that wants the extensions rightly leaves it off.</li>
+<li><strong>The ksh88 lineage is a separate language</strong>: <code>mksh</code> and <code>pdksh</code> continue the older design on BSD and Android, and that divergence is a history of implementations rather than a coupling mechanism</li>
+<li><strong>Rich builtins are a deliberate choice</strong>: <code>print</code>, <code>typeset</code>, and the <code>.sh.*</code> variables lengthen the learning curve to remove whole categories of external command</li>
+<li><strong>The floating-point attribute is a representation choice</strong>: <code>typeset -E</code>, <code>-F</code>, and <code>-X</code> select storage precision, which is a modelling decision about the numbers a script handles</li>
+<li><strong>Discipline functions are a heavy mechanism</strong>: A <code>.get</code> hook runs on every reference, so encapsulation is paid for with an unpredictable per-access cost</li>
+<li><strong><code>namespace</code> is not a module system</strong>: It prevents name collisions inside one script but hides nothing from the process, which is a scope decision</li>
+<li><strong>POSIX mode is available but not the goal</strong>: <code>set -o posix</code> narrows ksh to the standard, and a script that wants the extensions rightly leaves it off</li>
 </ul>
 </section>
 </section>
@@ -1115,87 +1115,87 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>⚠️ <strong>Interpreted with an internal compile step</strong>: a script is parsed into a tree and cached, so a function body is not re-parsed on every call, but there is no artifact to precompile (R1).</li>
-<li>✅ <strong>A native implementation with an optimised parser</strong>: ksh93 was designed with performance in mind, and the maintained fork continues to fix hot paths.</li>
-<li>✅ <strong>Coprocesses avoid repeated process creation</strong>: a child started once with <code>|&amp;</code> is driven with <code>print -p</code> and <code>read -p</code>, so a loop does not fork per iteration.</li>
-<li>✅ <strong>Builtins cover most text work</strong>: <code>print</code>, <code>printf</code>, <code>[[ ... ]]</code>, and <code>${var/pat/rep}</code> avoid an external process for common operations.</li>
-<li>⚠️ <strong>Path hashing and tracked aliases are opt-in</strong>: <code>alias -t</code> records a resolved command path, so a script without it rescans <code>PATH</code>.</li>
-<li>⚠️ <strong>A <code>.get</code> discipline runs on every read</strong>: a hook on a variable adds work to each reference, so encapsulation has a per-access price.</li>
+<li>⚠️ <strong>Interpreted with an internal compile step</strong>: A script is parsed into a tree and cached, so a function body is not re-parsed on every call, but there is no artifact to precompile (R1)</li>
+<li>✅ <strong>A native implementation with an optimised parser</strong>: ksh93 was designed with performance in mind, and the maintained fork continues to fix hot paths</li>
+<li>✅ <strong>Coprocesses avoid repeated process creation</strong>: A child started once with <code>|&amp;</code> is driven with <code>print -p</code> and <code>read -p</code>, so a loop does not fork per iteration</li>
+<li>✅ <strong>Builtins cover most text work</strong>: <code>print</code>, <code>printf</code>, <code>[[ ... ]]</code>, and <code>${var/pat/rep}</code> avoid an external process for common operations</li>
+<li>⚠️ <strong>Path hashing and tracked aliases are opt-in</strong>: <code>alias -t</code> records a resolved command path, so a script without it rescans <code>PATH</code></li>
+<li>⚠️ <strong>A <code>.get</code> discipline runs on every read</strong>: A hook on a variable adds work to each reference, so encapsulation has a per-access price</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>No package manager</strong>: there is no dependency resolver or module registry for ksh, so shared code is sourced from a directory on <code>FPATH</code> (Ec1).</li>
-<li>⚠️ <strong>The ecosystem is smaller than Bash’s or Zsh’s</strong>: few libraries and completions target ksh93 specifically.</li>
-<li>⚠️ <strong>The user base is declining</strong>: Bash is the default on Linux and absorbed most of ksh’s ideas, so new ksh93 code is rare.</li>
-<li>✅ <strong>The maintained fork revived the project</strong>: <code>ksh93u+m</code> restarted development and fixed defects that had stood for years.</li>
-<li>✅ <strong>Documentation is complete</strong>: one manual documents the language, the builtins, and the discipline mechanism.</li>
-<li>✅ <strong>The historical influence is documented</strong>: ksh is the source of <code>[[ ... ]]</code>, <code>$'...'</code>, <code>select</code>, <code>typeset</code>, <code>printf</code>, and <code>pipefail</code> in other shells.</li>
+<li>❌ <strong>No package manager</strong>: There is no dependency resolver or module registry for ksh, so shared code is sourced from a directory on <code>FPATH</code> (Ec1)</li>
+<li>⚠️ <strong>The ecosystem is smaller than Bash’s or Zsh’s</strong>: Few libraries and completions target ksh93 specifically</li>
+<li>⚠️ <strong>The user base is declining</strong>: Bash is the default on Linux and absorbed most of ksh’s ideas, so new ksh93 code is rare</li>
+<li>✅ <strong>The maintained fork revived the project</strong>: <code>ksh93u+m</code> restarted development and fixed defects that had stood for years</li>
+<li>✅ <strong>Documentation is complete</strong>: One manual documents the language, the builtins, and the discipline mechanism</li>
+<li>✅ <strong>The historical influence is documented</strong>: Ksh is the source of <code>[[ ... ]]</code>, <code>$'...'</code>, <code>select</code>, <code>typeset</code>, <code>printf</code>, and <code>pipefail</code> in other shells</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>No breaking-change culture</strong>: new features arrive as extensions, and a ksh88-style script still runs.</li>
-<li>✅ <strong><code>set -o posix</code> pins the dialect</strong>: a script can fix POSIX behaviour so that a change in an extension does not silently alter it.</li>
-<li>✅ <strong>The extensions are stable to the point of immobility</strong>: a construct such as <code>typeset -A</code> has behaved the same way for decades.</li>
-<li>⚠️ <strong>The 93v- development line was abandoned</strong>: the <code>ksh2020</code> line never reached a stable release, and <code>ksh93u+m</code> carried the language instead.</li>
-<li>⚠️ <strong>Development rests on a small group</strong>: the maintained fork is a volunteer effort, so the pace of change is outside user control.</li>
-<li>⚠️ <strong>The older dialect is frozen in place</strong>: AIX and other systems ship a ksh88-era shell, so the language as practised is fragmented.</li>
+<li>✅ <strong>No breaking-change culture</strong>: New features arrive as extensions, and a ksh88-style script still runs</li>
+<li>✅ <strong><code>set -o posix</code> pins the dialect</strong>: A script can fix POSIX behaviour so that a change in an extension does not silently alter it</li>
+<li>✅ <strong>The extensions are stable to the point of immobility</strong>: A construct such as <code>typeset -A</code> has behaved the same way for decades</li>
+<li>⚠️ <strong>The 93v- development line was abandoned</strong>: The <code>ksh2020</code> line never reached a stable release, and <code>ksh93u+m</code> carried the language instead</li>
+<li>⚠️ <strong>Development rests on a small group</strong>: The maintained fork is a volunteer effort, so the pace of change is outside user control</li>
+<li>⚠️ <strong>The older dialect is frozen in place</strong>: AIX and other systems ship a ksh88-era shell, so the language as practised is fragmented</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Good fit for POSIX system scripting with extras</strong>: ksh93 covers portable shell code and adds associative arrays, floating point, and coprocesses where the standard stops.</li>
-<li>✅ <strong>Strong for text and record processing</strong>: <code>${var/pat/rep}</code>, <code>${var:offset:length}</code>, <code>[[ ... =~ ... ]]</code>, and <code>printf</code> keep string handling inside the language.</li>
-<li>✅ <strong>Associative arrays fit lookup and configuration work</strong>: <code>typeset -A</code> and compound variables model keyed data without a temporary file or an external tool.</li>
-<li>✅ <strong>Coprocesses suit long-running children</strong>: a child started once can be driven from a loop instead of through a named pipe.</li>
-<li>⚠️ <strong>Not a general-purpose language</strong>: the model is a shell over external commands, so a program with real data structures belongs elsewhere.</li>
-<li>⚠️ <strong>The most advanced features are not portable</strong>: discipline functions, name spaces, and <code>typeset -T</code> exist only in ksh93.</li>
+<li>✅ <strong>Good fit for POSIX system scripting with extras</strong>: ksh93 covers portable shell code and adds associative arrays, floating point, and coprocesses where the standard stops</li>
+<li>✅ <strong>Strong for text and record processing</strong>: <code>${var/pat/rep}</code>, <code>${var:offset:length}</code>, <code>[[ ... =~ ... ]]</code>, and <code>printf</code> keep string handling inside the language</li>
+<li>✅ <strong>Associative arrays fit lookup and configuration work</strong>: <code>typeset -A</code> and compound variables model keyed data without a temporary file or an external tool</li>
+<li>✅ <strong>Coprocesses suit long-running children</strong>: A child started once can be driven from a loop instead of through a named pipe</li>
+<li>⚠️ <strong>Not a general-purpose language</strong>: The model is a shell over external commands, so a program with real data structures belongs elsewhere</li>
+<li>⚠️ <strong>The most advanced features are not portable</strong>: Discipline functions, name spaces, and <code>typeset -T</code> exist only in ksh93</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>✅ <strong>POSIX knowledge transfers</strong>: a Bash or <code>sh</code> user can write ksh on the first day.</li>
-<li>✅ <strong>Functions are more capable than in <code>sh</code></strong>: <code>function name { }</code> with <code>typeset</code> locals is a familiar and predictable form.</li>
-<li>⚠️ <strong>The surface is large</strong>: <code>typeset</code> has many attributes, and <code>[[ ... ]]</code>, <code>(( ... ))</code>, <code>print</code>, <code>whence</code>, and the <code>.sh.*</code> variables each need their own reference.</li>
-<li>⚠️ <strong>The documentation is a specification, not a tutorial</strong>: there is little introductory material for the ksh93-specific features.</li>
-<li>⚠️ <strong>The dialect trap is invisible</strong>: a script written for ksh93 runs under <code>mksh</code> until it reaches an associative array or a float.</li>
+<li>✅ <strong>POSIX knowledge transfers</strong>: A Bash or <code>sh</code> user can write ksh on the first day</li>
+<li>✅ <strong>Functions are more capable than in <code>sh</code></strong>: <code>function name { }</code> with <code>typeset</code> locals is a familiar and predictable form</li>
+<li>⚠️ <strong>The surface is large</strong>: <code>typeset</code> has many attributes, and <code>[[ ... ]]</code>, <code>(( ... ))</code>, <code>print</code>, <code>whence</code>, and the <code>.sh.*</code> variables each need their own reference</li>
+<li>⚠️ <strong>The documentation is a specification, not a tutorial</strong>: There is little introductory material for the ksh93-specific features</li>
+<li>⚠️ <strong>The dialect trap is invisible</strong>: A script written for ksh93 runs under <code>mksh</code> until it reaches an associative array or a float</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>POSIX surface with familiar extensions</strong>: <code>if</code>, <code>case</code>, <code>for</code>, and <code>while</code> are the standard forms, and <code>(( ... ))</code> and <code>[[ ... ]]</code> read like C.</li>
-<li>✅ <strong><code>${var/pat/rep}</code> handles substitution inline</strong>: a replacement no longer needs <code>sed</code> in a pipeline.</li>
-<li>⚠️ <strong><code>$'...'</code> and <code>typeset</code> attributes add notation</strong>: quoting, justification, case conversion, and numeric attributes each add their own spelling.</li>
-<li>⚠️ <strong><code>function</code> and <code>name()</code> differ quietly</strong>: the two definition forms have different scoping behaviour, so the choice of syntax changes the semantics.</li>
-<li>⚠️ <strong><code>print</code> and <code>printf</code> overlap</strong>: two output builtins with different escape handling coexist.</li>
+<li>✅ <strong>POSIX surface with familiar extensions</strong>: <code>if</code>, <code>case</code>, <code>for</code>, and <code>while</code> are the standard forms, and <code>(( ... ))</code> and <code>[[ ... ]]</code> read like C</li>
+<li>✅ <strong><code>${var/pat/rep}</code> handles substitution inline</strong>: A replacement no longer needs <code>sed</code> in a pipeline</li>
+<li>⚠️ <strong><code>$'...'</code> and <code>typeset</code> attributes add notation</strong>: Quoting, justification, case conversion, and numeric attributes each add their own spelling</li>
+<li>⚠️ <strong><code>function</code> and <code>name()</code> differ quietly</strong>: The two definition forms have different scoping behaviour, so the choice of syntax changes the semantics</li>
+<li>⚠️ <strong><code>print</code> and <code>printf</code> overlap</strong>: Two output builtins with different escape handling coexist</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>❌ <strong>No test framework in the language</strong>: a test is a script that checks <code>$?</code>, with no assertion, fixture, or report facility (G1).</li>
-<li>❌ <strong>Faults appear only on the branch that runs</strong>: with no static check, a mistyped variable or a bad attribute is found during the run (G3).</li>
-<li>✅ <strong>The DEBUG trap gives a command-by-command trace</strong>: <code>trap ... DEBUG</code> runs after each command, which makes a failure locatable in a long script.</li>
-<li>✅ <strong>A syntax check runs without execution</strong>: <code>ksh -n</code> parses a script and reports errors without running it.</li>
-<li>✅ <strong><code>set -o xtrace</code> shows the expansion</strong>: <code>set -x</code> prints the expanded command, so an argument built from several variables can be inspected.</li>
-<li>✅ <strong><code>typeset -f</code> and <code>whence -v</code> inspect the loaded program</strong>: a test can assert on a function’s definition and on how a name resolves.</li>
+<li>❌ <strong>No test framework in the language</strong>: A test is a script that checks <code>$?</code>, with no assertion, fixture, or report facility (G1)</li>
+<li>❌ <strong>Faults appear only on the branch that runs</strong>: With no static check, a mistyped variable or a bad attribute is found during the run (G3)</li>
+<li>✅ <strong>The DEBUG trap gives a command-by-command trace</strong>: <code>trap ... DEBUG</code> runs after each command, which makes a failure locatable in a long script</li>
+<li>✅ <strong>A syntax check runs without execution</strong>: <code>ksh -n</code> parses a script and reports errors without running it</li>
+<li>✅ <strong><code>set -o xtrace</code> shows the expansion</strong>: <code>set -x</code> prints the expanded command, so an argument built from several variables can be inspected</li>
+<li>✅ <strong><code>typeset -f</code> and <code>whence -v</code> inspect the loaded program</strong>: A test can assert on a function’s definition and on how a name resolves</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>❌ <strong>Unquoted expansion is re-parsed</strong>: a word is split and globbed again, so untrusted text can change the argument count unless it is quoted (Q2).</li>
-<li>⚠️ <strong><code>eval</code> and indirect expansion re-enter the interpreter</strong>: text assembled from data and passed to <code>eval</code>, or a name resolved through a nameref, becomes code or a name the parser decides.</li>
-<li>⚠️ <strong>No memory-safety defect class, but no confinement either</strong>: values are interpreter-managed, yet the shell has no capability or sandbox model beyond its restricted mode.</li>
-<li>✅ <strong><code>[[ ... ]]</code> does not word-split</strong>: the test construct evaluates its operands directly, so a value cannot become extra operands or a pattern.</li>
-<li>✅ <strong>A restricted mode exists</strong>: <code>rksh93</code> blocks <code>cd</code>, redirection, and assignment to <code>SHELL</code>, <code>ENV</code>, and <code>PATH</code>, so an untrusted script can be run with fewer powers.</li>
-<li>✅ <strong><code>readonly</code> and <code>typeset -r</code> freeze a value</strong>: a name can be fixed against later assignment and against <code>unset</code>.</li>
+<li>❌ <strong>Unquoted expansion is re-parsed</strong>: A word is split and globbed again, so untrusted text can change the argument count unless it is quoted (Q2)</li>
+<li>⚠️ <strong><code>eval</code> and indirect expansion re-enter the interpreter</strong>: Text assembled from data and passed to <code>eval</code>, or a name resolved through a nameref, becomes code or a name the parser decides</li>
+<li>⚠️ <strong>No memory-safety defect class, but no confinement either</strong>: Values are interpreter-managed, yet the shell has no capability or sandbox model beyond its restricted mode</li>
+<li>✅ <strong><code>[[ ... ]]</code> does not word-split</strong>: The test construct evaluates its operands directly, so a value cannot become extra operands or a pattern</li>
+<li>✅ <strong>A restricted mode exists</strong>: <code>rksh93</code> blocks <code>cd</code>, redirection, and assignment to <code>SHELL</code>, <code>ENV</code>, and <code>PATH</code>, so an untrusted script can be run with fewer powers</li>
+<li>✅ <strong><code>readonly</code> and <code>typeset -r</code> freeze a value</strong>: A name can be fixed against later assignment and against <code>unset</code></li>
 </ul>
 </section>
 </section>
@@ -1778,8 +1778,8 @@ div.csl-indent {
 <div id="ref-loth2026ivpgraph" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[1] </div><div class="csl-right-inline">Y. Loth, <span>“The independent variation principle.”</span> Zenodo, Jun. 2026. doi: <a href="https://doi.org/10.5281/zenodo.20794332">10.5281/zenodo.20794332</a>.</div>
 </div>
-<div id="ref-zshManual" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[2] </div><div class="csl-right-inline">P. Falstad, P. Weinberger, and R. Barton, <span>“Zsh manual.”</span> Zsh, 2024. Available: <a href="https://zsh.sourceforge.io/Doc/">https://zsh.sourceforge.io/Doc/</a></div>
+<div id="ref-posix2024" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">IEEE and The Open Group, <span>“Standard for information technology — portable operating system interface (<span>POSIX</span>), base specifications, issue 8.”</span> IEEE; IEEE Std 1003.1-2024, New York, NY, 2024.</div>
 </div>
 </div></section></div></main> <!-- /main -->
 <script src="../../../../toc-references.js"></script>

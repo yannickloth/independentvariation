@@ -1028,7 +1028,7 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="nimLang"><a href="#ref-nimLang" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Nim in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Nim in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 61/100</strong> · <strong>Ecosystem coupling 64/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
@@ -1038,8 +1038,7 @@ div.csl-indent {
 <li>✅ <strong>Distinct types</strong>: Create new types from existing without coupling</li>
 <li>✅ <strong>Concepts</strong>: Generic constraints like Rust traits</li>
 <li>✅ <strong>Method call syntax</strong>: Uniform function call, decouples OOP from functional style</li>
-<li>⚠️ <strong>Macros powerful but complex</strong>: Can create coupling in generated code</li>
-<li>⚠️ <strong>Macros can hide coupling</strong>: Powerful but opaque</li>
+<li>⚠️ <strong>Macros powerful but complex</strong>: Can create coupling in generated code, and can hide it behind opaque expansion</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
@@ -1055,12 +1054,11 @@ div.csl-indent {
 <ul>
 <li>⚠️ <strong>Multiple GC modes</strong>: Can choose GC strategy (ARC, Boehm, etc.)</li>
 <li>✅ <strong>Ref vs value types</strong>: Can choose between GC (ref) and stack (value)</li>
-<li>⚠️ <strong>GC pauses affect latency</strong>: Depends on GC mode chosen</li>
+<li>⚠️ <strong>GC pauses affect latency</strong>: Depends on the GC mode, so allocation timing cannot be controlled precisely</li>
 <li>✅ <strong>Destructors for deterministic cleanup</strong>: <code>=destroy</code> hook for custom cleanup</li>
 <li>⚠️ <strong>ARC mode has cycles</strong>: Automatic reference counting needs manual cycle breaking</li>
 <li>✅ <strong>No GC mode available</strong>: Can compile without GC for embedded</li>
 <li>⚠️ <strong>Manual memory management possible</strong>: <code>alloc</code>/<code>dealloc</code> available but error-prone</li>
-<li>⚠️ <strong>GC couples memory</strong>: Can’t control allocation timing precisely</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
@@ -1091,11 +1089,11 @@ div.csl-indent {
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Indentation is significant</strong>: Blocks are marked by layout, a syntax decision that shortens code and makes the parser and the editor extra important.</li>
-<li><strong><code>seq</code> and <code>string</code> copy on assignment</strong>: The built-in containers have value semantics, trading accidental aliasing for a copy unless a move or <code>sink</code> parameter is used.</li>
-<li><strong>The default memory manager changed</strong>: Nim 2.0 moved the default to the ARC/ORC family, so code from the 1.x era assumed a different collector — a project decision with a migration cost.</li>
-<li><strong>The language spans two levels</strong>: High-level abstraction sits beside raw pointers and <code>alloc</code>, a deliberate breadth whose cost is that a codebase may mix idioms.</li>
-<li><strong>The manual is the specification</strong>: Nim’s behaviour is defined by its manual and its compiler rather than by a separate standard — a scope decision.</li>
+<li><strong>Indentation is significant</strong>: Blocks are marked by layout, a syntax decision that shortens code and makes the parser and the editor extra important</li>
+<li><strong><code>seq</code> and <code>string</code> copy on assignment</strong>: The built-in containers have value semantics, trading accidental aliasing for a copy unless a move or <code>sink</code> parameter is used</li>
+<li><strong>The default memory manager changed</strong>: Nim 2.0 moved the default to the ARC/ORC family, so code from the 1.x era assumed a different collector — a project decision with a migration cost</li>
+<li><strong>The language spans two levels</strong>: High-level abstraction sits beside raw pointers and <code>alloc</code>, a deliberate breadth whose cost is that a codebase may mix idioms</li>
+<li><strong>The manual is the specification</strong>: Nim’s behaviour is defined by its manual and its compiler rather than by a separate standard — a scope decision</li>
 </ul>
 </section>
 </section>
@@ -1124,11 +1122,10 @@ div.csl-indent {
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>⚠️ <strong>Breaking changes</strong>: v1.0 to v2.0 had issues</li>
+<li>⚠️ <strong>Breaking changes</strong>: v1.0 to v2.0 had issues, and language evolution couples code to a version</li>
 <li>✅ <strong>Stable now</strong>: Post-1.0 more stable</li>
 <li>⚠️ <strong>Small team</strong>: Development pace couples to resources</li>
 <li>✅ <strong>Active</strong>: Regular improvements</li>
-<li>⚠️ <strong>Breaking changes historically</strong>: Language evolution couples code to version</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
@@ -1163,7 +1160,7 @@ div.csl-indent {
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
 <li>✅ <strong>unittest module</strong>: Built-in testing</li>
-<li>⚠️ <strong>Debugging</strong>: gdb works but not ideal</li>
+<li>⚠️ <strong>Debugging</strong>: Gdb works but not ideal</li>
 <li>⚠️ <strong>Limited tooling</strong>: Fewer profilers</li>
 <li>✅ <strong>Compile-time checks</strong>: Good error messages</li>
 </ul>

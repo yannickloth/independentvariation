@@ -1028,84 +1028,84 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="erlangSpec"><a href="#ref-erlangSpec" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Erlang in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Erlang in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 69/100</strong> · <strong>Ecosystem coupling 76/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>❌ <strong>Dynamic typing</strong>: a value carries its type at run time, so a type fault appears when the expression executes (T1).</li>
-<li>❌ <strong>No declared parameter or return types</strong>: <code>-spec</code> is optional metadata, and the language has no generic type parameters (T5).</li>
-<li>❌ <strong>No sum types</strong>: a tagged tuple such as <code>{ok, Value}</code> or <code>{error, Reason}</code> is a convention, and no type checks the union (T4).</li>
-<li>❌ <strong>Dispatch is checked at run time</strong>: <code>Mod:Fun(Args)</code> resolves when called, so a missing function fails there rather than at compile time (T3).</li>
-<li>✅ <strong><code>-spec</code> and Dialyzer give optional static analysis</strong>: a success-typing pass over the compiled BEAM files detects inconsistent calls.</li>
-<li>✅ <strong>Atoms serve as named constants</strong>: an atom such as <code>ok</code>, <code>error</code>, or <code>undefined</code> is a distinct value, so the language needs no null.</li>
+<li>❌ <strong>Dynamic typing</strong>: A value carries its type at run time, so a type fault appears when the expression executes (T1)</li>
+<li>❌ <strong>No declared parameter or return types</strong>: <code>-spec</code> is optional metadata, and the language has no generic type parameters (T5)</li>
+<li>❌ <strong>No sum types</strong>: A tagged tuple such as <code>{ok, Value}</code> or <code>{error, Reason}</code> is a convention, and no type checks the union (T4)</li>
+<li>❌ <strong>Dispatch is checked at run time</strong>: <code>Mod:Fun(Args)</code> resolves when called, so a missing function fails there rather than at compile time (T3)</li>
+<li>✅ <strong><code>-spec</code> and Dialyzer give optional static analysis</strong>: A success-typing pass over the compiled BEAM files detects inconsistent calls</li>
+<li>✅ <strong>Atoms serve as named constants</strong>: An atom such as <code>ok</code>, <code>error</code>, or <code>undefined</code> is a distinct value, so the language needs no null</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>✅ <strong>All data is immutable</strong>: a term cannot be changed after it is built.</li>
-<li>✅ <strong>A pattern in the clause head selects the construction path</strong>: the arguments decide which clause runs.</li>
-<li>✅ <strong>Records and maps declare named structure</strong>: <code>-record(user, {name, age})</code> gives compile-time named fields over a tuple.</li>
-<li>✅ <strong>State is a value threaded through recursion</strong>: an OTP behaviour receives its state and returns the new state, so no object owns it.</li>
-<li>✅ <strong>A process is the unit of mutable state</strong>: a <code>gen_server</code> owns its state and exposes it by message.</li>
-<li>⚠️ <strong>A record is a tuple</strong>: field access is positional at run time, so the record definition must be shared by every module that uses it.</li>
+<li>✅ <strong>All data is immutable</strong>: A term cannot be changed after it is built</li>
+<li>✅ <strong>A pattern in the clause head selects the construction path</strong>: The arguments decide which clause runs</li>
+<li>✅ <strong>Records and maps declare named structure</strong>: <code>-record(user, {name, age})</code> gives compile-time named fields over a tuple</li>
+<li>✅ <strong>State is a value threaded through recursion</strong>: An OTP behaviour receives its state and returns the new state, so no object owns it</li>
+<li>✅ <strong>A process is the unit of mutable state</strong>: A <code>gen_server</code> owns its state and exposes it by message</li>
+<li>⚠️ <strong>A record is a tuple</strong>: Field access is positional at run time, so the record definition must be shared by every module that uses it</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>❌ <strong>Collection is per-process and non-deterministic</strong>: a process collects its own heap on its own schedule (M2).</li>
-<li>✅ <strong>A private heap confines a pause</strong>: a collection affects one process, and there is no global stop-the-world pause.</li>
-<li>✅ <strong>No manual deallocation</strong>: the VM reclaims memory, and a program never frees a term.</li>
-<li>✅ <strong>Off-heap binaries are reference counted</strong>: a binary above the heap threshold is shared between processes rather than copied.</li>
-<li>⚠️ <strong>A large live set costs more per collection</strong>: a process that accumulates state pays a higher collection cost.</li>
-<li>⚠️ <strong>An ETS table lives outside the collector</strong>: the table persists until its owner deletes it or dies.</li>
+<li>❌ <strong>Collection is per-process and non-deterministic</strong>: A process collects its own heap on its own schedule (M2)</li>
+<li>✅ <strong>A private heap confines a pause</strong>: A collection affects one process, and there is no global stop-the-world pause</li>
+<li>✅ <strong>No manual deallocation</strong>: The VM reclaims memory, and a program never frees a term</li>
+<li>✅ <strong>Off-heap binaries are reference counted</strong>: A binary above the heap threshold is shared between processes rather than copied</li>
+<li>⚠️ <strong>A large live set costs more per collection</strong>: A process that accumulates state pays a higher collection cost</li>
+<li>⚠️ <strong>An ETS table lives outside the collector</strong>: The table persists until its owner deletes it or dies</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>Exceptions are unchecked</strong>: <code>throw</code>, <code>error</code>, and <code>exit</code> are not declared, so a caller cannot see the failure set from a signature (Er2).</li>
-<li>✅ <strong>“Let it crash” makes failure a supervision event</strong>: a supervisor restarts a failed process, and the normal path carries no recovery code.</li>
-<li>✅ <strong>Links and monitors define propagation</strong>: <code>link/1</code> couples the fates of two processes, and <code>monitor/2</code> reports a failure without dying.</li>
-<li>✅ <strong>A pattern-match failure raises a defined error</strong>: an unmatched value raises <code>badmatch</code>, and an unmatched clause raises <code>function_clause</code>.</li>
-<li>✅ <strong><code>try</code>/<code>catch</code>/<code>after</code> is available when recovery is local</strong>: a <code>catch</code> clause separates <code>throw</code>, <code>error</code>, and <code>exit</code>.</li>
-<li>⚠️ <strong>A restart resets process state</strong>: supervision restores the process, not the data it held, so state must be recoverable.</li>
+<li>❌ <strong>Exceptions are unchecked</strong>: <code>throw</code>, <code>error</code>, and <code>exit</code> are not declared, so a caller cannot see the failure set from a signature (Er2)</li>
+<li>✅ <strong>“Let it crash” makes failure a supervision event</strong>: A supervisor restarts a failed process, and the normal path carries no recovery code</li>
+<li>✅ <strong>Links and monitors define propagation</strong>: <code>link/1</code> couples the fates of two processes, and <code>monitor/2</code> reports a failure without dying</li>
+<li>✅ <strong>A pattern-match failure raises a defined error</strong>: An unmatched value raises <code>badmatch</code>, and an unmatched clause raises <code>function_clause</code></li>
+<li>✅ <strong><code>try</code>/<code>catch</code>/<code>after</code> is available when recovery is local</strong>: A <code>catch</code> clause separates <code>throw</code>, <code>error</code>, and <code>exit</code></li>
+<li>⚠️ <strong>A restart resets process state</strong>: Supervision restores the process, not the data it held, so state must be recoverable</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>The actor model is the core of the language</strong>: processes share no memory and communicate by message.</li>
-<li>✅ <strong><code>spawn</code>, <code>link</code>, and <code>monitor</code> are primitives</strong>: starting and observing a process needs no library.</li>
-<li>✅ <strong>The BEAM schedules preemptively by reductions</strong>: a process cannot hold a scheduler indefinitely.</li>
-<li>✅ <strong>Messages are immutable values</strong>: a message is copied or shared by reference count, never aliased mutably.</li>
-<li>✅ <strong>Distribution is built into the VM</strong>: <code>net_kernel</code> and <code>epmd</code> let a process send to a node as if it were local.</li>
-<li>⚠️ <strong>Distribution is designed, not automatic</strong>: node failure, network partition, and message loss must be handled by the application.</li>
+<li>✅ <strong>The actor model is the core of the language</strong>: Processes share no memory and communicate by message</li>
+<li>✅ <strong><code>spawn</code>, <code>link</code>, and <code>monitor</code> are primitives</strong>: Starting and observing a process needs no library</li>
+<li>✅ <strong>The BEAM schedules preemptively by reductions</strong>: A process cannot hold a scheduler indefinitely</li>
+<li>✅ <strong>Messages are immutable values</strong>: A message is copied or shared by reference count, never aliased mutably</li>
+<li>✅ <strong>Distribution is built into the VM</strong>: <code>net_kernel</code> and <code>epmd</code> let a process send to a node as if it were local</li>
+<li>⚠️ <strong>Distribution is designed, not automatic</strong>: Node failure, network partition, and message loss must be handled by the application</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>The BEAM is portable and open source</strong>: the Erlang runtime runs on Linux, macOS, Windows, and BSD.</li>
-<li>✅ <strong>Hot code loading is a runtime feature</strong>: <code>code:load_file/1</code> replaces a module while the system runs.</li>
-<li>✅ <strong>A release bundles the runtime and the application</strong>: <code>release_handler</code> and <code>reltool</code> produce a deployable node.</li>
-<li>✅ <strong>Distribution across nodes is a platform feature</strong>: nodes discover each other and pass messages without an external broker.</li>
-<li>⚠️ <strong>The runtime must be present</strong>: an Erlang program runs on the VM, so the artefact is not a native binary on its own.</li>
+<li>✅ <strong>The BEAM is portable and open source</strong>: The Erlang runtime runs on Linux, macOS, Windows, and BSD</li>
+<li>✅ <strong>Hot code loading is a runtime feature</strong>: <code>code:load_file/1</code> replaces a module while the system runs</li>
+<li>✅ <strong>A release bundles the runtime and the application</strong>: <code>release_handler</code> and <code>reltool</code> produce a deployable node</li>
+<li>✅ <strong>Distribution across nodes is a platform feature</strong>: Nodes discover each other and pass messages without an external broker</li>
+<li>⚠️ <strong>The runtime must be present</strong>: An Erlang program runs on the VM, so the artefact is not a native binary on its own</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>The syntax is Prolog-derived</strong>: the form is unfamiliar to most developers; this is a learning property, not a coupling.</li>
-<li><strong>Distribution is a design task</strong>: the language supplies the transport, and the application decides the failure semantics.</li>
-<li><strong>Weak CPU-bound performance is a domain fit note</strong>: the VM is built for I/O concurrency, not for numeric loops.</li>
-<li><strong>Hot upgrade constrains state handling</strong>: the running system can change module code, so the application must supply a <code>code_change/3</code> callback to migrate state.</li>
-<li><strong>Atoms are named constants in place of null</strong>: absence is carried by an atom convention such as <code>undefined</code>.</li>
-<li><strong>Records are tuples by design</strong>: the representation is a deliberate choice made for compactness and speed.</li>
+<li><strong>The syntax is Prolog-derived</strong>: The form is unfamiliar to most developers; this is a learning property, not a coupling</li>
+<li><strong>Distribution is a design task</strong>: The language supplies the transport, and the application decides the failure semantics</li>
+<li><strong>Weak CPU-bound performance is a domain fit note</strong>: The VM is built for I/O concurrency, not for numeric loops</li>
+<li><strong>Hot upgrade constrains state handling</strong>: The running system can change module code, so the application must supply a <code>code_change/3</code> callback to migrate state</li>
+<li><strong>Atoms are named constants in place of null</strong>: Absence is carried by an atom convention such as <code>undefined</code></li>
+<li><strong>Records are tuples by design</strong>: The representation is a deliberate choice made for compactness and speed</li>
 </ul>
 </section>
 </section>
@@ -1114,86 +1114,86 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>✅ <strong>The BEAM handles very many concurrent I/O processes</strong>: a process is cheap and needs no thread.</li>
-<li>✅ <strong>BeamAsm compiles hot code</strong>: the JIT added in OTP 24 means bytecode is not always interpreted.</li>
-<li>✅ <strong>Per-process collection avoids a global pause</strong>: a collection affects one process.</li>
-<li>✅ <strong>Reduction scheduling bounds latency</strong>: a process yields after a fixed number of reductions.</li>
-<li>⚠️ <strong>CPU-bound computation is weak relative to native code</strong>: a tight numeric loop trails C or Rust.</li>
-<li>⚠️ <strong>A NIF runs on a scheduler thread</strong>: a native function that runs long blocks other processes on that scheduler.</li>
+<li>✅ <strong>The BEAM handles very many concurrent I/O processes</strong>: A process is cheap and needs no thread</li>
+<li>✅ <strong>BeamAsm compiles hot code</strong>: The JIT added in OTP 24 means bytecode is not always interpreted</li>
+<li>✅ <strong>Per-process collection avoids a global pause</strong>: A collection affects one process</li>
+<li>✅ <strong>Reduction scheduling bounds latency</strong>: A process yields after a fixed number of reductions</li>
+<li>⚠️ <strong>CPU-bound computation is weak relative to native code</strong>: A tight numeric loop trails C or Rust</li>
+<li>⚠️ <strong>A NIF runs on a scheduler thread</strong>: A native function that runs long blocks other processes on that scheduler</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>✅ <strong>Hex.pm and <code>rebar3</code> cover packages and builds</strong>: a registry, dependency resolution, and release builds are all present.</li>
-<li>✅ <strong>OTP ships with the language</strong>: supervision, <code>gen_server</code>, <code>application</code>, and release handling are part of the distribution.</li>
-<li>✅ <strong>Elixir libraries are reachable through interop</strong>: the two languages run on one VM and call each other directly.</li>
-<li>✅ <strong>The flagship projects are long-lived and battle-tested</strong>: RabbitMQ, CouchDB, Riak, and WhatsApp’s messaging stack are Erlang systems.</li>
-<li>✅ <strong>OTP is documented as a first-class topic</strong>: the OTP design principles document the behaviours.</li>
-<li>⚠️ <strong>The library count is smaller than the mainstream</strong>: fewer general-purpose packages exist outside messaging and telecom.</li>
+<li>✅ <strong>Hex.pm and <code>rebar3</code> cover packages and builds</strong>: A registry, dependency resolution, and release builds are all present</li>
+<li>✅ <strong>OTP ships with the language</strong>: Supervision, <code>gen_server</code>, <code>application</code>, and release handling are part of the distribution</li>
+<li>✅ <strong>Elixir libraries are reachable through interop</strong>: The two languages run on one VM and call each other directly</li>
+<li>✅ <strong>The flagship projects are long-lived and battle-tested</strong>: RabbitMQ, CouchDB, Riak, and WhatsApp’s messaging stack are Erlang systems</li>
+<li>✅ <strong>OTP is documented as a first-class topic</strong>: The OTP design principles document the behaviours</li>
+<li>⚠️ <strong>The library count is smaller than the mainstream</strong>: Fewer general-purpose packages exist outside messaging and telecom</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>The language has kept backward compatibility for decades</strong>: code written against an old OTP release continues to run.</li>
-<li>✅ <strong>Hot code loading decouples deployment from runtime</strong>: a module is replaced while the system runs.</li>
-<li>✅ <strong><code>code_change/3</code> migrates state across a version change</strong>: an OTP behaviour converts old state to the new shape.</li>
-<li>✅ <strong>OTP release handling gives a controlled upgrade path</strong>: <code>release_handler</code> applies a version change to a running node.</li>
-<li>⚠️ <strong>A hot upgrade must be designed</strong>: state migration and dependency order are the application’s responsibility.</li>
+<li>✅ <strong>The language has kept backward compatibility for decades</strong>: Code written against an old OTP release continues to run</li>
+<li>✅ <strong>Hot code loading decouples deployment from runtime</strong>: A module is replaced while the system runs</li>
+<li>✅ <strong><code>code_change/3</code> migrates state across a version change</strong>: An OTP behaviour converts old state to the new shape</li>
+<li>✅ <strong>OTP release handling gives a controlled upgrade path</strong>: <code>release_handler</code> applies a version change to a running node</li>
+<li>⚠️ <strong>A hot upgrade must be designed</strong>: State migration and dependency order are the application’s responsibility</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Excellent fit for distributed, fault-tolerant systems</strong>: supervision, distribution, and the actor model match the problem directly.</li>
-<li>✅ <strong>Proven in telecom and messaging</strong>: WhatsApp, RabbitMQ, and Discord’s infrastructure run on the BEAM.</li>
-<li>✅ <strong>Binary parsing is a strength</strong>: the bit syntax <code>&lt;&lt;A:8, B:16/little&gt;&gt;</code> matches a protocol frame directly.</li>
-<li>❌ <strong>Poor fit for CPU-bound numerical work</strong>: the VM is not built for dense numeric computation, so that work belongs in another language (D2).</li>
-<li>⚠️ <strong>Distribution across nodes requires explicit design effort</strong>: the application must decide how to handle a lost node.</li>
+<li>✅ <strong>Excellent fit for distributed, fault-tolerant systems</strong>: Supervision, distribution, and the actor model match the problem directly</li>
+<li>✅ <strong>Proven in telecom and messaging</strong>: WhatsApp, RabbitMQ, and Discord’s infrastructure run on the BEAM</li>
+<li>✅ <strong>Binary parsing is a strength</strong>: The bit syntax <code>&lt;&lt;A:8, B:16/little&gt;&gt;</code> matches a protocol frame directly</li>
+<li>❌ <strong>Poor fit for CPU-bound numerical work</strong>: The VM is not built for dense numeric computation, so that work belongs in another language (D2)</li>
+<li>⚠️ <strong>Distribution across nodes requires explicit design effort</strong>: The application must decide how to handle a lost node</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>❌ <strong>The learning curve is steep</strong>: a developer learns functional programming, the actor model, and OTP at once (L1).</li>
-<li>❌ <strong>The Prolog-derived syntax is unfamiliar</strong>: the <code>.</code>, <code>,</code>, and <code>;</code> delimiters and the term syntax differ from the mainstream (L1).</li>
-<li>⚠️ <strong>The surface is large</strong>: the language, the OTP behaviours, and the VM’s semantics are separate bodies of knowledge (L2).</li>
-<li>✅ <strong>The official documentation is thorough</strong>: the Erlang reference manual and the OTP design principles are authoritative.</li>
-<li>✅ <strong>The community is established</strong>: decades of accumulated material and answered questions exist.</li>
+<li>❌ <strong>The learning curve is steep</strong>: A developer learns functional programming, the actor model, and OTP at once (L1)</li>
+<li>❌ <strong>The Prolog-derived syntax is unfamiliar</strong>: The <code>.</code>, <code>,</code>, and <code>;</code> delimiters and the term syntax differ from the mainstream (L1)</li>
+<li>⚠️ <strong>The surface is large</strong>: The language, the OTP behaviours, and the VM’s semantics are separate bodies of knowledge (L2)</li>
+<li>✅ <strong>The official documentation is thorough</strong>: The Erlang reference manual and the OTP design principles are authoritative</li>
+<li>✅ <strong>The community is established</strong>: Decades of accumulated material and answered questions exist</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>The term syntax is uniform</strong>: every construct is a term, and a module is a sequence of forms ending in a period.</li>
-<li>✅ <strong>The delimiter roles are consistent</strong>: a comma separates expressions, a semicolon separates clauses, and a period ends a form.</li>
-<li>✅ <strong>Bit syntax is compact for protocols</strong>: a binary pattern states field widths and endianness in one expression.</li>
-<li>✅ <strong>Pattern matching is part of the function-head syntax</strong>: a clause states its cases directly.</li>
-<li>⚠️ <strong>The comma, semicolon, and period distinction is easy to get wrong</strong>: one misplaced delimiter changes the meaning of a form.</li>
-<li>⚠️ <strong>Atoms and variables differ only by case</strong>: <code>ok</code> is an atom and <code>Ok</code> is a variable.</li>
+<li>✅ <strong>The term syntax is uniform</strong>: Every construct is a term, and a module is a sequence of forms ending in a period</li>
+<li>✅ <strong>The delimiter roles are consistent</strong>: A comma separates expressions, a semicolon separates clauses, and a period ends a form</li>
+<li>✅ <strong>Bit syntax is compact for protocols</strong>: A binary pattern states field widths and endianness in one expression</li>
+<li>✅ <strong>Pattern matching is part of the function-head syntax</strong>: A clause states its cases directly</li>
+<li>⚠️ <strong>The comma, semicolon, and period distinction is easy to get wrong</strong>: One misplaced delimiter changes the meaning of a form</li>
+<li>⚠️ <strong>Atoms and variables differ only by case</strong>: <code>ok</code> is an atom and <code>Ok</code> is a variable</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong>EUnit and Common Test ship with OTP</strong>: unit tests and system tests are part of the standard distribution.</li>
-<li>✅ <strong>Property-based testing is available</strong>: PropEr and QuickCheck generate inputs from a property.</li>
-<li>✅ <strong>Tracing and <code>observer</code> inspect a running system</strong>: <code>dbg</code>, <code>recon</code>, and the observer tool expose processes, messages, and scheduler load.</li>
-<li>✅ <strong>Common Test runs a distributed suite</strong>: a test can start several nodes and drive them together.</li>
-<li>❌ <strong>Errors surface at run time</strong>: dynamic typing defers a type fault to the executed path (G3).</li>
-<li>⚠️ <strong>Dialyzer catches some faults and not all</strong>: success typing proves the absence of some inconsistencies, not the presence of correctness.</li>
+<li>✅ <strong>EUnit and Common Test ship with OTP</strong>: Unit tests and system tests are part of the standard distribution</li>
+<li>✅ <strong>Property-based testing is available</strong>: PropEr and QuickCheck generate inputs from a property</li>
+<li>✅ <strong>Tracing and <code>observer</code> inspect a running system</strong>: <code>dbg</code>, <code>recon</code>, and the observer tool expose processes, messages, and scheduler load</li>
+<li>✅ <strong>Common Test runs a distributed suite</strong>: A test can start several nodes and drive them together</li>
+<li>❌ <strong>Errors surface at run time</strong>: Dynamic typing defers a type fault to the executed path (G3)</li>
+<li>⚠️ <strong>Dialyzer catches some faults and not all</strong>: Success typing proves the absence of some inconsistencies, not the presence of correctness</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>✅ <strong>Process isolation contains a fault</strong>: a crashed process does not corrupt another process’s memory.</li>
-<li>✅ <strong>Messages are immutable values</strong>: no shared mutable state exists to race on.</li>
-<li>✅ <strong>The supervision tree bounds a failure</strong>: a restarted process returns the system to a known state.</li>
-<li>⚠️ <strong>The atom table has a fixed limit</strong>: <code>list_to_atom/1</code> or <code>binary_to_atom/2</code> on untrusted input can exhaust the table, whose default ceiling is about one million atoms.</li>
-<li>⚠️ <strong><code>binary_to_term/1</code> on untrusted input is dangerous</strong>: decoding an external term can allocate a large structure unless the <code>safe</code> option is used.</li>
-<li>⚠️ <strong>A NIF and a <code>Port</code> reach unsafe code</strong>: native code can break the VM’s guarantees.</li>
+<li>✅ <strong>Process isolation contains a fault</strong>: A crashed process does not corrupt another process’s memory</li>
+<li>✅ <strong>Messages are immutable values</strong>: No shared mutable state exists to race on</li>
+<li>✅ <strong>The supervision tree bounds a failure</strong>: A restarted process returns the system to a known state</li>
+<li>⚠️ <strong>The atom table has a fixed limit</strong>: <code>list_to_atom/1</code> or <code>binary_to_atom/2</code> on untrusted input can exhaust the table, whose default ceiling is about one million atoms</li>
+<li>⚠️ <strong><code>binary_to_term/1</code> on untrusted input is dangerous</strong>: Decoding an external term can allocate a large structure unless the <code>safe</code> option is used</li>
+<li>⚠️ <strong>A NIF and a <code>Port</code> reach unsafe code</strong>: Native code can break the VM’s guarantees</li>
 </ul>
 </section>
 </section>

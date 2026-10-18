@@ -1028,84 +1028,84 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="objectivecDocs"><a href="#ref-objectivecDocs" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Objective-C in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Objective-C in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 42/100</strong> · <strong>Ecosystem coupling 65/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>❌ <strong>Dispatch is resolved at run time (T3)</strong>: a message send such as <code>[obj doThing]</code> compiles to <code>objc_msgSend</code>, and the selector is looked up as the message is delivered, so an object can receive a message its declared interface does not list and the fault appears as <code>unrecognized selector sent to instance</code>.</li>
-<li>❌ <strong>There is no namespace (T6)</strong>: every class and protocol shares one global name table, so code relies on prefixes such as <code>NS</code>, <code>UI</code>, and <code>CG</code> to keep names apart.</li>
-<li>❌ <strong><code>id</code> erases the static type (T7)</strong>: the generic object pointer carries no compile-time type, so a value held in <code>id</code> is checked only by <code>-isKindOfClass:</code> or <code>-respondsToSelector:</code> at run time.</li>
-<li>✅ <strong>Protocols separate specification from implementation</strong>: a <code>@protocol</code> declares a method set that any class can adopt with <code>&lt;NSCopying&gt;</code>, so conformance does not require inheritance and one class can adopt several protocols.</li>
-<li>✅ <strong>Categories extend a class without its source</strong>: <code>@interface NSString (MyExtras)</code> adds methods to an existing class, so a consumer extends behaviour without subclassing and without access to the original.</li>
-<li>⚠️ <strong>Static type information is optional and partly erased</strong>: declared parameter and return types (<code>NSString *</code>, <code>instancetype</code>) are checked at compile time, but lightweight generics such as <code>NSArray&lt;NSString *&gt; *</code> and the nullability annotations <code>nonnull</code> and <code>nullable</code> are erased at run time.</li>
+<li>❌ <strong>Dispatch is resolved at run time (T3)</strong>: A message send such as <code>[obj doThing]</code> compiles to <code>objc_msgSend</code>, and the selector is looked up as the message is delivered, so an object can receive a message its declared interface does not list and the fault appears as <code>unrecognized selector sent to instance</code></li>
+<li>❌ <strong>There is no namespace (T6)</strong>: Every class and protocol shares one global name table, so code relies on prefixes such as <code>NS</code>, <code>UI</code>, and <code>CG</code> to keep names apart</li>
+<li>❌ <strong><code>id</code> erases the static type (T7)</strong>: The generic object pointer carries no compile-time type, so a value held in <code>id</code> is checked only by <code>-isKindOfClass:</code> or <code>-respondsToSelector:</code> at run time</li>
+<li>✅ <strong>Protocols separate specification from implementation</strong>: A <code>@protocol</code> declares a method set that any class can adopt with <code>&lt;NSCopying&gt;</code>, so conformance does not require inheritance and one class can adopt several protocols</li>
+<li>✅ <strong>Categories extend a class without its source</strong>: <code>@interface NSString (MyExtras)</code> adds methods to an existing class, so a consumer extends behaviour without subclassing and without access to the original</li>
+<li>⚠️ <strong>Static type information is optional and partly erased</strong>: Declared parameter and return types (<code>NSString *</code>, <code>instancetype</code>) are checked at compile time, but lightweight generics such as <code>NSArray&lt;NSString *&gt; *</code> and the nullability annotations <code>nonnull</code> and <code>nullable</code> are erased at run time</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>❌ <strong>There is no immutability by default (C2)</strong>: <code>NSString</code>, <code>NSArray</code>, and <code>NSDictionary</code> each have a mutable counterpart, and a property declared <code>strong</code> without <code>copy</code> shares a mutable object with its setter; <code>@property (copy)</code> is the opt-in that protects it.</li>
-<li>✅ <strong><code>alloc</code> and <code>init</code> separate allocation from initialisation</strong>: <code>[[NSObject alloc] init]</code> and a designated initialiser such as <code>-initWithFrame:</code> let one class route every construction path through one setup method.</li>
-<li>✅ <strong><code>@property</code> synthesises the accessors</strong>: <code>@property (nonatomic, copy) NSString *name;</code> generates the getter, the setter, and the instance variable, so a consumer binds to the property name rather than to the ivar layout.</li>
-<li>✅ <strong>Blocks carry behaviour as a value</strong>: a <code>^</code>-literal closure captures its environment and is passed as an argument, as in <code>-[NSArray enumerateObjectsUsingBlock:]</code>, so a callback needs no delegate class.</li>
-<li>✅ <strong>Class clusters hide the concrete class</strong>: <code>NSNumber</code> and <code>NSString</code> return a private subclass from a factory method such as <code>+numberWithInt:</code>, so construction does not couple a caller to one implementation class.</li>
-<li>⚠️ <strong><code>+new</code> and <code>-init</code> are conventions, not enforced rules</strong>: the runtime does not require an object to be initialised, so an uninitialised instance is possible and the class author must insist on the designated initialiser.</li>
+<li>❌ <strong>There is no immutability by default (C2)</strong>: <code>NSString</code>, <code>NSArray</code>, and <code>NSDictionary</code> each have a mutable counterpart, and a property declared <code>strong</code> without <code>copy</code> shares a mutable object with its setter; <code>@property (copy)</code> is the opt-in that protects it</li>
+<li>✅ <strong><code>alloc</code> and <code>init</code> separate allocation from initialisation</strong>: <code>[[NSObject alloc] init]</code> and a designated initialiser such as <code>-initWithFrame:</code> let one class route every construction path through one setup method</li>
+<li>✅ <strong><code>@property</code> synthesises the accessors</strong>: <code>@property (nonatomic, copy) NSString *name;</code> generates the getter, the setter, and the instance variable, so a consumer binds to the property name rather than to the ivar layout</li>
+<li>✅ <strong>Blocks carry behaviour as a value</strong>: A <code>^</code>-literal closure captures its environment and is passed as an argument, as in <code>-[NSArray enumerateObjectsUsingBlock:]</code>, so a callback needs no delegate class</li>
+<li>✅ <strong>Class clusters hide the concrete class</strong>: <code>NSNumber</code> and <code>NSString</code> return a private subclass from a factory method such as <code>+numberWithInt:</code>, so construction does not couple a caller to one implementation class</li>
+<li>⚠️ <strong><code>+new</code> and <code>-init</code> are conventions, not enforced rules</strong>: The runtime does not require an object to be initialised, so an uninitialised instance is possible and the class author must insist on the designated initialiser</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>ARC removes manual retain and release</strong>: the compiler inserts <code>objc_retain</code>, <code>objc_release</code>, and the autorelease-pool calls at the right points, so the common case needs no memory-management call.</li>
-<li>✅ <strong><code>strong</code> and <code>weak</code> state the ownership intent</strong>: <code>@property (weak) id delegate;</code> and <code>__weak</code> make the reference weak, and a weak reference zeroes itself when its referent is deallocated.</li>
-<li>⚠️ <strong>An autorelease pool defers the release</strong>: an autoreleased object lives until its enclosing <code>@autoreleasepool</code> drains, so a loop that builds many objects adds its own pool.</li>
-<li>❌ <strong>There is no RAII (M3)</strong>: ARC is not block-scoped, so a resource that is not an object, such as a <code>FILE *</code>, a <code>malloc</code> block, or a Core Foundation handle, is released by an explicit call or a <code>@try</code> and <code>@finally</code> block.</li>
-<li>❌ <strong>There is no ownership model (M4)</strong>: no static lifetime or aliasing rule bounds an object, so a <code>strong</code> reference cycle leaks until it is broken with <code>weak</code>.</li>
-<li>❌ <strong>Reclamation timing is not a language rule (M2)</strong>: the language never states when an object is freed; the tracing collector that once shipped with the Apple runtime was deprecated and then removed, and ARC’s reference counting is a compiler convention rather than a language guarantee.</li>
+<li>✅ <strong>ARC removes manual retain and release</strong>: The compiler inserts <code>objc_retain</code>, <code>objc_release</code>, and the autorelease-pool calls at the right points, so the common case needs no memory-management call</li>
+<li>✅ <strong><code>strong</code> and <code>weak</code> state the ownership intent</strong>: <code>@property (weak) id delegate;</code> and <code>__weak</code> make the reference weak, and a weak reference zeroes itself when its referent is deallocated</li>
+<li>⚠️ <strong>An autorelease pool defers the release</strong>: An autoreleased object lives until its enclosing <code>@autoreleasepool</code> drains, so a loop that builds many objects adds its own pool</li>
+<li>❌ <strong>There is no RAII (M3)</strong>: ARC is not block-scoped, so a resource that is not an object, such as a <code>FILE *</code>, a <code>malloc</code> block, or a Core Foundation handle, is released by an explicit call or a <code>@try</code> and <code>@finally</code> block</li>
+<li>❌ <strong>There is no ownership model (M4)</strong>: No static lifetime or aliasing rule bounds an object, so a <code>strong</code> reference cycle leaks until it is broken with <code>weak</code></li>
+<li>❌ <strong>Reclamation timing is not a language rule (M2)</strong>: The language never states when an object is freed; the tracing collector that once shipped with the Apple runtime was deprecated and then removed, and ARC’s reference counting is a compiler convention rather than a language guarantee</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>Exceptions are unchecked (Er2)</strong>: <code>@throw</code>, <code>@try</code>, <code>@catch</code>, and <code>@finally</code> carry an <code>NSException</code> that no signature declares, so a caller cannot see the failure set, and the convention reserves exceptions for programmer errors.</li>
-<li>✅ <strong><code>NSError **</code> reports a recoverable failure</strong>: a method such as <code>-[NSString writeToFile:atomically:encoding:error:]</code> writes the failure into an out-parameter, so a caller recovers without an exception.</li>
-<li>✅ <strong><code>@try</code>, <code>@catch</code>, and <code>@finally</code> are structured</strong>: a <code>@catch</code> clause names the exception class, and <code>@finally</code> runs on both the normal and the exceptional path.</li>
-<li>⚠️ <strong>Two error conventions coexist</strong>: <code>NSException</code> marks a programming error and <code>NSError</code> marks a domain failure, so a caller must know which convention a given API follows.</li>
-<li>⚠️ <strong>A message to <code>nil</code> fails silently</strong>: <code>[nil doThing]</code> returns <code>nil</code> or <code>0</code> and raises nothing, so a missed wiring point produces no error.</li>
-<li>⚠️ <strong><code>NSAssert</code> and <code>NSParameterAssert</code> are run-time checks</strong>: they abort in a debug build and are compiled out under <code>NS_BLOCK_ASSERTIONS</code>, so they do not enforce a contract in a release build.</li>
+<li>❌ <strong>Exceptions are unchecked (Er2)</strong>: <code>@throw</code>, <code>@try</code>, <code>@catch</code>, and <code>@finally</code> carry an <code>NSException</code> that no signature declares, so a caller cannot see the failure set, and the convention reserves exceptions for programmer errors</li>
+<li>✅ <strong><code>NSError **</code> reports a recoverable failure</strong>: A method such as <code>-[NSString writeToFile:atomically:encoding:error:]</code> writes the failure into an out-parameter, so a caller recovers without an exception</li>
+<li>✅ <strong><code>@try</code>, <code>@catch</code>, and <code>@finally</code> are structured</strong>: A <code>@catch</code> clause names the exception class, and <code>@finally</code> runs on both the normal and the exceptional path</li>
+<li>⚠️ <strong>Two error conventions coexist</strong>: <code>NSException</code> marks a programming error and <code>NSError</code> marks a domain failure, so a caller must know which convention a given API follows</li>
+<li>⚠️ <strong>A message to <code>nil</code> fails silently</strong>: <code>[nil doThing]</code> returns <code>nil</code> or <code>0</code> and raises nothing, so a missed wiring point produces no error</li>
+<li>⚠️ <strong><code>NSAssert</code> and <code>NSParameterAssert</code> are run-time checks</strong>: They abort in a debug build and are compiled out under <code>NS_BLOCK_ASSERTIONS</code>, so they do not enforce a contract in a release build</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>❌ <strong>Synchronisation is manual with no race detection (K3)</strong>: <code>@synchronized</code>, <code>NSLock</code>, <code>NSRecursiveLock</code>, and <code>dispatch_semaphore</code> leave the reasoning to the programmer, and the compiler reports no data race.</li>
-<li>✅ <strong>Grand Central Dispatch separates work from threads</strong>: <code>dispatch_async(dispatch_get_global_queue(0, 0), ^{ ... })</code> submits a block to a queue, so the code names a queue rather than a thread.</li>
-<li>✅ <strong>A completion block returns on a named queue</strong>: an asynchronous API takes a block and a queue, so a caller need not share mutable state with the worker.</li>
-<li>✅ <strong><code>NSOperationQueue</code> declares dependencies</strong>: <code>-[NSOperation addDependency:]</code> orders operations in the queue, so sequencing is stated rather than hand-scheduled.</li>
-<li>✅ <strong><code>@synchronized</code> gives a per-object mutex</strong>: <code>@synchronized(self) { ... }</code> serialises a critical section on one object without a separate lock object.</li>
-<li>⚠️ <strong><code>@property (atomic)</code> does not make a compound operation atomic</strong>: the default attribute serialises each accessor call, so a check-then-set sequence over the same property can still interleave with another thread.</li>
+<li>❌ <strong>Synchronisation is manual with no race detection (K3)</strong>: <code>@synchronized</code>, <code>NSLock</code>, <code>NSRecursiveLock</code>, and <code>dispatch_semaphore</code> leave the reasoning to the programmer, and the compiler reports no data race</li>
+<li>✅ <strong>Grand Central Dispatch separates work from threads</strong>: <code>dispatch_async(dispatch_get_global_queue(0, 0), ^{ ... })</code> submits a block to a queue, so the code names a queue rather than a thread</li>
+<li>✅ <strong>A completion block returns on a named queue</strong>: An asynchronous API takes a block and a queue, so a caller need not share mutable state with the worker</li>
+<li>✅ <strong><code>NSOperationQueue</code> declares dependencies</strong>: <code>-[NSOperation addDependency:]</code> orders operations in the queue, so sequencing is stated rather than hand-scheduled</li>
+<li>✅ <strong><code>@synchronized</code> gives a per-object mutex</strong>: <code>@synchronized(self) { ... }</code> serialises a critical section on one object without a separate lock object</li>
+<li>⚠️ <strong><code>@property (atomic)</code> does not make a compound operation atomic</strong>: The default attribute serialises each accessor call, so a check-then-set sequence over the same property can still interleave with another thread</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>❌ <strong>One vendor owns the mainstream platform (P2)</strong>: the complete language, its reference compiler (Clang), and its flagship frameworks (Cocoa and Cocoa Touch) are Apple’s.</li>
-<li>✅ <strong>GNUstep provides a second implementation</strong>: the GNUstep runtime, Foundation, and AppKit reimplementations let much Objective-C code build off Apple’s platform.</li>
-<li>✅ <strong>The language is a strict superset of C</strong>: a <code>.m</code> file mixes C functions and structs with message sends, so any C library is callable directly.</li>
-<li>✅ <strong>Modules replace recursive header inclusion</strong>: <code>@import Foundation;</code> imports a clang module, so a build does not depend on <code>#import</code> order.</li>
-<li>⚠️ <strong>The frameworks differ by platform</strong>: <code>AppKit</code> on macOS and <code>UIKit</code> on iOS share Foundation but not the user-interface layer, so UI code does not move between them.</li>
+<li>❌ <strong>One vendor owns the mainstream platform (P2)</strong>: The complete language, its reference compiler (Clang), and its flagship frameworks (Cocoa and Cocoa Touch) are Apple’s</li>
+<li>✅ <strong>GNUstep provides a second implementation</strong>: The GNUstep runtime, Foundation, and AppKit reimplementations let much Objective-C code build off Apple’s platform</li>
+<li>✅ <strong>The language is a strict superset of C</strong>: A <code>.m</code> file mixes C functions and structs with message sends, so any C library is callable directly</li>
+<li>✅ <strong>Modules replace recursive header inclusion</strong>: <code>@import Foundation;</code> imports a clang module, so a build does not depend on <code>#import</code> order</li>
+<li>⚠️ <strong>The frameworks differ by platform</strong>: <code>AppKit</code> on macOS and <code>UIKit</code> on iOS share Foundation but not the user-interface layer, so UI code does not move between them</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Message-passing syntax is a familiarity cost</strong>: <code>[receiver selector:argument]</code> differs from dot-syntax object languages, and the adjustment is a learning property rather than a forced dependency.</li>
-<li><strong>Long method names are a deliberate style</strong>: <code>-[NSString stringByReplacingOccurrencesOfString:withString:]</code> is verbose but self-describing, which is a readability choice.</li>
-<li><strong>Manual retain and release remains available</strong>: a project can leave ARC off and manage lifetimes itself, so the older memory model is a choice rather than a requirement.</li>
-<li><strong><code>NSException</code> for programmer errors is a policy</strong>: treating an exception as a bug signal and <code>NSError</code> as a recovery signal is a convention the language permits but does not require.</li>
-<li><strong>Prefixes mitigate the flat namespace</strong>: a class prefix is a convention that reduces collisions; it is a workaround for the missing namespace, not an additional coupling.</li>
-<li><strong>A mixed Objective-C and Swift target is a migration decision</strong>: both languages share the runtime and call each other, so how far to migrate is a project choice.</li>
+<li><strong>Message-passing syntax is a familiarity cost</strong>: <code>[receiver selector:argument]</code> differs from dot-syntax object languages, and the adjustment is a learning property rather than a forced dependency</li>
+<li><strong>Long method names are a deliberate style</strong>: <code>-[NSString stringByReplacingOccurrencesOfString:withString:]</code> is verbose but self-describing, which is a readability choice</li>
+<li><strong>Manual retain and release remains available</strong>: A project can leave ARC off and manage lifetimes itself, so the older memory model is a choice rather than a requirement</li>
+<li><strong><code>NSException</code> for programmer errors is a policy</strong>: Treating an exception as a bug signal and <code>NSError</code> as a recovery signal is a convention the language permits but does not require</li>
+<li><strong>Prefixes mitigate the flat namespace</strong>: A class prefix is a convention that reduces collisions; it is a workaround for the missing namespace, not an additional coupling</li>
+<li><strong>A mixed Objective-C and Swift target is a migration decision</strong>: Both languages share the runtime and call each other, so how far to migrate is a project choice</li>
 </ul>
 </section>
 </section>
@@ -1114,83 +1114,83 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>✅ <strong>The language compiles to native code</strong>: Clang lowers Objective-C to machine code through LLVM, so a message send is a real call and a program needs no warm-up.</li>
-<li>✅ <strong>The runtime is thin and written in C</strong>: <code>libobjc</code> supplies the selector table, the class metadata, and the reference-counting helpers with little work beyond the message send.</li>
-<li>⚠️ <strong><code>objc_msgSend</code> costs more than a static call</strong>: every message send performs a selector lookup that is cached after the first use, so a tight loop of message sends is slower than the equivalent direct call.</li>
-<li>⚠️ <strong>Dynamic dispatch limits inlining and devirtualisation</strong>: because the receiver’s class is known only at run time, the compiler cannot always inline a method body.</li>
-<li>⚠️ <strong>Key-value observing and method swizzling add indirection</strong>: both change how a method runs after the fact, and the cost appears wherever they are installed.</li>
+<li>✅ <strong>The language compiles to native code</strong>: Clang lowers Objective-C to machine code through LLVM, so a message send is a real call and a program needs no warm-up</li>
+<li>✅ <strong>The runtime is thin and written in C</strong>: <code>libobjc</code> supplies the selector table, the class metadata, and the reference-counting helpers with little work beyond the message send</li>
+<li>⚠️ <strong><code>objc_msgSend</code> costs more than a static call</strong>: Every message send performs a selector lookup that is cached after the first use, so a tight loop of message sends is slower than the equivalent direct call</li>
+<li>⚠️ <strong>Dynamic dispatch limits inlining and devirtualisation</strong>: Because the receiver’s class is known only at run time, the compiler cannot always inline a method body</li>
+<li>⚠️ <strong>Key-value observing and method swizzling add indirection</strong>: Both change how a method runs after the fact, and the cost appears wherever they are installed</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>The primary ecosystem is proprietary (Ec4)</strong>: the reference documentation, the frameworks, and the IDE (Xcode) come from one vendor under its licence terms.</li>
-<li>✅ <strong>The toolchain is mature inside that ecosystem</strong>: Xcode supplies one editor, compiler, debugger (<code>lldb</code>), Interface Builder, and the Instruments profiler in one install.</li>
-<li>✅ <strong>CocoaPods, Carthage, and Swift Package Manager resolve dependencies</strong>: several long-established package managers exist for Objective-C libraries.</li>
-<li>✅ <strong>GNUstep supplies a free Foundation</strong>: a portable implementation covers <code>NSString</code>, <code>NSArray</code>, and the rest of the Foundation API off Apple’s platform.</li>
-<li>⚠️ <strong>Current material is written for Swift first</strong>: the platform APIs and sample code are presented for Swift, so an Objective-C reader works from older or generated headers.</li>
+<li>❌ <strong>The primary ecosystem is proprietary (Ec4)</strong>: The reference documentation, the frameworks, and the IDE (Xcode) come from one vendor under its licence terms</li>
+<li>✅ <strong>The toolchain is mature inside that ecosystem</strong>: Xcode supplies one editor, compiler, debugger (<code>lldb</code>), Interface Builder, and the Instruments profiler in one install</li>
+<li>✅ <strong>CocoaPods, Carthage, and Swift Package Manager resolve dependencies</strong>: Several long-established package managers exist for Objective-C libraries</li>
+<li>✅ <strong>GNUstep supplies a free Foundation</strong>: A portable implementation covers <code>NSString</code>, <code>NSArray</code>, and the rest of the Foundation API off Apple’s platform</li>
+<li>⚠️ <strong>Current material is written for Swift first</strong>: The platform APIs and sample code are presented for Swift, so an Objective-C reader works from older or generated headers</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>❌ <strong>The language is frozen (V2)</strong>: Objective-C 2.0 (2006) is effectively the last language revision, and platform-facing work has moved to Swift.</li>
-<li>✅ <strong>The compiler keeps supplying new features</strong>: ARC, blocks, object literals such as <code>@[]</code> and <code>@{}</code>, lightweight generics, and nullability annotations arrived as Clang features rather than as language revisions.</li>
-<li>✅ <strong>A mixed Objective-C and Swift target is supported</strong>: both languages link against the same runtime and can call each other, so a project can migrate one file at a time.</li>
-<li>✅ <strong>Old source still compiles</strong>: OpenStep-era Foundation API and the 1990s NeXT runtime conventions are still supported by the current toolchain.</li>
-<li>⚠️ <strong>Documentation for new APIs follows the vendor’s current language</strong>: a header is the reliable reference for the Objective-C form of a new API.</li>
+<li>❌ <strong>The language is frozen (V2)</strong>: Objective-C 2.0 (2006) is effectively the last language revision, and platform-facing work has moved to Swift</li>
+<li>✅ <strong>The compiler keeps supplying new features</strong>: ARC, blocks, object literals such as <code>@[]</code> and <code>@{}</code>, lightweight generics, and nullability annotations arrived as Clang features rather than as language revisions</li>
+<li>✅ <strong>A mixed Objective-C and Swift target is supported</strong>: Both languages link against the same runtime and can call each other, so a project can migrate one file at a time</li>
+<li>✅ <strong>Old source still compiles</strong>: OpenStep-era Foundation API and the 1990s NeXT runtime conventions are still supported by the current toolchain</li>
+<li>⚠️ <strong>Documentation for new APIs follows the vendor’s current language</strong>: A header is the reliable reference for the Objective-C form of a new API</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>❌ <strong>The domain and the vendor are one decision (D1)</strong>: the language is built for Apple’s platforms, so adopting it means shipping on macOS, iOS, iPadOS, watchOS, and tvOS.</li>
-<li>✅ <strong>Excellent fit for the Apple application model</strong>: the Cocoa delegate, target-action, and notification patterns and the main run loop are expressed directly in the language.</li>
-<li>✅ <strong>Foundation runs off Apple’s platform</strong>: portable Foundation code from GNUstep works on Linux and other systems for command-line and server work.</li>
-<li>⚠️ <strong>Cross-platform work needs a second toolkit</strong>: GNUstep supplies Foundation but has no equivalent of a modern Apple user-interface layer.</li>
-<li>⚠️ <strong>Server and command-line use is marginal</strong>: the language is used for it, but the design centre is the application platform.</li>
+<li>❌ <strong>The domain and the vendor are one decision (D1)</strong>: The language is built for Apple’s platforms, so adopting it means shipping on macOS, iOS, iPadOS, watchOS, and tvOS</li>
+<li>✅ <strong>Excellent fit for the Apple application model</strong>: The Cocoa delegate, target-action, and notification patterns and the main run loop are expressed directly in the language</li>
+<li>✅ <strong>Foundation runs off Apple’s platform</strong>: Portable Foundation code from GNUstep works on Linux and other systems for command-line and server work</li>
+<li>⚠️ <strong>Cross-platform work needs a second toolkit</strong>: GNUstep supplies Foundation but has no equivalent of a modern Apple user-interface layer</li>
+<li>⚠️ <strong>Server and command-line use is marginal</strong>: The language is used for it, but the design centre is the application platform</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>❌ <strong>Message passing is a barrier for a newcomer (L1)</strong>: <code>[receiver selector:argument]</code>, the colon-bearing selector notation, and the <code>@</code>-keyword set differ from dot-syntax object languages.</li>
-<li>❌ <strong>The C substrate must be learned as well</strong>: pointers, <code>struct</code>, C strings, manual C memory, and <code>@encode</code> sit underneath the object model, so the language is C plus message passing.</li>
-<li>⚠️ <strong>The runtime is a second topic</strong>: <code>objc_msgSend</code>, metaclasses, key-value coding and observing, and ARC semantics are separate from the source syntax.</li>
-<li>⚠️ <strong>Documentation quality follows the vendor</strong>: Apple’s guides and headers are thorough on the platform, and off-platform material is thinner.</li>
-<li>✅ <strong>The object model is conceptually small</strong>: once the message send is understood, most of the rest follows from it, including classes, selectors, and protocols.</li>
+<li>❌ <strong>Message passing is a barrier for a newcomer (L1)</strong>: <code>[receiver selector:argument]</code>, the colon-bearing selector notation, and the <code>@</code>-keyword set differ from dot-syntax object languages</li>
+<li>❌ <strong>The C substrate must be learned as well</strong>: Pointers, <code>struct</code>, C strings, manual C memory, and <code>@encode</code> sit underneath the object model, so the language is C plus message passing</li>
+<li>⚠️ <strong>The runtime is a second topic</strong>: <code>objc_msgSend</code>, metaclasses, key-value coding and observing, and ARC semantics are separate from the source syntax</li>
+<li>⚠️ <strong>Documentation quality follows the vendor</strong>: Apple’s guides and headers are thorough on the platform, and off-platform material is thinner</li>
+<li>✅ <strong>The object model is conceptually small</strong>: Once the message send is understood, most of the rest follows from it, including classes, selectors, and protocols</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>A message send names every argument</strong>: <code>[view addSubview:subview positioned:NSWindowBelow relativeTo:nil]</code> labels each argument at the call site, so the call reads as a sentence.</li>
-<li>✅ <strong>Object literals are compact</strong>: <code>@42</code>, <code>@[@"a", @"b"]</code>, and <code>@{@"k": @1}</code> build an <code>NSNumber</code>, an <code>NSArray</code>, and an <code>NSDictionary</code> in one form.</li>
-<li>✅ <strong><code>@property</code> shortens an accessor pair</strong>: one declaration replaces a hand-written getter, setter, and instance variable.</li>
-<li>⚠️ <strong>The selector includes its colons</strong>: <code>addSubview:positioned:relativeTo:</code> is one name, so a missing or an extra colon changes the selector.</li>
-<li>⚠️ <strong>Dot syntax and brackets both reach an accessor</strong>: <code>obj.prop</code> and <code>[obj prop]</code> are interchangeable, so a reader must accept two spellings for the same call.</li>
-<li>⚠️ <strong>The preprocessor is part of the surface</strong>: <code>#import</code>, <code>#define</code>, and macro-based API patterns are load-bearing in existing code.</li>
+<li>✅ <strong>A message send names every argument</strong>: <code>[view addSubview:subview positioned:NSWindowBelow relativeTo:nil]</code> labels each argument at the call site, so the call reads as a sentence</li>
+<li>✅ <strong>Object literals are compact</strong>: <code>@42</code>, <code>@[@"a", @"b"]</code>, and <code>@{@"k": @1}</code> build an <code>NSNumber</code>, an <code>NSArray</code>, and an <code>NSDictionary</code> in one form</li>
+<li>✅ <strong><code>@property</code> shortens an accessor pair</strong>: One declaration replaces a hand-written getter, setter, and instance variable</li>
+<li>⚠️ <strong>The selector includes its colons</strong>: <code>addSubview:positioned:relativeTo:</code> is one name, so a missing or an extra colon changes the selector</li>
+<li>⚠️ <strong>Dot syntax and brackets both reach an accessor</strong>: <code>obj.prop</code> and <code>[obj prop]</code> are interchangeable, so a reader must accept two spellings for the same call</li>
+<li>⚠️ <strong>The preprocessor is part of the surface</strong>: <code>#import</code>, <code>#define</code>, and macro-based API patterns are load-bearing in existing code</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong>XCTest ships with the platform toolchain</strong>: <code>XCTestCase</code>, the <code>XCTAssert</code> family, and performance tests are part of the developer tools.</li>
-<li>✅ <strong>Instruments profiles a real run</strong>: the Time Profiler, Allocations, and Leaks instruments show where time and memory go, so a test can measure a change.</li>
-<li>✅ <strong>The debugger understands messages</strong>: <code>lldb</code> can break on a selector, inspect the arguments of a message send, and evaluate an expression in the running process.</li>
-<li>⚠️ <strong>The framework is tied to the toolchain</strong>: XCTest and the simulator come from one vendor, so an off-platform run needs GNUstep and a different harness.</li>
-<li>⚠️ <strong>A wrong selector passes the build</strong>: with dynamic dispatch a missing method or a wrong type is a run-time failure, so the tested paths matter more than the compiled ones.</li>
+<li>✅ <strong>XCTest ships with the platform toolchain</strong>: <code>XCTestCase</code>, the <code>XCTAssert</code> family, and performance tests are part of the developer tools</li>
+<li>✅ <strong>Instruments profiles a real run</strong>: The Time Profiler, Allocations, and Leaks instruments show where time and memory go, so a test can measure a change</li>
+<li>✅ <strong>The debugger understands messages</strong>: <code>lldb</code> can break on a selector, inspect the arguments of a message send, and evaluate an expression in the running process</li>
+<li>⚠️ <strong>The framework is tied to the toolchain</strong>: XCTest and the simulator come from one vendor, so an off-platform run needs GNUstep and a different harness</li>
+<li>⚠️ <strong>A wrong selector passes the build</strong>: With dynamic dispatch a missing method or a wrong type is a run-time failure, so the tested paths matter more than the compiled ones</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>✅ <strong>ARC removes a class of memory faults</strong>: the compiler owns retain and release, so a use-after-free from a missing release is rare in ARC code.</li>
-<li>✅ <strong>A weak reference does not dangle</strong>: <code>weak</code> and <code>__weak</code> zero the reference when its referent is deallocated, so a stale link becomes <code>nil</code>.</li>
-<li>✅ <strong>A message to <code>nil</code> is safe</strong>: <code>[nil doThing]</code> returns <code>nil</code> or <code>0</code> instead of trapping, which removes a class of null-dereference crash.</li>
-<li>⚠️ <strong><code>id</code> permits type confusion</strong>: a value typed <code>id</code> accepts any object, and a wrong cast is caught only where the code checks the class.</li>
-<li>⚠️ <strong>C is still underneath</strong>: <code>malloc</code>, pointer arithmetic, and a file compiled with <code>-fno-objc-arc</code> bypass every object-model guarantee.</li>
-<li>⚠️ <strong>Method swizzling changes behaviour after the build</strong>: <code>method_exchangeImplementations</code> replaces an implementation at run time, which is powerful and easy to misuse.</li>
+<li>✅ <strong>ARC removes a class of memory faults</strong>: The compiler owns retain and release, so a use-after-free from a missing release is rare in ARC code</li>
+<li>✅ <strong>A weak reference does not dangle</strong>: <code>weak</code> and <code>__weak</code> zero the reference when its referent is deallocated, so a stale link becomes <code>nil</code></li>
+<li>✅ <strong>A message to <code>nil</code> is safe</strong>: <code>[nil doThing]</code> returns <code>nil</code> or <code>0</code> instead of trapping, which removes a class of null-dereference crash</li>
+<li>⚠️ <strong><code>id</code> permits type confusion</strong>: A value typed <code>id</code> accepts any object, and a wrong cast is caught only where the code checks the class</li>
+<li>⚠️ <strong>C is still underneath</strong>: <code>malloc</code>, pointer arithmetic, and a file compiled with <code>-fno-objc-arc</code> bypass every object-model guarantee</li>
+<li>⚠️ <strong>Method swizzling changes behaviour after the build</strong>: <code>method_exchangeImplementations</code> replaces an implementation at run time, which is powerful and easy to misuse</li>
 </ul>
 </section>
 </section>

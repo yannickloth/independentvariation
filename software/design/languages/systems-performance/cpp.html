@@ -1029,7 +1029,7 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="isoCpp2024"><a href="#ref-isoCpp2024" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses C++ in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses C++ in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 54/100</strong> · <strong>Ecosystem coupling 76/100</strong></p>
 <blockquote class="blockquote">
 <p><strong>Note:</strong> The score reflects C++23 with modern idioms (smart pointers ≥ raw pointers, <code>std::expected</code> ≥ exceptions, modules ≥ headers, concepts ≥ unconstrained templates). Teams stuck on older standards or pre-modern coding styles will experience significantly worse coupling properties.</p>
@@ -1042,12 +1042,11 @@ div.csl-indent {
 <li>✅ <strong>Templates enable generic programming</strong>: Decouple algorithms from types</li>
 <li>✅ <strong>RAII separates resource management</strong>: Constructor acquires, destructor releases</li>
 <li>✅ <strong>Concepts (C++20) constrain templates</strong>: Clean error messages, explicit constraints decouple interface from implementation</li>
-<li>✅ <strong>Modules (C++20/23) decouple compilation</strong>: <code>import</code> replaces <code>#include</code>, eliminating header coupling</li>
+<li>✅ <strong>Modules (C++20/23) decouple compilation</strong>: <code>import</code> replaces <code>#include</code> and removes header coupling, though headers remain for code not yet migrated</li>
 <li>✅ <strong>Deducing this (C++23)</strong>: Eliminates const/non-const overload duplication</li>
 <li>⚠️ <strong>Multiple inheritance still available</strong>: Diamond problem possible (though <code>final</code> specifier helps)</li>
 <li>⚠️ <strong>Template metaprogramming still complex</strong>: Despite concepts, advanced templates couple to expertise</li>
 <li>❌ <strong>Macros couple</strong>: Preprocessor doesn’t respect scope (though modules reduce header macro issues)</li>
-<li>⚠️ <strong>Headers still exist for non-module code</strong>: <code>#include</code> coupling for code not yet migrated to C++20 modules</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
@@ -1066,8 +1065,7 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>RAII decouples resource management</strong>: Destructors run deterministically, no GC needed</li>
 <li>✅ <strong>Smart pointers eliminate manual delete</strong>: <code>unique_ptr</code>, <code>shared_ptr</code> are idiomatic (manual <code>new</code>/<code>delete</code> is a code smell in modern C++)</li>
-<li>✅ <strong><code>std::span</code> (C++20)</strong>: Non-owning view decouples algorithms from container types</li>
-<li>✅ <strong><code>std::mdspan</code> (C++23)</strong>: Multi-dimensional views with bounds checking</li>
+<li>✅ <strong><code>std::span</code>/<code>std::mdspan</code> (C++20/23)</strong>: Non-owning one- and multi-dimensional views decouple algorithms from container types and memory layout</li>
 <li>✅ <strong>Explicit lifetime management (C++23)</strong>: <code>std::start_lifetime_as</code> for safe low-level patterns</li>
 <li>⚠️ <strong><code>shared_ptr</code> has atomic ref counting cost</strong>: And circular references need <code>weak_ptr</code></li>
 <li>⚠️ <strong>Raw pointer escape hatches exist</strong>: Though idiomatic C++23 uses spans and smart pointers</li>
@@ -1078,8 +1076,7 @@ div.csl-indent {
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>✅ <strong><code>std::expected</code> (C++23)</strong>: Monadic error handling — composable, type-safe, explicit in signatures</li>
-<li>✅ <strong><code>std::optional</code> monadic operations (C++23)</strong>: <code>and_then</code>, <code>transform</code>, <code>or_else</code> enable composable absence handling</li>
+<li>✅ <strong><code>std::expected</code> and <code>std::optional</code> monadic operations (C++23)</strong>: <code>and_then</code>, <code>transform</code>, <code>or_else</code> make error and absence handling composable and type-safe</li>
 <li>❌ <strong>Exceptions still exist and remain unchecked</strong>: <code>std::expected</code> is idiomatic and preferred, but exceptions are still in the language and used in the standard library</li>
 <li>✅ <strong><code>std::stacktrace</code> (C++23)</strong>: Provides unwinding visibility, addressing historical debugging pain</li>
 <li>✅ <strong><code>std::variant</code></strong>: Type-safe discriminated union for error discrimination</li>
@@ -1124,7 +1121,7 @@ div.csl-indent {
 <li>✅ <strong>Zero-overhead abstraction</strong>: Pay only for what you use</li>
 <li>✅ <strong>No GC</strong>: Deterministic, predictable</li>
 <li>✅ <strong>Manual control</strong>: Full optimization control</li>
-<li>✅ <strong>Compile-time computation</strong>: constexpr (expanded in C++23 — now covers <code>std::bitset</code>, <code>std::unique_ptr</code>, <code>std::optional</code>, <code>std::variant</code>, <code>std::string</code>, <code>cmath</code> functions)</li>
+<li>✅ <strong>Compile-time computation</strong>: Constexpr (expanded in C++23 — now covers <code>std::bitset</code>, <code>std::unique_ptr</code>, <code>std::optional</code>, <code>std::variant</code>, <code>std::string</code>, <code>cmath</code> functions)</li>
 <li>⚠️ <strong>Binary bloat</strong>: Templates can explode size (mitigated by explicit instantiations, LTO)</li>
 </ul>
 </section>

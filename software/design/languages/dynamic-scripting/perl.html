@@ -1028,7 +1028,7 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="perlDoc"><a href="#ref-perlDoc" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Perl in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Perl in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 28/100</strong> · <strong>Ecosystem coupling 53/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
@@ -1041,14 +1041,13 @@ div.csl-indent {
 <li>❌ <strong>Context-sensitive</strong>: Same code behaves differently in scalar/list context</li>
 <li>⚠️ <strong>Moose</strong>: Object system add-on provides types, not core</li>
 <li>❌ <strong>Regular expressions</strong>: Write-only code, couples understanding to expertise</li>
-<li>❌ <strong>Context sensitivity</strong>: Behavior couples to calling context</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
 <li>❌ <strong>Bless</strong>: Primitive object system, <code>bless {}</code> is manual</li>
-<li>❌ <strong>No built-in classes</strong>: Have to build everything from scratch</li>
+<li>❌ <strong>Core class syntax is experimental</strong>: <code>use feature 'class'</code> provides a core object system, but the implementation is still experimental, so a project cannot rely on it</li>
 <li>⚠️ <strong>Moose/Moo</strong>: Modern OOP libraries improve this significantly</li>
 <li>❌ <strong>Hash-based objects</strong>: No encapsulation enforcement</li>
 <li>❌ <strong>Global variables</strong>: <code>$_</code>, <code>@_</code>, <code>%ENV</code> everywhere</li>
@@ -1062,7 +1061,6 @@ div.csl-indent {
 <li>✅ <strong>Reference counting</strong>: Deterministic deallocation</li>
 <li>⚠️ <strong>Cyclic references</strong>: Leak unless broken manually</li>
 <li>✅ <strong>Automatic</strong>: No manual malloc/free</li>
-<li>✅ <strong>Predictable</strong>: Deallocation when refcount hits zero</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
@@ -1071,7 +1069,7 @@ div.csl-indent {
 <li>❌ <strong>Die/eval</strong>: Exceptions not typed, <code>eval</code> catches everything</li>
 <li>❌ <strong>Return undef</strong>: Many functions return <code>undef</code> on error, silent failures</li>
 <li>⚠️ <strong>$!</strong>: Global error variable couples error state</li>
-<li>❌ <strong>No signatures</strong>: Can’t see errors in function signatures</li>
+<li>❌ <strong>Signatures declare parameters only</strong>: A sub’s signature does not state the errors it may raise, so the failure channel is invisible at the call</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
@@ -1095,11 +1093,11 @@ div.csl-indent {
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Regexes are woven into the grammar</strong>: Pattern matching is syntax rather than a library, which makes text handling concise and the language hard to read — a syntax decision, not a coupling mechanism.</li>
-<li><strong>Sigils prefix every name</strong>: The leading <code>$</code>, <code>@</code>, or <code>%</code> encodes the noun in the identifier, a readability trade expressed in the name rather than in a type system.</li>
-<li><strong>Scalars carry both a number and a string</strong>: The dual-valued scalar is why <code>==</code> and <code>eq</code> are separate operators, a convenience whose cost falls on every comparison.</li>
-<li><strong>Backward compatibility is the default</strong>: Decades of behaviour remain in the language, and <code>use strict</code> and <code>use warnings</code> recover discipline one file at a time — a compatibility cost, not a forced dependency.</li>
-<li><strong>The successor was released as another language</strong>: Raku was developed separately from Perl 5, so Perl 5 continues on its own line — a project decision, not a coupling.</li>
+<li><strong>Regexes are woven into the grammar</strong>: Pattern matching is syntax rather than a library, which makes text handling concise and the language hard to read — a syntax decision, not a coupling mechanism</li>
+<li><strong>Sigils prefix every name</strong>: The leading <code>$</code>, <code>@</code>, or <code>%</code> encodes the noun in the identifier, a readability trade expressed in the name rather than in a type system</li>
+<li><strong>Scalars carry both a number and a string</strong>: The dual-valued scalar is why <code>==</code> and <code>eq</code> are separate operators, a convenience whose cost falls on every comparison</li>
+<li><strong>Backward compatibility is the default</strong>: Decades of behaviour remain in the language, and <code>use strict</code> and <code>use warnings</code> recover discipline one file at a time — a compatibility cost, not a forced dependency</li>
+<li><strong>The successor was released as another language</strong>: Raku was developed separately from Perl 5, so Perl 5 continues on its own line — a project decision, not a coupling</li>
 </ul>
 </section>
 </section>
@@ -1108,10 +1106,9 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>⚠️ <strong>Interpreted</strong>: Slower than compiled</li>
-<li>⚠️ <strong>Regex engine</strong>: Very fast for text processing</li>
+<li>⚠️ <strong>Interpreted</strong>: Slower than compiled, and the reference interpreter has no JIT</li>
+<li>✅ <strong>Regex engine</strong>: Very fast for text processing</li>
 <li>❌ <strong>Memory usage</strong>: Higher than C, lower than Ruby/Python</li>
-<li>⚠️ <strong>JIT</strong>: Some versions have JIT (experimental)</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
@@ -1121,7 +1118,7 @@ div.csl-indent {
 <li>⚠️ <strong>Aging</strong>: Fewer new modules than modern ecosystems</li>
 <li>⚠️ <strong>IDE support</strong>: Limited compared to modern languages</li>
 <li>✅ <strong>CPAN minus</strong>: Great dependency testing</li>
-<li>⚠️ <strong>Tooling dated</strong>: perldoc, prove, but aging</li>
+<li>⚠️ <strong>Tooling dated</strong>: Perldoc, prove, but aging</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
@@ -1130,7 +1127,6 @@ div.csl-indent {
 <li>❌ <strong>Perl 6 → Raku</strong>: Split into separate language</li>
 <li>⚠️ <strong>Perl 5 stable</strong>: Very conservative, few changes</li>
 <li>❌ <strong>Declining use</strong>: Community shrinking</li>
-<li>⚠️ <strong>Legacy focus</strong>: Maintenance mode</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
@@ -1166,7 +1162,7 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>Test::More</strong>: Good testing framework</li>
 <li>✅ <strong>Prove</strong>: Test runner works well</li>
-<li>⚠️ <strong>Debugger</strong>: perl -d works but basic</li>
+<li>⚠️ <strong>Debugger</strong>: Perl -d works but basic</li>
 <li>✅ <strong>Testing culture</strong>: CPAN requires tests</li>
 </ul>
 </section>

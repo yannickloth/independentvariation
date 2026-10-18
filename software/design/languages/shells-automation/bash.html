@@ -1028,7 +1028,7 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="bashRef"><a href="#ref-bashRef" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Bash in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Bash in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 43/100</strong> · <strong>Ecosystem coupling 53/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
@@ -1036,7 +1036,7 @@ div.csl-indent {
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>❌ <strong>Everything is strings</strong>: No type system whatsoever</li>
-<li>❌ <strong>No abstractions</strong>: No functions (only shell functions), no interfaces</li>
+<li>❌ <strong>No abstractions</strong>: Shell functions are commands with positional parameters, and there are no interfaces</li>
 <li>⚠️ <strong>Associative arrays</strong>: Bash 4+ has hashes, but limited</li>
 <li>❌ <strong>No encapsulation</strong>: All variables global unless explicitly local</li>
 <li>❌ <strong>No modules</strong>: Sourcing scripts pollutes namespace</li>
@@ -1067,10 +1067,9 @@ div.csl-indent {
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
 <li>❌ <strong>Exit codes only</strong>: Return 0-255, no typed errors</li>
-<li>❌ <strong>Ignores errors by default</strong>: Must use <code>set -e</code> to fail on errors</li>
+<li>❌ <strong>Ignores errors by default</strong>: Must use <code>set -e</code> to fail on errors, and a failure is otherwise silent</li>
 <li>❌ <strong>No exceptions</strong>: Can’t catch/throw</li>
 <li>⚠️ <strong><code>trap</code></strong>: Can handle signals, but limited</li>
-<li>❌ <strong>Silent failures</strong>: Commands fail silently unless checked</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
@@ -1088,20 +1087,20 @@ div.csl-indent {
 <ul>
 <li>❌ <strong>Path dependencies</strong>: Couples to external commands availability</li>
 <li>❌ <strong>Platform coupling</strong>: Bash version, coreutils differences</li>
-<li>✅ <strong>A POSIX subset is portable across systems</strong>: a script limited to POSIX <code>sh</code> runs under dash, ash, ksh, and zsh, and the standard is a published specification.</li>
-<li>✅ <strong>The script is the artifact</strong>: a Bash program is a text file that needs only an interpreter on the target, so nothing of the language is deployed with it.</li>
-<li>✅ <strong>The shell is a GNU project with no vendor owner</strong>: Bash is developed in the open by the GNU Project under the GPL.</li>
-<li>❌ <strong>The dialect is defined by one implementation</strong>: the extensions beyond POSIX (<code>[[ ]]</code>, arrays, <code>local</code>, <code>mapfile</code>) are Bash’s own, so a script that uses them depends on Bash and its version (P2).</li>
-<li>⚠️ <strong>The installed Bash version varies by platform</strong>: macOS ships Bash 3.2 while Linux distributions ship Bash 5.x, so a script that uses newer features fails on the older interpreter.</li>
+<li>✅ <strong>A POSIX subset is portable across systems</strong>: A script limited to POSIX <code>sh</code> runs under dash, ash, ksh, and zsh, and the standard is a published specification</li>
+<li>✅ <strong>The script is the artifact</strong>: A Bash program is a text file that needs only an interpreter on the target, so nothing of the language is deployed with it</li>
+<li>✅ <strong>The shell is a GNU project with no vendor owner</strong>: Bash is developed in the open by the GNU Project under the GPL</li>
+<li>❌ <strong>The dialect is defined by one implementation</strong>: The extensions beyond POSIX (<code>[[ ]]</code>, arrays, <code>local</code>, <code>mapfile</code>) are Bash’s own, so a script that uses them depends on Bash and its version (P2)</li>
+<li>⚠️ <strong>The installed Bash version varies by platform</strong>: MacOS ships Bash 3.2 while Linux distributions ship Bash 5.x, so a script that uses newer features fails on the older interpreter</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Interactive use shapes the syntax</strong>: History expansion, aliases, and prompt escapes are features for a terminal session, and they are why the language reads oddly inside scripts.</li>
-<li><strong>The pipeline is the composition model</strong>: Programs combine as processes joined by pipes, so composition happens between executables rather than inside one program — a design boundary.</li>
-<li><strong>Arithmetic is integer-only</strong>: <code>$(( ))</code> computes on integers, so decimal work calls an external program — a scope decision rather than a dependency.</li>
-<li><strong>Universal availability is the goal</strong>: The language keeps to what an interpreter can supply on any Unix system, which is why new features arrive slowly.</li>
+<li><strong>Interactive use shapes the syntax</strong>: History expansion, aliases, and prompt escapes are features for a terminal session, and they are why the language reads oddly inside scripts</li>
+<li><strong>The pipeline is the composition model</strong>: Programs combine as processes joined by pipes, so composition happens between executables rather than inside one program — a design boundary</li>
+<li><strong>Arithmetic is integer-only</strong>: <code>$(( ))</code> computes on integers, so decimal work calls an external program — a scope decision rather than a dependency</li>
+<li><strong>Universal availability is the goal</strong>: The language keeps to what an interpreter can supply on any Unix system, which is why new features arrive slowly</li>
 </ul>
 </section>
 </section>
@@ -1110,11 +1109,10 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>❌ <strong>Very slow</strong>: Interprets every line</li>
+<li>❌ <strong>Very slow</strong>: Interprets every line, with no JIT and no compilation</li>
 <li>❌ <strong>Process spawning</strong>: Fork/exec for every command</li>
 <li>❌ <strong>String manipulation</strong>: Terribly inefficient</li>
 <li>✅ <strong>Good for orchestration</strong>: Fast when calling other programs</li>
-<li>❌ <strong>No optimization</strong>: No JIT, no compilation</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
@@ -1122,7 +1120,7 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>Ubiquitous</strong>: On every Unix system</li>
 <li>⚠️ <strong>No package manager</strong>: Manual dependency management</li>
-<li>⚠️ <strong>shellcheck</strong>: Excellent linter</li>
+<li>✅ <strong>shellcheck</strong>: Excellent linter</li>
 <li>❌ <strong>No IDE support</strong>: Basic syntax highlighting only</li>
 <li>✅ <strong>Coreutils</strong>: Standard Unix tools available</li>
 </ul>
@@ -1132,7 +1130,7 @@ div.csl-indent {
 <ul>
 <li>✅ <strong>Stable</strong>: Bash 3/4/5 mostly compatible</li>
 <li>⚠️ <strong>Slow evolution</strong>: Conservative changes</li>
-<li>❌ <strong>Fragmentation</strong>: sh, bash, zsh, fish differ</li>
+<li>❌ <strong>Fragmentation</strong>: Sh, bash, zsh, fish differ</li>
 <li>✅ <strong>POSIX</strong>: Standard helps portability</li>
 </ul>
 </section>
@@ -1150,9 +1148,8 @@ div.csl-indent {
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
 <li>✅ <strong>Easy to start</strong>: Simple commands work</li>
-<li>❌ <strong>Hard to master</strong>: Quoting, word splitting, gotchas</li>
-<li>⚠️ <strong>Good resources</strong>: Advanced Bash Scripting Guide</li>
-<li>❌ <strong>Many footguns</strong>: Unquoted variables, etc.</li>
+<li>❌ <strong>Hard to master</strong>: Quoting, word splitting, and unquoted variables are footguns</li>
+<li>✅ <strong>Good resources</strong>: Advanced Bash Scripting Guide</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
@@ -1160,17 +1157,17 @@ div.csl-indent {
 <ul>
 <li>❌ <strong>Quirky</strong>: <code>[</code> vs <code>[[</code>, quoting rules</li>
 <li>❌ <strong>Verbose</strong>: <code>if [ "$x" = "y" ]; then</code></li>
-<li>⚠️ <strong>Pipe-oriented</strong>: Natural for Unix philosophy</li>
+<li>✅ <strong>Pipe-oriented</strong>: Natural for Unix philosophy</li>
 <li>❌ <strong>Special variables</strong>: <code>$?</code>, <code>$!</code>, <code>$@</code>, <code>$$</code></li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>⚠️ <strong>bats</strong>: Bash Automated Testing System exists</li>
+<li>✅ <strong>bats</strong>: Bash Automated Testing System exists</li>
 <li>⚠️ <strong>set -x</strong>: Trace execution, but noisy</li>
 <li>❌ <strong>No debugger</strong>: Just echo/printf</li>
-<li>⚠️ <strong>shellcheck</strong>: Catches many errors</li>
+<li>✅ <strong>shellcheck</strong>: Catches many errors</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">

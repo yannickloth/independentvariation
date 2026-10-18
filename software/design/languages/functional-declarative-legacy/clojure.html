@@ -1028,83 +1028,83 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="clojureDocs"><a href="#ref-clojureDocs" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Clojure in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Clojure in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 62/100</strong> · <strong>Ecosystem coupling 80/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>✅ <strong>Protocols decouple behaviour from inheritance</strong>: <code>defprotocol</code> declares a set of functions, and <code>extend-type</code> and <code>extend-protocol</code> implement them for any type, including Java classes and <code>nil</code>, so behaviour is added without a class hierarchy.</li>
-<li>❌ <strong>Dynamic typing defers every type check to run time</strong>: a function declares no parameter or return type, so a mismatch is found when the value is used (T1).</li>
-<li>❌ <strong>Protocol dispatch resolves at run time</strong>: the implementation is chosen from the value’s type when the call executes, and a type with no implementation fails then (T3).</li>
-<li>❌ <strong>No sum types and no generics</strong>: alternatives are tagged maps or <code>:type</code> keywords by convention, and a function accepts any value, so neither the case set nor the argument shape is checked by the compiler (T4, T5).</li>
-<li>⚠️ <strong>Operator names are ordinary vars</strong>: <code>+</code> and <code>=</code> can be shadowed in a namespace or a local binding, so a reader resolves the symbol from the current scope (T8).</li>
-<li>✅ <strong><code>clojure.spec</code> checks a boundary on demand</strong>: a spec declares the shape of arguments and results, and <code>instrument</code> turns it into a run-time assertion where a program chooses to.</li>
+<li>✅ <strong>Protocols decouple behaviour from inheritance</strong>: <code>defprotocol</code> declares a set of functions, and <code>extend-type</code> and <code>extend-protocol</code> implement them for any type, including Java classes and <code>nil</code>, so behaviour is added without a class hierarchy</li>
+<li>❌ <strong>Dynamic typing defers every type check to run time</strong>: A function declares no parameter or return type, so a mismatch is found when the value is used (T1)</li>
+<li>❌ <strong>Protocol dispatch resolves at run time</strong>: The implementation is chosen from the value’s type when the call executes, and a type with no implementation fails then (T3)</li>
+<li>❌ <strong>No sum types and no generics</strong>: Alternatives are tagged maps or <code>:type</code> keywords by convention, and a function accepts any value, so neither the case set nor the argument shape is checked by the compiler (T4, T5)</li>
+<li>⚠️ <strong>Operator names are ordinary vars</strong>: <code>+</code> and <code>=</code> can be shadowed in a namespace or a local binding, so a reader resolves the symbol from the current scope (T8)</li>
+<li>✅ <strong><code>clojure.spec</code> checks a boundary on demand</strong>: A spec declares the shape of arguments and results, and <code>instrument</code> turns it into a run-time assertion where a program chooses to</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>✅ <strong>Immutable structures decouple a change from its readers</strong>: <code>assoc</code>, <code>conj</code>, and <code>update</code> return a new value and leave the old one intact, so a reader that holds the earlier value sees no change.</li>
-<li>✅ <strong>Persistent structures share their unchanged parts</strong>: a vector, map, or set update copies only the changed path, so immutability does not cost a full copy.</li>
-<li>✅ <strong><code>let</code> scopes a binding to its form</strong>: a value’s lifetime is its lexical form, so construction does not depend on a declaration elsewhere.</li>
-<li>✅ <strong>Records separate data from behaviour</strong>: <code>defrecord</code> gives an associative value with named fields, and plain functions operate on it without a class that owns them.</li>
-<li>✅ <strong>Macros extend the surface syntax without changing the core</strong>: <code>defmacro</code> transforms forms at compile time, so a domain notation is added outside the language.</li>
-<li>⚠️ <strong>Top-level <code>def</code> state is globally visible</strong>: a <code>def</code> or <code>defonce</code> var is reachable from every namespace, and <code>alter-var-root</code> can rebind it, so shared state needs discipline.</li>
+<li>✅ <strong>Immutable structures decouple a change from its readers</strong>: <code>assoc</code>, <code>conj</code>, and <code>update</code> return a new value and leave the old one intact, so a reader that holds the earlier value sees no change</li>
+<li>✅ <strong>Persistent structures share their unchanged parts</strong>: A vector, map, or set update copies only the changed path, so immutability does not cost a full copy</li>
+<li>✅ <strong><code>let</code> scopes a binding to its form</strong>: A value’s lifetime is its lexical form, so construction does not depend on a declaration elsewhere</li>
+<li>✅ <strong>Records separate data from behaviour</strong>: <code>defrecord</code> gives an associative value with named fields, and plain functions operate on it without a class that owns them</li>
+<li>✅ <strong>Macros extend the surface syntax without changing the core</strong>: <code>defmacro</code> transforms forms at compile time, so a domain notation is added outside the language</li>
+<li>⚠️ <strong>Top-level <code>def</code> state is globally visible</strong>: A <code>def</code> or <code>defonce</code> var is reachable from every namespace, and <code>alter-var-root</code> can rebind it, so shared state needs discipline</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>❌ <strong>The JVM garbage collector pauses the program</strong>: reclamation timing is the collector’s decision, so a latency-sensitive path cannot assume a bound (M2).</li>
-<li>❌ <strong>No RAII</strong>: destruction is not tied to scope, and <code>finalize</code> and <code>java.lang.ref.Cleaner</code> are unreliable, so release must be explicit (M3).</li>
-<li>❌ <strong>No ownership model</strong>: a value can be referenced from anywhere on the heap, and the collector reclaims it only after the last reference disappears (M4).</li>
-<li>✅ <strong>Immutable values make sharing safe</strong>: because a value cannot change in place, handing the same reference to another thread cannot alter the first holder’s view.</li>
-<li>✅ <strong><code>with-open</code> releases a resource at scope exit</strong>: the macro expands to <code>try</code>/<code>finally</code>, so a file, socket, or stream is closed even on an exception.</li>
-<li>✅ <strong>Direct buffers keep bulk data off the managed heap</strong>: <code>java.nio.ByteBuffer.allocateDirect</code> and primitive arrays reduce collector pressure on large payloads.</li>
+<li>❌ <strong>The JVM garbage collector pauses the program</strong>: Reclamation timing is the collector’s decision, so a latency-sensitive path cannot assume a bound (M2)</li>
+<li>❌ <strong>No RAII</strong>: Destruction is not tied to scope, and <code>finalize</code> and <code>java.lang.ref.Cleaner</code> are unreliable, so release must be explicit (M3)</li>
+<li>❌ <strong>No ownership model</strong>: A value can be referenced from anywhere on the heap, and the collector reclaims it only after the last reference disappears (M4)</li>
+<li>✅ <strong>Immutable values make sharing safe</strong>: Because a value cannot change in place, handing the same reference to another thread cannot alter the first holder’s view</li>
+<li>✅ <strong><code>with-open</code> releases a resource at scope exit</strong>: The macro expands to <code>try</code>/<code>finally</code>, so a file, socket, or stream is closed even on an exception</li>
+<li>✅ <strong>Direct buffers keep bulk data off the managed heap</strong>: <code>java.nio.ByteBuffer.allocateDirect</code> and primitive arrays reduce collector pressure on large payloads</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>❌ <strong>Exceptions are unchecked</strong>: a JVM exception propagates without declaration, so a function’s failure set is not visible in its signature (Er2).</li>
-<li>✅ <strong><code>ex-info</code> carries a data map</strong>: <code>ex-info</code> attaches a map that <code>ex-data</code> reads, so a handler inspects structured context instead of parsing a message.</li>
-<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> separates the recovery path</strong>: recovery code sits in a dedicated form beside the normal path.</li>
-<li>✅ <strong>Function preconditions and postconditions are declarative</strong>: <code>:pre</code> and <code>:post</code> in a <code>defn</code> attribute map check a call and its result at run time.</li>
-<li>⚠️ <strong>A failure surfaces only when the value is used</strong>: with no declared types there is no compile-time list of what a call can raise.</li>
+<li>❌ <strong>Exceptions are unchecked</strong>: A JVM exception propagates without declaration, so a function’s failure set is not visible in its signature (Er2)</li>
+<li>✅ <strong><code>ex-info</code> carries a data map</strong>: <code>ex-info</code> attaches a map that <code>ex-data</code> reads, so a handler inspects structured context instead of parsing a message</li>
+<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> separates the recovery path</strong>: Recovery code sits in a dedicated form beside the normal path</li>
+<li>✅ <strong>Function preconditions and postconditions are declarative</strong>: <code>:pre</code> and <code>:post</code> in a <code>defn</code> attribute map check a call and its result at run time</li>
+<li>⚠️ <strong>A failure surfaces only when the value is used</strong>: With no declared types there is no compile-time list of what a call can raise</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>Immutable data is the default</strong>: a value shared between threads cannot be changed by another thread, so most data needs no lock.</li>
-<li>✅ <strong>Atoms give uncoordinated synchronous change</strong>: <code>swap!</code> and <code>reset!</code> update one reference with compare-and-set semantics, independent of every other reference.</li>
-<li>✅ <strong>Refs and <code>dosync</code> give coordinated STM transactions</strong>: <code>alter</code> inside a transaction commits all its references atomically or retries, so a multi-reference change is isolated and composable.</li>
-<li>✅ <strong>Agents give asynchronous serialised updates</strong>: <code>send</code> and <code>send-off</code> queue an action, and each agent runs its actions in order.</li>
-<li>✅ <strong><code>core.async</code> channels decouple producers from consumers</strong>: <code>chan</code> and <code>go</code> blocks transfer values without shared mutable state.</li>
-<li>⚠️ <strong>A transaction can retry its body</strong>: a conflicting <code>dosync</code> block runs again, so a side effect inside it may happen more than once.</li>
+<li>✅ <strong>Immutable data is the default</strong>: A value shared between threads cannot be changed by another thread, so most data needs no lock</li>
+<li>✅ <strong>Atoms give uncoordinated synchronous change</strong>: <code>swap!</code> updates one reference with compare-and-set semantics and <code>reset!</code> stores a value outright, independent of every other reference</li>
+<li>✅ <strong>Refs and <code>dosync</code> give coordinated STM transactions</strong>: <code>alter</code> inside a transaction commits all its references atomically or retries, so a multi-reference change is isolated and composable</li>
+<li>✅ <strong>Agents give asynchronous serialised updates</strong>: <code>send</code> and <code>send-off</code> queue an action, and each agent runs its actions in order</li>
+<li>✅ <strong><code>core.async</code> channels decouple producers from consumers</strong>: <code>chan</code> and <code>go</code> blocks transfer values without shared mutable state</li>
+<li>⚠️ <strong>A transaction can retry its body</strong>: A conflicting <code>dosync</code> block runs again, so a side effect inside it may happen more than once</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>Full access to the JVM ecosystem</strong>: <code>import</code>, <code>proxy</code>, and <code>gen-class</code> let Clojure call any Java library directly.</li>
-<li>✅ <strong>ClojureScript compiles the same language to JavaScript</strong>: the Google Closure compiler targets the browser and Node.js from the same source.</li>
-<li>✅ <strong><code>.cljc</code> reader conditionals share code across hosts</strong>: one file selects host-specific forms at read time, so common logic stays in one place.</li>
-<li>⚠️ <strong>JVM start-up precedes <code>main</code></strong>: a command-line run pays the JVM initialisation cost before the program executes.</li>
-<li>⚠️ <strong>Host interop couples a namespace to its host</strong>: a namespace that imports <code>java.util.Date</code> cannot run on ClojureScript unless the host-specific parts are isolated.</li>
+<li>✅ <strong>Full access to the JVM ecosystem</strong>: <code>import</code>, <code>proxy</code>, and <code>gen-class</code> let Clojure call any Java library directly</li>
+<li>✅ <strong>ClojureScript compiles the same language to JavaScript</strong>: The Google Closure compiler targets the browser and Node.js from the same source</li>
+<li>✅ <strong><code>.cljc</code> reader conditionals share code across hosts</strong>: One file selects host-specific forms at read time, so common logic stays in one place</li>
+<li>⚠️ <strong>JVM start-up precedes <code>main</code></strong>: A command-line run pays the JVM initialisation cost before the program executes</li>
+<li>⚠️ <strong>Host interop couples a namespace to its host</strong>: A namespace that imports <code>java.util.Date</code> cannot run on ClojureScript unless the host-specific parts are isolated</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Dynamic typing is a deliberate trade</strong>: no declarations speed construction and suit a REPL-first workflow, at the cost of run-time type checking.</li>
-<li><strong>Lisp syntax is the price of homoiconicity</strong>: parentheses and prefix notation buy code-as-data, which is what macros need.</li>
-<li><strong>Simple versus easy is a design value</strong>: Hickey’s distinction favours composable values over convenient wrappers, and that choice shapes the standard library rather than forcing a dependency.</li>
-<li><strong>A hosted language inherits its host’s trade-offs</strong>: JVM start-up and collection come from the platform choice, not from a mechanism of the language.</li>
-<li><strong>REPL-driven development assumes a running image</strong>: the workflow favours exploration and interactive work, which is a team scope decision.</li>
-<li><strong>Clojure is not a systems language</strong>: it assumes a host VM and a collector, which is a scope boundary rather than a defect.</li>
+<li><strong>Dynamic typing is a deliberate trade</strong>: No declarations speed construction and suit a REPL-first workflow, at the cost of run-time type checking</li>
+<li><strong>Lisp syntax is the price of homoiconicity</strong>: Parentheses and prefix notation buy code-as-data, which is what macros need</li>
+<li><strong>Simple versus easy is a design value</strong>: Hickey’s distinction favours composable values over convenient wrappers, and that choice shapes the standard library rather than forcing a dependency</li>
+<li><strong>A hosted language inherits its host’s trade-offs</strong>: JVM start-up and collection come from the platform choice, not from a mechanism of the language</li>
+<li><strong>REPL-driven development assumes a running image</strong>: The workflow favours exploration and interactive work, which is a team scope decision</li>
+<li><strong>Clojure is not a systems language</strong>: It assumes a host VM and a collector, which is a scope boundary rather than a defect</li>
 </ul>
 </section>
 </section>
@@ -1113,80 +1113,80 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>⚠️ <strong>JIT warm-up precedes peak speed</strong>: HotSpot interprets first and compiles hot paths later, so a short-lived process may never reach peak throughput (R3).</li>
-<li>✅ <strong>Hot paths reach native speed</strong>: on a long-running service the JIT compiles the hot loops to machine code.</li>
-<li>✅ <strong>Persistent structures keep update cost logarithmic</strong>: an update shares the unchanged parts, so immutability does not multiply allocation.</li>
-<li>✅ <strong>Transients build a collection in place</strong>: <code>transient</code> and <code>persistent!</code> construct a large collection without intermediate copies where it is not yet shared.</li>
-<li>⚠️ <strong>Boxing and reflection cost throughput</strong>: untyped arithmetic boxes numbers, and a reflective Java call resolves at run time unless a type hint (<code>^</code>) is present.</li>
-<li>⚠️ <strong>Start-up is slow</strong>: JVM initialisation and namespace loading make a short command-line program slower than a native binary.</li>
+<li>⚠️ <strong>JIT warm-up precedes peak speed</strong>: HotSpot interprets first and compiles hot paths later, so a short-lived process may never reach peak throughput (R3)</li>
+<li>✅ <strong>Hot paths reach native speed</strong>: On a long-running service the JIT compiles the hot loops to machine code</li>
+<li>✅ <strong>Persistent structures keep update cost logarithmic</strong>: An update shares the unchanged parts, so immutability does not multiply allocation</li>
+<li>✅ <strong>Transients build a collection in place</strong>: <code>transient</code> and <code>persistent!</code> construct a large collection without intermediate copies where it is not yet shared</li>
+<li>⚠️ <strong>Boxing and reflection cost throughput</strong>: Untyped arithmetic boxes numbers, and a reflective Java call resolves at run time unless a type hint (<code>^</code>) is present</li>
+<li>⚠️ <strong>Start-up is slow</strong>: JVM initialisation and namespace loading make a short command-line program slower than a native binary</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>The library base is small beside Java and npm</strong>: the number of available libraries is a fraction of those ecosystems (Ec3).</li>
-<li>✅ <strong>The whole JVM library base is reachable</strong>: a <code>deps.edn</code> or Leiningen project resolves Maven artifacts, so Java libraries are used directly.</li>
-<li>✅ <strong>Clojars and Maven give dependency management</strong>: resolution, versioning, and publishing are tooled and reproducible.</li>
-<li>✅ <strong>The core library is small and deliberate</strong>: <code>clojure.core</code> is stable and rarely needs a breaking change.</li>
-<li>⚠️ <strong>Build conventions differ between teams</strong>: Leiningen, <code>deps.edn</code>/<code>tools.deps</code>, and <code>babashka</code> coexist, so project layouts vary.</li>
+<li>❌ <strong>The library base is small beside Java and npm</strong>: The number of available libraries is a fraction of those ecosystems (Ec3)</li>
+<li>✅ <strong>The whole JVM library base is reachable</strong>: A <code>deps.edn</code> or Leiningen project resolves Maven artifacts, so Java libraries are used directly</li>
+<li>✅ <strong>Clojars and Maven give dependency management</strong>: Resolution, versioning, and publishing are tooled and reproducible</li>
+<li>✅ <strong>The core library is small and deliberate</strong>: <code>clojure.core</code> is stable and rarely needs a breaking change</li>
+<li>⚠️ <strong>Build conventions differ between teams</strong>: Leiningen, <code>deps.edn</code>/<code>tools.deps</code>, and <code>babashka</code> coexist, so project layouts vary</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>The core language changes conservatively</strong>: new capability usually arrives as a library, so <code>clojure.core</code> stays stable.</li>
-<li>✅ <strong>Old code keeps running</strong>: releases add functions and rarely remove or change existing behaviour.</li>
-<li>✅ <strong>Reader conditionals support one source for several hosts</strong>: a <code>.cljc</code> file keeps shared code current across Clojure and ClojureScript.</li>
-<li>⚠️ <strong>A new JDK is a platform event</strong>: running on a newer Java release follows the JVM’s schedule, not Clojure’s.</li>
+<li>✅ <strong>The core language changes conservatively</strong>: New capability usually arrives as a library, so <code>clojure.core</code> stays stable</li>
+<li>✅ <strong>Old code keeps running</strong>: Releases add functions and rarely remove or change existing behaviour</li>
+<li>✅ <strong>Reader conditionals support one source for several hosts</strong>: A <code>.cljc</code> file keeps shared code current across Clojure and ClojureScript</li>
+<li>⚠️ <strong>A new JDK is a platform event</strong>: Running on a newer Java release follows the JVM’s schedule, not Clojure’s</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Excellent for web services</strong>: Ring, Compojure, and Reitit express HTTP handling in plain functions and data.</li>
-<li>✅ <strong>Excellent for data processing</strong>: transducers and <code>core.async</code> pipelines process sequences and streams without intermediate collections.</li>
-<li>✅ <strong>The REPL suits exploratory and interactive work</strong>: the running image allows a function to be redefined and retried immediately.</li>
-<li>✅ <strong>ClojureScript reaches the browser</strong>: one language covers frontend and backend.</li>
-<li>⚠️ <strong>Less common for systems and numeric work</strong>: no native memory control and no static numeric types make it unusual for kernels and HPC.</li>
+<li>✅ <strong>Excellent for web services</strong>: Ring, Compojure, and Reitit express HTTP handling in plain functions and data</li>
+<li>✅ <strong>Excellent for data processing</strong>: Transducers and <code>core.async</code> pipelines process sequences and streams without intermediate collections</li>
+<li>✅ <strong>The REPL suits exploratory and interactive work</strong>: The running image allows a function to be redefined and retried immediately</li>
+<li>✅ <strong>ClojureScript reaches the browser</strong>: One language covers frontend and backend</li>
+<li>⚠️ <strong>Less common for systems and numeric work</strong>: No native memory control and no static numeric types make it unusual for kernels and HPC</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>❌ <strong>The learning curve is steep</strong>: it combines Lisp syntax, functional programming, and JVM integration in one language (L1).</li>
-<li>✅ <strong>The core is small and consistent</strong>: <code>clojure.core</code> fits in a reference page, and one data model applies everywhere.</li>
-<li>✅ <strong>The REPL gives immediate feedback</strong>: a form is evaluated at once and its value is visible.</li>
-<li>⚠️ <strong>Macro writing is a second step</strong>: understanding expansion and hygiene takes practice beyond ordinary functions.</li>
-<li>⚠️ <strong>Stack traces cross into the JVM</strong>: a failure reports Java frames and reader positions together.</li>
+<li>❌ <strong>The learning curve is steep</strong>: It combines Lisp syntax, functional programming, and JVM integration in one language (L1)</li>
+<li>✅ <strong>The core is small and consistent</strong>: <code>clojure.core</code> fits in a reference page, and one data model applies everywhere</li>
+<li>✅ <strong>The REPL gives immediate feedback</strong>: A form is evaluated at once and its value is visible</li>
+<li>⚠️ <strong>Macro writing is a second step</strong>: Understanding expansion and hygiene takes practice beyond ordinary functions</li>
+<li>⚠️ <strong>Stack traces cross into the JVM</strong>: A failure reports Java frames and reader positions together</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>Parenthesised forms are uniform</strong>: code and data share the S-expression representation, so there is no grammar beyond lists.</li>
-<li>✅ <strong>Prefix notation removes precedence rules</strong>: <code>(+ 1 2)</code> puts the operator first everywhere.</li>
-<li>✅ <strong>Few special forms</strong>: <code>let</code>, <code>fn</code>, <code>def</code>, <code>if</code>, <code>do</code>, and <code>quote</code> cover most of the core.</li>
-<li>⚠️ <strong>Delimiters are dense</strong>: deep nesting is hard to read without an editor that matches parentheses.</li>
-<li>⚠️ <strong>Threading and reader macros add notation</strong>: <code>-&gt;</code>, <code>-&gt;&gt;</code>, <code>#()</code>, and <code>@</code> are terse and must be learned.</li>
+<li>✅ <strong>Parenthesised forms are uniform</strong>: Code and data share the S-expression representation, so there is no grammar beyond lists</li>
+<li>✅ <strong>Prefix notation removes precedence rules</strong>: <code>(+ 1 2)</code> puts the operator first everywhere</li>
+<li>✅ <strong>Few special forms</strong>: <code>let</code>, <code>fn</code>, <code>def</code>, <code>if</code>, <code>do</code>, and <code>quote</code> cover most of the core</li>
+<li>⚠️ <strong>Delimiters are dense</strong>: Deep nesting is hard to read without an editor that matches parentheses</li>
+<li>⚠️ <strong>Threading and reader macros add notation</strong>: <code>-&gt;</code>, <code>-&gt;&gt;</code>, <code>#()</code>, and <code>@</code> are terse and must be learned</li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong><code>clojure.test</code> is in the core library</strong>: <code>deftest</code>, <code>is</code>, and <code>testing</code> need no external dependency.</li>
-<li>✅ <strong>A test runs against the live image</strong>: code can be redefined and a test re-run without a restart.</li>
-<li>✅ <strong><code>clojure.spec</code> supports generative testing</strong>: <code>clojure.spec.test.alpha/check</code> generates inputs from a spec and validates the results.</li>
-<li>⚠️ <strong>No compiler check finds a broken call site</strong>: with dynamic typing the test suite, not the compiler, catches it.</li>
+<li>✅ <strong><code>clojure.test</code> is in the core library</strong>: <code>deftest</code>, <code>is</code>, and <code>testing</code> need no external dependency</li>
+<li>✅ <strong>A test runs against the live image</strong>: Code can be redefined and a test re-run without a restart</li>
+<li>✅ <strong><code>clojure.spec</code> supports generative testing</strong>: <code>clojure.spec.test.alpha/check</code> generates inputs from a spec and validates the results</li>
+<li>⚠️ <strong>No compiler check finds a broken call site</strong>: With dynamic typing the test suite, not the compiler, catches it</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>✅ <strong>Immutability limits accidental sharing</strong>: a value cannot be mutated behind another holder’s back.</li>
-<li>✅ <strong>No unsafe memory access in the language</strong>: Clojure code cannot forge a pointer, and the JVM verifies bytecode.</li>
-<li>✅ <strong>The JVM’s process and sandbox model applies</strong>: a program runs under the host VM’s isolation.</li>
-<li>⚠️ <strong><code>eval</code> of constructed data is code execution</strong>: <code>clojure.core/read-string</code> can run reader macros, so untrusted input must not reach <code>read</code> or <code>eval</code>.</li>
-<li>⚠️ <strong>A boundary check helps only where it is enabled</strong>: a <code>spec</code> check runs when the program instruments or validates, not automatically.</li>
+<li>✅ <strong>Immutability limits accidental sharing</strong>: A value cannot be mutated behind another holder’s back</li>
+<li>✅ <strong>No unsafe memory access in the language</strong>: Clojure code cannot forge a pointer, and the JVM verifies bytecode</li>
+<li>✅ <strong>The JVM’s process and sandbox model applies</strong>: A program runs under the host VM’s isolation</li>
+<li>⚠️ <strong><code>eval</code> of constructed data is code execution</strong>: <code>clojure.core/read-string</code> can run reader macros, so untrusted input must not reach <code>read</code> or <code>eval</code></li>
+<li>⚠️ <strong>A boundary check helps only where it is enabled</strong>: A <code>spec</code> check runs when the program instruments or validates, not automatically</li>
 </ul>
 </section>
 </section>

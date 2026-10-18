@@ -1028,84 +1028,84 @@ div.csl-indent {
 <p><em>This assessment follows the coupling analysis of the Independent Variation Principle <span class="citation" data-cites="loth2026ivpgraph"><a href="#ref-loth2026ivpgraph" role="doc-biblioref">[1]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="isoSql2023"><a href="#ref-isoSql2023" role="doc-biblioref">[2]</a></span>.</em></p>
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
-<p>This page assesses Transact-SQL in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores.</p>
+<p>This page assesses Transact-SQL in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
 <p><strong>Core coupling 65/100</strong> · <strong>Ecosystem coupling 69/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
-<li>✅ <strong>Static typing over SQL data types</strong>: every variable, parameter, and column has a declared type, and a block that violates it fails at parse or bind time.</li>
-<li>✅ <strong>Table variables and table-valued parameters carry a declared row type</strong>: <code>DECLARE @t TABLE (...)</code> and a user-defined table type pass a typed row set between units.</li>
-<li>✅ <strong>A procedure parameter declares its type and direction</strong>: <code>@p int OUTPUT</code> fixes the type and the direction, so a caller binds to a signature.</li>
-<li>⚠️ <strong><code>DECLARE @name</code> defaults to NULL (T10)</strong>: a declared variable starts as NULL, so an unassigned variable is valid and propagates NULL into the expression.</li>
-<li>⚠️ <strong>NULL comparison needs three-valued logic</strong>: with <code>ANSI_NULLS ON</code> (the default, and the only supported setting since SQL Server 2017), <code>@x = NULL</code> is unknown, so a check needs <code>IS NULL</code>.</li>
-<li>⚠️ <strong>There is no type beyond a SQL data type</strong>: no user-defined sum type or generic exists, so a variant is modelled with nullable columns or a discriminator.</li>
+<li>✅ <strong>Static typing over SQL data types</strong>: Every variable, parameter, and column has a declared type, and a block that violates it fails at parse or bind time</li>
+<li>✅ <strong>Table variables and table-valued parameters carry a declared row type</strong>: <code>DECLARE @t TABLE (...)</code> and a user-defined table type pass a typed row set between units</li>
+<li>✅ <strong>A procedure parameter declares its type and direction</strong>: <code>@p int OUTPUT</code> fixes the type and the direction, so a caller binds to a signature</li>
+<li>⚠️ <strong><code>DECLARE @name</code> defaults to NULL (T10)</strong>: A declared variable starts as NULL, so an unassigned variable is valid and propagates NULL into the expression</li>
+<li>⚠️ <strong>NULL comparison needs three-valued logic</strong>: With <code>ANSI_NULLS ON</code> (the default, and the only supported setting since SQL Server 2017), <code>@x = NULL</code> is unknown, so a check needs <code>IS NULL</code></li>
+<li>⚠️ <strong>There is no type beyond a SQL data type</strong>: No user-defined sum type or generic exists, so a variant is modelled with nullable columns or a discriminator</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
 <h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
 <ul>
-<li>✅ <strong>A stored procedure provides modularity with a declared interface</strong>: <code>CREATE PROCEDURE</code> names the unit, its parameters, and its result, and can return a status value and OUTPUT parameters.</li>
-<li>✅ <strong>A view or an inline table-valued function separates consumers from the query</strong>: the exposed relation is stable while its defining query can change.</li>
-<li>✅ <strong>A table-valued parameter passes a row set without a shared temporary table</strong>: a user-defined table type plus a TVP parameter removes the need for a global temporary table.</li>
-<li>✅ <strong>Set-based statements compose without a cursor</strong>: <code>INSERT ... SELECT</code>, <code>UPDATE ... FROM</code>, and <code>MERGE</code> express the whole transformation in one statement.</li>
-<li>⚠️ <strong>Triggers fire implicitly</strong>: an <code>AFTER</code> or <code>INSTEAD OF</code> trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run.</li>
-<li>⚠️ <strong>Session <code>SET</code> options change the meaning of a statement</strong>: <code>ANSI_NULLS</code>, <code>QUOTED_IDENTIFIER</code>, and <code>DATEFORMAT</code> are captured when a stored procedure is created, so the same text can parse differently elsewhere.</li>
+<li>✅ <strong>A stored procedure provides modularity with a declared interface</strong>: <code>CREATE PROCEDURE</code> names the unit, its parameters, and its result, and can return a status value and OUTPUT parameters</li>
+<li>✅ <strong>A view or an inline table-valued function separates consumers from the query</strong>: The exposed relation is stable while its defining query can change</li>
+<li>✅ <strong>A table-valued parameter passes a row set without a shared temporary table</strong>: A user-defined table type plus a TVP parameter removes the need for a global temporary table</li>
+<li>✅ <strong>Set-based statements compose without a cursor</strong>: <code>INSERT ... SELECT</code>, <code>UPDATE ... FROM</code>, and <code>MERGE</code> express the whole transformation in one statement</li>
+<li>⚠️ <strong>Triggers fire implicitly</strong>: An <code>AFTER</code> or <code>INSTEAD OF</code> trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run</li>
+<li>⚠️ <strong>Session <code>SET</code> options change the meaning of a statement</strong>: <code>ANSI_NULLS</code> and <code>QUOTED_IDENTIFIER</code> are captured when a stored procedure is created, while <code>DATEFORMAT</code> applies when the statement runs, so the same text can parse or convert differently elsewhere</li>
 </ul>
 </section>
 <section id="memory" class="level4" data-number="1.1.3">
 <h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
 <ul>
-<li>✅ <strong>No manual memory management</strong>: the SQL Server buffer pool and the query workspace own the memory, and a batch never names an address.</li>
-<li>✅ <strong>The server grants memory to a query</strong>: the query’s memory grant comes from the server’s calculator or the Resource Governor, so the batch does not request bytes.</li>
-<li>✅ <strong>Buffer pool and <code>tempdb</code> behaviour are server configuration</strong>: <code>max server memory</code>, the <code>tempdb</code> files, and a Resource Governor pool are settings, not batch properties.</li>
-<li>⚠️ <strong>A sort or hash can spill to <code>tempdb</code></strong>: an operation whose grant is too small writes to <code>tempdb</code>, which costs I/O even though the language hides allocation.</li>
-<li>⚠️ <strong>A cursor allocates per fetch</strong>: a row-by-row cursor uses workspace per fetch, so the memory pattern follows the loop.</li>
+<li>✅ <strong>No manual memory management</strong>: The SQL Server buffer pool and the query workspace own the memory, and a batch never names an address</li>
+<li>✅ <strong>The server grants memory to a query</strong>: The query’s memory grant comes from the server’s calculator or the Resource Governor, so the batch does not request bytes</li>
+<li>✅ <strong>Buffer pool and <code>tempdb</code> behaviour are server configuration</strong>: <code>max server memory</code>, the <code>tempdb</code> files, and a Resource Governor pool are settings, not batch properties</li>
+<li>⚠️ <strong>A sort or hash can spill to <code>tempdb</code></strong>: An operation whose grant is too small writes to <code>tempdb</code>, which costs I/O even though the language hides allocation</li>
+<li>⚠️ <strong>A cursor allocates per fetch</strong>: A row-by-row cursor uses workspace per fetch, so the memory pattern follows the loop</li>
 </ul>
 </section>
 <section id="error" class="level4" data-number="1.1.4">
 <h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
 <ul>
-<li>✅ <strong><code>TRY ... CATCH</code> gives a structured path</strong>: the <code>CATCH</code> block runs on error and exposes <code>ERROR_NUMBER</code>, <code>ERROR_MESSAGE</code>, <code>ERROR_SEVERITY</code>, and <code>ERROR_LINE</code>.</li>
-<li>✅ <strong><code>THROW</code> and <code>RAISERROR</code> raise with a number and a message</strong>: <code>THROW 50001, 'msg', 1</code> carries a number, so a handler can branch on it.</li>
-<li>✅ <strong><code>XACT_STATE()</code> and <code>@@TRANCOUNT</code> tell the handler whether the transaction is committable</strong>: a doomed transaction is detectable inside <code>CATCH</code>.</li>
-<li>⚠️ <strong>Errors ignored or non-exhaustive (Er3)</strong>: a <code>CATCH</code> block that swallows the error, or a skipped <code>@@ERROR</code> check, lets the batch continue past the failure.</li>
-<li>⚠️ <strong>Errors do not abort the batch by default</strong>: without <code>SET XACT_ABORT ON</code>, a statement error rolls back that statement and the batch continues.</li>
-<li>⚠️ <strong>Severity decides whether the caller sees the error</strong>: a low-severity error is informational, so the same statement text can pass a caller by.</li>
+<li>✅ <strong><code>TRY ... CATCH</code> gives a structured path</strong>: The <code>CATCH</code> block runs on error and exposes <code>ERROR_NUMBER</code>, <code>ERROR_MESSAGE</code>, <code>ERROR_SEVERITY</code>, and <code>ERROR_LINE</code></li>
+<li>✅ <strong><code>THROW</code> and <code>RAISERROR</code> raise with a number and a message</strong>: <code>THROW 50001, 'msg', 1</code> carries a number, so a handler can branch on it</li>
+<li>✅ <strong><code>XACT_STATE()</code> and <code>@@TRANCOUNT</code> tell the handler whether the transaction is committable</strong>: A doomed transaction is detectable inside <code>CATCH</code></li>
+<li>⚠️ <strong>Errors ignored or non-exhaustive (Er3)</strong>: A <code>CATCH</code> block that swallows the error, or a skipped <code>@@ERROR</code> check, lets the batch continue past the failure</li>
+<li>⚠️ <strong>Errors do not abort the batch by default</strong>: Without <code>SET XACT_ABORT ON</code>, a statement error rolls back that statement and the batch continues</li>
+<li>⚠️ <strong>Severity decides whether the caller sees the error</strong>: A low-severity error is informational, so the same statement text can pass a caller by</li>
 </ul>
 </section>
 <section id="concurrency" class="level4" data-number="1.1.5">
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
-<li>✅ <strong>Transactions group statements atomically</strong>: <code>BEGIN TRANSACTION</code>, <code>COMMIT</code>, and <code>ROLLBACK</code> make a unit of work commit or abort as one.</li>
-<li>✅ <strong>Isolation levels are selectable and versioned</strong>: <code>READ COMMITTED</code> (default), <code>REPEATABLE READ</code>, <code>SERIALIZABLE</code>, and the snapshot levels <code>READ_COMMITTED_SNAPSHOT</code> and <code>ALLOW_SNAPSHOT_ISOLATION</code>.</li>
-<li>✅ <strong>Snapshot isolation removes reader–writer blocking</strong>: with <code>READ_COMMITTED_SNAPSHOT ON</code>, a reader uses row versions and does not block a writer.</li>
-<li>✅ <strong>Set-based statements reduce explicit locking</strong>: one <code>UPDATE</code> moves many rows without a row-by-row lock protocol in application code.</li>
-<li>❌ <strong>Shared mutable state by default (K2)</strong>: <code>SET</code> options, <code>CONTEXT_INFO</code>, and a global temporary table <code>##t</code> are visible to code the caller did not write.</li>
-<li>⚠️ <strong>A locking hint couples the query to the engine’s concurrency model</strong>: <code>WITH (NOLOCK)</code>, <code>UPDLOCK</code>, and <code>READPAST</code> are engine-shaped and must agree with the application’s lock ordering.</li>
+<li>✅ <strong>Transactions group statements atomically</strong>: <code>BEGIN TRANSACTION</code>, <code>COMMIT</code>, and <code>ROLLBACK</code> make a unit of work commit or abort as one</li>
+<li>✅ <strong>Isolation levels are selectable and versioned</strong>: <code>READ COMMITTED</code> (default), <code>REPEATABLE READ</code>, <code>SERIALIZABLE</code>, and the snapshot levels <code>READ_COMMITTED_SNAPSHOT</code> and <code>ALLOW_SNAPSHOT_ISOLATION</code></li>
+<li>✅ <strong>Snapshot isolation removes reader–writer blocking</strong>: With <code>READ_COMMITTED_SNAPSHOT ON</code>, a reader uses row versions and does not block a writer</li>
+<li>✅ <strong>Set-based statements reduce explicit locking</strong>: One <code>UPDATE</code> moves many rows without a row-by-row lock protocol in application code</li>
+<li>❌ <strong>Shared mutable state by default (K2)</strong>: <code>SET</code> options, <code>CONTEXT_INFO</code>, and a global temporary table <code>##t</code> are visible to code the caller did not write</li>
+<li>⚠️ <strong>A locking hint couples the query to the engine’s concurrency model</strong>: <code>WITH (NOLOCK)</code>, <code>UPDLOCK</code>, and <code>READPAST</code> are engine-shaped and must agree with the application’s lock ordering</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
 <h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
 <ul>
-<li>✅ <strong>Client interfaces are standard</strong>: ODBC, JDBC, OLE DB, and ADO.NET reach the engine, so a client is not bound to one binary protocol.</li>
-<li>✅ <strong>Bulk interfaces are documented</strong>: <code>bcp</code> and <code>BULK INSERT</code> use a documented format, so data exchange is not tied to an application API.</li>
-<li>⚠️ <strong>Two implementations exist under separate vendors</strong>: Microsoft SQL Server and SAP ASE share a lineage and a core syntax, but the two diverge, and Microsoft and SAP document them separately.</li>
-<li>⚠️ <strong>Azure SQL is the same vendor with a different deployment</strong>: the managed service changes availability, administration, and some features, so code targets a specific surface.</li>
-<li>❌ <strong>Cannot function outside one vendor (P1)</strong>: the language needs SQL Server, Azure SQL, or SAP ASE.</li>
-<li>❌ <strong>The T-SQL surface is engine-specific</strong>: <code>TOP</code>, <code>IDENTITY</code>, <code>GO</code>, the <code>sys</code> catalog views, and the <code>sp_</code> procedures are SQL Server features, so a port to another engine is a rewrite.</li>
+<li>✅ <strong>Client interfaces are standard</strong>: ODBC, JDBC, OLE DB, and ADO.NET reach the engine, so a client is not bound to one binary protocol</li>
+<li>✅ <strong>Bulk interfaces are documented</strong>: <code>bcp</code> and <code>BULK INSERT</code> use a documented format, so data exchange is not tied to an application API</li>
+<li>⚠️ <strong>Two implementations exist under separate vendors</strong>: Microsoft SQL Server and SAP ASE share a lineage and a core syntax, but the two diverge, and Microsoft and SAP document them separately</li>
+<li>⚠️ <strong>Azure SQL is the same vendor with a different deployment</strong>: The managed service changes availability, administration, and some features, so code targets a specific surface</li>
+<li>❌ <strong>Cannot function outside one vendor (P1)</strong>: The language needs SQL Server, Azure SQL, or SAP ASE</li>
+<li>❌ <strong>The T-SQL surface is engine-specific</strong>: <code>TOP</code>, <code>IDENTITY</code>, <code>GO</code>, the <code>sys</code> catalog views, and the <code>sp_</code> procedures are SQL Server features, so a port to another engine is a rewrite</li>
 </ul>
 </section>
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Logic beside the data is deliberate</strong>: keeping a rule in the database guarantees it for every writer.</li>
-<li><strong>A cursor is a deliberate trade for row-by-row work</strong>: it makes a per-row algorithm expressible, at the cost of the set-based model.</li>
-<li><strong>Dynamic SQL is deliberate for DDL and for a flexible query</strong>: <code>sp_executesql</code> and <code>EXEC</code> reach constructs a static statement cannot name.</li>
-<li><strong><code>NOLOCK</code> trades consistency for concurrency</strong>: a reader that accepts dirty reads avoids blocking.</li>
-<li><strong>The engine is proprietary by design</strong>: the licence buys one integrated stack of engine, tooling, and support.</li>
-<li><strong>T-SQL is not a general-purpose language</strong>: the assumption of a SQL Server database is a scope decision.</li>
+<li><strong>Logic beside the data is deliberate</strong>: Keeping a rule in the database guarantees it for every writer</li>
+<li><strong>A cursor is a deliberate trade for row-by-row work</strong>: It makes a per-row algorithm expressible, at the cost of the set-based model</li>
+<li><strong>Dynamic SQL is deliberate for DDL and for a flexible query</strong>: <code>sp_executesql</code> and <code>EXEC</code> reach constructs a static statement cannot name</li>
+<li><strong><code>NOLOCK</code> trades consistency for concurrency</strong>: A reader that accepts dirty reads avoids blocking</li>
+<li><strong>The engine is proprietary by design</strong>: The licence buys one integrated stack of engine, tooling, and support</li>
+<li><strong>T-SQL is not a general-purpose language</strong>: The assumption of a SQL Server database is a scope decision</li>
 </ul>
 </section>
 </section>
@@ -1114,87 +1114,87 @@ div.csl-indent {
 <section id="performance" class="level4" data-number="1.2.1">
 <h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
 <ul>
-<li>✅ <strong>A cost-based optimiser with a plan cache executes a statement</strong>: a procedure’s plan can be reused, so the caller does not choose an access path.</li>
-<li>✅ <strong>A columnstore index and batch mode scan analytically</strong>: <code>CREATE COLUMNSTORE INDEX</code> plus batch mode processes a large scan in vectorised batches.</li>
-<li>✅ <strong>Query Store records plans and regressions</strong>: an operator can see a plan change and force a previous plan.</li>
-<li>✅ <strong>In-memory OLTP tables are lock-free and memory-optimised</strong>: <code>MEMORY_OPTIMIZED = ON</code> tables and natively compiled procedures remove latch contention.</li>
-<li>⚠️ <strong>Parameter sniffing can choose a plan for the wrong input</strong>: a cached plan built for one parameter value can be poor for another.</li>
-<li>⚠️ <strong>A plan can regress without a query change</strong>: new statistics, a version upgrade, or a changed data volume can select a worse plan.</li>
+<li>✅ <strong>A cost-based optimiser with a plan cache executes a statement</strong>: A procedure’s plan can be reused, so the caller does not choose an access path</li>
+<li>✅ <strong>A columnstore index and batch mode scan analytically</strong>: <code>CREATE COLUMNSTORE INDEX</code> plus batch mode processes a large scan in vectorised batches</li>
+<li>✅ <strong>Query Store records plans and regressions</strong>: An operator can see a plan change and force a previous plan</li>
+<li>✅ <strong>In-memory OLTP tables are lock-free and memory-optimised</strong>: <code>MEMORY_OPTIMIZED = ON</code> tables and natively compiled procedures remove latch contention</li>
+<li>⚠️ <strong>Parameter sniffing can choose a plan for the wrong input</strong>: A cached plan built for one parameter value can be poor for another</li>
+<li>⚠️ <strong>A plan can regress without a query change</strong>: New statistics, a version upgrade, or a changed data volume can select a worse plan</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>✅ <strong>Tooling is mature and first-party</strong>: SQL Server Management Studio, Azure Data Studio, and <code>sqlcmd</code> cover administration and query work.</li>
-<li>✅ <strong>The market and the hiring pool are large</strong>: SQL Server is widely deployed in Microsoft environments, so documentation, training, and consultants are abundant.</li>
-<li>✅ <strong>Cloud deployment is a first-party service</strong>: Azure SQL Database and Managed Instance run the same engine with a managed administration model.</li>
-<li>❌ <strong>Proprietary (Ec4)</strong>: the engine, the tooling, and the support come from Microsoft (and, for ASE, from SAP) under licence.</li>
-<li>⚠️ <strong>The ASE toolchain is separate from the SQL Server toolchain</strong>: SAP maintains its own documentation, tools, and support, so knowledge does not transfer freely.</li>
+<li>✅ <strong>Tooling is mature and first-party</strong>: SQL Server Management Studio, Azure Data Studio, and <code>sqlcmd</code> cover administration and query work</li>
+<li>✅ <strong>The market and the hiring pool are large</strong>: SQL Server is widely deployed in Microsoft environments, so documentation, training, and consultants are abundant</li>
+<li>✅ <strong>Cloud deployment is a first-party service</strong>: Azure SQL Database and Managed Instance run the same engine with a managed administration model</li>
+<li>❌ <strong>Proprietary (Ec4)</strong>: The engine, the tooling, and the support come from Microsoft (and, for ASE, from SAP) under licence</li>
+<li>⚠️ <strong>The ASE toolchain is separate from the SQL Server toolchain</strong>: SAP maintains its own documentation, tools, and support, so knowledge does not transfer freely</li>
 </ul>
 </section>
 <section id="evolution" class="level4" data-number="1.2.3">
 <h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
 <ul>
-<li>✅ <strong>The release cadence is regular and active</strong>: SQL Server ships a major release periodically, and Azure SQL receives continuous updates.</li>
-<li>✅ <strong>A compatibility level keeps old behaviour</strong>: a database at an older compatibility level keeps the older optimiser and syntax behaviour while the engine is upgraded.</li>
-<li>✅ <strong>The engine leads the standard</strong>: <code>TRY ... CATCH</code>, <code>MERGE</code>, window functions, and JSON support arrived as engine features, so users get them without waiting for the standard.</li>
-<li>⚠️ <strong>A deprecated feature is warned and then removed</strong>: the documentation lists deprecated features, and an upgrade can require edits.</li>
-<li>⚠️ <strong>Feature availability differs by edition and deployment</strong>: an Enterprise feature or an Azure-only feature may not exist on a local Standard edition.</li>
+<li>✅ <strong>The release cadence is regular and active</strong>: SQL Server ships a major release periodically, and Azure SQL receives continuous updates</li>
+<li>✅ <strong>A compatibility level keeps old behaviour</strong>: A database at an older compatibility level keeps the older optimiser and syntax behaviour while the engine is upgraded</li>
+<li>✅ <strong>The engine leads the standard</strong>: <code>TRY ... CATCH</code>, <code>MERGE</code>, window functions, and JSON support arrived as engine features, so users get them without waiting for the standard</li>
+<li>⚠️ <strong>A deprecated feature is warned and then removed</strong>: The documentation lists deprecated features, and an upgrade can require edits</li>
+<li>⚠️ <strong>Feature availability differs by edition and deployment</strong>: An Enterprise feature or an Azure-only feature may not exist on a local Standard edition</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
 <h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
 <ul>
-<li>✅ <strong>Excellent fit for transactional and analytical logic in the database</strong>: a stored procedure runs beside the data with a plan and a transaction.</li>
-<li>✅ <strong>One language spans OLTP and analytics</strong>: set-based DML, window functions, and a columnstore scan all live in the same language.</li>
-<li>✅ <strong>The surrounding pipeline is first-party</strong>: Integration Services, the Agent scheduler, and Reporting Services cover the rest of a data workflow.</li>
-<li>❌ <strong>Domain and vendor lock-in (D1)</strong>: the language exists inside SQL Server or SAP ASE, so both the domain and the vendor are fixed.</li>
-<li>⚠️ <strong>Procedural row logic reads poorly</strong>: a row-by-row algorithm in a cursor is verbose and slow beside its set-based equivalent.</li>
-<li>⚠️ <strong>It is not a runtime for arbitrary programs</strong>: the language assumes a SQL Server database and a set-based workload.</li>
+<li>✅ <strong>Excellent fit for transactional and analytical logic in the database</strong>: A stored procedure runs beside the data with a plan and a transaction</li>
+<li>✅ <strong>One language spans OLTP and analytics</strong>: Set-based DML, window functions, and a columnstore scan all live in the same language</li>
+<li>✅ <strong>The surrounding pipeline is first-party</strong>: Integration Services, the Agent scheduler, and Reporting Services cover the rest of a data workflow</li>
+<li>❌ <strong>Domain and vendor lock-in (D1)</strong>: The language exists inside SQL Server or SAP ASE, so both the domain and the vendor are fixed</li>
+<li>⚠️ <strong>Procedural row logic reads poorly</strong>: A row-by-row algorithm in a cursor is verbose and slow beside its set-based equivalent</li>
+<li>⚠️ <strong>It is not a runtime for arbitrary programs</strong>: The language assumes a SQL Server database and a set-based workload</li>
 </ul>
 </section>
 <section id="learning" class="level4" data-number="1.2.5">
 <h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
 <ul>
-<li>✅ <strong>Gentle for a SQL developer</strong>: a procedure with <code>BEGIN ... END</code>, <code>TRY ... CATCH</code>, and <code>SELECT ... INTO</code> is readable to anyone who knows SQL.</li>
-<li>✅ <strong>Documentation and examples are complete</strong>: the Microsoft T-SQL reference documents every statement with examples.</li>
-<li>⚠️ <strong>The procedural and the set-based model coexist</strong>: a developer must choose between a cursor and a set-based statement, and the wrong choice shows up as a performance problem.</li>
-<li>⚠️ <strong>NULL handling must be learned</strong>: with <code>ANSI_NULLS ON</code>, <code>= NULL</code> never matches, and a comparison with NULL yields unknown.</li>
-<li>⚠️ <strong>Plan and locking behaviour is a separate body of knowledge</strong>: performance work means reading plans and lock waits rather than syntax.</li>
-<li>⚠️ <strong>The SAP ASE dialect diverges in details</strong>: differences in <code>GO</code>, <code>IDENTITY</code>, and built-in functions mean knowledge transfers only in part.</li>
+<li>✅ <strong>Gentle for a SQL developer</strong>: A procedure with <code>BEGIN ... END</code>, <code>TRY ... CATCH</code>, and <code>SELECT ... INTO</code> is readable to anyone who knows SQL</li>
+<li>✅ <strong>Documentation and examples are complete</strong>: The Microsoft T-SQL reference documents every statement with examples</li>
+<li>⚠️ <strong>The procedural and the set-based model coexist</strong>: A developer must choose between a cursor and a set-based statement, and the wrong choice shows up as a performance problem</li>
+<li>⚠️ <strong>NULL handling must be learned</strong>: With <code>ANSI_NULLS ON</code>, <code>= NULL</code> never matches, and a comparison with NULL yields unknown</li>
+<li>⚠️ <strong>Plan and locking behaviour is a separate body of knowledge</strong>: Performance work means reading plans and lock waits rather than syntax</li>
+<li>⚠️ <strong>The SAP ASE dialect diverges in details</strong>: Differences in <code>GO</code>, <code>IDENTITY</code>, and built-in functions mean knowledge transfers only in part</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
 <h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
 <ul>
-<li>✅ <strong>Keyword-based and readable</strong>: <code>SELECT ... FROM ... WHERE</code> and <code>BEGIN ... END</code> read close to English.</li>
-<li>✅ <strong>A procedure is a readable unit</strong>: the parameter list, the body, and the <code>RETURN</code> value are declared in one <code>CREATE PROCEDURE</code> statement.</li>
-<li>✅ <strong><code>GO</code> marks a batch boundary in a script</strong>: the client tool sends the batch, so the boundary is visible in the source.</li>
-<li>⚠️ <strong><code>SET</code> options prefix every script</strong>: <code>SET NOCOUNT ON</code>, <code>ANSI_NULLS ON</code>, and <code>QUOTED_IDENTIFIER ON</code> are usually written at the top, so the boilerplate grows.</li>
-<li>⚠️ <strong><code>@</code> and <code>@@</code> distinguish kinds of variable by convention</strong>: a local variable, a parameter, and a global function share the sigil, so a reader distinguishes them by spelling.</li>
-<li>⚠️ <strong>Identifier quoting depends on a setting</strong>: <code>[name]</code> and <code>"name"</code> both quote an identifier, and the second form needs <code>QUOTED_IDENTIFIER ON</code>.</li>
+<li>✅ <strong>Keyword-based and readable</strong>: <code>SELECT ... FROM ... WHERE</code> and <code>BEGIN ... END</code> read close to English</li>
+<li>✅ <strong>A procedure is a readable unit</strong>: The parameter list, the body, and the <code>RETURN</code> value are declared in one <code>CREATE PROCEDURE</code> statement</li>
+<li>✅ <strong><code>GO</code> marks a batch boundary in a script</strong>: The client tool sends the batch, so the boundary is visible in the source</li>
+<li>⚠️ <strong><code>SET</code> options prefix every script</strong>: <code>SET NOCOUNT ON</code>, <code>ANSI_NULLS ON</code>, and <code>QUOTED_IDENTIFIER ON</code> are usually written at the top, so the boilerplate grows</li>
+<li>⚠️ <strong><code>@</code> and <code>@@</code> distinguish kinds of variable by convention</strong>: A local variable, a parameter, and a global function share the sigil, so a reader distinguishes them by spelling</li>
+<li>⚠️ <strong>Identifier quoting depends on a setting</strong>: <code>[name]</code> and <code>"name"</code> both quote an identifier, and the second form needs <code>QUOTED_IDENTIFIER ON</code></li>
 </ul>
 </section>
 <section id="testing" class="level4" data-number="1.2.7">
 <h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
 <ul>
-<li>✅ <strong><code>tSQLt</code> is the established framework</strong>: an open-source unit-test framework runs test classes with mocked tables and assertions.</li>
-<li>✅ <strong><code>TRY ... CATCH</code> makes a unit test expressible in the language</strong>: a test procedure asserts and <code>THROW</code>s on a mismatch.</li>
-<li>✅ <strong>A transaction wraps a test and rolls it back</strong>: the database is unchanged after the test.</li>
-<li>✅ <strong>Error metadata supports an assertion on a failure path</strong>: <code>ERROR_NUMBER</code> and <code>ERROR_MESSAGE</code> inside <code>CATCH</code> let a test check the rejection.</li>
-<li>⚠️ <strong>The base product ships no test framework</strong>: <code>tSQLt</code> is a third-party install, so a suite depends on deployment and permissions.</li>
-<li>⚠️ <strong>A server-side suite needs a server</strong>: the harness needs a SQL Server instance, so the tests couple to infrastructure.</li>
+<li>✅ <strong><code>tSQLt</code> is the established framework</strong>: An open-source unit-test framework runs test classes with mocked tables and assertions</li>
+<li>✅ <strong><code>TRY ... CATCH</code> makes a unit test expressible in the language</strong>: A test procedure asserts and <code>THROW</code>s on a mismatch</li>
+<li>✅ <strong>A transaction wraps a test and rolls it back</strong>: The database is unchanged after the test</li>
+<li>✅ <strong>Error metadata supports an assertion on a failure path</strong>: <code>ERROR_NUMBER</code> and <code>ERROR_MESSAGE</code> inside <code>CATCH</code> let a test check the rejection</li>
+<li>⚠️ <strong>The base product ships no test framework</strong>: <code>tSQLt</code> is a third-party install, so a suite depends on deployment and permissions</li>
+<li>⚠️ <strong>A server-side suite needs a server</strong>: The harness needs a SQL Server instance, so the tests couple to infrastructure</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>✅ <strong><code>sp_executesql</code> with parameters removes the injection surface</strong>: <code>EXEC sp_executesql N'SELECT ... WHERE x = @p', N'@p int', @p = 1</code> passes the value out of band.</li>
-<li>✅ <strong><code>GRANT</code>, <code>DENY</code>, and <code>REVOKE</code> with roles express least privilege</strong>: access is declared per object, per schema, and per role.</li>
-<li>✅ <strong>Row-level security limits what a statement can see</strong>: a <code>SECURITY POLICY</code> with a predicate function filters rows by the caller’s identity.</li>
-<li>✅ <strong><code>EXECUTE AS</code> makes the effective identity explicit</strong>: a procedure can run as its owner or as a named user.</li>
-<li>❌ <strong>Known vulnerability/injection (Q3)</strong>: a statement built with <code>EXEC (@sql)</code> from concatenated input lets the input become code.</li>
-<li>⚠️ <strong>Dynamic SQL and owner-rights execution re-open the risk</strong>: <code>EXEC</code> on a built string, <code>sp_OA*</code> procedures, and <code>xp_cmdshell</code> where enabled defeat parameterisation.</li>
+<li>✅ <strong><code>sp_executesql</code> with parameters removes the injection surface</strong>: <code>EXEC sp_executesql N'SELECT ... WHERE x = @p', N'@p int', @p = 1</code> passes the value out of band</li>
+<li>✅ <strong><code>GRANT</code>, <code>DENY</code>, and <code>REVOKE</code> with roles express least privilege</strong>: Access is declared per object, per schema, and per role</li>
+<li>✅ <strong>Row-level security limits what a statement can see</strong>: A <code>SECURITY POLICY</code> with a predicate function filters rows by the caller’s identity</li>
+<li>✅ <strong><code>EXECUTE AS</code> makes the effective identity explicit</strong>: A procedure can run as its owner or as a named user</li>
+<li>❌ <strong>Known vulnerability/injection (Q3)</strong>: A statement built with <code>EXEC (@sql)</code> from concatenated input lets the input become code</li>
+<li>⚠️ <strong>Dynamic SQL and owner-rights execution re-open the risk</strong>: <code>EXEC</code> on a built string, <code>sp_OA*</code> procedures, and <code>xp_cmdshell</code> where enabled defeat parameterisation</li>
 </ul>
 </section>
 </section>
