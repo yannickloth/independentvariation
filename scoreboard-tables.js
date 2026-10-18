@@ -43,6 +43,7 @@
   }
   const CORE_COL = colOf(found.combined, "Core Coupling");
   const META_COL = colOf(found.combined, "Ecosystem Coupling");
+  const RANK_COL = colOf(found.combined, "Rank");
 
   const rowsOf = (table) => Array.from(table.tBodies[0].rows);
   // "Rust (1.96)" and "Ada (2022)" reduce to the language name.
@@ -53,14 +54,18 @@
   for (const row of rowsOf(found.combined)) {
     const key = keyOf(found.combined, row);
     index.set(key, {
+      // The rank column IS the published ordering: Core coupling, then
+      // Ecosystem coupling. Sorting by rank therefore reproduces the numbers.
+      rank: Number(row.cells[RANK_COL].textContent.trim()),
       core: Number(row.cells[CORE_COL].textContent.trim()),
       meta: Number(row.cells[META_COL].textContent.trim()),
       name: key,
     });
   }
 
-  // Each key has a natural direction: scores rank best-first, names read A–Z.
-  const NATURAL = { core: -1, meta: -1, name: 1 };
+  // Each key has a natural direction: the rank reads best-first, scores rank
+  // highest-first, names read A–Z.
+  const NATURAL = { core: 1, meta: -1, name: 1 };
   let sort = "core";
   let dir = NATURAL[sort];
   let query = "";
@@ -68,8 +73,13 @@
   const ordered = () => {
     const keys = Array.from(index.values());
     keys.sort((a, b) => {
-      const raw = sort === "name" ? a.name.localeCompare(b.name) : a[sort] - b[sort];
-      return dir * raw || a.name.localeCompare(b.name);
+      let raw;
+      if (sort === "name") raw = a.name.localeCompare(b.name);
+      else if (sort === "core") raw = a.rank - b.rank; // rank = Core, then Ecosystem
+      else raw = a.meta - b.meta;
+      // Ties keep the published order, so the Rank column always reads in
+      // sequence when the table is ordered by rank.
+      return dir * raw || a.rank - b.rank;
     });
     return keys.map((k) => k.name);
   };
@@ -129,9 +139,9 @@
   const button = bar.querySelector("#scoreboard-dir");
 
   const labelDir = () => {
-    button.textContent = dir === 1
-      ? (sort === "name" ? "A \u2192 Z" : "Lowest first")
-      : (sort === "name" ? "Z \u2192 A" : "Highest first");
+    if (sort === "name") button.textContent = dir === 1 ? "A \u2192 Z" : "Z \u2192 A";
+    else if (sort === "core") button.textContent = dir === 1 ? "Best first" : "Worst first";
+    else button.textContent = dir === 1 ? "Highest first" : "Lowest first";
   };
 
   filter.addEventListener("input", () => { query = filter.value; apply(); });
