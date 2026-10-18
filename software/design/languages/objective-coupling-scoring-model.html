@@ -1182,6 +1182,7 @@ div.csl-indent {
 <li><strong><code>M2</code> — the collector’s schedule.</strong> Present when the run time reclaims memory on its own schedule rather than at the last reference, so the program cannot name when the heap shrinks. Deterministic reclamation is not charged: Swift’s ARC and Delphi’s strings and interfaces release at the last reference, and Delphi on Windows frees objects explicitly. Objective-C is charged, because an autorelease pool defers a release past the last reference and a Core Foundation handle is released by hand. The collector must be the one that reclaims the language’s own objects: a language that compiles to another scored language inherits that language’s collector (TypeScript inherits JavaScript’s), while a language whose artifact is consumed by a host rather than executed as its own objects is not charged here (a Rocq term is checked by the kernel, and a Scratch project runs inside the Scratch VM).</li>
 <li><strong><code>R2</code> — the collector’s pause.</strong> Present when the page records the collector’s pause as a cost the program must absorb — a ⚠️ or ❌ bullet on the pause itself, on a stop-the-world cycle, or on the program’s lack of control over the pause. Absent when the page names no collector cost at all, and absent when the page records the opposite (bounded collector steps, per-process collection, a collector mode stated as a strength). The mark is thus the page’s own assessment of its collector, which is what keeps the charge set checkable: where the page states the pause as a cost, the mechanism is charged.</li>
 </ul>
+<p><strong>A mitigation is not an absence.</strong> Some languages offer an opt-in construct that avoids a mechanism: <code>@CompileStatic</code> in Groovy, <code>try-with-resources</code> in Java, <code>reified</code> in Kotlin, a lint rule, or a flag the initialiser does not set. The mechanism stays charged. The default code still pays it, and avoiding it needs knowledge that the language does not force. That is deliberate: the model measures what the <em>language</em> imposes, not what a disciplined team can achieve with the same language. If a mitigation lowered the score, two teams on one language would score differently, and the language would have no score. The mitigation is recorded on the page as a strength or a trade-off, never as a discount. The line between a mitigation and an absence is the project-switch rule above: what a new project gets without a decision is the language’s; what the developer must know to turn on is a discipline.</p>
 </section>
 </section>
 <section id="how-to-reproduce-a-score" class="level2" data-number="1.3">
@@ -1392,53 +1393,39 @@ div.csl-indent {
 <td><code>Ec3</code></td>
 </tr>
 <tr class="odd">
-<td><strong>Delphi</strong> (12.3)</td>
-<td>61</td>
-<td>84</td>
-<td><code>T4, C2, M1, M3, M4, Er2, K3</code></td>
-<td><code>Ec3, S1</code></td>
-</tr>
-<tr class="even">
 <td><strong>D</strong> (2.112)</td>
 <td>61</td>
 <td>84</td>
 <td><code>T8, C2, M2, M3, M4, Er2, K3</code></td>
 <td><code>R2, Ec3</code></td>
 </tr>
-<tr class="odd">
-<td><strong>Kotlin</strong> (2.4)</td>
-<td>61</td>
-<td>76</td>
-<td><code>T8, C2, M2, M3, M4, Er2, K3</code></td>
-<td><code>R2, R3, L2, Ec6</code></td>
-</tr>
 <tr class="even">
-<td><strong>Nim</strong> (2.2)</td>
-<td>61</td>
-<td>64</td>
-<td><code>T8, C2, M2, M4, Er2, K3</code></td>
-<td><code>R2, Ec3, V1, L2, G2</code></td>
-</tr>
-<tr class="odd">
 <td><strong>Tcl</strong> (9.0)</td>
 <td>58</td>
 <td>77</td>
 <td><code>T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er3, P2</code></td>
 <td><code>Ec3, Q2, Q3</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Solidity</strong> (0.8.x)</td>
 <td>58</td>
 <td>61</td>
 <td><code>T4, C4, Er3, K1, P1</code></td>
 <td><code>Ec3, D1, L1, Q3</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>F#</strong> (9)</td>
 <td>57</td>
 <td>84</td>
 <td><code>T8, T10, M2, M3, M4, Er2, K3</code></td>
 <td><code>R2, R3, L2</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Kotlin</strong> (2.4)</td>
+<td>57</td>
+<td>76</td>
+<td><code>T7, T8, C2, M2, M3, M4, Er2, K3</code></td>
+<td><code>R2, R3, L2, Ec6</code></td>
 </tr>
 <tr class="even">
 <td><strong>Scala</strong> (3.8)</td>
@@ -1462,11 +1449,25 @@ div.csl-indent {
 <td><code>R1, Ec1, Ec3, D1, D2, L1, G3, Q2</code></td>
 </tr>
 <tr class="odd">
+<td><strong>Delphi</strong> (12.3)</td>
+<td>54</td>
+<td>84</td>
+<td><code>T4, C2, M1, M3, M4, Er2, K2, K3</code></td>
+<td><code>Ec3, S1</code></td>
+</tr>
+<tr class="even">
 <td><strong>Go</strong> (1.26)</td>
 <td>54</td>
 <td>76</td>
 <td><code>T4, M2, M3, M4, Er2, Er4, K2, K3</code></td>
 <td><code>R2, Ec2, D3</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Nim</strong> (2.2)</td>
+<td>54</td>
+<td>64</td>
+<td><code>T8, C2, M2, M4, Er2, K2, K3</code></td>
+<td><code>R2, Ec3, V1, L2, G2</code></td>
 </tr>
 <tr class="even">
 <td><strong>COBOL</strong> (1989:2023)</td>
@@ -1532,109 +1533,95 @@ div.csl-indent {
 <td><code>R1, D1, L1, G3, Q2, Q3</code></td>
 </tr>
 <tr class="odd">
-<td><strong>Groovy</strong> (5.x)</td>
-<td>46</td>
-<td>80</td>
-<td><code>T1, T3, T7, T8, C2, M2, M3, M4, Er2, K4, P2</code></td>
-<td><code>R2, R3, D3</code></td>
-</tr>
-<tr class="even">
 <td><strong>Visual Basic</strong> (.NET)</td>
 <td>46</td>
 <td>69</td>
 <td><code>T2, T10, C2, M2, M3, M4, Er2, Er3, K3</code></td>
 <td><code>R2, V3, S1</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>PL/SQL</strong> (Oracle)</td>
 <td>46</td>
 <td>61</td>
 <td><code>T10, C1, Er3, Er4, K2, P1</code></td>
 <td><code>Ec4, D1, S1, Q3</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Turbo Pascal</strong> (7.0)</td>
 <td>46</td>
 <td>54</td>
 <td><code>T4, T5, C2, M1, M3, M4, Er1, Er4, K5, P3</code></td>
 <td><code>Ec3, V2, V3, S1, G1, G2</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Lua</strong> (5.5)</td>
 <td>43</td>
 <td>84</td>
 <td><code>T1, T3, T4, T5, T6, T8, C1, C2, M2, M3, M4, Er2, Er3</code></td>
 <td><code>Ec3, L1</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Ksh</strong> (93u+)</td>
 <td>43</td>
 <td>68</td>
 <td><code>T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er1, Er3, Er4, K5, P2</code></td>
 <td><code>R1, Ec1, G1, G3, Q2</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Zsh</strong> (5.9)</td>
 <td>43</td>
 <td>68</td>
 <td><code>T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er1, Er3, Er4, K5, P2</code></td>
 <td><code>R1, Ec1, G1, G3, Q2</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>PowerShell</strong> (7.6)</td>
 <td>43</td>
 <td>65</td>
 <td><code>T1, T4, T5, T10, C2, M2, M3, M4, Er2, Er3, Er4, K3</code></td>
 <td><code>R1, R2, R3, L2, S1, Q3</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>C shell</strong> (tcsh)</td>
 <td>43</td>
 <td>57</td>
 <td><code>T1, T4, T5, T6, T10, T11, C1, C2, Er1, Er3, Er4, K5, P2</code></td>
 <td><code>R1, Ec1, Ec3, G1, G2, G3, Q2</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Sh</strong> (POSIX)</td>
 <td>43</td>
 <td>57</td>
 <td><code>T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er1, Er3, Er4, K5, P2</code></td>
 <td><code>R1, Ec1, V4, G1, G3, Q2, Q3</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Bash</strong> (5.3)</td>
 <td>43</td>
 <td>53</td>
 <td><code>T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er1, Er3, Er4, K5, P2</code></td>
 <td><code>R1, Ec1, Ec3, G1, G3, Q2, Q3</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Fish</strong> (4.0)</td>
 <td>43</td>
 <td>49</td>
 <td><code>T1, T4, T5, T6, T10, T11, C1, C2, Er1, Er3, Er4, K5, P2</code></td>
 <td><code>R1, Ec1, Ec3, D2, G1, G2, G3, Q3</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Objective-C</strong> (2.0)</td>
 <td>42</td>
 <td>65</td>
 <td><code>T3, T6, T7, C2, M2, M3, M4, Er2, K3, P2</code></td>
 <td><code>Ec4, D1, V2, L1</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>VBScript</strong> (6.0)</td>
 <td>40</td>
 <td>39</td>
 <td><code>T1, T6, T11, C1, Er1, P1</code></td>
 <td><code>Ec3, Ec4, D1, V3, G1, Q3</code></td>
-</tr>
-<tr class="odd">
-<td><strong>Julia</strong> (1.12)</td>
-<td>39</td>
-<td>73</td>
-<td><code>T1, C1, C2, M2, M3, M4, Er2, K3</code></td>
-<td><code>R3, Ec3, D1</code></td>
 </tr>
 <tr class="even">
 <td><strong>MATLAB</strong> (R2026a)</td>
@@ -1642,6 +1629,20 @@ div.csl-indent {
 <td>61</td>
 <td><code>T1, C1, C2, M2, M3, M4, Er2, K3</code></td>
 <td><code>R1, Ec4, D1, L1</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Groovy</strong> (5.x)</td>
+<td>38</td>
+<td>80</td>
+<td><code>T1, T3, T7, T8, C2, M2, M3, M4, Er2, K2, K4, P2</code></td>
+<td><code>R2, R3, D3</code></td>
+</tr>
+<tr class="even">
+<td><strong>Julia</strong> (1.12)</td>
+<td>32</td>
+<td>73</td>
+<td><code>T1, T3, C1, C2, M2, M3, M4, Er2, K2, K3</code></td>
+<td><code>R3, Ec3, D1</code></td>
 </tr>
 <tr class="odd">
 <td><strong>Python</strong> (3.14)</td>
@@ -1689,7 +1690,7 @@ div.csl-indent {
 <td><strong>Perl</strong> (5.42)</td>
 <td>28</td>
 <td>53</td>
-<td><code>T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, M3, M4, Er1, Er2, Er3, Er4, K1, K2, K3, K4</code></td>
+<td><code>T1, T3, T4, T5, T6, T9, T10, T11, C1, C2, C4, M3, M4, Er1, Er2, Er3, Er4, K1, K2, K3, K4</code></td>
 <td><code>R1, L1, S2, S3, G3, Q2, Q3</code></td>
 </tr>
 <tr class="even">
