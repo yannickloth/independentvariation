@@ -1035,19 +1035,20 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses TypeScript in three parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind both scores. A ✅ bullet marks a construct that decouples. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 28/100</strong> · <strong>Ecosystem coupling 73/100</strong></p>
+<p><strong>Core coupling 31/100</strong> · <strong>Ecosystem coupling 73/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
 <h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
 <ul>
 <li>✅ <strong>Structural typing decouples from concrete types</strong>: Can pass any object with right shape</li>
-<li>✅ <strong>Union types separate cases</strong>: <code>string | number</code> makes alternatives explicit</li>
+<li>✅ <strong>Union types separate cases</strong>: <code>string | number</code> makes alternatives explicit, and a discriminated union is a checked sum type</li>
 <li>✅ <strong>Generics enable parametric polymorphism</strong>: Decouple from concrete types</li>
-<li>❌ <strong><code>any</code> escape hatch defeats type checking</strong>: Can bypass all compile-time checks, deferring coupling detection to runtime</li>
+<li>✅ <strong><code>strictNullChecks</code> makes absence a checked case</strong>: <code>string</code> and <code>string | null</code> are different types, so a possibly-absent value must be narrowed before use, and <code>T10</code> is absent</li>
+<li>⚠️ <strong><code>any</code> is an explicit opt-out</strong>: <code>strict</code> bans an implicit <code>any</code>, but a written <code>any</code> still drops the check at that spot</li>
 <li>❌ <strong>Type assertions couple to implementation</strong>: <code>as Type</code> forces coupling</li>
-<li>❌ <strong>JavaScript runtime has no type safety</strong>: Types erased at runtime</li>
-<li>❌ <strong>Null/undefined everywhere</strong>: <code>undefined</code> is default, couples to absence handling</li>
+<li>❌ <strong>The artifact carries no types</strong>: Types are erased at run time, so a consumer recovers a type by convention (<code>T7</code>)</li>
+<li>⚠️ <strong>A method call dispatches on the run-time value</strong>: An interface declares the method, but the call reaches the prototype’s implementation at run time (<code>T3</code>)</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
@@ -1221,15 +1222,15 @@ div.csl-indent {
 <td></td>
 <td><code>T2</code></td>
 <td>weak static</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: right;">8</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>T3</code></td>
 <td>dynamic/duck dispatch</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1277,8 +1278,8 @@ div.csl-indent {
 <td></td>
 <td><code>T10</code></td>
 <td>no null-safety</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: right;">8</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1292,7 +1293,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>15</strong></td>
+<td style="text-align: right;"><strong>12</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
@@ -1471,7 +1472,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Core Dimensions score: 28/100</strong> — total points removed = 72 (per-dimension subtotals are clamped at 15).</p>
+<p><strong>Core Dimensions score: 31/100</strong> — total points removed = 69 (per-dimension subtotals are clamped at 15).</p>
 </section>
 <section id="meta-dimensions" class="level4" data-number="1.3.2">
 <h4 data-number="1.3.2" class="anchored" data-anchor-id="meta-dimensions"><span class="header-section-number">1.3.2</span> Meta Dimensions</h4>
@@ -1748,7 +1749,7 @@ div.csl-indent {
 </tbody>
 </table>
 <p><strong>Meta Dimensions score: 73/100</strong> — total points removed = 27 (per-dimension subtotals are clamped at 15).</p>
-<p><strong>Verdict:</strong> TypeScript’s types exist in the editor and the build, not in the running program, so the coupling a TypeScript program imposes at run time is the JavaScript runtime’s: a single-threaded event loop, a collector the program cannot schedule, mutable-by-default objects, and failures that no type tracks. The type layer removes the dynamic-typing mechanisms at compile time and adds <code>using</code>, but the per-dimension clamp is already saturated by JavaScript’s dynamic typing, so the removal does not move the score. TypeScript’s gain is earlier detection, not lower coupling.</p>
+<p><strong>Verdict:</strong> TypeScript keeps less of JavaScript’s type coupling than JavaScript does: <code>strict</code> makes absence a checked case, structural typing and discriminated unions remove the dynamic-typing and sum-type mechanisms, and <code>using</code> ties a release to the scope. What its type layer cannot remove is the JavaScript runtime’s: a single-threaded event loop, a collector the program cannot schedule, unowned mutable objects, and failures that no type tracks. TypeScript therefore scores above JavaScript — 31 against 28 — and both stay in the lowest band, because the runtime coupling dominates.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>

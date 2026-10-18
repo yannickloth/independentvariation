@@ -1176,8 +1176,9 @@ div.csl-indent {
 </section>
 <section id="what-counts-as-present" class="level3" data-number="1.2.3">
 <h3 data-number="1.2.3" class="anchored" data-anchor-id="what-counts-as-present"><span class="header-section-number">1.2.3</span> What counts as present</h3>
-<p>Presence is a factual determination about the language, not about one implementation’s build flags. Two mechanisms need a stated test:</p>
+<p>Presence is a factual determination about the language a programmer can write, not about a team’s house style or a third-party tool. Three determinations need a stated rule:</p>
 <ul>
+<li><strong>A check behind a project switch.</strong> Some mechanisms depend on a compiler switch that the project file sets. The mark uses the configuration the language’s own project initialiser writes for the version shown, because that is what a new project gets without a decision. <code>tsc --init</code> writes <code>"strict": true</code>, and <code>strict</code> sets <code>strictNullChecks</code>, so TypeScript is not charged <code>T10</code>. <code>dotnet new</code> writes <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code>, so C# is not charged <code>T10</code>. Visual Basic’s compiler default is <code>Option Strict Off</code> and the SDK template sets no <code>OptionStrict</code>, so the narrowing conversion is charged <code>T2</code>. Where the initialiser writes no switch, the compiler default governs. A check that only a separate tool supplies is never counted — the <code>mypy</code> case under <code>T1</code>.</li>
 <li><strong><code>M2</code> — the collector’s schedule.</strong> Present when the run time reclaims memory on its own schedule rather than at the last reference, so the program cannot name when the heap shrinks. Deterministic reclamation is not charged: Swift’s ARC and Delphi’s strings and interfaces release at the last reference, and Delphi on Windows frees objects explicitly. Objective-C is charged, because an autorelease pool defers a release past the last reference and a Core Foundation handle is released by hand. The collector must be the one that reclaims the language’s own objects: a language that compiles to another scored language inherits that language’s collector (TypeScript inherits JavaScript’s), while a language whose artifact is consumed by a host rather than executed as its own objects is not charged here (a Rocq term is checked by the kernel, and a Scratch project runs inside the Scratch VM).</li>
 <li><strong><code>R2</code> — the collector’s pause.</strong> Present when the page records the collector’s pause as a cost the program must absorb — a ⚠️ or ❌ bullet on the pause itself, on a stop-the-world cycle, or on the program’s lack of control over the pause. Absent when the page names no collector cost at all, and absent when the page records the opposite (bounded collector steps, per-process collection, a collector mode stated as a strength). The mark is thus the page’s own assessment of its collector, which is what keeps the charge set checkable: where the page states the pause as a cost, the mechanism is charged.</li>
 </ul>
@@ -1658,9 +1659,9 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><strong>TypeScript</strong> (6.0)</td>
-<td>28</td>
+<td>31</td>
 <td>73</td>
-<td><code>T2, T7, T10, C1, C2, M2, M4, Er2, Er3, K1, K2, K3</code></td>
+<td><code>T3, T7, C1, C2, M2, M4, Er2, Er3, K1, K2, K3</code></td>
 <td><code>R2, G3, Q2, Q3</code></td>
 </tr>
 <tr class="even">
