@@ -1,0 +1,531 @@
+{
+  "schemaVersion": 1,
+  "id": "elixir",
+  "name": "Elixir",
+  "assessedAs": "Elixir",
+  "version": "1.20",
+  "title": "Elixir (1.20)",
+  "indexLabel": "Elixir (1.20)",
+  "group": "emerging-specialty",
+  "order": 2,
+  "displayOrder": 13,
+  "presenceOrder": 14,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, M2, Er2",
+    "meta": "G3, L2, Ec6"
+  },
+  "matrixOrder": 16,
+  "tagline": "Modern BEAM",
+  "sbName": "Elixir",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "elixirDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": true,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing**: A term carries its type at run time, so `Map.get/2` on a list fails only when the call executes",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No declared types on functions**: A `def` head names patterns, not types, and the language has no type parameter or generic",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types in the type system**: Alternatives are tagged tuples such as `{:ok, value}` and `{:error, reason}`, checked by pattern matching rather than by a type",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Dispatch is by run-time shape**: A protocol or a pattern chooses a clause from the value it receives, so no static check selects the branch",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@spec` and Dialyzer give optional static analysis**: A success-typing pass detects a call whose arguments contradict the specification",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Gradual set-theoretic types are being added**: The work is in progress, so the language is dynamic today",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Every value is immutable**: A term cannot be changed in place, so construction never aliases mutable state",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`defstruct` declares the record shape**: `%User{name: \"Ada\"}` builds a struct, and an unknown key is a compile-time error",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@enforce_keys` validates at construction**: A struct with required keys cannot be built without them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The pipe operator decouples data flow from nesting**: `data |> parse() |> validate()` reads left to right as a chain of transformations",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Processes hold state, not objects**: A `GenServer` keeps its state inside its own process, and a caller reaches it by message",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Mutable state lives in a named process or table**: `Agent`, `ETS`, and `:persistent_term` give shared state an explicit owner, so a reader can find it and an owner can delete it",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**BEAM collection is non-deterministic**: A process collects its heap when it grows, so the program does not choose the moment",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Each process has a private heap**: A collection pause is per-process and short, and there is no global stop-the-world collection",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No manual deallocation**: The VM reclaims memory, and a program never frees a term",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Large binaries live off-heap and are reference counted**: A binary above the heap-binary threshold is shared between processes rather than copied",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A large live set costs more to collect**: A long-lived `GenServer` that accumulates state pays a higher collection cost",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An ETS table lives outside the collector**: The table persists until its owner deletes it or dies",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: `raise` and `throw` appear in no signature, so a caller cannot read the failure set from the type",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**\"Let it crash\" plus supervision decouples recovery from business logic**: A `Supervisor` restarts a failed child, so the recovery path is not interleaved with the normal path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tagged tuples are the idiom for an expected failure**: `{:ok, value}` and `{:error, reason}` keep the failure inside the returned value",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`with` composes a chain of expected results**: Each `<-` clause fails through to the `else` branch without nesting",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Links and monitors make propagation explicit**: `spawn_link` and `Process.monitor` define which process observes a failure",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The tagged-tuple convention is not a type**: Nothing forces a caller to match the `:error` case, so the discipline is social",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Processes are the unit of concurrency**: A BEAM process shares no memory and communicates by message, so a race between processes cannot occur",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The BEAM schedules preemptively**: A long computation is reduced and rescheduled, so one process cannot block a scheduler",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**OTP gives structured, supervised concurrency**: `Task`, `Task.Supervisor`, `GenServer`, and `Supervisor` are library primitives over the process model",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Immutability removes locks from the model**: A message carries a value, and the receiver holds its own copy of the terms",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Task.async` and `Task.await` pair a spawn with a result**: The caller collects results without a hand-written join",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A slow consumer accumulates messages**: An unbounded mailbox grows until the process is restarted",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The BEAM is the only requirement**: Elixir code runs on any platform that runs an Erlang VM",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Erlang interop is direct**: Elixir calls Erlang modules and libraries without a binding layer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Releases bundle the runtime**: `mix release` packages the BEAM, the application, and its dependencies into one deployable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Nerves keeps the same model on embedded devices**: The build produces a firmware image, and the runtime model is unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The runtime is not a native binary**: A release carries the VM, so the artefact is larger than a compiled C program",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The BEAM is a mature bytecode VM with a JIT**: BeamAsm, added in OTP 24, compiles hot code, so bytecode is not always interpreted",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent for I/O-bound workloads**: Hundreds of thousands of processes can wait on I/O without one thread each",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Per-process collection avoids global pauses**: A collection affects one process, not the whole system",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Reduction-based scheduling keeps latency even**: No process starves another for long",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Weaker for CPU-bound computation**: The BEAM trails native-compiled languages on a tight numeric loop",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A NIF runs on a scheduler thread**: A long-running native function can block other processes on the same scheduler",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**Hex.pm is a mature registry and `mix` is the build tool**: Dependency resolution, build tasks, and release packaging come from one toolchain",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Phoenix, Ecto, and LiveView cover web applications end to end**: Routing, database access, and server-rendered UI are provided by one family",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Erlang libraries are usable through interop**: The OTP libraries arrive with the runtime",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Livebook gives executable notebooks**: Interactive exploration and live documentation are part of the ecosystem",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is a monoculture around Phoenix and OTP**: One framework family dominates, so alternatives are few",
+        "mechanism": "Ec6"
+      },
+      {
+        "kind": "caution",
+        "text": "**The library count is smaller than the JVM or npm**: Fewer general-purpose packages exist",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**`mix.exs` pins an Elixir requirement**: A project states the version range it needs, and `mix` enforces it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The BEAM is stable across decades**: Code written years ago continues to run",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Deprecations warn before removal**: The compiler emits a deprecation warning ahead of a change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`mix format` settles style across the ecosystem**: One formatter removes style drift",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A hot upgrade needs a state migration callback**: `code_change/3` must convert old state to the new shape, so an upgrade is a design task",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for real-time web**: Phoenix Channels push over WebSockets, and LiveView renders on the server",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for distributed, fault-tolerant systems**: OTP supervision and the distribution protocol cover process and node failure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Nerves deploys to embedded devices**: The same runtime runs on a device image",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Back-pressure pipelines are a supported domain**: `GenStage` and `Broadway` build pipeline stages over processes",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Not aimed at CPU-bound numerics**: The BEAM is not designed for tight numerical loops",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Ruby-like syntax lowers the barrier**: Developers from Ruby or another scripting language recognise the form",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The documentation culture is excellent**: HexDocs, guides, and doctests sit with the code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The community is welcoming and growing**: Questions are answered and the ecosystem keeps expanding",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The surface is large**: The language, the OTP behaviours, macros, and the process model must all be learned",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Macros and `quote`/`unquote` are hard**: Metaprogramming is powerful and easy to misuse",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Ruby-inspired syntax is readable**: The `do`/`end` block form and the keyword style read naturally",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The pipe operator reads as data flow**: `|>` threads a value through a chain of calls",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pattern matching replaces nested conditionals**: A multi-clause function is a case analysis",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Structs and maps have literal syntax**: `%User{name: \"Ada\"}` and `%{key: value}` build data directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Macros can hide the code they generate**: A DSL built with macros is opaque without the expansion",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The pipe passes the first argument**: An awkward argument order forces a wrapper function",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**ExUnit ships with the language**: `mix test` runs the suite with structured assertions and tagged tests",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Doctests run the examples in documentation**: An `iex>` example in `@doc` is executed as a test",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Property-based testing is available**: `StreamData` generates inputs from a property",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`mix test --trace` and coverage reporting are built in**: Test order and line coverage are visible without extra tooling",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Errors surface at run time**: Dynamic typing defers a type mistake to the executed path",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Testing concurrent code needs process-aware assertions**: A test must wait for a message or a process state, so timing is a factor",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Immutable data removes a class of shared-state faults**: No two processes share a mutable value",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Process isolation contains a fault**: A crashed process does not corrupt another process's heap",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pattern matching makes an unexpected shape fail loudly**: A bad message raises a `FunctionClauseError` rather than corrupting state",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`String.to_atom/1` on untrusted input can exhaust the atom table**: Atoms are not collected, so untrusted conversion is a denial-of-service risk",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`Code.eval_string/1` executes arbitrary code**: Dynamic evaluation must be kept away from untrusted input",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A NIF and a `Port` reach unsafe code**: Native code can break the BEAM's safety guarantees",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Dynamic typing is a deliberate trade**: It buys the flexibility of pattern matching and hot code loading at the cost of static checking",
+    "**Ruby-like syntax is a familiarity choice**: It lowers the barrier for developers from a scripting background",
+    "**LiveView keeps the UI state on the server**: This is a deliberate architectural choice that removes client JavaScript, not a language mechanism",
+    "**Nerves adds an embedded build layer**: The added layer is scope, not coupling",
+    "**Macros are a metaprogramming power**: A macro rewrites code at compile time, and that power carries the usual hygiene discipline",
+    "**The BEAM is a virtual machine, not an operating system**: The runtime boundary is scope, not a coupling defect"
+  ],
+  "verdict": "Elixir's design yields moderate language-imposed coupling. Immutable terms, the process model, and OTP supervision remove shared-memory races, turn failure into a supervision event, and keep state inside a process instead of in shared objects. Main strengths: the pipe operator and pattern matching decouple data flow and case analysis, the BEAM supports code loading without stopping the system, and the runtime is proven by decades of fault-tolerant operation. Main weaknesses: the language is dynamically typed, so a type fault surfaces at run time; exceptions are unchecked; collection is non-deterministic; and the ecosystem is a monoculture around Phoenix and OTP.",
+  "verdictExtra": []
+}

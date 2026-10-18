@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 1,
+  "id": "ksh",
+  "name": "Ksh",
+  "assessedAs": "Ksh",
+  "version": "93u+",
+  "title": "Ksh (kSH 93u+)",
+  "indexLabel": "Ksh (93u+)",
+  "group": "shells-automation",
+  "order": 5,
+  "displayOrder": 46,
+  "presenceOrder": 45,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er1, Er3, Er4, K5, P2",
+    "meta": "R1, Ec1, G1, G3, Q2"
+  },
+  "matrixOrder": 28,
+  "tagline": "Korn Shell",
+  "sbName": "Ksh",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "kshManual"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": true,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": true,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Values are strings with run-time attributes**: `typeset -i`, `-F`, `-E`, `-l`, and `-u` decide how a name is read and written, but the parser performs no static check and the attribute is enforced when the value is used",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: A tagged alternative is a word plus a convention, because `typeset -T` gives a named structure rather than a choice between variants",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics and no dispatch by type**: A routine is specialised only by its positional parameters, and behaviour is selected by the string in `$0` or by the command name, never by a declared type (T5, T9)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**One flat global namespace**: `typeset` inside a `function` body makes a name local, but a plain assignment writes the global, and no module boundary hides anything from the process (T6, T11)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**An unset name reads as empty by default**: `set -o nounset` turns a reference to an unset name into an error, but the option is off by default and nothing forces a variable to be initialised",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**`typeset -T` defines a real named type**: A type can own discipline functions (`.get`, `.set`, `.unset`) and a `create` routine invoked for each instance, which is more than text binding — yet an instance is still a compound of words with no static check",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global by default and mutable by default**: A plain assignment writes the global namespace, and no binding is immutable unless `readonly` or `typeset -r` is applied (C1, C2)",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Validation is not attached to a plain variable**: A name accepts any word, and the checking that exists comes from an attribute or from a discipline function added with `typeset`",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`function` bodies get local variables**: A variable declared `typeset` in a `function` body is local, so a routine keeps its working state out of the caller's namespace",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Discipline functions are real set and get hooks**: `x.set`, `x.get`, and `x.unset` run on assignment and reference, so a rule about a value is attached to the value's name instead of to every write site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Name spaces and `FPATH` separate a library's names**: `namespace lib { ... }` keeps internal names out of the flat space, and a function on `FPATH` is loaded on first reference",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`typeset -n` gives a nameref**: A function can operate on a caller's variable by name without string concatenation and `eval`",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No allocation or free in the language**: There is no pointer, no address, and no deallocation builtin; the shell owns every value",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scope and `unset` bound a lifetime**: A local variable disappears when its `function` returns, and `unset` drops a name, so working state does not persist by accident",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Associative arrays are managed by the shell**: `typeset -A` allocates and grows its own storage, so no capacity handling is written",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Assignment copies compound values**: A `typeset -T` instance and a compound variable are copied on assignment, so a large structure is duplicated in full",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Parsed functions stay resident**: ksh93 compiles a script to an internal tree and caches it, so a long session keeps the parsed definitions in memory",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`typeset -E`, `-F`, and `-X` choose a representation, not a lifetime**: The attribute pins a value to double, float, or long-double storage, which couples the number to a precision decision made once",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured error path**: `$?` and `trap ... ERR` are the whole apparatus, with no exception and no error value",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The ERR trap is global and undifferentiated**: One handler covers the whole script, it receives no description of the failure, and it fires only where an explicit check or `set -o errexit` applies",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Errors cannot be returned**: A function's outcome is its exit status, so an error carries no payload and cannot be combined with another",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "caution",
+        "text": "**`set -o errexit` is fragile**: The option does not fire inside `&&` and `||` chains, in conditions, or after a negation, so a wrapper that suppresses it changes error behaviour",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`trap` covers named signals and `EXIT`**: Cleanup can be attached to `EXIT` and to specific signals, so a script releases resources on any exit path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`$?` is unambiguous at the test, and `pipefail` extends it**: The status of the last command is read directly, and `set -o pipefail` makes a mid-pipeline failure visible",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No concurrency primitives**: There is no lock, channel, or await; the only parallel construct is a background job",
+        "mechanism": "K5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coprocesses give two-way communication**: `cmd |&` with `print -p` and `read -p` keeps a child in conversation without a named pipe or a temporary file",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Processes are the unit of parallelism**: Concurrency is expressed with pipes and background jobs, so no shared address space has to be reasoned about",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Background jobs inherit the global environment**: A `&` job shares every global variable, the umask, and the current directory, so ordering is unspecified unless the script waits",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`wait` returns a status, not a value**: The join exists, but a result must travel through a pipe, a file, or a coprocess",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No structured concurrency**: Nothing guarantees that a job started inside a function finishes before the function returns",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**One lineage defines ksh93**: The language comes from AT&T's KornShell and its maintained fork `ksh93u+m`, while the BSD-derived `pdksh` and `mksh` implement an older dialect, so behaviour is not interchangeable",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**POSIX with extensions**: A script written to the POSIX shell language runs under ksh93, so it can move between systems that have a KornShell",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two dialects share the name ksh**: `mksh` and `pdksh` lack associative arrays, discipline functions, and floating point, so `#!/bin/ksh` means different things on different systems",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Availability is not uniform**: ksh93 ships on AIX and Solaris and is packaged for Linux, but it is not the default shell on any mainstream Linux distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A manual and a test suite define the language**: The ksh93 manual and the AT&T test suite, now maintained in `ksh93u+m`, are the reference for behaviour",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**One implementation carries the extensions**: With no standard covering them, an omission or a defect in ksh93 is a property of the language as practised",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "caution",
+        "text": "**Interpreted with an internal compile step**: A script is parsed into a tree and cached, so a function body is not re-parsed on every call, but there is no artifact to precompile",
+        "mechanism": "R1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A native implementation with an optimised parser**: ksh93 was designed with performance in mind, and the maintained fork continues to fix hot paths",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coprocesses avoid repeated process creation**: A child started once with `|&` is driven with `print -p` and `read -p`, so a loop does not fork per iteration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Builtins cover most text work**: `print`, `printf`, `[[ ... ]]`, and `${var/pat/rep}` avoid an external process for common operations",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Path hashing and tracked aliases are opt-in**: `alias -t` records a resolved command path, so a script without it rescans `PATH`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `.get` discipline runs on every read**: A hook on a variable adds work to each reference, so encapsulation has a per-access price",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**No package manager**: There is no dependency resolver or module registry for ksh, so shared code is sourced from a directory on `FPATH`",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The ecosystem is smaller than Bash's or Zsh's**: Few libraries and completions target ksh93 specifically",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The user base is declining**: Bash is the default on Linux and absorbed most of ksh's ideas, so new ksh93 code is rare",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The maintained fork revived the project**: `ksh93u+m` restarted development and fixed defects that had stood for years",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation is complete**: One manual documents the language, the builtins, and the discipline mechanism",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The historical influence is documented**: Ksh is the source of `[[ ... ]]`, `$'...'`, `select`, `typeset`, `printf`, and `pipefail` in other shells",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**No breaking-change culture**: New features arrive as extensions, and a ksh88-style script still runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`set -o posix` pins the dialect**: A script can fix POSIX behaviour so that a change in an extension does not silently alter it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The extensions are stable to the point of immobility**: A construct such as `typeset -A` has behaved the same way for decades",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The 93v- development line was abandoned**: The `ksh2020` line never reached a stable release, and `ksh93u+m` carried the language instead",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Development rests on a small group**: The maintained fork is a volunteer effort, so the pace of change is outside user control",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The older dialect is frozen in place**: AIX and other systems ship a ksh88-era shell, so the language as practised is fragmented",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Good fit for POSIX system scripting with extras**: ksh93 covers portable shell code and adds associative arrays, floating point, and coprocesses where the standard stops",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Strong for text and record processing**: `${var/pat/rep}`, `${var:offset:length}`, `[[ ... =~ ... ]]`, and `printf` keep string handling inside the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Associative arrays fit lookup and configuration work**: `typeset -A` and compound variables model keyed data without a temporary file or an external tool",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coprocesses suit long-running children**: A child started once can be driven from a loop instead of through a named pipe",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Not a general-purpose language**: The model is a shell over external commands, so a program with real data structures belongs elsewhere",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The most advanced features are not portable**: Discipline functions, name spaces, and `typeset -T` exist only in ksh93",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**POSIX knowledge transfers**: A Bash or `sh` user can write ksh on the first day",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Functions are more capable than in `sh`**: `function name { }` with `typeset` locals is a familiar and predictable form",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The surface is large**: `typeset` has many attributes, and `[[ ... ]]`, `(( ... ))`, `print`, `whence`, and the `.sh.*` variables each need their own reference",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The documentation is a specification, not a tutorial**: There is little introductory material for the ksh93-specific features",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The dialect trap is invisible**: A script written for ksh93 runs under `mksh` until it reaches an associative array or a float",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**POSIX surface with familiar extensions**: `if`, `case`, `for`, and `while` are the standard forms, and `(( ... ))` and `[[ ... ]]` read like C",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`${var/pat/rep}` handles substitution inline**: A replacement no longer needs `sed` in a pipeline",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`$'...'` and `typeset` attributes add notation**: Quoting, justification, case conversion, and numeric attributes each add their own spelling",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`function` and `name()` differ quietly**: The two definition forms have different scoping behaviour, so the choice of syntax changes the semantics",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`print` and `printf` overlap**: Two output builtins with different escape handling coexist",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test framework in the language**: A test is a script that checks `$?`, with no assertion, fixture, or report facility",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Faults appear only on the branch that runs**: With no static check, a mistyped variable or a bad attribute is found during the run",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The DEBUG trap gives a command-by-command trace**: `trap ... DEBUG` runs after each command, which makes a failure locatable in a long script",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A syntax check runs without execution**: `ksh -n` parses a script and reports errors without running it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`set -o xtrace` shows the expansion**: `set -x` prints the expanded command, so an argument built from several variables can be inspected",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`typeset -f` and `whence -v` inspect the loaded program**: A test can assert on a function's definition and on how a name resolves",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Unquoted expansion is re-parsed**: A word is split and globbed again, so untrusted text can change the argument count unless it is quoted",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "caution",
+        "text": "**`eval` and indirect expansion re-enter the interpreter**: Text assembled from data and passed to `eval`, or a name resolved through a nameref, becomes code or a name the parser decides",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No memory-safety defect class, but no confinement either**: Values are interpreter-managed, yet the shell has no capability or sandbox model beyond its restricted mode",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`[[ ... ]]` does not word-split**: The test construct evaluates its operands directly, so a value cannot become extra operands or a pattern",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A restricted mode exists**: `rksh93` blocks `cd`, redirection, and assignment to `SHELL`, `ENV`, and `PATH`, so an untrusted script can be run with fewer powers",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`readonly` and `typeset -r` freeze a value**: A name can be fixed against later assignment and against `unset`",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The ksh88 lineage is a separate language**: `mksh` and `pdksh` continue the older design on BSD and Android, and that divergence is a history of implementations rather than a coupling mechanism",
+    "**Rich builtins are a deliberate choice**: `print`, `typeset`, and the `.sh.*` variables lengthen the learning curve to remove whole categories of external command",
+    "**The floating-point attribute is a representation choice**: `typeset -E`, `-F`, and `-X` select storage precision, which is a modelling decision about the numbers a script handles",
+    "**Discipline functions are a heavy mechanism**: A `.get` hook runs on every reference, so encapsulation is paid for with an unpredictable per-access cost",
+    "**`namespace` is not a module system**: It prevents name collisions inside one script but hides nothing from the process, which is a scope decision",
+    "**POSIX mode is available but not the goal**: `set -o posix` narrows ksh to the standard, and a script that wants the extensions rightly leaves it off"
+  ],
+  "verdict": "Ksh is a POSIX shell with the most complete set of extensions in the family, and its own constructs buy real separation: `typeset` gives a function local scope, discipline functions attach validation to a name, `|&` keeps a child in two-way conversation, and name spaces keep a library's internals out of the flat namespace. The core score stays at 43 because the value model is still words with run-time attributes, an error is still a status code, and a plain assignment still writes the global namespace. The platform side is stronger at 68, since ksh93 is standard-compliant, well documented, and the source of many constructs other shells adopted, while its weakness is that the most advanced features exist in one implementation and the user base is shrinking.",
+  "verdictExtra": []
+}

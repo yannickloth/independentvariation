@@ -1,0 +1,531 @@
+{
+  "schemaVersion": 1,
+  "id": "fortran",
+  "name": "Fortran",
+  "assessedAs": "Fortran",
+  "version": "2023",
+  "title": "Fortran (2023)",
+  "indexLabel": "Fortran (2023)",
+  "group": "functional-declarative-legacy",
+  "order": 3,
+  "displayOrder": 58,
+  "presenceOrder": 58,
+  "presenceList": {
+    "core": "T2, T4, T5, T8, C1, C2, C4, M1, M3, M4, Er1, Er3, Er4, K2",
+    "meta": "Ec3, D2, L1, S1"
+  },
+  "matrixOrder": 20,
+  "tagline": "Scientific Legacy",
+  "sbName": "Fortran",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "isoFortran2023"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": true,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "M1": true,
+    "M2": false,
+    "M3": true,
+    "M4": true,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": true,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "caution",
+        "text": "**Typing is static but implicit typing is the default**: Without `implicit none`, a name beginning with I–N is an `integer` and every other name is a `real`, so a misspelled variable becomes a new one rather than an error",
+        "mechanism": "T2"
+      },
+      {
+        "kind": "cost",
+        "text": "**There are no sum types**: An alternative is encoded as an integer tag beside the payload fields, and `select case` or `select type` must decode it, so nothing checks that the right branch was taken",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "caution",
+        "text": "**There are no generics, and a generic interface overloads a name instead**: An `interface` block binds one name to several specific procedures and the compiler resolves the call by argument type, which is overloading without a type parameter",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator and assignment overloading is expressible**: `interface operator(+)` and `interface assignment(=)` redefine `+` and `=` for a derived type, so the work behind an operator is invisible at the call site",
+        "mechanism": "T8"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A module is a namespace with a selective import**: `use mymodule, only: a, b` brings in two names and nothing else, so no flat global namespace is imposed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`class(t)` and `select type` give checked run-time polymorphism**: A polymorphic dummy argument dispatches on the dynamic type of the actual argument, and `select type` narrows it in a checked branch",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global mutable state is the default storage class**: A module variable and a `common` block are shared by every procedure that names them, and a variable marked `save` keeps its value between calls",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no immutability by default**: Only a `parameter` names a constant, and a module variable is writable by any user unless it carries the Fortran 2003 `protected` attribute",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A structure constructor validates nothing**: `t(a, b)` fills the components in order or by keyword, and no invariant can be stated at the type, so a valid object exists only because the caller made it valid",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `pure` procedure states the absence of side effects**: It may not write a global, an `intent(in)` argument, or a `save`d variable, and the compiler enforces the rule",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`intent(in)`, `intent(out)`, and `intent(inout)` state the direction of an argument**: The declaration says whether a routine reads, writes, or does both, and the compiler checks it at the call site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`elemental` states an elementwise operation**: An `elemental` procedure applies to each element of an array, so a scalar definition composes with array construction without a written loop",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**`allocate` and `deallocate` are written by hand for a `pointer`**: The language tracks no owner and no bound, so a pointer target is freed by an explicit statement and a missing one leaks",
+        "mechanism": "M1"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model**: A `pointer` may alias a `target`, dangle after `deallocate`, or be freed twice, and the compiler does not see the aliasing",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Release tied to scope is partial**: An allocatable local and a derived-type component with a `final` procedure are released at scope exit, but a `pointer` is not, so the rule differs by variable kind",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "caution",
+        "text": "**An allocation failure must be tested**: `allocate(a(n), stat=ierr)` returns a code the program has to check, and without `stat=` a failure aborts the program",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`move_alloc` transfers an allocation without a copy**: `call move_alloc(from, to)` moves the storage and deallocates the source, so a result array is returned without duplication",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Allocatable locals are released at procedure exit**: An allocatable array declared inside a procedure is deallocated when the procedure returns, which is a scope-tied release the language provides",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**There is no exception mechanism**: A failure is reported through a `stat=`/`iostat=` code or an `err=` label, and the caller has to test it",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A returned code can be ignored**: Nothing obliges a caller to look at `iostat`, so a failed `read`, `allocate`, or `deallocate` proceeds as though it had succeeded unless the program checks",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no composable result type**: No value carries either a result or an error, so error state travels in an extra out argument or in a saved flag",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`error stop` gives a defined abort**: Since Fortran 2008, `error stop` stops the program with a message or an integer stop-code, and Fortran 2018 added the optional `quiet=` specifier, so a fatal failure is stated rather than inferred from a negative status",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**IEEE exceptional values are inspected through an intrinsic module**: `ieee_arithmetic` and `ieee_exceptions` let a program test `ieee_is_nan` and select a halting mode, but the checks are ordinary calls rather than a language guarantee",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `pure` procedure cannot perform I/O**: An I/O failure is outside a `pure` procedure by construction, so a computational kernel has no I/O error channel to handle",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Coarray images share memory by default**: A coarray declared with `codimension` is written by one image and read by another, and nothing in the language prevents the race",
+        "mechanism": "K2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Synchronisation is manual**: `sync all`, `sync images`, `event post`/`event wait`, and `lock`/`unlock` are image control statements the program must place at the right point",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`do concurrent` states an independent loop**: The construct asserts that the iterations have no interdependencies, and Fortran 2018 adds `local`, `local_init`, and `shared` locality specifications, so the compiler may parallelise it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`atomic` and `critical` give a defined atomic access**: `atomic define`/`atomic_ref` and a `critical` construct express one update that must not interleave",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The practical parallel model sits outside the language**: Coarray support varies across compilers, so most high-performance code uses OpenMP directives or MPI calls",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**One standard source runs on every major compiler**: `gfortran`, `ifx`, `nagfor`, Cray, and LLVM `flang` accept standard-conforming Fortran on Linux, Windows, macOS, and the large HPC systems",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`iso_c_binding` names the interoperable interface**: `c_int`, `c_double`, `c_ptr`, and `c_funptr` let a Fortran routine be called from C and call C in return",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`iso_fortran_env` names the portable kinds and units**: `real64`, `int32`, and `input_unit` state a portable choice where `real(8)` names one machine's representation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A compiled module is a binary interface**: A `module` is compiled to a file a consumer imports, so the interface is checked when the consumer is compiled",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Vendor directives are common in working code**: `!DIR$` and `!DEC$` directives, `REAL*8`, and `STRUCTURE`/`RECORD` appear in legacy HPC source, which binds it to one compiler",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Coarray support varies by compiler and platform**: A coarray program depends on the compiler's image implementation and its transport library, so its portability is weaker than that of a serial program",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The program is compiled to machine code**: `gfortran`, `ifx`, and `flang` emit native objects for the target CPU, and the performance of an array kernel rivals C",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Array syntax maps onto the machine's loop nests**: `a = b + c` over whole arrays lets the compiler fuse and vectorise the loops, and `matmul` and `dot_product` have library or instruction implementations",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Nothing between the source and the CPU interprets**: A Fortran binary has no bytecode dispatch and no JIT warm-up",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The optimiser needs the aliasing facts**: Without `intent(in)`, `contiguous`, and `pure`, the compiler must assume a possible alias and cannot reorder the loops",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The floating-point contract is the compiler's flags**: `-O3` with `-ffast-math` or `-fp-model fast` changes the order of the operations, so the measured speed depends on the build options",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**There is no standard package manager for the language**: Dependencies are resolved by a language-agnostic manager such as Spack or Conda or by the system manager, and the `fpm` package manager is young and small",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The numerical libraries are mature and standard**: BLAS, LAPACK, and the vendor-tuned kernels (MKL, ESSL) are callable from Fortran directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A compiler is available on every system**: A Fortran compiler is installed on every HPC cluster and is packaged for every common Linux distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Interoperation with the C and Python ecosystems is standard**: `iso_c_binding` and the Python wrapper generators make a Fortran kernel callable from a Python array library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tooling beyond the compiler is thin**: Formatting, lint, and documentation come from small community projects (`fprettify`, `ford`) rather than from a supported toolchain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community is aging**: Adoption is declining and maintenance is concentrated in the HPC and numerical community",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The standard is backward compatible**: Fortran 90 source mostly compiles with a Fortran 2023 compiler, and only a small set of features has been deleted",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compilers retain the deleted features as extensions**: `arithmetic IF` and `PAUSE`, both removed by the standard, are still accepted by the common compilers",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The intrinsic modules extend the language without editing it**: `iso_c_binding`, `iso_fortran_env`, and the parallel features were added as modules and new syntax rather than as changes to existing syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A revision takes about a decade**: The editions are 2003, 2008, 2018, and 2023, so a needed feature waits years for the standard and lives as a compiler extension until then",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**One program can hold several standards**: A single codebase can mix a Fortran 77 `common` block with a Fortran 2008 module, so the version in use is a property of the file",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An extension can become load-bearing**: A program that depends on a vendor directive cannot be moved to another compiler without an edit",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Numerical and scientific computing is the design target**: Array syntax, complex arithmetic, real kinds, and the IEEE intrinsic modules fit it directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**High-performance computing is the deepest adoption**: Weather, climate, and physics codes are written in Fortran, so the language dominates legacy HPC codebases",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`submodule` fits a large numerical codebase**: A module can declare the interface and a `submodule` hold the implementation, so changing a kernel recompiles only that submodule (Fortran 2008)",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coarrays put a parallel program in the language**: A distributed-memory program is written without a call from a separate parallel library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language assumes a numerical, batch-shaped workload**: Text handling, dynamic data structures, and event-driven logic get little support, and the standard library is mainly the intrinsic procedures",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A new project often keeps Fortran for the kernel only**: The language is used where the inner loop must be native, and the orchestration moves to Python or C++",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The core is small once `implicit none` is in place**: The statement forms, the intrinsic procedures, and the array expressions are a modest set",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The authoritative material is stable and complete**: The ISO standard, the compiler references, and *Modern Fortran Explained* cover the language in one place",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The array idiom has a direct mathematical reading**: A whole-array expression reads as the equation it computes",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Legacy syntax quirks create friction**: Fixed-form source with its column rules, implicit typing, and `common` blocks must be read to work on an existing codebase",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The array and parallel idioms take practice**: Array sections, `where`, and `do concurrent` read differently from an explicit loop, and the cost of a temporary array is easy to miss",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Fixed-form source is column-sensitive**: In a `.f` file a label sits in columns 1–5, a continuation mark in column 6, and a statement starts in column 7, so the layout carries meaning",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language is verbose**: Kind, `intent`, and dimension accumulate on every dummy argument, and the internals of a procedure need their own `contains` block",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Whole-array expressions are compact**: `c = matmul(a, b) + alpha * c` states a matrix update in one line",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Free-form source is line-oriented and readable**: With `implicit none` and `use, only:`, a modern module reads close to the mathematics",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `common` block's storage is positional**: Two declarations of the same block must list the fields in the same order with the same types, and the block's layout is a convention rather than a checked interface",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`error stop` gives a test program a defined failure status**: A failing check stops the program with a non-zero status that a harness can read",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Run-time checks can be compiled in**: `-fcheck=all` (gfortran) and `-check all` (ifx) raise on an out-of-bounds subscript, an unassociated pointer, and a shape mismatch",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The numerical libraries ship their own test suites**: LAPACK and BLAS carry a published suite that exercises each routine, which is the numerical community's model",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no test framework in the language**: A test is a program that runs and compares, and a runner such as `pFUnit` or `test-drive` is a third-party library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no assertion intrinsic**: A check is an explicit `if (cond) error stop`, so its presence is a written decision",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The result depends on the flags and the hardware**: The summation order, `-ffast-math`, and the fused multiply-add change the last bits, so a test must fix the build and compare with a tolerance",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "caution",
+        "text": "**Memory safety depends on a checked build**: An out-of-bounds subscript, an unassociated pointer, and a mismatch between an actual and a dummy argument are found only when the compiler is asked to check them, and the standard requires no run-time check",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no dynamic evaluation of source text**: The language has no `eval`, no reflective call by name, and no string-to-code path, so a value cannot become code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`intent(in)` prevents a write through the callee**: The compiler refuses an assignment to an `intent(in)` dummy argument, so the read-only direction is enforced",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The C interface hands safety to the neighbour**: `c_ptr` and `type(c_funptr)` are raw addresses, and the guarantees of the C code on the other side become part of the program",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no capability model and no sandbox**: A program runs with the authority of the process, and the mitigations come from the operating system and the linker",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `pure` procedure cannot corrupt state through I/O or a global**: The effect set of a `pure` procedure is empty by construction",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**`implicit none` is the modern practice, not the standard default**: A project chooses to require it, and the language permits implicit typing for the old source",
+    "**Column-major order is a deliberate numerical choice**: Array expressions follow Fortran's storage order, which is what the linear-algebra kernels are written for",
+    "**The aliasing rules are what the optimiser needs**: The standard's restrictions let the compiler vectorise a loop, which costs flexibility and buys speed",
+    "**`goto` remains for compatibility**: It is retained so that decades of code keeps compiling, and a new program need not use it",
+    "**Whole-array syntax exists so the compiler chooses the loop nest**: The programmer gives up per-loop control in exchange for vectorisation",
+    "**The legacy corpus is working, tested numerical code**: The aging ecosystem holds decades of validated physics and linear-algebra routines"
+  ],
+  "verdict": "Fortran's design produces a low core score, because the constructs that make the numerical work fast are the constructs that couple. Array expressions and `pure` procedures are real separations, and a module with a `submodule` separates an interface from its implementation. But implicit typing hides a misspelled variable, `common` blocks and module variables are global mutable state, a `pointer` is freed by hand with no owner, and an error is a code the caller may ignore. Main strengths: the fit to numerical computing is exact, array performance rivals C, and one standard source runs on every major compiler. Main weaknesses: the ecosystem is small and aging, the revision cycle is slow, and the syntax of a legacy file depends on column positions.",
+  "verdictExtra": []
+}

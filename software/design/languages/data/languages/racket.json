@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "racket",
+  "name": "Racket",
+  "assessedAs": "Racket",
+  "version": "8.17",
+  "title": "Racket (8.17)",
+  "indexLabel": "Racket (8.17)",
+  "group": "functional-declarative-legacy",
+  "order": 10,
+  "displayOrder": 17,
+  "presenceOrder": 17,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T8, M2, M3, M4, Er2",
+    "meta": "Ec3, L1"
+  },
+  "matrixOrder": 43,
+  "tagline": "Language-Oriented",
+  "sbName": "Racket",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "racketRef"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Typing is dynamic with no static check (T1)**: A value carries its type at run time, so a wrong-typed use fails when the expression executes",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Dispatch is resolved at run time (T3)**: `(send obj 'msg)` and a generic method resolve when called, so a missing method fails there rather than at compile time",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There are no sum types and no core generics (T4, T5)**: An alternative is a struct, a symbol, or a tagged list plus a contract, and no type parameter exists in the core language",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The numeric operators dispatch on a hidden type (T8)**: `+`, `*`, and `=` accept any number, and the exact or the inexact result follows the values at run time, so the arithmetic is overloaded without a declared type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A contract checks the module boundary at run time**: `(provide/contract [f (-> integer? integer?)])` and `define/contract` reject a wrong call at the boundary and name the module at fault",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`#lang typed/racket` types part of a program**: A typed module imports an untyped one through `require/typed` and a contract, so static and dynamic code meet at a checked boundary",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**`struct` declares the constructor with its invariant**: `(struct posn (x y) #:transparent #:guard check)` creates the constructor, the predicate, and the accessors together, and the guard rejects a bad argument",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A macro extends the language at compile time**: A `define-syntax` form sees its syntax objects and expands to core forms, so a construct is added without a run-time library",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Hygiene prevents accidental name capture**: A binding the macro introduces cannot collide with a name at the use site, so the expansion does not depend on the caller's names",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A module scopes what it defines**: A binding is private until it is `provide`d, so a helper constructor stays invisible outside the module",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`#lang` fixes the whole surface of a file**: A module states its language on the first line, so a DSL and the base language do not mix by accident",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`set!` reaches any binding in the core language**: A variable can be reassigned unless the language of the file forbids it, so immutability is not enforced by the core",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**A `call-with-*` form brackets a resource**: `(call-with-input-file path proc)` opens and closes around the call, and `with-handlers` covers the exceptional path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A place collects its own heap**: A `place` runs on a separate thread with a separate store, so parallel work does not extend one collection pause",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Collection is non-deterministic (M2)**: The collector runs on its own schedule, and `(collect-garbage)` or the `PLTSTDERR` collection log is the only control a program has",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no RAII (M3)**: There is no scope-bound destructor, so a port, a TCP listener, or a subprocess is released by an explicit `close-input-port` or by a bracket the author writes",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model (M4)**: No static lifetime or aliasing rule ties a value to an owner, so a shared mutable structure escapes its module without a trace",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A custodian groups resources only when it is created**: `make-custodian` and `custodian-shutdown-all` shut down a group of threads and ports together, and the code must ask for that grouping",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked (Er2)**: `raise`, `error`, and `raise-user-error` are not declared in a signature, so a caller cannot see the failure set from the definition",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`with-handlers` selects the recovery by predicate**: `(with-handlers ([(lambda (e) (exn:fail? e)) handler]) body)` chooses the handler from the exception's type rather than from a code number",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An exception is a struct with fields**: `(exn-message e)`, `(exn:fail:contract? e)`, and the continuation marks of `exn:fail` make a failure an inspectable value",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A failure can be a value instead of a throw**: A struct with an `ok` and an `error` variant, or a pair of values, carries the outcome without an exception",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A contract violation blames a party**: An `exn:fail:contract` carries the offending value, the contract, and the module blamed, so a boundary fault is localised",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A catch-all handler hides the cause**: `(with-handlers ([void void]) ...)` discards the reason, and any cleanup must be arranged with `dynamic-wind` rather than by the handler",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**A place gives shared-nothing parallelism**: `place` runs a computation on its own thread and store, and `place-channel-put` and `place-channel-get` pass values, so several cores are used without shared memory",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A future parallelises an expression**: `(future expr)` runs on a thread from the pool and `(touch f)` forces the result, and the runtime keeps a future's computation safe on its own",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A thread is a lightweight green thread**: `(thread proc)` starts one, `(sync evt)` waits on an event, and `channel-put` and `channel-get` pass values between threads",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Non-blocking I/O composes through events**: `sync` on a port or on an `async-channel` waits for whichever is ready, so no callback pyramid is needed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A custodian bounds a thread group**: A supervisor custodian shuts down its threads and ports together, so a group of tasks is torn down as a unit",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A shared box still needs a lock**: A `box` or a `vector` written from two threads needs a `semaphore` or `box-cas!`, and the runtime reports no race",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**A program compiles to a native executable**: `raco exe` produces a standalone binary and bundles the runtime and the libraries it needs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The runtime runs on the major platforms**: Windows, macOS, Linux, and the BSDs are supported from one source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Racket CS builds on Chez Scheme**: The default runtime compiles with Chez's compiler, and the earlier bytecode runtime with its JIT remained available as the alternative",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`raco` covers install, build, and delivery**: `raco pkg`, `raco exe`, and `raco distribute` are one tool family for a project's whole lifecycle",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The runtime must be present unless it is bundled**: A source program needs an installed Racket, and `raco distribute` is the step that removes that dependency",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Cross-compilation is limited**: An executable targets the platform that built it unless a cross build is arranged",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Racket CS compiles through Chez Scheme**: A module is compiled to native code ahead of time, so an interpreted step is not in the hot path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Hot code is compiled rather than interpreted**: The compiler and the JIT of the runtime remove repeated interpretation of a loop",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A future and a place use several cores**: A computation split across futures runs on the available threads and places",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Numeric code is moderate**: A boxed number and a generic arithmetic operation over the numeric tower cost more than unboxed arithmetic in a compiled language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A contract adds a check per boundary crossing**: A contract on a hot function is a run-time check on every call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A continuation capture does real work**: `call/cc` and `dynamic-wind` save and restore the control state, so a control abstraction is not free",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The package ecosystem is small (Ec3)**: The count of published packages is well below a mainstream language's, so a project may write what it cannot find",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`raco pkg` is a first-class package manager**: `raco pkg install` takes a package name, a file, or a Git URL, so a dependency needs no manual vendoring step",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The distribution ships a large library**: `racket/base`, `racket/list`, `racket/contract`, `racket/class`, `racket/draw`, and `racket/gui` come in one installation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**DrRacket is an IDE for both beginner and expert**: The editor, the REPL, and the stepper are part of the distribution, and the stepper shows one reduction at a time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scribble documents a package in the language itself**: Scribble writes prose with Racket syntax and produces HTML, PDF, and the reference pages from one source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community is small**: Questions are answered, but by fewer people than in a mainstream ecosystem",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The language is stable and backward compatible**: Racket 8.x runs code written for earlier releases, and the compatibility promise covers the core",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`#lang` isolates a change**: A DSL fixes the language of its own files, so a change to the base language does not reach a `#lang` that pins it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The change of runtime kept the language**: Racket CS replaced the bytecode runtime beneath the language, and existing source recompiled",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A package can be held at a version**: An installation can be pinned to a version or to a repository revision, so a build can be made reproducible",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A library API can change between releases**: The core is stable, and a library outside it may change, so an upgrade needs a test run",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for language research and DSLs**: Macros, `#lang`, and the reader produce a new language from a module, as the paper \"Languages as Libraries\" documents",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Strong fit for teaching**: DrRacket, *How to Design Programs*, and the teaching languages such as `#lang htdp/bsl` are built for a first course",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Good for compilers and interpreters**: `#lang` plus `raco` makes a language implementation a package, and the *Beautiful Racket* book builds several",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`racket/gui` covers a desktop application**: The GUI toolkit and `racket/draw` ship in the distribution, so a windowed program needs no external dependency",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Commercial adoption is small with notable exceptions**: Naughty Dog's game scripting language and the Arc dialect behind Hacker News run on Racket, but the general production footprint is small",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Heavy numeric work belongs in a library**: Array and tensor computation depends on a package rather than on the core language",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The concepts are many even when the syntax is small (L1)**: Macros, continuations, modules, and contracts are separate topics, and each takes practice",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A macro is a topic of its own**: Writing a macro requires the syntax-object model and the phase distinctions, which are separate from ordinary programming",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**DrRacket and the stepper make evaluation visible**: A beginner steps an expression and sees each reduction of the program",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A complete curriculum exists**: *How to Design Programs* and its teaching languages are free and aligned with the IDE",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The documentation is comprehensive**: The Racket Reference and the Racket Guide cover the language and each library with examples",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A Scheme background helps and misleads**: The parentheses and the λ-calculus core transfer, while the module system, structs, and `#lang` differ from a bare Scheme",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**The syntax is uniform**: Every form is a parenthesised list, so a reader learns one shape and applies it everywhere",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A user form looks like a built-in form**: A macro-defined form has the same shape as `let` or `define`, so no new grammar is needed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A reader extension can change the surface**: `#lang` plus a readtable defines a different notation for one file without changing the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Prefix notation removes precedence rules**: `(+ (* a b) c)` states the order of operations in its nesting, so no precedence table must be learned",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The parentheses are dense**: A deeply nested expression needs careful counting, and most editors use a paredit or rainbow-paren mode to help",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A quoted form blurs data and code**: `'(a b)` is a list and `(a b)` is a call, so one character changes the meaning of a form",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`rackunit` ships with the language**: `check-equal?`, `check-true`, and `test-case` are in the distribution, and `raco test` runs a directory of tests",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A test can live in the module it tests**: A `(module+ test ...)` submodule holds the tests, so no separate test file is needed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A contract is an executable invariant**: A contract on an exported function rejects a wrong call, so a test need not re-check the boundary",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A failure reports both values**: A failed `check-equal?` prints the expected value, the actual value, and the source location",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The debugger and the stepper inspect a real run**: DrRacket's debugger steps the evaluation, and the stepper shows the reduction sequence",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic typing defers a fault to the executed path**: A wrong-typed call passes the build and fails a run, so the covered paths matter",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**The runtime is memory-safe**: No pointer arithmetic and no manual free exist, so a use-after-free or a buffer overflow cannot be written in Racket source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A contract guards a trust boundary**: A contract on a value that arrives from outside rejects a wrong shape at the boundary and names the party at fault",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`racket/sandbox` runs untrusted code with limits**: A sandboxed evaluator carries its own language, a memory limit, and a custodian that bounds its run time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`eval` is explicit and scoped**: `eval` and `dynamic-require` are visible calls, and the namespace decides what the evaluated code can reach",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`eval` on a term built from input is the injection pattern**: `(eval (read input))` executes the text, and `read` itself can allocate on a crafted input",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two places share the file system**: A place shares no memory with another, but two places can still corrupt one file, which the language does not prevent",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Language-oriented programming is the premise**: Building a DSL is the design centre of the language, and the work of designing the notation is the price of a task-specific language",
+    "**Contracts are opt-in**: A module can leave a boundary unchecked, and the per-call cost of a contract follows from asking for the check",
+    "**`#lang` fixes the language for a whole file**: A module cannot change its language halfway, which is a deliberate uniformity rather than a coupling defect",
+    "**A macro can obscure its expansion**: A macro is powerful, and the readability cost of an unusual expansion is a style decision",
+    "**A linked list is the core sequence type**: `cons`, `car`, and `cdr` model a sequence as a pair chain, so the cost in memory locality is a representation choice",
+    "**The λ-calculus core is deliberately small**: The core language is tiny because a macro expands to it, which is a design decision"
+  ],
+  "verdict": "Racket's design yields moderate core coupling (62/100) and better platform and ecosystem coupling (84/100). The language-oriented model is a real decoupling device: a macro expands to core forms without a name from the use site leaking in, a struct carries its own guard, a module hides what it does not provide, and a contract checks a boundary and names the party at fault. The cost sits in the type system and the heap, where typing is dynamic, dispatch resolves at run time, there are no sum types or core generics, and memory has neither an ownership rule nor a block-scoped release, with collection decided by the runtime. Around the language, the package ecosystem is small and the concept load is heavy, while the toolchain, the documentation, and the debugging support are complete.",
+  "verdictExtra": []
+}

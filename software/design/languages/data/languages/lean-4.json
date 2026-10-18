@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "lean-4",
+  "name": "Lean 4",
+  "assessedAs": "Lean 4",
+  "version": "4.31",
+  "title": "Lean 4 (4.31)",
+  "indexLabel": "Lean 4 (4.31)",
+  "group": "functional-declarative-legacy",
+  "order": 6,
+  "displayOrder": 8,
+  "presenceOrder": 8,
+  "presenceList": {
+    "core": "P1",
+    "meta": "Ec3, D1, L1, L3"
+  },
+  "matrixOrder": 29,
+  "tagline": "Theorem Proving",
+  "sbName": "Lean 4",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "lean4Manual"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": true,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Dependent types let a type name a value**: `Vector α n` and `Fin n` carry the length in the type, so a length mismatch and an out-of-range index are rejected at elaboration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Propositions are types, so a proof is a term**: The Curry–Howard correspondence puts a theorem and a program in one system, and the same kernel checks both",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A structure type names its fields and their types**: `structure` with typeclass fields gives a record whose construction is checked, and `where` supplies the values by name",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Typeclass resolution is checked instance search**: An `instance` is found by the declared class at compile time, so a missing instance is an elaboration error rather than a run-time lookup",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Subtype` couples a value to its proof**: `{x // p x}` is a pair of a value and a proof that the predicate holds, so an invariant is carried by the term itself",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`unsafe` marks the one escape from the logic**: A declaration that bypasses the kernel must be named `unsafe`, so the boundary is visible in the source",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Construction runs through the kernel, so an invariant cannot be skipped**: A value of an inductive type is built by its constructors, and a term that does not fit the type fails elaboration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`where` puts the field values beside the type**: An instance of a structure is written with named fields, so a reader does not count an argument list",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`macro` and `syntax` extend the surface at the definition site**: A notation for the domain is declared once and then used like a built-in",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`deriving` generates the mechanical instances**: `Repr`, `BEq`, `Hashable`, and `Inhabited` are produced by the elaborator, so a type does not repeat boilerplate",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`do` notation builds the effectful value**: Construction in `IO`, `Option`, or `Except` is written as a sequence of binds",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Termination is an obligation on every definition**: A recursive `def` must be shown to terminate structurally or by a decreasing measure, so a natural formulation of an algorithm can need a proof before it compiles",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler inserts the reference counting**: Borrow inference decides which arguments are borrowed and which are owned, and emits the retain and release operations, so a pure definition never writes one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no tracing collector**: A value is reclaimed when its last reference goes away, so there is no collection pause to plan around",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A value of an inductive type is immutable**: No term updates a field in place, so sharing is safe by construction",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A reference cycle is not collected**: A mutable reference cell (`IO.Ref`) whose value points back to the cell keeps its storage alive, because reference counting has no cycle detector",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Allocation is not controllable from the source**: The allocator is not a parameter and there is no placement control, so a program cannot choose where a value lives",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A deeply shared structure still pays a count per reference**: A persistent structure that shares a subtree is counted at every edge, and the compiler removes many but not all of those operations",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**`Option α` and `Except ε α` are the error types**: A partial function returns a value that states the failure, and `do` notation sequences the recovery path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A total function cannot fail by definition**: In the pure fragment the type states that the function returns, and `partial` is required to opt out of that guarantee",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Decidable` turns a proposition into a branch that is total**: `if h : p then ... else ...` computes from a proof of decidability, so the two branches cover the cases by construction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There are no exceptions in the logic**: An error is a value in the return type, so a computation that can fail carries the failure in its signature rather than raising out of it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`panic!` and an `IO` failure leave the kernel's guarantee**: An abort at run time is not a term in the logic, and the type of the function does not mention it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Error-freedom is a theorem, not an automatic result**: To state that a function never fails, you prove it; the compiler does not derive the property",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The pure fragment has no shared mutable state**: A mathematical term is a value with no location, so two proofs cannot race by construction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Task` gives structured, joinable parallelism in `IO`**: A task is a value that can be awaited, so a spawned computation is joined through its result",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no concurrency construct in the language**: Parallelism lives in the `IO` monad through `Task` and the promise cell, so a concurrent program is an `IO` program like any other",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A promise carries a value between tasks and the program orders its use**: Nothing in the type states when the value becomes available",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The runtime owns the thread pool**: The scheduler and its thread count are runtime settings, so the language does not expose a thread object",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The kernel says nothing about a task's behaviour**: A theorem about a function does not constrain the parallel schedule that runs it",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Lean 4 is the only implementation**: The language is defined by its own elaborator and kernel, so there is no second independent compiler to test the specification against",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The trusted kernel is small and portable**: The elaborator is written in Lean and the kernel is a compact checker, so the language does not rest on a large run-time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@[extern]` and `@[export]` make the foreign boundary a declaration**: A call out to C is written and recorded, so the escape from the language is visible in the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The output is C, so the target set is the C compiler's**: The compiler emits C and hands it to a C back end, so a Lean program runs where a C program runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A native build needs a C toolchain and the Lean runtime**: The build environment is part of the platform, and a deployed binary carries the runtime",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The toolchain moves in nightly steps**: A project pins its version in `lean-toolchain`, and a dependency may require a different one",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler emits C, and a native optimiser then compiles it**: The generated C passes through a mature C back end, so the run-time cost benefits from that pipeline",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Borrow inference removes most reference-count traffic**: The compiler's borrow analysis turns many retain and release pairs into nothing, so a pure functional definition stays close to imperative cost",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@[inline]` and `@[specialize]` remove an abstraction at the seam**: A monomorphic specialisation of a polymorphic definition is generated on request",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Compile-time evaluation removes run-time work**: A proof discharged by `decide` or `native_decide` is computed while the project is built",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Elaboration dominates the build time**: Typeclass search, tactic execution, and proof checking are spent at compile time, so a large development builds slowly even when its binary is small",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A count is not free on a shared structure**: A persistent structure counted at each edge still pays for the sharing the compiler cannot prove away",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The package universe is small**: Dependencies are resolved from git by `lake`, and the practical library set is `mathlib`, the core library, and a few support packages",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`lake` is a standard build tool and dependency resolver**: `lakefile.lean` or `lakefile.toml` declares a package, `lake build` builds it, and `lake-manifest.json` records the resolved revisions",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The editor integration is first class**: The Lean 4 server speaks LSP and the infoview shows the goal, the hypotheses, and the diagnostics beside the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`mathlib` is one of the largest libraries of formalised mathematics**: It is developed in the open and its continuous integration checks every proof",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community is academic and small**: The centre of gravity is `mathlib`, the Zulip chat, and the university groups, and industrial use is rare",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A project's revision set is tight against the toolchain**: `mathlib` tracks recent Lean releases, so a project that pins an older toolchain cannot use the current `mathlib`",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**A project pins its toolchain and its dependency revisions**: `lean-toolchain` names the version and `lake-manifest.json` names the commits, so a build is reproducible without a separate lock convention",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Lean 4 is the stable line and its minor releases are backward compatible**: A project on a pinned version is not moved by a release it did not take",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language and its libraries are open and publicly discussed**: The request-for-comments archive and the community chat record why a feature changed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Lean 4 replaced Lean 3 with a different language**: A Lean 3 development is a porting project, and the mathematical libraries moved with the new language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The ecosystem moves in nightly steps**: A feature can land in a nightly build and reach a stable release later, so a dependency may require a version the project has not taken",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Proof engineering and formalised mathematics are the native domain**: `theorem`, `by`, `simp`, and `mathlib` are built for that work",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Verified systems programming is supported**: A verified algorithm compiles to C and ships as an ordinary binary, which is the growing use of the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**It is a general-purpose functional language beside the proof assistant**: A `def` with no proof obligation is ordinary functional code",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The domain lock-in is the point of the tool**: The language expects a proof-carrying artifact, and a program that states no theorem gets little from the system",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "caution",
+        "text": "**`mathlib` is a shared global body rather than a set of packages**: A mathematical development is expected to build on its definitions, so the notation and the lemma names belong to the community",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A formalisation is a research and maintenance commitment**: A proof tracks the definitions it is about, so a change to one of them can invalidate a development",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The curve is very steep**: Dependent types, the elimination rules, and the elaborator's inference model are new to a working programmer",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Proof writing is a second skill on top of programming**: Tactic scripts, the `simp` sets, and the explicit proof term are a subject of their own",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The elaboration is not visible in the source**: Why a `by simp` succeeded, or why an instance was not found, must be read from the goal state and the options",
+        "mechanism": "L3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The infoview shows the goal and the hypotheses at the cursor**: The state is displayed rather than inferred by the reader",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The libraries supply the lemmas**: An algebra or order fact is used without being reproved",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The documentation trail is uneven**: The reference manual is complete for the language, but much elaboration behaviour is documented in the source, and the community's books are a growth area",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Term syntax reads like mathematics**: `∀ x, P x → Q x`, `∃`, `fun x => ...`, and infix notation for the relations the library defines",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Notation is declared and hygienic**: `notation`, `infix`, and `macro` add a form where it is defined, so the surface can match the domain",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`do` notation sequences effects as statements**: `let`, `if`, and `for` inside `do` read like an imperative body over a monad",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pattern matching is checked for exhaustiveness**: A missing constructor is a compile-time error, so a case is not forgotten",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Layout is significant**: `do`, `by`, and `where` blocks are delimited by indentation, so a re-indentation changes the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A macro can change what a line means**: `macro` and `elab` rewrite the surface, so the reader must know the notation the library installed",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`#eval` runs a term in the file**: A definition can be evaluated and printed beside its proof, and `#check` reports its type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`example` and `by decide` state a checked claim inline**: A decidable proposition is proved by evaluation, and an `example` block is a test the elaborator runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`lake test` runs the project's test executable**: A test driver is declared in the package and run by the build tool",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`#print axioms` reports the assumptions behind a theorem**: A proof that used `sorry` or an extra axiom shows the dependency, so an unchecked step is discoverable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`native_decide` extends the trusted base**: It closes a goal by evaluating compiled code, so the compiler and the runtime, not only the kernel, are relied on",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An `IO` program is outside the logic**: The behaviour of a program that reads a file or a socket is tested as an ordinary program rather than proved",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**The kernel rechecks every proof term**: A theorem that elaborates cannot be invalid, so a claimed property is a checked one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`sorry` is visible and reportable**: The placeholder closes any goal with a warning, and `#print axioms` shows that it was used, so an unfinished proof is discoverable rather than hidden",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`unsafe` names the escape from the logic**: A declaration that bypasses the kernel is marked, so the boundary can be found in the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No pointer type exists in the language surface**: A term written without `unsafe` cannot express an address, so the memory-safety class of bugs is outside the pure fragment",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The trusted base is wider than the kernel in a native binary**: The runtime, the C compiler, and the runtime's primitives are all in the path of a compiled program",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no capability model**: `IO` gives a program the authority of the operating system, and the sandbox is the operating system's",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Proof work is a separate effort from programming**: A `def` is not obliged to carry a proof, and requiring one is the author's decision",
+    "**The kernel is deliberately small and the tactics are not trusted**: A tactic produces a term that the kernel rechecks, which is a decision about where trust sits",
+    "**`partial` and `unsafe` are the intended escape hatches**: A non-terminating or pointer-touching definition is expressible, at the cost of its guarantee",
+    "**Typeclass search is a proof search with a cost**: An instance can be ambiguous or expensive to find, and that is an elaboration property rather than a run-time coupling",
+    "**The library is one large shared body**: `mathlib`'s definitions belong to the community, so a development inherits its choices instead of buying a library",
+    "**The audience is mathematics and verification**: The adoption of the language follows from that, and it is a market fact rather than a mechanism of the language"
+  ],
+  "verdict": "Lean 4's design produces the highest core score here, because its constructs are separating by construction. Dependent types let a type state a property of a value, propositions-as-types puts the specification and the program in one term, and the kernel rechecks every proof, so an invalid claim does not elaborate. Reference counting with borrow inference keeps the memory story deterministic and out of the source. Main strengths: an exact fit to mathematics and verification, a small trusted kernel, and a first-class editor and library. Main weaknesses: the language has a single implementation, the library universe beyond `mathlib` is small, the toolchain moves in nightly steps, and the curve is among the steepest.",
+  "verdictExtra": []
+}

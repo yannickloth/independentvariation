@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 1,
+  "id": "fish",
+  "name": "Fish",
+  "assessedAs": "Fish",
+  "version": "4.0",
+  "title": "Fish (4.0)",
+  "indexLabel": "Fish (4.0)",
+  "group": "shells-automation",
+  "order": 4,
+  "displayOrder": 51,
+  "presenceOrder": 51,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T10, T11, C1, C2, Er1, Er3, Er4, K5, P2",
+    "meta": "R1, Ec1, Ec3, D2, G1, G2, G3, Q3"
+  },
+  "matrixOrder": 19,
+  "tagline": "Friendly Shell",
+  "sbName": "Fish",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "fishDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": true,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Values are strings with no declaration**: `set x 10` and `set x abc` are the same operation, and nothing states what a name holds",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: An option that may be absent, numeric, or textual is a list of words, and the reader decodes the convention from the calling code",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A function is specialised only by its positional arguments, so the same logic is written again for each shape of data",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**One namespace for every name**: Functions and variables share one flat space, so collisions are avoided by convention — the `__fish_`-prefixed helper names in the bundled completions are the visible result (T6, T11)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**An unset name expands to an empty list**: `set -q` tests whether a name is set, but nothing forces it to be, so a mistyped variable silently expands to nothing",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Lists are values, not strings to be re-split**: `set a 1 2 3` and `$a` expand to exactly three arguments, so element structure survives expansion without quoting",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global is still the default**: An assignment without a scope flag reaches the innermost existing scope or the global one, so an accidental write into the caller is easy",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No immutability by default**: There is no read-only binding, so any visible name can be reassigned",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`set -l` gives block scope**: A variable declared local inside a function, a `begin`/`end` block, a `for`, a `while`, or an `if` disappears at the end of that block",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`alias` is sugar over `function`**: An alias becomes a real function, so the invocation name and the body are separated instead of textually substituted",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`argparse` validates options at the boundary**: A function declares its own option spec, so callers do not hand-roll a `getopts` loop and a bad option fails before the body runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Configuration lives outside scripts**: `~/.config/fish/config.fish`, the `conf.d/*.fish` snippets, and the universal-variable file separate shell setup from script logic",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No allocation syntax**: There is no pointer, no address, and no `free`; lists and strings are allocated by the interpreter",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Block scope bounds a value's lifetime**: A `set -l` list is released at the end of its block, so storage does not leak past the code that created it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Export joins a list on the way out**: A list assigned to an exported variable is joined with `:`, so `PATH` is edited as a list without building a string by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Assignment copies the list**: `set b $a` duplicates every element, and there is no way to reference a list without copying it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Command substitution is materialised whole**: `(cmd)` builds the entire output before the enclosing command runs, so a large output is held in memory",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Universal variables outlive the process**: `set -U` writes to `fish_variables`, so a value persists after the shell exits until it is erased deliberately",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured error path**: A command reports success through `$status` and text on stderr; there is no exception and no error value",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Errors are not composable**: `and` and `or` chain status codes, but a status carries no payload and cannot be returned from a function as data",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "cost",
+        "text": "**A non-zero status is easy to ignore**: A function reports the status of its last command, so a failure in the middle of a block is discarded unless `or return` follows it",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`$pipestatus` reports every stage**: Each stage of a pipeline keeps its own status, so a failure is not hidden by a successful last stage",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Syntax errors are reported with a source position**: Fish names the file, line, and column, but only for text it has parsed, so a fault inside a function body is reported when the function is defined",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An unknown command is a hookable event**: `fish_command_not_found` runs when a command is missing, so the message can be replaced, but the failure remains a status code",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No concurrency primitives**: There is no thread, lock, channel, or await; the only parallel construct is backgrounding with `&`",
+        "mechanism": "K5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Event handlers decouple producer from consumer**: `function --on-variable NAME`, `--on-event`, `--on-process-exit`, and `emit` let a consumer subscribe without the producer knowing it exists",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Processes are the unit of parallelism**: Concurrency is expressed with pipes and background jobs, so no shared address space has to be reasoned about",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Process events are the only synchronisation**: A script coordinates jobs by watching exit events or by `wait`, and no value can be returned from a job",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Background jobs share the environment**: A `&` job inherits every global and universal variable, so ordering between jobs is unspecified unless the script waits",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No coprocess**: Fish cannot keep a two-way conversation with a child, so an interactive child must be driven through files or a `while read` loop",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Not a POSIX shell**: Fish does not implement the POSIX shell language, so a `#!/bin/sh` script is a different language and `sh -c` calls a separate program",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**One implementation defines the language**: With no standard to satisfy, behaviour is fixed by the fish manual and its release notes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Runs on every Unix-like target**: Fish ships on Linux, the BSDs, and macOS, and is packaged by every major distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Windows support is through an emulation layer**: Fish relies on Unix APIs and their semantics, so Windows use goes through WSL, Cygwin, or MSYS2 rather than a native port",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**One implementation is one point of failure**: There is no second implementation to test the language's contract against",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**fish is the default login shell nowhere**: A user installs it and sets it as their shell, so availability depends on the host's configuration",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "caution",
+        "text": "**Interpreted with no compilation**: Every command is parsed and executed as text, and fish offers no ahead-of-time path",
+        "mechanism": "R1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core is native code**: Fish was written in C++ through the 3.x series and was ported to Rust for 4.0, so parsing, expansion, and completion run in compiled code rather than in script",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Command substitution does not re-split**: `(cmd)` performs no word splitting or globbing, so a large result is not re-parsed argument by argument",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Start-up can be profiled and trimmed**: `fish --profile-startup` measures configuration work and `--no-config` skips it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Start-up runs the configuration snippets**: An interactive shell sources `config.fish` and every file in `conf.d`, so a heavy prompt or completion setup costs time on each new shell",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`for` over a substitution materialises the output**: A large `(cmd)` result is held in memory before the loop starts",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**No package manager in the language**: There is no dependency resolver, so plugins are copied into `~/.config/fish` by third-party managers such as Fisher or Oh My Fish",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The ecosystem is small but growing**: Completions and prompt themes exist for popular tools, and there are far fewer fish libraries than `sh` libraries",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The bundled completion system is large**: `complete -c` declarations ship with fish and cover hundreds of commands, so everyday completion needs no add-on",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`fish_config` gives a built-in UI**: Prompts and themes are edited in a browser against files under `~/.config/fish`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation is first-class**: The manual, the tutorial, and `help <builtin>` are maintained with each release",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Third-party plugin managers own the plugin ecosystem**: Fisher and Oh My Fish are unofficial, so the plugin supply chain is not part of the language",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**No breaking-change culture**: Fish adds features and documents the few incompatible changes in the release notes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Release notes record every incompatibility**: The manual lists removals and behaviour changes for each version, so an upgrade is inspectable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The project ships on a regular cadence**: Fish 4.0 was released in February 2025, and further 4.x releases followed it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No standards body**: The direction of the language follows its maintainers rather than a committee",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Non-POSIX means the language may keep diverging**: With no standard to align to, fish is free to change and is not compelled to hold `sh` semantics",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**It is not a POSIX shell**: A fish script runs only under fish, so portable system scripts, `configure` scripts, and `#!/bin/sh` entry points cannot be written in fish",
+        "mechanism": "D2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Strong for interactive work**: Syntax highlighting, autosuggestions, and completion make the terminal the primary domain",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Good for personal automation on a fixed host**: Where the interpreter is guaranteed, a fish script is shorter and clearer than its `sh` equivalent",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Lists map to the filesystem naturally**: `$PATH` and command output are lists of paths, and `path` and `string split` operate on them directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Weak for distribution**: A fish script cannot be shipped to a host without fish, which rules fish out for bootstrap, packaging, and installer code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Not a general-purpose language**: The model is a shell over external commands, so real data processing moves to other tools",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The tutorial and manual are written for newcomers**: Fish ships a tutorial and an FAQ, and each builtin has its own help page",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Error messages name the file, line, and column**: A beginner sees where the problem is rather than a bare failure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language is smaller and more regular than `sh` or `zsh`**: One `end` closes every block, `set` is the only binding command, and there is no word splitting to learn",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Quoting habits from other shells misfire**: `\"$var\"` and `[ -f x ]` do not apply, and `$var` is not split where an `sh` user expects it to be",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The builtin vocabulary is large**: `string`, `math`, `path`, `set`, `argparse`, `complete`, and `status` each carry their own option set",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**No word splitting means fewer quotes**: `$var` expands as written, so a path containing a space needs no quoting to survive",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One block terminator**: `end` closes `if`, `for`, `while`, `switch`, and `function`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One binding form**: There is no `=`, no `setenv`, and no `typeset` to choose between",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`and` and `or` begin a line**: A boolean continuation puts the operator at the start of the next command, which reads unusually",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Piping a block needs a wrapper**: A multi-command producer must be written as `begin ... end` before it can be piped",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`switch` has no fallthrough**: A case ends at the next `case`, so an intentional fallthrough must be written as a second case",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test framework in the language**: A test is a function that calls the code and checks `$status`, with no assertion or reporting facility",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Debugging is `breakpoint` and `fish_trace`**: Fish can pause with `breakpoint` and print a stack with `status stack-trace`, but it has no debugger with breakpoints, stepping, and inspection",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Faults appear only on the branch that runs**: With no static check, a mistyped variable or a bad list index is found during the run",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`fish --no-execute` checks syntax without running**: A script can be parsed before it is executed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`fish_indent --check` fails on unformatted code**: A shipped formatter gives a cheap consistency gate in a test path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`fish --private` isolates a test from user state**: Configuration, history, and universal variables are left untouched, so a test run is reproducible",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Text can re-enter the interpreter**: Input assembled from untrusted data and passed to `eval`, or interpolated into a substituted command, becomes code",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**No word splitting removes a whole class of injection**: An unquoted `$var` does not split or glob, so a value with spaces or `*` cannot become several arguments or an unexpected path list",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`string escape` and `string collect` make quoting explicit**: Output can be quoted for re-input instead of being concatenated by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`argv` and `argparse` keep options out of the parser**: A function receives its arguments as a list, so a value beginning with `-` is not silently taken as an option",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No memory-safety surface**: Lists and strings are interpreter-managed, so a fish script has no buffer to overflow",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**History and universal variables are unencrypted state**: Command history and `set -U` values are written to disk in the user's configuration, so a secret typed at the prompt is recorded by default",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Fish is deliberately not POSIX**: Giving up `sh` compatibility buys the design freedom that removes word splitting and most quoting noise",
+    "**Universal variables are a convenience with a lifecycle cost**: Persisting a value outside the shell trades reproducibility for ergonomics",
+    "**Aliases became functions because functions are better**: The change breaks the textual-substitution habit from other shells, which is the point of the change",
+    "**The web-based configuration UI is a front end**: `fish_config` writes plain files under `~/.config/fish`, so the browser is not a runtime dependency",
+    "**Autosuggestions and highlighting are interactive features**: They cost start-up work and terminal capability, and they are not part of the scripting language",
+    "**The Rust port is an implementation change**: The language contract is unchanged; the gain is in the codebase, not in what a script may rely on"
+  ],
+  "verdict": "Fish lowers the coupling that a scripting shell normally imposes on construction and on text handling: `set -l` gives block scope, `$var` never splits, lists are first-class, and functions replace textual aliases. Its core score still stops at 43, because the value model has no types, every name is global by default, and an error remains a status code rather than a value. The price is paid elsewhere: fish is not a POSIX shell, so a fish script runs only where fish is installed, and start-up configuration, an unofficial plugin supply chain, and the absence of a test framework hold the platform and ecosystem score to 49.",
+  "verdictExtra": []
+}

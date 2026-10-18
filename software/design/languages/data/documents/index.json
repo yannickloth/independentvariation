@@ -1,0 +1,426 @@
+{
+  "schemaVersion": 1,
+  "frontMatter": {
+    "title": "The Great Language Smackdown: 65 Languages Through the Coupling Lens"
+  },
+  "frontMatterLines": [
+    "title: \"The Great Language Smackdown: 65 Languages Through the Coupling Lens\""
+  ],
+  "blocks": [
+    {
+      "q": "**Methodology note:** This article is a product of GenAI. The methodology imposed online research for generation, then multiple rounds of adversarial reviews and fixes until convergence, which needs 2 consecutive review-fix rounds with 0 issues found."
+    },
+    {
+      "p": "**Analysis date: June 2026. All languages evaluated against their latest stable version as of this date.**"
+    },
+    {
+      "p": "Most language comparisons focus on syntax, performance, or popularity. This one is different."
+    },
+    {
+      "p": "We are analyzing each language through a **coupling lens**: how well does the language separate independent concerns and prevent unwanted coupling?"
+    },
+    {
+      "q": "**Version scope**: Every language is assessed against its **latest stable standard or release** as of June 2026 [@isoC2024; @isoCpp2024; @isoAda2023; @isoFortran2023; @isoCobol2023; @ecmaEiffel; @isoSql2023; @posix2024; @r7rs2013; @ansiSmalltalk1998]. Scores reflect modern idioms and current best practices for that version, not historical usage. Where a language has multiple widely-used versions with meaningfully different coupling properties, this is noted explicitly."
+    },
+    {
+      "q": "**Scope.** This is a **language coupling analysis**, a topic distinct from the Independent Variation Principle (IVP). It scores how much *language-imposed coupling* each language inflicts on programs. It does not identify change drivers, compute driver assignments, or measure module cohesion; those belong to IVP and are outside this analysis. Each language has its own page with the full detailed evaluation; the sections below give the grouped results and rankings."
+    },
+    {
+      "hr": true
+    },
+    {
+      "h": 2,
+      "text": "Quick Reference by Use Case"
+    },
+    {
+      "ul": [
+        "**Need maximum safety?** → Rust, SPARK, Lean4, Rocq, PureScript, Haskell, Ada",
+        "**Formal verification?** → SPARK, Lean4, Rocq (theorem provers)",
+        "**Building enterprise apps?** → C#, Java, Kotlin, TypeScript",
+        "**Web development?** → TypeScript, JavaScript, Python, Ruby, PHP",
+        "**Systems programming?** → Rust, C, D, Zig, C++",
+        "**Data science/ML?** → Python, R, Julia, MATLAB, SQL",
+        "**Scripting/automation?** → Python, Bash, Zsh, Fish, PowerShell, Lua",
+        "**Learning programming?** → Scratch, Python, JavaScript, Scheme",
+        "**Functional programming?** → Haskell, OCaml, Elixir, F#, Clojure, Scheme, PureScript, Unison",
+        "**Game development?** → C++, C#, Rust, D, Lua (scripting)",
+        "**Mobile apps?** → Swift (iOS), Kotlin (Android), Dart (Flutter), C# (.NET MAUI)",
+        "**Fault-tolerant distributed?** → Erlang, Elixir (BEAM/OTP)",
+        "**Cross-platform UI?** → Dart (Flutter), Kotlin (Compose Multiplatform)",
+        "**Scientific/numerical?** → Julia, Python, R, MATLAB, Fortran"
+      ]
+    },
+    {
+      "hr": true
+    },
+    {
+      "h": 2,
+      "text": "What is coupling?"
+    },
+    {
+      "h": 3,
+      "text": "A coupling taxonomy: accidental vs. necessary"
+    },
+    {
+      "p": "Coupling falls into two fundamental kinds:"
+    },
+    {
+      "rawtable": [
+        "| Kind | Definition | Origin |",
+        "|------|-----------|--------|",
+        "| **Necessary coupling** | Dependencies the system cannot function without — the *irreducible coupling floor*. Causal dependencies dictated by the domain structure. | Domain artifacts |",
+        "| **Accidental coupling** | Dependencies that are not causally required — coupling that exists by developer choice, oversight, or language/platform constraint. | Design or platform |"
+      ]
+    },
+    {
+      "p": "In any system, necessary coupling is the minimum possible: the inter-module communication the domain demands. Accidental coupling is everything beyond that — coupling introduced by design choice, oversight, or the language and platform itself. This taxonomy, and the coupling-floor idea it rests on, is developed in the coupling analysis: the definition of coupling as access to a shared resource [@loth2026couplingnature], and the coupling floor as the coupling the domain demands [@loth2026couplingconsequence]."
+    },
+    {
+      "p": "Accidental coupling subdivides into two subtypes, which are the core of this language analysis:"
+    },
+    {
+      "rawtable": [
+        "| Subtype | Definition | Fix |",
+        "|---------|-----------|-----|",
+        "| **Avoidable accidental** | Could be removed by better design within the language's capabilities. The developer chose to couple unnecessarily. | Better design |",
+        "| **Language-imposed** | Unavoidable given the language's constructs — the irreducible residuum of accidental coupling the language *inflicts* on all programs. Even optimal design cannot eliminate it. | Change language or version |"
+      ]
+    },
+    {
+      "p": "A language can also couple elements in dimensions beyond structural dependency. Coupling has several dimensions: structural, temporal, concurrency, security, platform, and **language** (memory model, type system, module system). Each dimension carries its own dependency relation, and coupling decomposes into necessary, spurious, and accidental components."
+    },
+    {
+      "p": "**What this means for language comparison:** This article evaluates languages along the *language* coupling dimension: how much language-imposed coupling does the language generate, and how well does it help you detect and eliminate avoidable accidental coupling? A language with a good coupling profile (a) minimizes language-imposed coupling (fewer constructs that force accidental edges) and (b) detects avoidable coupling at the earliest possible stage (compile time > static analysis > runtime > never)."
+    },
+    {
+      "p": "This article's scores answer: *how close does this language let you get to the irreducible coupling floor?*"
+    },
+    {
+      "h": 2,
+      "text": "How We Score: Methodology"
+    },
+    {
+      "p": "Every language imposes some amount of accidental coupling that even optimal design cannot eliminate. Headers force compilation coupling. Unchecked null forces null-check coupling. A global interpreter lock forces concurrency coupling. Dynamic typing forces coupling detection to runtime. These are not design mistakes — they are language properties."
+    },
+    {
+      "p": "Our scores are computed by an **objective, reproducible algorithm**, not by subjective impression:"
+    },
+    {
+      "ol": [
+        "1. A **closed mechanism inventory** — each coupling mechanism has a **fixed weight**.",
+        "2. A **binary presence check** — for each language, each mechanism is marked *present* or *absent* (a factual determination, not a severity judgment).",
+        "3. An **arithmetic rule** — within each dimension the present weights are summed and **capped at −15** (one severe mechanism's worth), and the score is **100 − Σ(capped per-dimension contributions)**."
+      ]
+    },
+    {
+      "p": "Because the weights are fixed and the only per-language step is present/absent, any two analysts following these rules reach identical scores. The framework makes disagreement precise: to dispute a score, you must either contest a mechanism's presence in a specific language, or propose changing a fixed weight and then recompute."
+    },
+    {
+      "p": "**The full mechanism inventory** (Core: Type, Construction, Memory, Error, Concurrency, Platform; Meta: Performance, Ecosystem, Evolution, Domain, Learning, Syntax, Testing, Security), the detailed capped-sum rule, and the tests that decide presence are on [The Scoring Model](objective-coupling-scoring-model.qmd). The ranked table, the per-dimension sub-scores, and the **complete per-language mechanism-presence data** for all 65 languages — so any score can be reproduced from first principles — are on [The Scoreboard](scoreboard.qmd)."
+    },
+    {
+      "p": "**What each mechanism means** — what it is, what it forces to agree, how harmful it is, and why it removes the points it removes — is explained mechanism by mechanism, with examples, in [The 60 Coupling Criteria](scoring-criteria.qmd)."
+    },
+    {
+      "h": 3,
+      "text": "What the score means"
+    },
+    {
+      "p": "Because the model is a fixed-inventory capped-sum-per-dimension model, the bands follow directly from the mechanism weights:"
+    },
+    {
+      "ul": [
+        "**90+**: No dimension contains a severe (High) mechanism, and at most one dimension reaches even −8. Near the irreducible floor.",
+        "**75–89**: No dimension reaches −15; a small number of moderate (−8) mechanisms spread across dimensions.",
+        "**60–74**: At least one dimension caps at −15 (a severe mechanism), or several dimensions carry moderate mechanisms.",
+        "**45–59**: Two or three dimensions cap at −15, or one severe mechanism plus several moderate across other dimensions.",
+        "**Below 45**: Three or more dimensions cap at −15 — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
+      ]
+    },
+    {
+      "h": 2,
+      "text": "1. Type System Powerhouses"
+    },
+    {
+      "grouplist": "Type System Powerhouses"
+    },
+    {
+      "h": 2,
+      "text": "2. Modern Mainstream"
+    },
+    {
+      "grouplist": "Modern Mainstream"
+    },
+    {
+      "h": 2,
+      "text": "3. Systems and Performance"
+    },
+    {
+      "grouplist": "Systems and Performance"
+    },
+    {
+      "h": 2,
+      "text": "4. Dynamic and Scripting"
+    },
+    {
+      "grouplist": "Dynamic and Scripting"
+    },
+    {
+      "h": 2,
+      "text": "5. Shells and Automation"
+    },
+    {
+      "grouplist": "Shells and Automation"
+    },
+    {
+      "h": 2,
+      "text": "6. Functional, Declarative, Legacy"
+    },
+    {
+      "grouplist": "Functional, Declarative, Legacy"
+    },
+    {
+      "h": 2,
+      "text": "7. Domain-Specific Languages"
+    },
+    {
+      "grouplist": "Domain-Specific Languages"
+    },
+    {
+      "h": 2,
+      "text": "8. Educational and Special"
+    },
+    {
+      "grouplist": "Educational and Special"
+    },
+    {
+      "h": 2,
+      "text": "9. Emerging and Specialty"
+    },
+    {
+      "grouplist": "Emerging and Specialty"
+    },
+    {
+      "hr": true
+    },
+    {
+      "h": 2,
+      "text": "The Scoreboard"
+    },
+    {
+      "p": "Every score in the comparison — the ranked table, the two per-dimension matrices, and the complete per-language mechanism data — is on the [Scoreboard](scoreboard.qmd)."
+    },
+    {
+      "h": 2,
+      "text": "Summary and Recommendations"
+    },
+    {
+      "h": 3,
+      "text": "How to Use This Analysis"
+    },
+    {
+      "p": "**By Paradigm:**"
+    },
+    {
+      "ul": [
+        "**Type System Powerhouses** → Maximum safety, steep learning curves",
+        "**Modern Mainstream** → Best balance for most projects",
+        "**Systems and Performance** → When you need low-level control",
+        "**Dynamic and Scripting** → Rapid prototyping, flexibility over safety",
+        "**Domain-Specific** → Perfect fit for specialized problems"
+      ]
+    },
+    {
+      "p": "**By Score (latest version, modern idioms):**"
+    },
+    {
+      "ul": [
+        "**90+ (Elite):** Rust — Near-zero language-imposed coupling; the sole language with no severe coupling mechanism in any dimension",
+        "**75-89 (Excellent):** Swift, Unison, Ada, SQL, Rocq, SPARK, Lean4, Haskell — Strong languages; at most one severe mechanism, otherwise clean",
+        "**60-74 (Good):** Zig, PureScript, OCaml, Transact-SQL, Elixir, Erlang, Dart, Clojure, Racket, Scheme, D, Crystal — Moderate coupling; real costs in at least one dimension",
+        "**45-59 (Fair):** Solidity, Tcl, Scala, F#, Prolog, Scratch, Kotlin, Go, COBOL, Delphi, Nim, C++, Eiffel, Java, C#, SAS, Smalltalk, Common Lisp, Visual Basic, PL/SQL, Turbo Pascal, R — Significant forced coupling; discipline and tooling compensate",
+        "**<45 (Limited):** Objective-C, PowerShell, Lua, Bash, Zsh, Ksh, Sh, C shell, Fish, VBScript, MATLAB, Julia, Groovy, JavaScript, TypeScript, Python, PHP, Ruby, Perl, Fortran, C, Assembly — Pervasive forced coupling; legacy, domain-specific, or dynamically-typed"
+      ]
+    },
+    {
+      "hr": true
+    },
+    {
+      "h": 2,
+      "text": "The Verdict: Coupling Edition"
+    },
+    {
+      "p": "*Scores from the objective model (capped-sum-per-dimension), analysis date June 2026. Older versions of the same language can score significantly lower (e.g., C++98, Java 8).*"
+    },
+    {
+      "p": "**If you need mathematical proof of correctness:** Rocq (85), SPARK (85), Lean4 (85)"
+    },
+    {
+      "p": "**If you want bulletproof low coupling by language design:** Rust (96), Swift (88), Unison (88), Ada (88)"
+    },
+    {
+      "p": "**If you want low coupling with pragmatism:** Haskell (80), Zig (73), PureScript (73), OCaml (69)"
+    },
+    {
+      "p": "**If you want low coupling with discipline (modern versions):** Erlang (69), Elixir (69), Dart (69), Transact-SQL (65), Clojure (62), Kotlin (57), Delphi (54), Go (54)"
+    },
+    {
+      "p": "**Low coupling on a budget (ecosystem-driven):** Tcl (58), F# (57), Scala (57), C++ (50)"
+    },
+    {
+      "p": "**Specialized excellence (unique coupling profiles):** Erlang (69): Actor model with per-process isolation and let-it-crash. Elixir (69): Modern BEAM with macros and protocols. Julia (32): Multiple dispatch without inheritance. Eiffel (53): Design by Contract makes change drivers explicit and coupling across them detectable. Objective-C (42): Dynamic messaging plus categories, protocols, and blocks for decoupling. Turbo Pascal (46): Units give genuine interface/implementation separation rare among 1980s languages."
+    },
+    {
+      "p": "**Domain-locked procedural database logic:** PL/SQL (46) and Transact-SQL (65) couple all logic to their database engines but offer real encapsulation (packages/spec-body, stored procedures) and structured exceptions. SAS (51) uniquely separates the DATA step from PROC steps. Use them only where the logic must live inside the database or analytics engine."
+    },
+    {
+      "p": "**Lowest forced coupling:**"
+    },
+    {
+      "ol": [
+        "1. **Rust** (96): Ownership enforces separation, Result types compose, no null, traits decouple",
+        "2. **Swift** (88): Protocol-oriented design, value types, ARC",
+        "3. **Unison** (88): Content-addressed code, algebraic effects, distributed computing built-in",
+        "4. **Ada** (88): Strong static typing, packages, tasking, contracts",
+        "5. **SQL** (85): Declarative, no in-language coupling among your elements"
+      ]
+    },
+    {
+      "p": "**Low coupling with pragmatism (latest versions):**"
+    },
+    {
+      "ol": [
+        "1. **Haskell** (80): Type classes, explicit effects, immutability",
+        "2. **Zig** (73): Explicit everything, error unions, allocator parameters, comptime",
+        "3. **PureScript** (73): Effect system separates effect types",
+        "4. **OCaml** (69): Module system, immutable data, exhaustive pattern matching"
+      ]
+    },
+    {
+      "p": "**Highest forced coupling:**"
+    },
+    {
+      "ol": [
+        "1. **Assembly** (10): No abstractions, manual everything, maximum coupling risk",
+        "2. **C** (25): Manual memory, weak typing, global state, undefined behavior",
+        "3. **JavaScript** (28): Dynamic, global state, unchecked errors, no types",
+        "4. **PHP** (28): Dynamic, weak typing, superglobals, no concurrency",
+        "5. **Perl** (28): Dynamic, global state, primitive objects, GIL"
+      ]
+    },
+    {
+      "p": "**Neither helps nor hinders coupling:**"
+    },
+    {
+      "ul": [
+        "**C** (25): With discipline, coupling can be low; without it, coupling is extreme",
+        "**D** (61): Better C++ with cleaner templates, contracts, and both GC and manual memory"
+      ]
+    },
+    {
+      "hr": true
+    },
+    {
+      "h": 2,
+      "text": "The Real Truth"
+    },
+    {
+      "p": "Coupling scores depend heavily on which version of a language you're using. C++23 is a fundamentally different language from C++98. Java 26 with records, sealed classes, and virtual threads is not the same as Java 8. Always check the version baseline."
+    },
+    {
+      "p": "Version aside, Coupling scores don't determine project success. Context matters:"
+    },
+    {
+      "ul": [
+        "**Team expertise** trumps language coupling score",
+        "**Ecosystem maturity** often beats language elegance",
+        "**Hiring availability** is a real constraint",
+        "**Performance requirements** eliminate choices",
+        "**Platform constraints** narrow the field"
+      ]
+    },
+    {
+      "p": "**But here's what coupling analysis reveals:**"
+    },
+    {
+      "p": "Languages with **proven separation** (Lean4, Rocq, SPARK) mathematically guarantee correctness. Extreme learning curve, but zero-defect systems achievable."
+    },
+    {
+      "p": "Languages with **enforced separation** (Rust, Haskell, PureScript, OCaml) make coupling impossible to hide. You pay upfront in learning curve, gain long-term in maintainability."
+    },
+    {
+      "p": "Languages with **optional separation** (Swift, Kotlin, C#, modern Java, modern C++, Eiffel, Groovy) let you choose coupling level. Good for migration, requires discipline."
+    },
+    {
+      "p": "Languages with **manual separation** (C, D, Zig, COBOL, Turbo Pascal) give you rope to hang yourself or build elegantly. Expertise required."
+    },
+    {
+      "p": "Languages with **runtime-only separation** (JavaScript, TypeScript, Python, PHP, Ruby, shells, VBScript) defer most coupling detection to testing. TypeScript moves a share of that detection to compile time, but its runtime coupling is JavaScript's. Python 3.14 (free-threaded), PHP 8.4 (property hooks, fibers), and Ruby 4.0 (YJIT, pattern matching) have all made meaningful coupling-separation progress in recent versions."
+    },
+    {
+      "p": "Languages with **domain-locked separation** (Objective-C, PL/SQL, Transact-SQL, SAS, Solidity) are coupled to a single platform or domain — the platform is the unit boundary, and the language's coupling quality only matters within it."
+    },
+    {
+      "p": "**One result worth stating plainly:** TypeScript scores 31 against JavaScript's 28. The type layer genuinely removes coupling — `strict` makes absence a checked case, and structural typing, union types, and generics remove the dynamic-typing mechanisms — but the per-dimension clamp bounds how much of that removal can show, and the runtime coupling stays JavaScript's: the collector, the single-threaded event loop, unowned mutable objects, and failures that no type tracks. TypeScript is a better-typed JavaScript, not a differently-coupled runtime."
+    },
+    {
+      "p": "**The lesson:** Match language coupling capabilities to your context AND your version. C++23 with modern idioms is a different beast from C++98. Java 26 with virtual threads, records, and sealed classes is not Java 8. Don't pick a language based on its worst version. Building life-critical systems? Use SPARK or Lean4. Building a 20-year system with changing requirements? Invest in Rust. Building mobile apps? Swift or Kotlin. Building a weekend project? JavaScript is fine. Maintaining legacy code? TypeScript adds compile-time detection incrementally, though its runtime coupling is JavaScript's. Need shell automation? Fish or PowerShell beat Bash."
+    },
+    {
+      "p": "Stop chasing the perfect language. Pick one that fits your constraints, understand its coupling traps, and build with discipline."
+    },
+    {
+      "p": "The language wars are over. the analysis shows why: different contexts need different coupling trade-offs."
+    },
+    {
+      "p": "Now get back to building things."
+    },
+    {
+      "hr": true
+    },
+    {
+      "h": 2,
+      "text": "Learn More"
+    },
+    {
+      "p": "The coupling account this analysis rests on is developed in the published coupling papers:"
+    },
+    {
+      "ul": [
+        "*On the Nature of Coupling: All Coupling as Shared Resource Access* [@loth2026couplingnature] defines coupling as access to a shared resource, with the resource taxonomy and the three coupling modes.",
+        "*A Self-Contained Derivation of the Optimal Modularization from Coupling* [@loth2026couplingderivation] derives the modularisation directive from the coupling account alone.",
+        "*Coupling as a Consequence of Cohesion: Decomposition, the Coupling Floor, and Domain-Imposed Coupling* [@loth2026couplingconsequence] establishes the coupling floor and shows that correctly bounded coupling is a consequence of cohesion."
+      ]
+    },
+    {
+      "p": "The link to knowledge — why a language that scatters or hides a module's knowledge imposes coupling — is the knowledge-embodiment theorem: a maximally cohesive module embodies exactly the knowledge its class must hold. The theorem, with the purity–completeness pair that measures it, is developed in *On the Nature of Cohesion: Cohesion as Correctness Relative to a Partitioning Rule* [@loth2026cohesion], with the causal grounding in *Causal Cohesion* [@loth2026causal]."
+    },
+    {
+      "hr": true
+    },
+    {
+      "p": "*Which language's coupling analysis surprised you? Did I miss critical coupling mechanisms? Share your experiences in the comments!*"
+    },
+    {
+      "comment": "<!-- formal-development -->"
+    },
+    {
+      "hr": true
+    },
+    {
+      "p": "**The formal development.** The definitions, theorems, and proofs behind this page are published in:"
+    },
+    {
+      "ul": [
+        "*On the Nature of Coupling: All Coupling as Shared Resource Access* — Zenodo, 2026 — [doi:10.5281/zenodo.21925122](https://doi.org/10.5281/zenodo.21925122)",
+        "*A Self-Contained Derivation of the Optimal Modularization from Coupling* — Zenodo, 2026 — [doi:10.5281/zenodo.21925268](https://doi.org/10.5281/zenodo.21925268)",
+        "*Coupling as a Consequence of Cohesion: Decomposition, the Coupling Floor, and Domain-Imposed Coupling* — Zenodo, 2026 — [doi:10.5281/zenodo.21925201](https://doi.org/10.5281/zenodo.21925201)",
+        "*On the Nature of Cohesion: Cohesion as Correctness Relative to a Partitioning Rule* — Zenodo, 2026 — [doi:10.5281/zenodo.21703193](https://doi.org/10.5281/zenodo.21703193)",
+        "*Causal Cohesion* — Zenodo, 2026 — [doi:10.5281/zenodo.21703156](https://doi.org/10.5281/zenodo.21703156)"
+      ]
+    },
+    {
+      "p": "[All published papers](../../../reference/papers.qmd)"
+    }
+  ]
+}

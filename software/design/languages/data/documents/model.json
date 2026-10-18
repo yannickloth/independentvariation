@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "frontMatter": {
+    "title": "The Scoring Model: Arithmetic, Inventory, and Presence Rules",
+    "description": "How every score in the 65-language coupling comparison is computed — the mechanism inventory and weights, the capped-sum rule, and the tests that decide presence.",
+    "tags": "[programming, languages, coupling, architecture, methodology]"
+  },
+  "frontMatterLines": [
+    "title: \"The Scoring Model: Arithmetic, Inventory, and Presence Rules\"",
+    "description: How every score in the 65-language coupling comparison is computed — the mechanism inventory and weights, the capped-sum rule, and the tests that decide presence.",
+    "tags: [programming, languages, coupling, architecture, methodology]"
+  ],
+  "blocks": [
+    {
+      "h": 1,
+      "text": "The Scoring Model"
+    },
+    {
+      "q": "**Companion to:** [The Great Language Smackdown](index.qmd) · [the Scoreboard](scoreboard.qmd) · [the 60 criteria](scoring-criteria.qmd)"
+    },
+    {
+      "p": "The main article ranks 65 languages by language-imposed coupling. This companion publishes the **mechanism inventory, the arithmetic, and the tests that decide presence**, so any reader can reproduce any number from first principles — no trust required. The per-language data itself is on the [Scoreboard](scoreboard.qmd)."
+    },
+    {
+      "p": "What each mechanism means, what it forces to agree, and why it costs what it costs is explained in [The 60 Coupling Criteria](scoring-criteria.qmd)."
+    },
+    {
+      "p": "The coupling analysis this model operationalizes — coupling as access to a shared resource, and the derivation of a modularisation directive from coupling — is developed in the published coupling papers [@loth2026couplingnature; @loth2026couplingderivation]."
+    },
+    {
+      "p": "**Analysis date: June 2026.** All languages are assessed against the version shown."
+    },
+    {
+      "h": 2,
+      "text": "How a score is computed"
+    },
+    {
+      "p": "The model is a **capped-sum-per-dimension** inventory:"
+    },
+    {
+      "ol": [
+        "1. A fixed mechanism inventory, each mechanism with a fixed weight.",
+        "2. For each language, every mechanism is marked **present** or **absent** (a factual determination).",
+        "3. Within each of the six Core dimensions (and eight Meta dimensions), the present weights are **summed and clamped to at most −15**.",
+        "4. **Score = 100 − Σ(capped per-dimension contributions).**"
+      ]
+    },
+    {
+      "p": "The cap equals the High weight (−15), so a dimension never costs more than one severe mechanism. This keeps scores bounded (minimum Core = 10), monotone (adding a mechanism never helps), and discriminative (no collapse to zero)."
+    },
+    {
+      "h": 3,
+      "text": "Score bands"
+    },
+    {
+      "p": "Because the model is a fixed-inventory capped-sum-per-dimension model, the bands follow directly from the mechanism weights:"
+    },
+    {
+      "ul": [
+        "**90+**: No dimension contains a severe (High) mechanism, and at most one dimension reaches even −8. Near the irreducible floor.",
+        "**75–89**: No dimension reaches −15; a small number of moderate (−8) mechanisms spread across dimensions.",
+        "**60–74**: At least one dimension caps at −15 (a severe mechanism), or several dimensions carry moderate mechanisms.",
+        "**45–59**: Two or three dimensions cap at −15, or one severe mechanism plus several moderate across other dimensions.",
+        "**Below 45**: Three or more dimensions cap at −15 — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
+      ]
+    },
+    {
+      "h": 3,
+      "text": "Dimension sub-scores"
+    },
+    {
+      "p": "The **dimension sub-scores** shown in the main article's comparison matrices are the per-dimension contribution: 100 minus the capped sum of the present mechanisms in that dimension only. They are not independent scores — they are the building blocks of the composite, so a language's Core score always equals 100 minus the sum of its six capped per-dimension contributions."
+    },
+    {
+      "h": 2,
+      "text": "Mechanism inventory (weights)"
+    },
+    {
+      "h": 3,
+      "text": "Core — six dimensions"
+    },
+    {
+      "table": "inventory-core"
+    },
+    {
+      "h": 3,
+      "text": "Meta — eight dimensions"
+    },
+    {
+      "table": "inventory-meta"
+    },
+    {
+      "h": 3,
+      "text": "What counts as present"
+    },
+    {
+      "p": "Presence is a factual determination about the language a programmer can write, not about a team's house style or a third-party tool. Three determinations need a stated rule:"
+    },
+    {
+      "ul": [
+        "**A check behind a project switch.** Some mechanisms depend on a compiler switch that the project file sets. The mark uses the configuration the language's own project initialiser writes for the version shown, because that is what a new project gets without a decision. `tsc --init` writes `\"strict\": true`, and `strict` sets `strictNullChecks`, so TypeScript is not charged `T10`. `dotnet new` writes `<Nullable>enable</Nullable>`, so C# is not charged `T10`. Visual Basic's compiler default is `Option Strict Off` and the SDK template sets no `OptionStrict`, so the narrowing conversion is charged `T2`. Where the initialiser writes no switch, the compiler default governs. A check that only a separate tool supplies is never counted — the `mypy` case under `T1`.",
+        "**`M2` — the collector's schedule.** Present when the run time reclaims memory on its own schedule rather than at the last reference, so the program cannot name when the heap shrinks. Deterministic reclamation is not charged: Swift's ARC and Delphi's strings and interfaces release at the last reference, and Delphi on Windows frees objects explicitly. Objective-C is charged, because an autorelease pool defers a release past the last reference and a Core Foundation handle is released by hand. The collector must be the one that reclaims the language's own objects: a language that compiles to another scored language inherits that language's collector (TypeScript inherits JavaScript's), while a language whose artifact is consumed by a host rather than executed as its own objects is not charged here (a Rocq term is checked by the kernel, and a Scratch project runs inside the Scratch VM).",
+        "**`R2` — the collector's pause.** Present when the page records the collector's pause as a cost the program must absorb — a ⚠️ or ❌ bullet on the pause itself, on a stop-the-world cycle, or on the program's lack of control over the pause. Absent when the page names no collector cost at all, and absent when the page records the opposite (bounded collector steps, per-process collection, a collector mode stated as a strength). The mark is thus the page's own assessment of its collector, which is what keeps the charge set checkable: where the page states the pause as a cost, the mechanism is charged."
+      ]
+    },
+    {
+      "p": "**A mitigation is not an absence.** Some languages offer an opt-in construct that avoids a mechanism: `@CompileStatic` in Groovy, `try-with-resources` in Java, `reified` in Kotlin, a lint rule, or a flag the initialiser does not set. The mechanism stays charged. The default code still pays it, and avoiding it needs knowledge that the language does not force. That is deliberate: the model measures what the *language* imposes, not what a disciplined team can achieve with the same language. If a mitigation lowered the score, two teams on one language would score differently, and the language would have no score. The mitigation is recorded on the page as a strength or a trade-off, never as a discount. The line between a mitigation and an absence is the project-switch rule above: what a new project gets without a decision is the language's; what the developer must know to turn on is a discipline."
+    },
+    {
+      "h": 2,
+      "text": "How to reproduce a score"
+    },
+    {
+      "p": "To reproduce any score: read the language's present Core mechanisms, group by dimension, sum and clamp each dimension to −15, sum the six clamped values, subtract from 100. Repeat for Meta with its eight dimensions."
+    },
+    {
+      "workedExample": true
+    },
+    {
+      "h": 2,
+      "text": "Complete per-language data"
+    },
+    {
+      "p": "The ranked table and the complete per-language mechanism-presence data are on the [Scoreboard](scoreboard.qmd)."
+    },
+    {
+      "comment": "<!-- formal-development -->"
+    },
+    {
+      "hr": true
+    },
+    {
+      "p": "**The formal development.** The definitions, theorems, and proofs behind this page are published in:"
+    },
+    {
+      "ul": [
+        "*On the Nature of Coupling: All Coupling as Shared Resource Access* — Zenodo, 2026 — [doi:10.5281/zenodo.21925122](https://doi.org/10.5281/zenodo.21925122)",
+        "*A Self-Contained Derivation of the Optimal Modularization from Coupling* — Zenodo, 2026 — [doi:10.5281/zenodo.21925268](https://doi.org/10.5281/zenodo.21925268)"
+      ]
+    },
+    {
+      "p": "[All published papers](../../../reference/papers.qmd)"
+    }
+  ]
+}

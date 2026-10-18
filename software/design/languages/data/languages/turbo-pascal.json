@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "turbo-pascal",
+  "name": "Turbo Pascal",
+  "assessedAs": "Turbo Pascal",
+  "version": "7.0",
+  "title": "Turbo Pascal (7.0)",
+  "indexLabel": "Turbo Pascal (7.0)",
+  "group": "functional-declarative-legacy",
+  "order": 19,
+  "displayOrder": 43,
+  "presenceOrder": 43,
+  "presenceList": {
+    "core": "T4, T5, C2, M1, M3, M4, Er1, Er4, K5, P3",
+    "meta": "Ec3, V2, V3, S1, G1, G2"
+  },
+  "matrixOrder": 59,
+  "tagline": "Compiler-Speed Pioneer",
+  "sbName": "Turbo Pascal",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "pascalStandard"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": true,
+    "M2": false,
+    "M3": true,
+    "M4": true,
+    "Er1": true,
+    "Er2": false,
+    "Er3": false,
+    "Er4": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": true,
+    "P1": false,
+    "P2": false,
+    "P3": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": true,
+    "V3": true,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": true,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Strong static typing is enforced at compile time**: Every variable, parameter, and function result has a declared type, and an assignment between incompatible types is rejected",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Enumerated and subrange types state a value domain**: `type TDay = (Mon, Tue, Wed, Thu, Fri)` and a subrange such as `1..31` narrow the domain in the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A typed pointer names what it addresses**: `^T` is a pointer to `T`, so an assignment between pointers of different types is an error",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A variant record is an unchecked union**: `record ... case Tag: T of ... end` names the alternatives, but the compiler does not require the tag to be tested before a field is read",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A container is written for one element type, or it stores `Pointer` values and casts them, so reuse across types is untyped",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A unit is the namespace and a real module boundary**: The `interface` section is what a `uses` clause sees, and the `implementation` section is private to the unit",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A `uses` clause states each dependency**: The compiler rejects a call into a unit that is not listed, so the dependency edge is written in the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`interface` and `implementation` separate the contract from the code**: A caller compiles against the declarations only",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An object declares its own construction and destruction**: An `object` type declares `constructor Init` and `destructor Done`, and `New(P, Init)` runs the constructor together with the allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Unit `initialization` and `finalization` run in dependency order**: A unit's startup code runs before the program body and its shutdown code runs after it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Mutability is the default**: A `var` is writable and reassignable, and only a `const` marks a value fixed",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "caution",
+        "text": "**A class hierarchy couples a derived object to its base**: Object-oriented programming arrived in version 5.5, and an `object` type derives from one base, so shared behaviour is reached through that single-inheritance chain",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Every heap allocation is manual**: `New` and `Dispose`, or `GetMem` and `FreeMem`, are the ways to use the heap, and the programmer writes the matching release",
+        "mechanism": "M1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Nothing runs when a variable leaves its scope**: There is no release tied to scope, and a destructor is a method the programmer must call",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: A typed pointer may alias, dangle, or be disposed twice, and the compiler does not track it",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The run-time library owns the heap**: `New`, `Dispose`, `Mark`, and `Release` give a defined heap with a stack-like mark and release discipline",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `String` value carries its own length**: A `String[255]` short string stores its length in the first byte, so a string operation needs no terminator",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Real-mode addressing bounds the heap**: In the 16-bit memory models the heap lies in the data segment, so the model's segment limit caps one allocation",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The default failure path is a halt or an error code**: An unhandled run-time error stops the program with a run-time error number, and an I/O failure is reported through `IOResult` when checking is off",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: A failure cannot be carried in the type of a function's result, so the caller learns of it from an error code or an exception",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`except`/`finally` is a structured path**: Version 7 added exception handling, and the `finally` block runs on every exit from the statement",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`raise` names the failure**: `raise EDivByZero.Create` raises an object from the `SysUtils` exception hierarchy",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The exceptions are unchecked**: Nothing in a signature states which exceptions a routine may raise, so the recovery path depends on a convention",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two error styles coexist**: `{$I-}` with `IOResult` checks one call at a time, while `try`/`except` covers a block, so a program mixes both",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**The language has no concurrency construct**: There is no thread type, no task, and no synchronisation primitive; concurrent work in DOS is expressed with an interrupt procedure",
+        "mechanism": "K5"
+      },
+      {
+        "kind": "caution",
+        "text": "**The only shared state is a global variable**: With no concurrency construct in the language, a global variable is what the main code and an interrupt procedure both reach, and nothing guards the access",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A thread-local variable needs a successor compiler**: `threadvar` gives a variable one copy per thread in Delphi and Free Pascal, but Turbo Pascal creates no thread and the DOS target has none",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An interrupt procedure must be declared as such**: The `interrupt` directive saves the registers, and the protection is a declaration rather than a checked protocol",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Reentrancy is the programmer's concern**: An interrupt procedure that calls a library routine can corrupt state the interrupted code was using",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Cooperative concurrency came from an add-on**: A terminate-and-stay-resident program or a library simulated multitasking outside the language",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The main target is 16-bit DOS**: The compiler produces real-mode DOS executables, and version 7 was the last release of the line",
+        "mechanism": "P3"
+      },
+      {
+        "kind": "cost",
+        "text": "**A compiled unit is a private object format**: A `.TPU` file is Turbo Pascal's own unit format, and no other language's linker consumes it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Free Pascal and Delphi compile the same source**: Both accept Turbo Pascal units, so the source is not frozen to the original compiler",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler is a self-contained toolchain**: One executable compiles a program, and the IDE runs the edit-compile-run cycle",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The memory model is a compile-time choice**: `{$M}` selects tiny, small, compact, large, or huge, and the model bounds the code and the data segments",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Real-mode addressing shows in the source**: `near` and `far` pointers and segment arithmetic appear once a program leaves the small model",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler emits native 8086 machine code**: There is no interpreter and no run-time compiler between the source and the processor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Compilation is very fast**: The one-pass compiler makes the edit-compile-run cycle take seconds",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A compiled program starts immediately**: A DOS `.EXE` needs no runtime initialisation beyond the loader",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The optimiser does little global work**: The algorithm and the data layout dominate the result",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The 16-bit target caps the work**: The real-mode segment limit bounds the data one program can address",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A far pointer costs extra cycles**: A segment override and a far access element are slower than a register operation",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is legacy and discontinued**: Borland ended Turbo Pascal after version 7 in favour of Delphi, so the tool and package field is historical",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Free Pascal, Delphi, and Virtual Pascal continue the language**: Each is a compatible implementation, so much Turbo Pascal code still compiles today",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A large body of published material exists**: The era's books, tutorials, and the Turbo Vision source remain available",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler is a single small program**: Nothing else must be installed to build a program",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Reuse is by source**: A unit is shared as `.PAS` source rather than as a resolved package with a version",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The tooling runs in DOS or an emulator**: The IDE and the debugger need a DOS machine or an emulator on a current computer",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The language is discontinued**: Borland ended the line in 1995 and moved it to Delphi and Object Pascal, so no version followed 7.0",
+        "mechanism": "V3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The definition is frozen at 7.0**: The language does not change, so a missing feature or a defect is permanent",
+        "mechanism": "V2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reach of the tool was historically large**: Over 400 000 copies were sold in the first two years, which made Pascal accessible to a generation of programmers",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The successors accept the source**: Delphi and Object Pascal keep the unit, the static typing, and most of the syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A port is an adjustment rather than a rewrite**: Free Pascal compiles a unit with little change outside the platform-specific code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The platform-specific part is real work**: DOS interrupts, direct video memory, `inline` machine code, and `.TPU` linkage have no direct counterpart on a current target",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Structured programming instruction is the native domain**: The readable syntax and the strong typing were designed for teaching",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**DOS application and tool development fit the target**: A compiled `.EXE` needed no runtime and ran on any PC of the era",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Turbo Vision covers text-mode GUI work**: The bundled library provides windows, menus, and dialogs on a character screen",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A small number-crunching utility is a natural use**: A scientific or engineering program was a common Turbo Pascal program",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**New development does not choose it**: The domain today is legacy maintenance and education",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Hardware access sits outside the language**: A program that drives a device uses the BIOS, a DOS interrupt, or `inline` code",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The syntax is small and readable**: `begin`/`end`, `var`, `procedure`, `if`/`then`/`else`, and `for`/`to` cover the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler reports an error immediately**: The short edit-compile-run cycle makes a mistake cheap to find",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The IDE integrates a debugger**: Step, watch, and breakpoint are keystrokes away",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Pointers and manual memory are the hard part**: The syntax is gentle and the heap discipline is not",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Real-mode addressing is a second subject**: Near and far pointers and segments must be learned for system work",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The semicolon rule catches a beginner**: A semicolon separates statements, so the last statement of a block takes none",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**The syntax is verbose**: `begin`/`end`, `unit`/`interface`/`implementation`, `try`/`except`/`end`, and every declaration keyword are spelled out",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Keywords are words rather than symbols**: `if`, `then`, `do`, `of`, and `end` carry the structure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Blocks are bracketed consistently**: `begin`/`end` closes every compound statement, including the body of a procedure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A declaration names the variable before its type**: `var Count: Integer` reads in one direction",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A statement separator, not a terminator**: The semicolon rule is a rule to learn rather than a decoration",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A nested field needs its qualifier or a `with`**: Reading a record inside a record is verbose without the `with` statement",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**There is no test framework in the toolchain**: A test is a program that runs and compares, and nothing in the distribution runs a suite",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The debugger is the era's tool**: The IDE steps and watches variables, with no assertion or coverage support",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A failed run-time check reports the detail**: The run-time library prints the error number, the address, and the register contents",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A check is a few lines of Pascal**: A comparison and a halt write a test without a framework",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A test suite is a program the programmer writes**: No runner, no fixture loader, and no report come with the toolchain",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**The type system rejects a mismatch at compile time**: A pointer to one type cannot take a pointer to another without a written cast",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The dangerous cast is one written site**: `Pointer` and a type cast put the risk where the programmer wrote it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A check can be switched on**: `{$R+}` adds range checking to an array index and to a subrange assignment",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Manual memory management admits the classic faults**: An overrun and a use-after-free are possible, and the compiler does not check them",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`{$I-}` disables an I/O check**: After that directive a failed file operation must be tested through `IOResult`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`inline` machine code bypasses the type system**: An `inline(...)` statement writes raw opcodes into the compiled program",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The one-pass compiler is a deliberate speed choice**: Compilation is nearly instant, and the price is a modest optimiser",
+    "**The integrated IDE is the intended way to work**: The compiler, the editor, and the debugger are one program",
+    "**The 16-bit limit belongs to the target machine**: The segment size is a property of the processor mode, not only of the language",
+    "**Turbo Vision is supplied and not required**: The text-mode GUI library is an optional dependency of the program",
+    "**The `goto` statement remains in the language**: A jump is available for the case where a structured form is awkward",
+    "**Pascal is a teaching language by design**: The readable syntax and the strong typing were written for instruction"
+  ],
+  "verdict": "Turbo Pascal's core score is held down by the mechanisms of its era rather than by a missing idea: the heap is manual, no release is tied to scope, and a failure is a run-time error number or an unchecked exception. Its one strong structural feature is the unit, where `interface` and `implementation` draw a real boundary and the `uses` clause writes each dependency into the source. Main strengths: strong static typing, near-instant native compilation, a gentle readable syntax, and a live path to Free Pascal and Delphi. Main weaknesses: no generics, unchecked variant records, no concurrency construct in the language, and a 16-bit target whose toolchain, ecosystem, and platform are all historical.",
+  "verdictExtra": []
+}

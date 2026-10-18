@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "id": "groovy",
+  "name": "Groovy",
+  "assessedAs": "Groovy",
+  "version": "5.x",
+  "title": "Groovy (5.x)",
+  "indexLabel": "Groovy (5.x)",
+  "group": "dynamic-scripting",
+  "order": 7,
+  "displayOrder": 55,
+  "presenceOrder": 55,
+  "presenceList": {
+    "core": "T1, T3, T7, T8, C2, M2, M3, M4, Er2, K2, K4, P2",
+    "meta": "R2, R3, D3"
+  },
+  "matrixOrder": 22,
+  "tagline": "JVM Scripting",
+  "sbName": "Groovy",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "groovyDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": true,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": true,
+    "K5": false,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": false,
+    "R2": true,
+    "R3": true,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": true,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "caution",
+        "text": "**Dynamic typing is the default**: A `def` declaration defers method resolution to the runtime metaclass protocol, so a mismatch is reported when the line runs rather than when the file compiles (T1, T3)",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@CompileStatic` and `@TypeChecked` restore compile-time checking**: Groovy 2 and later can compile a class to direct bytecode, and the annotated class is checked in the manner of Java",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Generics are erased on the JVM**: `List<String>` is a `List` at runtime, so a cast or a reflection call can reach a type the declaration does not admit",
+        "mechanism": "T7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Traits compose behaviour without inheritance**: A `trait` may carry default methods and state, so behaviour is mixed in rather than inherited from a superclass",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Safe navigation separates the test from the call**: `a?.b` short-circuits to `null` at the point of use, so the absence test stands where the value is read",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator overloading is by method name**: `a + b` may call `plus` and `a[i]` may call `getAt`, so a dense expression can invoke user code the syntax does not show",
+        "mechanism": "T8"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "caution",
+        "text": "**Mutability is the default**: A field is mutable unless it is `final` or the class is annotated `@Immutable`",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**GroovyBeans generate the accessors**: A property declaration is compiled with its getter and setter, so the boilerplate leaves the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Map constructors separate the arguments from their order**: `new Point(x: 1, y: 2)` names each value at the call site, so the call does not depend on positional order",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@Immutable` makes a value type in one annotation**: It generates the tuple constructor, `equals`, `hashCode`, and a defensive copy of the fields",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**AST transformations decide the shape at compile time**: `@Canonical`, `@TupleConstructor`, and `@Builder` generate constructors whose signatures are not written in the source",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**The JVM owns deallocation**: There is no free operation, and a collection is scheduled outside the program's control",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "caution",
+        "text": "**No RAII**: `@Cleanup` and `withCloseable` release a resource at the end of a declared block, but nothing runs automatically at the end of an arbitrary scope",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: A reference may alias or be shared freely, and the collector decides when the object dies",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`withCloseable` binds release to a closure**: `stream.withCloseable { ... }` closes the resource when the block returns, including on an exception",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@Cleanup` names the release point**: A local annotated `@Cleanup` is closed at the end of its enclosing block",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Collection is invisible in the source**: An allocation is a `new`, and no deallocation call is ever written",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: Groovy requires no `throws` clause and the compiler does not check that a handler exists, so an exception may propagate from any call",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch`/`finally` is the structured path**: A `catch` clause names the type it handles, and `finally` runs on every exit",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@TypeChecked` turns a type error into a compile error**: A call to a method that does not exist fails the build rather than the run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic dispatch failure is a runtime exception**: A missing method or property raises `MissingMethodException` or `MissingPropertyException` at the call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`?.` and `?:` suppress a failure by design**: Safe navigation returns `null` where an exception would otherwise report the fault",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The JDK concurrency library is available**: `Thread`, `synchronized`, `java.util.concurrent` executors, and atomics are reached directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@Synchronized` puts the monitor on the declaration**: The annotation transformation wraps a method in the object's monitor, so the lock is stated beside the method",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GPars adds dataflow, actors, and parallel collections**: The abstractions are a library over the JDK, so a concurrent design is not limited to threads and locks",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Shared mutable state is the default**: A field is reachable by every thread, and the compiler checks no access pattern",
+        "mechanism": "K2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured concurrency in the language**: A task tree, a scope, and a join are the JDK executor's responsibility, and Groovy adds no scope construct of its own",
+        "mechanism": "K4"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Runs on the JVM and interoperates with Java**: Any Java class is callable, and most valid Java is valid Groovy",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Compiles to standard JVM bytecode**: The output is a class file, so any JVM accepts it and the JDK's tools apply",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The JVM is the only target**: There is no non-JVM implementation of Groovy, so a program couples to one runtime",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Gradle and Jenkins Pipeline give it a first-class host**: The build and CI systems execute Groovy directly, which is why the language is present in most Java builds",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@Grab` resolves a dependency from the script**: The annotation fetches an artifact from a repository at compile time, so a script couples to a repository and a version",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**`@CompileStatic` approaches Java**: The annotation emits direct bytecode calls, so the dynamic dispatch cost is removed for the annotated class",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The JVM JIT optimises a hot path**: The HotSpot compiler applies its full pipeline to the generated bytecode",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Collection pauses are inherited from the JVM heap**: A stop-the-world or concurrent cycle is scheduled by the collector the program chooses, not by the program",
+        "mechanism": "R2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic dispatch costs in dynamic mode**: A call site without `@CompileStatic` goes through the metaclass protocol, so the per-call overhead is higher than Java's",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**JIT warm-up precedes peak speed**: A short script or a test run finishes before the compiler has optimised the hot path",
+        "mechanism": "R3"
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**Apache top-level project**: The language is governed by the ASF, so it is not owned by one vendor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The whole Java library ecosystem is available**: Any Maven artifact is usable from Groovy, resolved by the ordinary Java build tools",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Gradle and Jenkins Pipeline are built on it**: The two most common build and CI systems make Groovy a mainstream presence",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Grails and Spock are established projects**: The web framework and the testing framework are mature and maintained",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Groovy-specific libraries are few**: Most dependencies are Java libraries, so a Groovy-only package is less likely to exist",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Apache governance with published release notes**: A change is recorded in the release notes and the language documentation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Java source compatibility is maintained**: Most valid Java keeps compiling as Groovy",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Groovy 5.x improves performance and JDK support**: The 5.x line raises the runtime baseline to the modern JDK",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@CompileStatic` can be adopted file by file**: A project migrates incrementally rather than all at once",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no fixed release cadence**: The timing of a release is the project's decision, so a needed fix has no promised date",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Build automation is a primary domain**: Gradle's build scripts are Groovy, and the DSL reads as a configuration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**CI pipelines are a primary domain**: Jenkins Pipeline scripts are Groovy, in the `Jenkinsfile` form",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Web development is supported by Grails**: The framework carries the persistence, routing, and view layers",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Testing is supported by Spock**: The specification framework defines a given/when/then DSL in Groovy",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The host framework can own the architecture**: A Gradle build script and a Jenkins pipeline run inside the host's execution model and its conventions, so the code couples to that model",
+        "mechanism": "D3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Application code usually prefers Java or Kotlin**: Groovy's share of general JVM application work is smaller than its share of scripting and build work",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Gentle for a Java developer**: Most valid Java is valid Groovy, so an existing file compiles",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Typing is optional**: A script can start with `def` and add `@CompileStatic` later",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The closure and builder idioms read like the domain**: `each`, `collect`, and the builder pattern remove loop and assembly boilerplate",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The dynamic model is a large corner**: The metaclass protocol, method-missing dispatch, `ExpandoMetaClass`, and the differences of `@CompileStatic` from Java must each be learned",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two compilation modes are two languages**: Code that compiles under `@CompileStatic` is a subset of dynamic Groovy, so a developer must know which rules apply where",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Concise and Java-compatible**: A statement needs no semicolon, no type, and often no parentheses",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Properties replace explicit accessors**: `x` reads `getX()` and `x = v` calls `setX()`, so the accessor is not written",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GString interpolation is built in**: `\"Hello $name\"` embeds an expression in a string literal",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Optional `return` and statement-value rules shorten a method**: The last expression is the result",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator syntax invokes methods**: `a + b`, `a[i]`, and `a << b` may call `plus`, `getAt`, or `leftShift`, so the notation hides the call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Parenthesis omission can be ambiguous**: `foo bar baz` depends on the method-call rules, which the reader must resolve",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**Spock is a first-class framework**: given/when/then blocks, data tables, and mocks are a Groovy DSL over JUnit",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**JUnit works directly**: A plain JUnit test class is a Groovy class",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`assert` prints the intermediate values**: A power assertion reports each subexpression of a failed assertion, which localises the failure without a debugger",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Metaprogramming builds test doubles**: `ExpandoMetaClass` and map coercion can stub a method without a mocking library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A dynamic failure appears only when the test runs the line**: For a `def` call path the test is the first check",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@CompileStatic` changes what a test can patch**: A statically compiled class does not consult the metaclass, so a stub installed that way has no effect",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Memory safety is the JVM's responsibility**: A buffer overflow or a use-after-free is not expressible in Groovy code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The JDK security stack is available**: TLS, the cryptography providers, and the access-control APIs are directly usable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Metaprogramming can cause type confusion**: `ExpandoMetaClass`, `methodMissing`, and `invokeMethod` change dispatch at runtime, so a call may reach code the source does not name",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Script execution is a code-execution surface**: `GroovyShell`, `Eval`, and `evaluate` run arbitrary text, so untrusted input must never reach them",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An AST transformation executes at compile time**: A build-time transformation runs code in the build, which is a supply-chain surface",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@Grab` pulls code into the build**: The resolved artifact is loaded onto the script's class path from a remote repository",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Dynamic or static compilation is a per-file choice**: `@CompileStatic` buys speed and checks at the cost of the metaprogramming forms it cannot compile",
+    "**DSL-friendly syntax trades precision for brevity**: Optional parentheses and dots make a DSL read well and a fragment ambiguous",
+    "**`def` is a productivity trade**: Less typing now, a later failure at run time",
+    "**`ExpandoMetaClass` is a deliberate escape hatch**: It is a scope and architecture decision, and its hidden reach is the price of the flexibility",
+    "**Java source compatibility is a target**: Most valid Java remains valid Groovy, which constrains the syntax as much as it helps",
+    "**There is no fixed release cadence**: The release schedule is the project's own decision"
+  ],
+  "verdict": "Groovy's design yields moderate core coupling, and a platform cost driven by the JVM and its dynamic dispatch rather than by the syntax. `@CompileStatic` and `@TypeChecked` convert the dynamic default into a checked and fast one, traits compose behaviour without inheritance, and safe navigation puts the absence test at the point of use. Main strengths: the whole Java ecosystem is reachable, Gradle and Jenkins Pipeline give the language a mainstream host, and Spock makes testing first-class. Main weaknesses: `def` defers failure to run time, the JVM is the only target, exceptions are unchecked, the metaclass protocol can change dispatch invisibly, and no structured concurrency exists in the language.",
+  "verdictExtra": []
+}

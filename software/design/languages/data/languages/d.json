@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "id": "d",
+  "name": "D",
+  "assessedAs": "D",
+  "version": "2.112",
+  "title": "D (2.112)",
+  "indexLabel": "D (2.112)",
+  "group": "dynamic-scripting",
+  "order": 6,
+  "displayOrder": 21,
+  "presenceOrder": 21,
+  "presenceList": {
+    "core": "T8, C2, M2, M3, M4, Er2, K3",
+    "meta": "R2, Ec3"
+  },
+  "matrixOrder": 12,
+  "tagline": "Better C++",
+  "sbName": "D",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "dLangSpec"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": true,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": true,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing with inference**: `auto`, template argument deduction, and `typeof` infer most declarations, so the type is fixed at compile time without being written at every site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Templates avoid the angle-bracket problem**: Instantiation uses the `!` syntax (`foo!int`, `foo!(int, string)`) with `if (isInputRange!R)` constraints, so generic code carries none of C++'s nested `<>` noise",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Modules are the compilation boundary**: A module is declared with `module` in one source file and consumed with `import`, so there are no headers and no include guards tying a declaration to a textual include order",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**UFCS decouples call syntax from the definition site**: `x.f(y)` is rewritten to `f(x, y)`, so a free function composes into a method-call chain without being a member of the type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`immutable` and `const` are transitive**: A qualifier reaches through pointers and members, so a read-only view is stated once rather than per access",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator overloading is not visible in cost**: `opBinary`, `opCmp`, `opIndex`, and `opAssign` let a type redefine `+`, `<`, `[]`, and `=`, so a dense expression can hide work the call site does not show",
+        "mechanism": "T8"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Structs are constructed in place**: `struct` is a value type, so a local, a field, or an array element is constructed where it is declared without a heap allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Contract programming separates the specification from the body**: `in`, `out`, and `invariant` blocks state preconditions, postconditions, and class invariants as separate declarations, so a check is not buried in the implementation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`scope` guards attach cleanup to the construction site**: `scope(exit)`, `scope(success)`, and `scope(failure)` run at block exit beside the code that acquired the resource",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@disable this()` forbids an illegal construction**: A type can delete a constructor, so an object cannot be built by calling `new`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Mutability is the default**: A variable is mutable unless it is declared `immutable` or `const`, so immutability is opt-in rather than the default reading of a declaration",
+        "mechanism": "C2"
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Garbage collection pauses are non-deterministic**: The default `new` path allocates on the collector's heap, and a collection runs on the collector's schedule rather than the program's",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "caution",
+        "text": "**RAII is partial**: Struct destructors (`~this`) and `scope(exit)` release a value type deterministically, but a `class` instance is collected, so its destructor has no defined run time",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership or lifetime checking**: The compiler does not track which reference owns an allocation, so a dangling pointer or a double release in `@system` code is not diagnosed",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@nogc` removes the collector from a call tree**: A `@nogc` function may not allocate through the GC, so its pauses are excluded at compile time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`-betterC` excludes the runtime entirely**: The program links without druntime or the collector, which is what the embedded and no-GC case needs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`destroy` releases a value at a chosen point**: `destroy(x)` runs the destructor and resets the value, giving an explicit release where the collector would otherwise decide",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Unchecked exceptions are the only error channel**: `throw` needs no declaration in the signature and the compiler does not check that a handler exists; `nothrow` is an opt-in promise",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`nothrow` names the functions that cannot fail**: A `nothrow` function may not throw, so the property is checked at the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`scope(failure)` separates the recovery path from the normal path**: Cleanup written there runs only when the block leaves by an exception",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch`/`finally` is the standard shape**: A `catch` clause names the type it handles, and `finally` runs on every exit",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Contracts and assertions disappear under `-release`**: `in`, `out`, and `assert` are compiled out in a release build, so their guarantee is a debug-time one",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The `shared` qualifier makes cross-thread state visible**: Data declared `shared` cannot be read or written through an ordinary reference, so the cast that crosses a thread boundary is the place the synchronisation is declared",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`std.concurrency` gives message passing**: `spawn` starts a thread with its own message queue, and `send`/`receive` pass values between threads without a shared lock",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`std.parallelism` gives structured parallel loops**: `parallel` and `taskPool` map a loop body over a range, so the common data-parallel case is stated rather than hand-threaded",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Atomic primitives are in the standard library**: `core.atomic` provides `atomicOp`, `cas`, and `atomicLoad`, so a lock-free update has a named primitive",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Synchronisation is manual and unchecked**: `synchronized`, `Mutex`, and `core.atomic` are the only tools, and the compiler does not prove the locking discipline or detect a race",
+        "mechanism": "K3"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Three independent compilers target the same language**: `dmd` uses its own Digital Mars backend, `ldc` uses LLVM, and `gdc` uses the GCC backend, so a program is not bound to one vendor's toolchain",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Native code is produced for many targets**: Linux, Windows, macOS, and the BSDs on x86, x86-64, ARM, and AArch64 are supported targets",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**C and C++ interoperability is a language feature**: `extern(C)`, `extern(C++)`, and the `importC` compiler feature let a D module call existing C and C++ binaries without a binding generator",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`-betterC` removes the runtime dependency**: A BetterC program links like a C program, without druntime or a GC",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The C preprocessor is not part of the language**: There is no textual include and no macro layer above the module system",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The three compilers advance at different rates**: `ldc` and `gdc` follow `dmd`'s front end with a lag, so a version-specific feature may not be available on every compiler at once",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Native compilation with no interpreter**: `dmd`, `ldc`, and `gdc` emit machine code, so there is no bytecode dispatch or JIT warm-up between the source and the CPU",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`ldc` and `gdc` reuse mature optimisers**: The LLVM and GCC backends apply the optimisation pipeline that compiles C and C++",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**CTFE moves work to compile time**: `static if`, `mixin`, and template instantiation are evaluated by the compiler, so the runtime pays nothing for them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@nogc` bounds the runtime cost of a call tree**: A function that cannot allocate has no collector interaction at all",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The collector remains a latency risk**: Throughput is good, but a collection can still lengthen a pause in code that allocates, so a latency-sensitive path needs `@nogc`",
+        "mechanism": "R2"
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The library pool is small**: `dub`'s package registry is far smaller than crates.io, npm, or Maven, so a project is more likely to write a library than to find one",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`dub` is a standard package manager and build tool**: `dub.json` or `dub.sdl` declares dependencies and targets, and `dub build`, `dub run`, and `dub test` cover the ordinary workflow",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The C and C++ ecosystems are reachable**: `extern(C)`, `extern(C++)`, and `importC` reduce the need for a D-specific binding",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`vibe.d` supports web services**: An asynchronous I/O framework covers HTTP and socket work on the D runtime",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Corporate backing is weak**: The language is carried by its contributors rather than by a large vendor, so long-term support is the community's",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**A deprecation cycle precedes a removal**: A feature is deprecated for a release series before it is removed, and the changelog records both steps",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`-preview` flags gate changes to the front end**: A new language behaviour ships behind a flag first, so a change can be tested before it becomes the default",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The DIP process documents proposals publicly**: The D Improvement Proposal repository holds the rationale for a language change",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Removals do happen**: The changelog records deprecated features that were later dropped, so older source can need an edit at a major front-end step",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Front-end versions differ across the three compilers**: A change fixed in `dmd` reaches `ldc` and `gdc` later, so a project can be pinned to one compiler for a period",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Systems and performance work is the design target**: Native code, value types, and direct C interop are the native idiom",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Game development is a stated fit**: The GC can be excluded, structs stay in place, and templates specialise per case, which is what a game loop needs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Embedded and no-runtime work is supported by `-betterC`**: The program links without druntime, so it fits a bare-metal or constrained target",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Web services are supported by `vibe.d`**: The framework covers asynchronous HTTP on the same runtime",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The collector is the wrong model for hard real-time**: A latency bound requires `@nogc` or BetterC throughout the allocating path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**D is rarely the default choice in any of these domains**: The fits are real, but the surrounding library and hiring pool is smaller",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Moderate for an experienced C++ developer**: Templates, RAII-style cleanup, and value types have direct C++ analogues",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Templates are easier to read than C++ templates**: The `!` instantiation syntax and `if` constraints remove the ambiguity of nested angle brackets",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Contract programming is a small notation**: `in`, `out`, and `invariant` are a few keywords over the ordinary function body",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The metaprogramming surface is large**: Templates, `static if`, CTFE, traits, and string mixins each have their own rules",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The memory model is two models at once**: A developer must know which allocations are collected and which are not, and `@nogc` makes the distinction a compile-time obligation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Four paradigms are available at once**: Imperative, object-oriented, functional, and metaprogramming styles widen the surface a newcomer must choose from",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Cleaner than C++ for similar expressive power**: A module is one file, there is no header text, and there is no preprocessor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`!` makes template instantiation unambiguous**: `foo!int` cannot be confused with a comparison, which is C++'s parsing problem",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`auto` removes a declaration without hiding the type**: The type is inferred and still checked at compile time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`scope(exit)` is a compact cleanup notation**: One line states the release that other languages spell as a `try`/`finally`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Attributes accumulate on a signature**: `@safe @nogc @property nothrow pure` and their variants stack up, and the combination is part of the contract",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**String mixins hide the generated code**: `mixin(\"...\")` inserts source the reader cannot see in the file's order",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`unittest` blocks are part of the language**: A `unittest { ... }` block sits beside the code it tests, and it is compiled in when the `-unittest` flag is passed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`dub test` runs the blocks**: The package manager builds and runs the test configuration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Contracts are executable invariants**: `in`, `out`, and `invariant` checks fail with a trace when a precondition is broken",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coverage is built in**: `dmd -cov` writes a per-line coverage report from a normal run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tests are compiled only with `-unittest`**: A release build carries no test code, so the test set is a build configuration rather than a language guarantee",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The test library is third-party**: Fixture, mocking, and property-test helpers come from packages such as `unit-threaded` rather than from the standard library",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**`@safe` is checked by the compiler**: `@safe` code may not do pointer arithmetic, lose a type through a cast, or call `@system` code, so the unsafe operations are the ones that were declared",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Bounds checking is kept where it is required**: An array or a slice carries its length, and `@safe` code retains the index check",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Variables are initialised by default**: A variable starts at its `.init` value, so the uninitialised-read class of bug does not arise as it does in C",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@trusted` and `cast` are the escape hatch**: A `@trusted` function or a pointer cast re-opens the unsafe surface, and its correctness is the author's claim",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The collector and the runtime are part of the attack surface**: A bug in druntime or the collector is reachable from a `@safe` program",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`-release` removes the contract checks**: Assertions and contracts are compiled out, so a release build relies on the checks that `@safe` keeps",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Better C++ is a target, not a guarantee**: Porting C++ to D is a rewrite with its own cost, and the two languages interoperate at the ABI rather than at the source",
+    "**GC or manual memory is a per-program choice**: `-betterC` and `@nogc` buy determinism at the cost of the collector's convenience",
+    "**Compile-time execution is a deliberate shift of work**: CTFE, `static if`, and string mixins move computation to the build, so it is not a runtime mechanism at all",
+    "**Multiple paradigms widen the surface**: Imperative, object-oriented, functional, and metaprogramming styles are all supported, and the choice is the programmer's",
+    "**Niche adoption is a market fact, not a language defect**: The smaller library pool follows from adoption, not from a construction of the language"
+  ],
+  "verdict": "D's design yields moderate language-imposed coupling for a language of its reach. The module system replaces headers, UFCS separates call syntax from definition, and contract blocks separate the specification from the body. Predicates such as `@safe`, `@nogc`, and `nothrow` turn several memory and error properties into declared and checked facts. Main strengths: compile-time execution removes metaprogramming from the runtime, three independent compilers keep the toolchain from locking in, and `-betterC` reaches the embedded case. Main weaknesses: unchecked exceptions are the only error channel, the collector's pauses are not deterministic, no ownership model detects aliasing, and the ecosystem stays niche with weak corporate backing.",
+  "verdictExtra": []
+}

@@ -1,0 +1,526 @@
+{
+  "schemaVersion": 1,
+  "id": "julia",
+  "name": "Julia",
+  "assessedAs": "Julia",
+  "version": "1.12",
+  "title": "Julia (1.12)",
+  "indexLabel": "Julia (1.12)",
+  "group": "emerging-specialty",
+  "order": 3,
+  "displayOrder": 56,
+  "presenceOrder": 56,
+  "presenceList": {
+    "core": "T1, T3, C1, C2, M2, M3, M4, Er2, K2, K3",
+    "meta": "R3, Ec3, D1"
+  },
+  "matrixOrder": 26,
+  "tagline": "Scientific + Dispatch",
+  "sbName": "Julia",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "juliaLang"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": true,
+    "K3": true,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": true,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic by default**: A binding has type `Any` unless a declaration narrows it, so the compiler cannot check a call statically",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multiple dispatch decouples behaviour from a hierarchy**: A generic function is a set of methods selected by argument-type signature, and no method belongs to a class",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parametric types provide generics**: `Vector{T}` and `Array{T,N}` are parameterised, and a method can dispatch on `Vector{<:Number}`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Union types express alternatives**: `Union{Int, String}` is a real type, so a sum-like choice needs no encoding",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Nothing` and `Missing` separate absence from value**: `nothing` means no result, and `missing` propagates through three-valued logic",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Method selection happens at run time**: A generic function selects a method from the argument types at the moment of the call, so adding a method can change which implementation an existing call reaches",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Type instability is invisible in the source**: A variable whose type changes between branches defeats specialisation, and only `@code_warntype` shows it",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global mutable state is the default at module scope**: A variable assigned at top level is a global that any function can read and change",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Values are mutable by default**: An `Array` is mutable and passed by reference, so a callee can change the caller's data",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`const` and modules reduce global coupling**: A `const` binding cannot be reassigned, and a module confines its names",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`struct` is immutable and `mutable struct` is explicit**: A value type is immutable unless the programmer asks for mutability",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constructors are ordinary methods**: A constructor is a method of the type, and dispatch selects the matching one",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`global` inside a function reaches module state**: The escape hatch is available and easy to use in a script",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Collection is non-deterministic**: A generational mark-and-sweep collector reclaims memory on its own schedule",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No RAII**: There is no scope-exit destructor, so an open file or socket is closed with an explicit `close`",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership or borrow model**: Aliasing is unrestricted, and the collector alone tracks a value's lifetime",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**No manual deallocation in ordinary code**: `free` and `unsafe_wrap` belong to explicit `unsafe` interfaces",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`finalizer` registers a cleanup callback**: The callback runs when the collector reclaims the value, as a best-effort backstop",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Untyped code allocates boxes in a loop**: A non-concrete variable forces heap allocation, which couples an inner loop to allocation pressure",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: `error` and `throw` appear in no signature, so the failure set is not readable from the type",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch`/`finally` gives a structured path**: The normal path and the recovery path are separate blocks",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`error(msg)` raises a defined `ErrorException`**: An expected failure path can be caught by type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Union{Nothing, T}` signals absence without an exception**: A caller tests for `nothing` instead of catching",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@assert` states a precondition**: A violated assertion raises immediately at the point of the failure",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`throw(value)` accepts any value**: A thrown value is untyped, so a `catch` clause must match it by convention",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No race detection**: `Threads.@threads` shares memory, and the language provides no data-race checker or lock discipline, so shared mutable state needs a hand-held `ReentrantLock` or `Atomic` (K2, K3)",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tasks give cooperative concurrency**: `@spawn` and `@sync` schedule work on a task scheduler",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `Channel` communicates between tasks**: A channel moves a value without shared mutable access",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@threads` and `@sync` compose a parallel loop**: A parallel construct is a macro over the task model",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Distributed` runs work on several processes**: `pmap` and `remotecall` spread a computation over a cluster",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Native code through LLVM**: Julia compiles to machine code with the LLVM back end, so the hot path is native",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The runtime is portable**: Julia runs on Linux, macOS, Windows, and FreeBSD",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`PackageCompiler.jl` builds a standalone binary**: A system image or an application bundle removes the need to invoke `julia` directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**C and Fortran interop is built in**: `ccall` calls a native library without a binding generator",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**WebAssembly support is experimental**: The browser target is not a first-class platform",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Compiled native kernels approach C**: A type-stable inner loop compiles to machine code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multiple dispatch specialises generic code**: A function is compiled per concrete argument signature, so an abstraction has no boxing cost when the types are concrete",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@simd`, `@inbounds`, and `@fastmath` control code generation**: The programmer can state the optimisation the compiler may assume",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**JIT warm-up is paid at run time**: The first call to a function compiles it, so latency depends on which path runs first",
+        "mechanism": "R3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Type instability defeats specialisation**: A non-concrete variable forces dynamic dispatch and allocation in the hot path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Precompilation helps but does not remove first-call work**: A system image moves some compilation to build time",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**`Pkg.jl` is built into the language**: Environments, a manifest, and dependency resolution need no external tool",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The General registry is central and curated**: Packages are registered, versioned, and checked automatically",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Pluto.jl` and Jupyter give notebook workflows**: Reactive notebooks and the standard kernel are both supported",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The scientific packages are mature in their fields**: `DifferentialEquations.jl`, `Flux.jl`, and `DataFrames.jl` are established libraries",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is niche outside scientific computing**: General-purpose libraries and tooling are fewer than in Python",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Package quality varies**: Many packages are research code with one maintainer",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The registry enforces semantic versioning**: A compatibility bound in `Project.toml` is checked against the registry",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Version 1.0 landed in 2018 and the language has kept stability since**: A package written for 1.0 generally runs on a later release",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Environments make an upgrade reversible**: A `Manifest.toml` pins the exact versions a project uses",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Deprecations are staged**: A deprecated binding warns before removal",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Internal `Base` interfaces change between minor releases**: A package that reaches into internals breaks at the next release",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for scientific and numerical computing**: The language competes with Python and MATLAB at native speed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multiple dispatch matches mathematical code**: An operation over scalar, vector, and matrix types is one generic function with several methods",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Used in pharmaceuticals, finance, and climate science**: Numerical work in those fields runs on it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain lock-in to scientific computing**: Outside numerics Julia is rarely chosen, so libraries, tooling, and expectations assume that domain",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Not aimed at systems programming or web back ends**: The runtime and the collector suit computation, not a low-latency service",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The syntax is familiar to MATLAB and Python users**: Loops, function definitions, and index syntax transfer directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The REPL gives immediate feedback**: An expression returns its value and its type, which speeds experimentation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The documentation is thorough**: The manual, the performance tips, and the style guide are maintained with the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation examples are executable**: `Documenter.jl` builds documentation with doctests",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Multiple dispatch is a paradigm shift**: Reasoning about which method runs takes practice",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Mathematical syntax is native**: `A'` transposes, `\\` solves a linear system, and Unicode identifiers such as `\\alpha` are legal",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`x -> x^2` and `do` blocks express a function inline**: A function argument needs no wrapper type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Broadcasting with `.` is uniform**: `f.(x)` applies a function elementwise and composes with other calls",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Indexing and slicing are built into the bracket syntax**: `A[2:end, :]` selects a submatrix directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Macros and `@`-annotations can obscure control flow**: A macro rewrites the expression it decorates",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Unicode identifiers are hard to type and to read**: The character may need an input method at the keyboard",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`Test` is a standard-library module**: `@test` and `@testset` are available with no dependency",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@inferred` tests type stability**: A test can assert that a call returns a concrete type, which is a performance property",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Aqua.jl` checks method ambiguities**: A real dispatch hazard has a dedicated checker",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Doctests run through `Documenter.jl`**: An example in the documentation is executed as a test",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A type-unstable path is not a failure by default**: A test passes on a correct value even when the code is slow",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Arrays are bounds-checked by default**: An out-of-range index raises `BoundsError` rather than reading adjacent memory",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Managed code is memory safe**: The collector and the bounds checks cover ordinary values",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Package installation is version-pinned and hashed**: The registry records a tree hash for each version",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@inbounds` removes the bounds check**: The annotation is an explicit opt-out from that safety guarantee",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`ccall` reaches memory-unsafe native code**: A wrong pointer or size can corrupt memory",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`eval` and `include` execute code**: Dynamic evaluation must be kept away from untrusted input",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**JIT warm-up is a deliberate latency trade**: The first call compiles, which buys peak throughput later",
+    "**Optional typing is a design choice**: A type annotation is available but not required, so discipline decides the result",
+    "**One-based indexing is a convention choice**: The convention matches Fortran, MATLAB, and R, and it is not a coupling",
+    "**No inheritance is deliberate**: Dispatch replaces it, so no class hierarchy exists to couple",
+    "**The REPL is the primary interface**: Interactive development is a workflow choice, not a language mechanism",
+    "**`@inbounds` and `@fastmath` are explicit opt-outs**: The programmer takes responsibility for an unchecked optimisation"
+  ],
+  "verdict": "Julia's design yields high language-imposed coupling to its runtime, offset by a dispatch model that decouples behaviour from hierarchy. Multiple dispatch is the strength: a generic function is decoupled from any class, parametric and union types express structure, and `Nothing` and `Missing` separate absence from value. Main weaknesses: the language is dynamically typed by default, so type instability is invisible in the source; global mutable state and mutable arrays are the defaults; the collector and the absence of RAII make resource release non-deterministic; there is no race detection; and JIT warm-up couples startup to latency.",
+  "verdictExtra": []
+}

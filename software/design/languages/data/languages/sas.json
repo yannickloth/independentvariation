@@ -1,0 +1,516 @@
+{
+  "schemaVersion": 1,
+  "id": "sas",
+  "name": "SAS",
+  "assessedAs": "SAS",
+  "version": "9.4",
+  "title": "SAS (9.4 / Viya)",
+  "indexLabel": "SAS (9.4 / Viya)",
+  "group": "domain-specific",
+  "order": 6,
+  "displayOrder": 36,
+  "presenceOrder": 36,
+  "presenceList": {
+    "core": "T1, C2, Er1, P1",
+    "meta": "Ec3, Ec4, D1, L1, S1"
+  },
+  "matrixOrder": 47,
+  "tagline": "Analytics Platform",
+  "sbName": "SAS",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "sasDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing with no static check (T1)**: A variable takes its type when the DATA step first builds the row, so a mismatch appears at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two types exist and a character length is fixed at first use**: A variable is numeric or character, and a later longer value is truncated to the length already set",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The dataset carries the schema, not a declaration**: A variable list comes from the dataset descriptor, so a variable's type is read from data rather than from source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`LENGTH` and `ATTRIB` declare a variable explicitly**: A length, a type, and a format can be fixed before the data arrives, which decouples the variable from the value that first creates it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`FORMAT` and `INFORMAT` separate presentation from storage**: A date is a number with a `DATE9.` format, so a reader sees a date and the value stays numeric",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no type beyond a column in a dataset**: SAS has no user-defined type, generic, or interface, so a richer value is encoded in columns",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The DATA step separates data handling from analysis**: A DATA step reads, merges, filters, and derives; a PROC step analyses and reports, so the two are distinct statement kinds",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A PROC step names its analysis and takes a dataset**: `PROC MEANS data=work.sales;` performs one analysis on one input, so the analysis is not tangled with retrieval",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`SET`, `MERGE`, and `BY` compose datasets declaratively**: A join is declared with a `BY` key, so the key is the join condition rather than a hand-coded loop",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No immutability by default (C2)**: A DATA step can overwrite the dataset it reads (`data work.x; set work.x;`), and every variable is reassignable",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A macro is the only module mechanism**: `%MACRO` is text substitution, so an expansion depends on the macro symbol table and on the place of the invocation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The DATA step's implicit loop carries state across rows**: `RETAIN` and the automatic `_N_` follow the row stream, so row order becomes part of the result",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The SAS supervisor allocates and frees the buffers of a step, and the program never names an address",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The program-data vector bounds per-row state**: A step holds one row's variables in a fixed vector, so the program does not size buffers",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The resource envelope is a configuration choice**: `SORTSIZE`, `MEMSIZE` (on the hosts that provide it), and the Viya CAS memory settings are set outside the program",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A large sort spills to the work library**: A sort or a hash join that exceeds its memory writes to the utility library, so the temporary footprint follows the data volume",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A macro variable persists for the whole session**: A `%LET` value stays until it is reassigned, so it is shared state that outlives the step that set it",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**`OPTIONS ERRORABEND` stops the session on an error**: An error ends the run instead of continuing, which turns a silent failure into a visible one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A macro-level guard can abort the run**: `%IF &SYSERR %THEN %ABORT` reads the error status and stops the batch",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured error path (Er1)**: SAS has no exception construct, so a DATA step records an error, writes a note to the log, and by default continues to the next observation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An error is reported in the log, not to the caller**: A step sets `&SYSERR` and the automatic `_ERROR_` flag, so detection is by log inspection or a macro check",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Error checking is opt-in per step**: The default continues on many data errors, so a batch run can finish with a wrong dataset",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Procedures can use several threads**: `OPTIONS THREADS` lets `PROC SORT`, `PROC MEANS`, and `PROC SQL` use more than one processor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**SAS/CONNECT and MP Connect distribute work across sessions**: A job can be split over several SAS sessions on one host or across hosts",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A dataset is locked per member**: Two writers do not share a row buffer, so member-level locking prevents a concurrent overwrite in one library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language offers no lock or atomic primitive**: Coordination is the platform's library locking and the scheduler's, not a construct in the DATA step",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The macro symbol table is shared session state**: One step's `%LET` or `CALL SYMPUT` is visible to every later step in the session",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Cannot function outside one vendor (P1)**: The language needs a SAS installation, and a program's unit of deployment is a SAS library on a SAS host",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**SAS datasets are the interchange unit**: The persistence format is a proprietary member of a SAS library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Viya is a second runtime under the same vendor**: Viya runs the language on the CAS engine with cloud deployment, but it is the same vendor's platform, not an independent implementation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A dataset can be written to the documented XPORT transport form**: The XPORT engine with `PROC COPY` produces the openly documented transport format that the FDA requires for electronic submissions, and other tools can read it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Open-source interop exists from inside the platform**: `PROC PYTHON` and `PROC R` call R and Python, so part of a workflow can use an open tool",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The DATA step and the procedures run compiled code**: A step is compiled to a program-data-vector loop executed by the supervisor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multithreading and the CAS engine parallelise heavy work**: Threaded procedures and distributed in-memory execution in Viya carry the large jobs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An index or the SPD engine avoids a full scan**: A lookup by an indexed key or by the multi-threaded SPD engine reads fewer pages than a sequential pass",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A sort can dominate a job's time and space**: A sort that exceeds memory spills to the work library, so a job of a given size needs a matching utility allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `BY`-group analysis requires sorted input**: Many procedures need the data sorted by the `BY` key, which makes a sort a precondition of the analysis",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**The library is large and mature inside its industry**: SAS ships statistical, econometric, clinical, and operations-research modules with long support windows",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Regulated statistical practice has decades of SAS convention**: Clinical and regulated reporting follows CDISC standards and platform validation practice",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Viya adds open-source tooling**: Jupyter, Python, R, and REST interfaces connect to a Viya deployment",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Proprietary (Ec4)**: The product is licensed by subscription, and its modules are licensed separately",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Small, niche, and increasingly legacy (Ec3)**: The language's own market has shrunk against R and Python, so new analysts and new packages arrive more slowly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The ecosystem is closed**: A shared contribution is an in-house macro or user-defined format, not a package drawn from an open index",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Long-term stability is a stated commitment**: A program written for an earlier release of the same generation still runs on a later one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The vendor carries validated code forward**: Existing 9.4 language support continues in Viya, so a submission program is not stranded",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language has evolved slowly**: SAS 9.4 has been the reference release since 2013, and the DATA-step and PROC syntax is largely unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The modern architecture is a second platform**: Viya changes deployment, engines, and administration, so a move to it is a platform migration rather than a language upgrade",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Evolution follows the vendor's roadmap**: A new feature appears at the vendor's next release, not at a date the community fixes",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for regulated statistical reporting**: A DATA step plus a PROC produce a documented, reproducible table",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Clinical and financial workflows have a fixed vocabulary**: `PROC LIFETEST`, `PROC PHREG`, `PROC FREQ`, and `PROC LOGISTIC` name the standard analyses directly",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain and vendor lock-in (D1)**: The language is built for statistical analysis on a SAS platform, so both the domain and the vendor are fixed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The regulatory transport requirement has narrowed**: The FDA still requires the open SAS V5 XPORT transport format for datasets, but CDISC standards define their content and other tools can write the format, so the language's old regulatory moat has shrunk",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**General-purpose programming sits outside the design centre**: Text processing, user interfaces, and systems work are not the intended use",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Analysts increasingly use R and Python beside it**: An open-source language is cheaper per seat and easier to hire for",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The DATA-step/PROC-step division is teachable**: A beginner learns retrieval in a DATA step and analysis in a PROC, and the two do not mix",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation and training are complete and vendor-provided**: SAS documentation, courses, and certification cover every module",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Steep (L1)**: The DATA step's implicit loop, the program-data vector, and the two-match step of `MERGE` are unlike any other language's execution model",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**DATA-step syntax is idiosyncratic**: Statements are `KEYWORD variable=value;` lines whose effect depends on their order in the step",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Macro programming is a second language on top**: `%MACRO`, `&var`, `%eval`, and the quoting functions (`%str`, `%bquote`) have their own rules",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Statements are keyword-led and read as English**: `PROC SORT data=a; by x; run;` states the operation and the key",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A PROC block is small per analysis**: An analysis reads as `PROC name data=...;` plus a few statements",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Verbose (S1)**: A typical step is a list of `KEYWORD option;` lines, and necessary statements such as `LENGTH`, `FORMAT`, and `LABEL` add lines before any data is touched",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Every step must be closed by `RUN` or `QUIT`**: A missing `RUN;` means the step does not execute, and a missing `QUIT` leaves a procedure open",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The semicolon and the `%` sigil each carry meaning**: A missing semicolon changes the statement, and a macro reference without `%` or `&` is treated as text",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Formats and informats add a name to every value**: `date9.`, `$char20.`, and `best12.` decorate a declaration, so a reader learns a second vocabulary",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`PROC COMPARE` reports differences by variable and observation**: A regression test is a dataset comparison with a named result",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A check step can assert its own expectation**: A step can read the result and `%ABORT` on a wrong value, and `OPTIONS ERRORABEND` turns a data error into a stop",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The log is the primary diagnostic instrument**: With `MPRINT` and `MLOGIC` it names the step and the macro line that failed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No test framework ships with the language**: A test is a SAS program, so the harness is a script or a scheduler around it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Errors are runtime-only**: A wrong type or a missing file appears when the step runs, not before",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A passing run can still contain errors**: The default continues after many errors, so a clean exit code does not imply a clean run",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**No pointers and no manual memory access**: The language offers no address arithmetic, so the memory-corruption class does not apply",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Access control is a platform feature**: Library and table permissions, metadata-server roles, and Viya identities control who reads a dataset",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Viya records an audit trail**: A deployment logs who ran which action against which resource",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A macro variable can build a statement**: `&SYSFUNC` and a resolved macro variable are expanded into syntax, so a value that carries user input can become code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Encryption and transport security are configuration choices**: A library can be encrypted and a connection secured, but the default is the site's decision",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A dataset member is a binary file with no per-row rule**: A leaked member is a full data dump, so row-level restriction must be built above the format",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The DATA-step/PROC-step split is a deliberate separation of concerns**: Retrieval and analysis are distinct statement kinds by design",
+    "**The dataset is the only data abstraction**: One table shape for all data keeps the language uniform, at the cost of encoding a richer value in columns",
+    "**A macro is a text-substitution preprocessor**: It keeps a repeated block in one place, at the cost of visibility at expansion time",
+    "**Point-and-click Enterprise Guide serves a non-programmer task**: Hiding the language suits a code-free workflow, so the GUI's coupling to the engine is the product's purpose",
+    "**A proprietary platform is traded for a regulated-industry toolchain**: One vendor with documented releases and validation packages suits a regulated deliverable",
+    "**Viya chose coexistence over replacement**: Modernising the architecture while keeping SAS 9.4 running is a compatibility decision"
+  ],
+  "verdict": "SAS's design yields moderate core coupling and a weaker platform position. The DATA step and the PROC step are genuinely separate concerns, and the language is strong for regulated statistical reporting. Main strengths: the retrieval/analysis split, a mature module library, and long-term stability that carries validated code forward. Main weaknesses: dynamic typing with no static check, no structured error path, a proprietary platform with a closed ecosystem, a shrinking market against R and Python, and an idiosyncratic DATA-step syntax that makes the learning curve steep.",
+  "verdictExtra": []
+}

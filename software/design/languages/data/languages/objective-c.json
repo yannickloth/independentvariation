@@ -1,0 +1,516 @@
+{
+  "schemaVersion": 1,
+  "id": "objective-c",
+  "name": "Objective-C",
+  "assessedAs": "Objective-C",
+  "version": "2.0",
+  "title": "Objective-C (2.0)",
+  "indexLabel": "Objective-C (2.0)",
+  "group": "functional-declarative-legacy",
+  "order": 18,
+  "displayOrder": 52,
+  "presenceOrder": 52,
+  "presenceList": {
+    "core": "T3, T6, T7, C2, M2, M3, M4, Er2, K3, P2",
+    "meta": "Ec4, D1, V2, L1"
+  },
+  "matrixOrder": 34,
+  "tagline": "Dynamic Messaging",
+  "sbName": "Objective-C",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "objectivecDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": true,
+    "T4": false,
+    "T5": false,
+    "T6": true,
+    "T7": true,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": true,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": true,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dispatch is resolved at run time (T3)**: A message send such as `[obj doThing]` compiles to `objc_msgSend`, and the selector is looked up as the message is delivered, so an object can receive a message its declared interface does not list and the fault appears as `unrecognized selector sent to instance`",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no namespace (T6)**: Every class and protocol shares one global name table, so code relies on prefixes such as `NS`, `UI`, and `CG` to keep names apart",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**`id` erases the static type (T7)**: The generic object pointer carries no compile-time type, so a value held in `id` is checked only by `-isKindOfClass:` or `-respondsToSelector:` at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Protocols separate specification from implementation**: A `@protocol` declares a method set that any class can adopt with `<NSCopying>`, so conformance does not require inheritance and one class can adopt several protocols",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Categories extend a class without its source**: `@interface NSString (MyExtras)` adds methods to an existing class, so a consumer extends behaviour without subclassing and without access to the original",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Static type information is optional and partly erased**: Declared parameter and return types (`NSString *`, `instancetype`) are checked at compile time, but lightweight generics such as `NSArray<NSString *> *` and the nullability annotations `nonnull` and `nullable` are erased at run time",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**There is no immutability by default (C2)**: `NSString`, `NSArray`, and `NSDictionary` each have a mutable counterpart, and a property declared `strong` without `copy` shares a mutable object with its setter; `@property (copy)` is the opt-in that protects it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`alloc` and `init` separate allocation from initialisation**: `[[NSObject alloc] init]` and a designated initialiser such as `-initWithFrame:` let one class route every construction path through one setup method",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@property` synthesises the accessors**: `@property (nonatomic, copy) NSString *name;` generates the getter, the setter, and the instance variable, so a consumer binds to the property name rather than to the ivar layout",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Blocks carry behaviour as a value**: A `^`-literal closure captures its environment and is passed as an argument, as in `-[NSArray enumerateObjectsUsingBlock:]`, so a callback needs no delegate class",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Class clusters hide the concrete class**: `NSNumber` and `NSString` return a private subclass from a factory method such as `+numberWithInt:`, so construction does not couple a caller to one implementation class",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`+new` and `-init` are conventions, not enforced rules**: The runtime does not require an object to be initialised, so an uninitialised instance is possible and the class author must insist on the designated initialiser",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**ARC removes manual retain and release**: The compiler inserts `objc_retain`, `objc_release`, and the autorelease-pool calls at the right points, so the common case needs no memory-management call",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`strong` and `weak` state the ownership intent**: `@property (weak) id delegate;` and `__weak` make the reference weak, and a weak reference zeroes itself when its referent is deallocated",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An autorelease pool defers the release**: An autoreleased object lives until its enclosing `@autoreleasepool` drains, so a loop that builds many objects adds its own pool",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no RAII (M3)**: ARC is not block-scoped, so a resource that is not an object, such as a `FILE *`, a `malloc` block, or a Core Foundation handle, is released by an explicit call or a `@try` and `@finally` block",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model (M4)**: No static lifetime or aliasing rule bounds an object, so a `strong` reference cycle leaks until it is broken with `weak`",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Reclamation timing is not a language rule (M2)**: The language never states when an object is freed; the tracing collector that once shipped with the Apple runtime was deprecated and then removed, and ARC's reference counting is a compiler convention rather than a language guarantee",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked (Er2)**: `@throw`, `@try`, `@catch`, and `@finally` carry an `NSException` that no signature declares, so a caller cannot see the failure set, and the convention reserves exceptions for programmer errors",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`NSError **` reports a recoverable failure**: A method such as `-[NSString writeToFile:atomically:encoding:error:]` writes the failure into an out-parameter, so a caller recovers without an exception",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@try`, `@catch`, and `@finally` are structured**: A `@catch` clause names the exception class, and `@finally` runs on both the normal and the exceptional path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two error conventions coexist**: `NSException` marks a programming error and `NSError` marks a domain failure, so a caller must know which convention a given API follows",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A message to `nil` fails silently**: `[nil doThing]` returns `nil` or `0` and raises nothing, so a missed wiring point produces no error",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`NSAssert` and `NSParameterAssert` are run-time checks**: They abort in a debug build and are compiled out under `NS_BLOCK_ASSERTIONS`, so they do not enforce a contract in a release build",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Synchronisation is manual with no race detection (K3)**: `@synchronized`, `NSLock`, `NSRecursiveLock`, and `dispatch_semaphore` leave the reasoning to the programmer, and the compiler reports no data race",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Grand Central Dispatch separates work from threads**: `dispatch_async(dispatch_get_global_queue(0, 0), ^{ ... })` submits a block to a queue, so the code names a queue rather than a thread",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A completion block returns on a named queue**: An asynchronous API takes a block and a queue, so a caller need not share mutable state with the worker",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`NSOperationQueue` declares dependencies**: `-[NSOperation addDependency:]` orders operations in the queue, so sequencing is stated rather than hand-scheduled",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@synchronized` gives a per-object mutex**: `@synchronized(self) { ... }` serialises a critical section on one object without a separate lock object",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@property (atomic)` does not make a compound operation atomic**: The default attribute serialises each accessor call, so a check-then-set sequence over the same property can still interleave with another thread",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**One vendor owns the mainstream platform (P2)**: The complete language, its reference compiler (Clang), and its flagship frameworks (Cocoa and Cocoa Touch) are Apple's",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GNUstep provides a second implementation**: The GNUstep runtime, Foundation, and AppKit reimplementations let much Objective-C code build off Apple's platform",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language is a strict superset of C**: A `.m` file mixes C functions and structs with message sends, so any C library is callable directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Modules replace recursive header inclusion**: `@import Foundation;` imports a clang module, so a build does not depend on `#import` order",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The frameworks differ by platform**: `AppKit` on macOS and `UIKit` on iOS share Foundation but not the user-interface layer, so UI code does not move between them",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The language compiles to native code**: Clang lowers Objective-C to machine code through LLVM, so a message send is a real call and a program needs no warm-up",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The runtime is thin and written in C**: `libobjc` supplies the selector table, the class metadata, and the reference-counting helpers with little work beyond the message send",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`objc_msgSend` costs more than a static call**: Every message send performs a selector lookup that is cached after the first use, so a tight loop of message sends is slower than the equivalent direct call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic dispatch limits inlining and devirtualisation**: Because the receiver's class is known only at run time, the compiler cannot always inline a method body",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Key-value observing and method swizzling add indirection**: Both change how a method runs after the fact, and the cost appears wherever they are installed",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The primary ecosystem is proprietary (Ec4)**: The reference documentation, the frameworks, and the IDE (Xcode) come from one vendor under its licence terms",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The toolchain is mature inside that ecosystem**: Xcode supplies one editor, compiler, debugger (`lldb`), Interface Builder, and the Instruments profiler in one install",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**CocoaPods, Carthage, and Swift Package Manager resolve dependencies**: Several long-established package managers exist for Objective-C libraries",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GNUstep supplies a free Foundation**: A portable implementation covers `NSString`, `NSArray`, and the rest of the Foundation API off Apple's platform",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Current material is written for Swift first**: The platform APIs and sample code are presented for Swift, so an Objective-C reader works from older or generated headers",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The language is frozen (V2)**: Objective-C 2.0 (2006) is effectively the last language revision, and platform-facing work has moved to Swift",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler keeps supplying new features**: ARC, blocks, object literals such as `@[]` and `@{}`, lightweight generics, and nullability annotations arrived as Clang features rather than as language revisions",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A mixed Objective-C and Swift target is supported**: Both languages link against the same runtime and can call each other, so a project can migrate one file at a time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Old source still compiles**: OpenStep-era Foundation API and the 1990s NeXT runtime conventions are still supported by the current toolchain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Documentation for new APIs follows the vendor's current language**: A header is the reliable reference for the Objective-C form of a new API",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The domain and the vendor are one decision (D1)**: The language is built for Apple's platforms, so adopting it means shipping on macOS, iOS, iPadOS, watchOS, and tvOS",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for the Apple application model**: The Cocoa delegate, target-action, and notification patterns and the main run loop are expressed directly in the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Foundation runs off Apple's platform**: Portable Foundation code from GNUstep works on Linux and other systems for command-line and server work",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Cross-platform work needs a second toolkit**: GNUstep supplies Foundation but has no equivalent of a modern Apple user-interface layer",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Server and command-line use is marginal**: The language is used for it, but the design centre is the application platform",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Message passing is a barrier for a newcomer (L1)**: `[receiver selector:argument]`, the colon-bearing selector notation, and the `@`-keyword set differ from dot-syntax object languages",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The C substrate must be learned as well**: Pointers, `struct`, C strings, manual C memory, and `@encode` sit underneath the object model, so the language is C plus message passing",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The runtime is a second topic**: `objc_msgSend`, metaclasses, key-value coding and observing, and ARC semantics are separate from the source syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Documentation quality follows the vendor**: Apple's guides and headers are thorough on the platform, and off-platform material is thinner",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The object model is conceptually small**: Once the message send is understood, most of the rest follows from it, including classes, selectors, and protocols",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**A message send names every argument**: `[view addSubview:subview positioned:NSWindowBelow relativeTo:nil]` labels each argument at the call site, so the call reads as a sentence",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Object literals are compact**: `@42`, `@[@\"a\", @\"b\"]`, and `@{@\"k\": @1}` build an `NSNumber`, an `NSArray`, and an `NSDictionary` in one form",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`@property` shortens an accessor pair**: One declaration replaces a hand-written getter, setter, and instance variable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The selector includes its colons**: `addSubview:positioned:relativeTo:` is one name, so a missing or an extra colon changes the selector",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dot syntax and brackets both reach an accessor**: `obj.prop` and `[obj prop]` are interchangeable, so a reader must accept two spellings for the same call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The preprocessor is part of the surface**: `#import`, `#define`, and macro-based API patterns are load-bearing in existing code",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**XCTest ships with the platform toolchain**: `XCTestCase`, the `XCTAssert` family, and performance tests are part of the developer tools",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Instruments profiles a real run**: The Time Profiler, Allocations, and Leaks instruments show where time and memory go, so a test can measure a change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The debugger understands messages**: `lldb` can break on a selector, inspect the arguments of a message send, and evaluate an expression in the running process",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The framework is tied to the toolchain**: XCTest and the simulator come from one vendor, so an off-platform run needs GNUstep and a different harness",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A wrong selector passes the build**: With dynamic dispatch a missing method or a wrong type is a run-time failure, so the tested paths matter more than the compiled ones",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**ARC removes a class of memory faults**: The compiler owns retain and release, so a use-after-free from a missing release is rare in ARC code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A weak reference does not dangle**: `weak` and `__weak` zero the reference when its referent is deallocated, so a stale link becomes `nil`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A message to `nil` is safe**: `[nil doThing]` returns `nil` or `0` instead of trapping, which removes a class of null-dereference crash",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`id` permits type confusion**: A value typed `id` accepts any object, and a wrong cast is caught only where the code checks the class",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**C is still underneath**: `malloc`, pointer arithmetic, and a file compiled with `-fno-objc-arc` bypass every object-model guarantee",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Method swizzling changes behaviour after the build**: `method_exchangeImplementations` replaces an implementation at run time, which is powerful and easy to misuse",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Message-passing syntax is a familiarity cost**: `[receiver selector:argument]` differs from dot-syntax object languages, and the adjustment is a learning property rather than a forced dependency",
+    "**Long method names are a deliberate style**: `-[NSString stringByReplacingOccurrencesOfString:withString:]` is verbose but self-describing, which is a readability choice",
+    "**Manual retain and release remains available**: A project can leave ARC off and manage lifetimes itself, so the older memory model is a choice rather than a requirement",
+    "**`NSException` for programmer errors is a policy**: Treating an exception as a bug signal and `NSError` as a recovery signal is a convention the language permits but does not require",
+    "**Prefixes mitigate the flat namespace**: A class prefix is a convention that reduces collisions; it is a workaround for the missing namespace, not an additional coupling",
+    "**A mixed Objective-C and Swift target is a migration decision**: Both languages share the runtime and call each other, so how far to migrate is a project choice"
+  ],
+  "verdict": "Objective-C's design yields moderate language-imposed coupling, and its weakest core dimensions are the ones the language was built around. Dynamic dispatch, the flat global namespace, and the `id` pointer defer type and dispatch checks to run time (T3, T6, T7). Against that, protocols give multiple inheritance of specification without implementation, categories extend a class without its source, blocks carry a callback as a value, and ARC removes manual retain and release while `weak` makes a stale reference zero itself. Its main weaknesses lie underneath and around the object model: there is no ownership rule and no block-scoped release, exceptions are unchecked, and the entire platform is one vendor's, so the domain, the evolution, and the ecosystem are all locked to the same decision.",
+  "verdictExtra": []
+}

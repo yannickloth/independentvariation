@@ -1,0 +1,536 @@
+{
+  "schemaVersion": 1,
+  "id": "c-shell",
+  "name": "C shell",
+  "assessedAs": "the C shell",
+  "version": "tcsh",
+  "title": "C shell (csh 8.2 / tcsh)",
+  "indexLabel": "C shell (csh 8.2 / tcsh)",
+  "group": "shells-automation",
+  "order": 7,
+  "displayOrder": 49,
+  "presenceOrder": 48,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T10, T11, C1, C2, Er1, Er3, Er4, K5, P2",
+    "meta": "R1, Ec1, Ec3, G1, G2, G3, Q2"
+  },
+  "matrixOrder": 11,
+  "tagline": "Interactive-Pioneer Shell",
+  "sbName": "C shell",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "cshManual"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": true,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Every value is a word list**: `set` binds a list of words to a name, and no declaration states what the name holds, so the same variable carries a path on one line and a number on the next",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: An option that may be absent, numeric, or textual is one string, and the reader must decode the convention (`set flag` versus `set flag=0`) to tell them apart",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A command is specialised only by the words passed to it, so the same logic is written again for each shape of data",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Arithmetic is a second grammar**: `@` and `if ( expr )` evaluate C operators over words, so a number is a word that is re-parsed at each use, a null or missing argument counts as `0`, and a non-numeric word raises `Badly formed number`",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**One flat namespace**: `set` variables and `setenv` environment variables form two flat spaces with no lexical scope, so a `source`d file cannot hide a name from its caller (T6, T11)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**An unset name expands to empty**: Csh has no `nounset` option — its letters are `-bcefimnstVvXx` — so a misspelled variable becomes an empty argument instead of an error",
+        "mechanism": "T10"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**No function scope**: A variable set in a script is visible to every command the script runs, and a `source`d file writes directly into the caller's namespace",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No immutability by default**: Every name is writable everywhere, so a value read at the top of a script can change before it is used",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Aliases are the only reuse mechanism**: An `alias` is textually substituted with `\\!*` arguments, so its body is expanded in the caller's context instead of a protected one",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Recursion re-enters the script**: With no function call, a recursive routine re-invokes `$0`, which couples the logic to the script path and to the positional parameters",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**tcsh can freeze a variable**: `set -r` marks a name read-only, but this is a tcsh extension and it is never the default",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`path` is tied to `PATH`**: Assigning the `path` word list re-exports `PATH`, so the search path is edited as a list rather than by string editing",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No allocation syntax**: The language has no pointer, no address, and no `free`, so word lists are allocated by the interpreter on assignment",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No deallocation to manage**: `unset` drops a name and the interpreter reclaims the words, so a script has no free order and no double free to avoid",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Assignment copies the list**: `set b = ($a)` duplicates every word, so a large list is held twice while the assignment runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Global scope extends lifetime**: Because every variable is global, data created early in a session stays resident until it is explicitly `unset`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Word lists are the only aggregate**: There are no user-visible buffers or arenas, so memory layout never enters a script",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured error path**: Csh gives `onintr` for interrupts and `$status` for the last exit code, but there is no exception, no error value, and no handler that can return a result",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**`$status` is lost by the next command**: Any command resets it, so a test placed between a failure and its check silently discards the error",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Errors do not compose**: A failure is a global word rather than a value that can be returned, combined, or stored, so recovery cannot be factored into a routine",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Diagnostics are short and late**: The parser is ad hoc, so a fault such as `0: Event not found.` reaches the user only when the line runs and names nothing beyond the command",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The parser reads a command at a time**: A syntax error later in a file is reported when execution reaches it, so earlier side effects are already committed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`onintr` couples cleanup to a label**: The handler is a named target in the script rather than a scope, so cleanup cannot be attached to the thing it cleans up",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No concurrency primitives**: `&` and job control start and steer jobs, but there is no lock, channel, or await, so coordination is done by signals and exit codes",
+        "mechanism": "K5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Processes are the unit of parallelism**: The language models concurrency as separate processes joined by pipes, so no shared address space has to be reasoned about",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Job control isolates the terminal**: Csh introduced job control, so a foreground or background decision does not require the script to manage the terminal itself",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`wait` is the only join**: `wait` blocks for all jobs or one named job and returns no value, so a result must travel through a file or a pipeline",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Background jobs inherit the whole environment**: A `&` job shares every global variable and the current directory, so ordering between jobs is unspecified unless the script waits",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No coprocess**: Unlike ksh's `|&`, csh offers no supported two-way conversation with a child, so a pipeline stage cannot be driven interactively",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Two implementations of one lineage**: The language is defined by the frozen BSD `csh` 8.2 and by `tcsh`, so there is no third implementation to check behaviour against",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "caution",
+        "text": "**The frozen and maintained dialects differ**: `set -r`, `bindkey`, and the completion system are tcsh additions, so a script that uses them is not a csh script",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No standard to be portable to**: The POSIX committee chose KornShell, so csh has no specification and its contracts live in two manuals",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**tcsh is packaged nearly everywhere**: Tcsh ships on the BSDs, Linux, and macOS, where `csh` normally resolves to tcsh, so an interpreter is usually present",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Interactive configuration transfers within the family**: `alias`, `history`, `!!`, tilde expansion, and the directory stack behave the same in csh and tcsh",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Scripting support is frozen**: New portable automation targets other shells, so csh is maintained rather than extended",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "caution",
+        "text": "**Interpreted with no compilation step**: Every command line is parsed and evaluated as text at run time, so a loop over files pays parser cost per iteration",
+        "mechanism": "R1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Builtins are a short list**: `cd`, `set`, `@`, and `echo` avoid a process, and almost everything else forks and executes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Path hashing avoids repeated search**: `rehash` and `hashstat` keep a table of resolved command paths, so command lookup does not rescan `PATH`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scripts start without interactive configuration**: Tcsh reads `.tcshrc` for interactive shells only, so a script pays no start-up cost for prompt and completion setup",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Arithmetic is re-parsed per evaluation**: `@` evaluates its expression each time it runs, so a numeric loop is far slower than compiled code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The shell is rarely the bottleneck**: Time goes to the external commands it spawns, so interpreter overhead matters mainly in arithmetic-heavy loops",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**No package manager**: There is no distribution channel for csh code, so shared routines are copied between scripts or vendored as files",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The user base is small and narrowing**: Csh survives as a login-shell option on the BSDs and macOS, and new scripting rarely targets it",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation is complete and stable**: The csh and tcsh manuals describe the language fully and have changed little in decades",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Interactive tooling is mature in tcsh**: `bindkey`, `complete`, and the `set` toggles are documented and widely configured",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No static analysis**: ShellCheck does not analyse csh or tcsh, so a csh script has no mainstream linter",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scripts are the interchange format**: `csh` is invoked from `make`, `cron`, and login configuration without a binding layer",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Backward compatibility is total**: Tcsh runs csh scripts unchanged and adds behaviour through new builtins and `set` variables",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No version treadmill**: No breaking change can arrive for frozen csh, and decades-old scripts still run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Fixes arrive only in tcsh**: A defect or an unhelpful message in csh stays, and the remedy is to install tcsh and let `csh` point at it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two dialects share one manual**: The tcsh manual marks tcsh-only behaviour with `(+)`, so a reader must know which shell they have",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No standardisation track**: With POSIX committed to KornShell, no committee can modernise the language",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Adequate as an interactive login shell**: History, aliases, tilde notation, the directory stack, and job control cover terminal work",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Weak as a scripting language**: `foreach`, `while`, `if`, and `switch` cannot be piped into one another, so a data-processing script must be rebuilt around that limit",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Text handling calls out to other tools**: There are no associative arrays and no substring operators beyond the `:r`, `:e`, `:h`, and `:t` modifiers, so `sed` and `awk` do the work",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Arithmetic is integer only in csh**: `@` and `expr` cover integers, so floating-point calculation leaves the shell",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Configuration files are the native domain**: `.cshrc`, `.login`, and `.logout` express an interactive environment directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Legacy maintenance persists**: Csh remains a login shell on some BSD and macOS accounts, so its configuration files still need care",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The interactive surface is gentle**: History substitution, aliases, and tilde notation are learnable in an afternoon",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The grammar resembles C**: `if ( $#argv > 1 )` and `@` arithmetic read as expected to a C programmer",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The scripting limits are learned by failure**: A beginner discovers that a control structure cannot be piped only when the pipeline fails",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Word modifiers must be memorised**: `:r`, `:e`, `:h`, `:t`, `:g`, and `:q` are a compact but unguessable syntax for path and quoting work",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`set` and `setenv` confuse newcomers**: Two binding commands with different rules produce silent mistakes when the wrong one is used",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**Block terminators disagree**: `if` closes with `endif`, `switch` with `endsw`, and `foreach` and `while` with `end`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`set`, `setenv`, and `alias` follow different rules**: Three ways to bind a name use three argument conventions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No separate stderr redirection**: `>&` merges the two streams and `|&` pipes both, so a stream cannot be redirected on its own",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Terse for its work**: `foreach f (*.c)` with `if (-e $f)` expresses a loop and a test in a few characters",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Word modifiers are short and local**: `$file:r.c` and `$path:h` perform path surgery inline",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@` and `if ( expr )` add a second reading of a line**: The same word is a string in one place and an expression in another",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test framework in the language**: A test is a script that calls the code and compares `$status`, with no assertion, fixture, or reporting facility",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Debugging is `echo` and `set -x`**: Csh prints commands with `set echo` and the `-x` option, but has no breakpoint, no state inspection, and no debugger",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Faults appear only in the branch that runs**: With no static check, a mistyped variable or a bad `foreach` pattern is found during the test run",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "caution",
+        "text": "**A hand-built harness is possible**: `$status` and `onintr` allow a script to record an outcome and report it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Exit status is a usable oracle**: After a command, `if ($status == 0)` tests the one outcome the language reports reliably",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Interactive behaviour needs a terminal**: History, completion, and prompt behaviour are tty-driven, so they resist automated checks",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Unquoted expansion is re-parsed**: Because a value is a word list, an unquoted `$var` splits and globs, so untrusted text can change the number of arguments a command receives",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "caution",
+        "text": "**`eval` and `$<` feed outside text to the parser**: Both re-enter the interpreter with text that is not validated",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No restricted mode**: Csh offers no sandbox and no capability model, so a script's protection is the file permissions of its user",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`set noclobber` protects existing files**: The option makes `>` refuse to overwrite, so a mistake cannot silently destroy data",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Environment changes are explicit**: `setenv` and `unsetenv` are named builtins, so a script's effect on its children is visible in the text",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No memory-safety surface**: There are no pointers and no manual allocation, so memory defects belong to the programs csh runs",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Interactive first, scriptable second**: The design targets the terminal, so a weak scripting surface is a priority choice rather than a defect in the language",
+    "**The C-like expression grammar is a deliberate borrowing**: `@` and `if ( expr )` give a C programmer a familiar evaluation model; the cost is a second grammar, not a forced dependency",
+    "**The 1993 freeze is a maintenance decision**: Original csh is complete and unmaintained while tcsh continues the line, so the freeze is a project decision rather than a coupling mechanism",
+    "**`set` and `setenv` are two commands by history**: The split mirrors the shell-variable and environment-variable distinction that every shell must represent somehow",
+    "**The ad-hoc parser is one implementation's shortcut**: A different implementation could parse the same language properly, so the parser defect is not part of the language contract",
+    "**csh is not a general-purpose language**: An interpreter plus a set of external commands is the assumed platform, which is a scope decision"
+  ],
+  "verdict": "The C shell gives the coupling profile of a word-based shell: values are words, names have one global scope, and an error is a global status word rather than a composable value, which puts a floor of 43 under the core score. Its own contributions are interactive — history, aliases, tilde notation, the directory stack, job control, and path hashing — and none of them separates concerns inside a script. The original shell has been frozen since 1993 and tcsh carries the line forward, so the language is stable but small, and tcsh-only extensions such as `set -r` and the completion system sit outside what a csh script may rely on.",
+  "verdictExtra": []
+}

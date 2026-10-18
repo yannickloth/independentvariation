@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "vbscript",
+  "name": "VBScript",
+  "assessedAs": "VBScript",
+  "version": "6.0",
+  "title": "VBScript (6.0)",
+  "indexLabel": "VBScript (6.0)",
+  "group": "functional-declarative-legacy",
+  "order": 20,
+  "displayOrder": 53,
+  "presenceOrder": 53,
+  "presenceList": {
+    "core": "T1, T6, T11, C1, Er1, P1",
+    "meta": "Ec3, Ec4, D1, V3, G1, Q3"
+  },
+  "matrixOrder": 62,
+  "tagline": "Deprecated Windows Scripting",
+  "sbName": "VBScript",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "vbscriptDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": true,
+    "C1": true,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": true,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**A variable has no declared type**: `Dim x` declares a name, and the value it holds is a `Variant` whose subtype is decided at the assignment, so the operator resolves the operands when the statement runs and `+` adds or concatenates according to the values it receives",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no namespace**: Every global variable and procedure lives in one flat global scope, so two included scripts share it",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no module boundary**: A script file exports nothing and imports nothing explicitly, and `ExecuteGlobal` or a `.wsf` include writes into the same global scope",
+        "mechanism": "T11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The subtype is inspectable**: `VarType`, `IsNumeric`, `IsDate`, `IsArray`, and `IsObject` let a script ask what a variant holds",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Null` and `Empty` are distinct values with their own tests**: `IsNull` and `IsEmpty` separate a true null from an uninitialised variant",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Class`, added in version 5.0, groups state with behaviour**: A class declares `Private` fields and `Public` property procedures, with `Class_Initialize` and `Class_Terminate`",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**A global variable appears at its first assignment**: Without `Option Explicit`, `x = 1` at file scope creates a global, so state appears wherever a name is first used",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Option Explicit` requires a declaration**: With it, an undeclared name is an error instead of a new variable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Sub` and `Function` scope their own locals**: A `Dim` inside a procedure belongs to that procedure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A class validates and cleans up in its two lifecycle methods**: `Class_Initialize` runs at creation and `Class_Terminate` at release",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `.wsf` file combines several scripts**: A Windows Script File includes more than one script file, and the procedures of one are callable from another",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`ExecuteGlobal` defines a global at run time**: A generated statement can create a name that no declaration lists",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The script engine owns the memory**: There is no allocate, free, or pointer operation in the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A COM object is released by reference count**: The object is freed when its last reference goes out of scope, and `Class_Terminate` runs at that point",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No pointer type and no address exist**: A value can never name a memory location",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A class instance is collected by the engine**: The script states no lifetime for a class object",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A reference cycle between script and COM objects is not reclaimed**: The engine's counter cannot release a cycle, and the process must end to reclaim it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Repeated string concatenation in a loop reallocates**: A long string built with `&` is copied at each step, and the language has no string builder",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**There is no structured error path**: The language has no `try` and no `catch`, only `On Error Resume Next` and the `Err` object",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**`On Error Resume Next` discards a failure by default**: The next statement runs regardless, and the failure is invisible unless `Err.Number` is tested",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The `Err` object makes a failure a value**: `Err.Number`, `Err.Description`, `Err.Source`, and `Err.Raise` let a handler read and create a failure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`On Error GoTo 0` ends the suppressed mode**: Error handling returns to the default at that statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A host error names its provider**: An ADO, WMI, or file-system failure carries a provider-specific number and source, so a handler is bound to that provider",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An unhandled failure ends the script**: There is no caller frame to unwind to, and the default action is to stop",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The language has no shared-memory concurrency**: A script runs single-threaded in its host, so there is no race to guard",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A script can start another process**: `WScript.Shell.Run` launches a program, and `Exec` returns a stream of its output",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The host delivers an event to the script on its own thread**: A callback is serialised onto the host's thread, so the script never observes a concurrent invocation of itself",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The host decides the threading model**: Windows Script Host, Internet Explorer, and classic ASP each run a script differently, and the host's apartment model governs a COM call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A session-scoped object is shared across requests**: In classic ASP, `Session` state is visible to more than one request, and nothing in the language partitions it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A long-running script blocks its host thread**: The language has no yield and no cancellation",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The engine is Windows-only**: `vbscript.dll` is the only implementation, and it ships with Windows, so a script runs on no other platform",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Every capability arrives through COM**: File access, WMI, ADO, and the shell are COM objects such as `Scripting.FileSystemObject` and `ADODB.Connection`, so a script depends on the registered object model",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `.vbs` file needs no build step**: The host runs the text as written",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The host is part of the operating system**: `cscript.exe` and `wscript.exe` are installed with Windows",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The host decides which objects exist**: Windows Script Host, Internet Explorer, and classic ASP present different object models to the same language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `.wsf` file states its own includes**: A multi-file script needs the `Job` attributes and the `<script src=...>` elements that name its parts",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "caution",
+        "text": "**The compiled form does not survive the process**: The engine compiles the script at load rather than ahead of time, so a fresh host pays the parse again",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A variant costs at every operation**: An operation reads the subtype tag and converts the operands before it acts",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The engine is an in-process library**: The host loads it once, so a script starts with no separate runtime to launch",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The engine compiles the file before it runs**: The host parses and compiles the script once at start, and a page host can keep the compiled script for later requests",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A COM call dominates a data-heavy script**: The crossing into ADO, WMI, or a file-system object is where the time goes",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**String handling is the common trap**: Concatenation in a loop and a repeated `RegExp` replace on a large string cost far more than the control flow",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The language is proprietary and discontinued**: It exists in one vendor's product, and Microsoft announced the deprecation in October 2023",
+        "mechanism": "Ec4"
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is legacy and frozen**: The language has gained no feature since version 5.5 (2000), when the engine moved to sustaining engineering, so the tool field is historical",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The runtime tooling is part of Windows**: `cscript` and `wscript` are installed with the operating system",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A large body of published scripts exists**: Administrative scripts, examples, and books from the 2000s are widely available",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The migration targets are named and documented**: Microsoft points to PowerShell and JavaScript and describes the path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Many environments block the script host**: A security policy or a mail filter commonly disables or rejects a `.vbs` file",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The language is discontinued**: Microsoft announced the deprecation in October 2023 with removal planned after 2027, so no further version is expected",
+        "mechanism": "V3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The remaining life is long and published**: The phased plan keeps the language available as an on-demand feature for years, so an existing script keeps running",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language does not change under a script**: An existing script's meaning is fixed, which makes a migration predictable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A successor covers each use**: PowerShell replaces the administration role and JavaScript replaces the browser and page role",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**New code has no reason to choose it**: The direction of the platform is removal, not extension",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The domain is Windows administration and COM**: The useful work is expressed through WMI, ADO, the file-system object, and the shell, and none of that exists off Windows",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Administrative automation fits it well**: A short script drives WMI and the registry directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Classic ASP and HTML Applications were real hosting domains**: A server page and an `.hta` file both used VBScript with the full object model",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Test automation still uses it**: UFT One and similar tools keep a VBScript dialect for their test scripts",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**PowerShell has replaced it for administration**: The same task is now written in PowerShell",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An embedded operator interface is a narrow remaining use**: A few industrial and point-of-sale systems still run a VBScript engine for local automation",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The syntax is small**: `If ... Then ... End If`, `Sub`, `Function`, and `For Each` are the surface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The curve is gentle for a Visual Basic programmer**: The classic Visual Basic surface carries over almost unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference is complete**: Microsoft's VBScript Language Reference documents every statement and function",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The error model is easy to start with**: `On Error Resume Next` and the `Err` object are a few lines",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The real subject is COM**: The object model beneath the language is the large part of the work",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The error model is easy to misuse**: It requires a discipline that the language does not enforce",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**The keywords are words**: `If`, `Then`, `Else`, `End If`, `For Each`, and `Next`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A line is a statement**: Statement boundaries are lines, and `:` separates two statements on one line",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Line continuation is explicit**: `_` continues a statement on the next line",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A block closes with its keyword pair**: `End If`, `End Sub`, `End Function`, `Loop`, and `Next` each close their own construct",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language is case-insensitive**: `myValue` and `MyValue` name the same variable, so a rename is not caught by the case",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`Dim` may be omitted**: Without `Option Explicit`, a name is declared by its first use, so a typo reads as a new variable",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**There is no test framework in the language or the host**: A check is a script that compares values and reports the result",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A test is a `.vbs` file run by `cscript`**: The same engine runs the test and the code under test",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A harness is only a few lines**: `WScript.Echo` with a comparison gives a report, and a failing check can call `Err.Raise`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`cscript //X` starts the script debugger**: A step-through debugger is available where the Windows debugging tools are installed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A test suite is the programmer's own**: There is no runner, no fixture loader, and no report format",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A type error appears only in the test run**: Nothing checks a value's use before the line executes",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Untrusted input can become code**: `Execute`, `ExecuteGlobal`, and `Eval` evaluate text, so a value built from input can run as a statement",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Script malware is a known, historical class**: The ILOVEYOU worm spread as a `.vbs` attachment, and the file extension is still commonly blocked",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The file-system object grants the user's own rights**: `Scripting.FileSystemObject` can read or overwrite any file the invoking user can",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A script runs without elevation by default**: It holds the privileges of the invoking user and no more",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The usual mitigation is policy**: A mail filter, an attachment block, or a group-policy restriction, rather than a language feature",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Correct quoting must be uniform**: An injection that forms a valid statement is not distinguishable from a legitimate one by the engine",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Hosted scripting is the purpose of the language**: VBScript is designed to be embedded in a host, so the dependence on the host is a scope decision",
+    "**The classic Visual Basic surface is a familiarity trade**: The BASIC syntax is easy to read, and one value type keeps the engine simple, at the cost of the type system",
+    "**A suppressed error is sometimes deliberate**: `On Error Resume Next` around one statement is a chosen tactic",
+    "**The language is meant for short programs**: A page of automation is the design point, not a system",
+    "**A fixed parameter list is a deliberate omission**: The language cannot pass a variable number of arguments, so a variadic call is written as an array parameter",
+    "**The deprecation is a lifecycle decision**: Microsoft's removal plan is a product decision rather than a language mechanism"
+  ],
+  "verdict": "VBScript holds the lowest pair of scores in this group, and the losses concentrate in its defaults and its dependence. A variable is a `Variant` with no declared type, an undeclared name becomes a global, an error is a mode the caller must enable, and every useful capability arrives through a COM object that exists only on Windows. What the language does provide is a tiny readable syntax, a host that is already installed, lifecycle methods on a class, and `Option Explicit` to require a declaration. Main strengths: a gentle learning curve, direct WMI and ADO automation, a `.wsf` file that packages a multi-file script, and a simple way to restrict a script through the Windows Script Host. Main weaknesses: no structured error path, no namespace and no module boundary, a proprietary and discontinued implementation, a domain locked to Windows and COM, weak tooling, and an injection surface that made it a malware vehicle.",
+  "verdictExtra": []
+}

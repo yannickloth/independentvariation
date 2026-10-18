@@ -1,0 +1,536 @@
+{
+  "schemaVersion": 1,
+  "id": "transact-sql",
+  "name": "Transact-SQL",
+  "assessedAs": "Transact-SQL",
+  "version": "SQL Server",
+  "title": "Transact-SQL (SQL Server)",
+  "indexLabel": "Transact-SQL (SQL Server)",
+  "group": "domain-specific",
+  "order": 5,
+  "displayOrder": 16,
+  "presenceOrder": 16,
+  "presenceList": {
+    "core": "T10, Er3, K2, P1",
+    "meta": "Ec4, D1, Q3"
+  },
+  "matrixOrder": 58,
+  "tagline": "SQL Server Procedural",
+  "sbName": "Transact-SQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "tsqlDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing over SQL data types**: Every variable, parameter, and column has a declared type, and a block that violates it fails at parse or bind time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Table variables and table-valued parameters carry a declared row type**: `DECLARE @t TABLE (...)` and a user-defined table type pass a typed row set between units",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A procedure parameter declares its type and direction**: `@p int OUTPUT` fixes the type and the direction, so a caller binds to a signature",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`DECLARE @name` defaults to NULL (T10)**: A declared variable starts as NULL, so an unassigned variable is valid and propagates NULL into the expression",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**NULL comparison needs three-valued logic**: With `ANSI_NULLS ON` (the default, and the only supported setting since SQL Server 2017), `@x = NULL` is unknown, so a check needs `IS NULL`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no type beyond a SQL data type**: No user-defined sum type or generic exists, so a variant is modelled with nullable columns or a discriminator",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A stored procedure provides modularity with a declared interface**: `CREATE PROCEDURE` names the unit, its parameters, and its result, and can return a status value and OUTPUT parameters",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A view or an inline table-valued function separates consumers from the query**: The exposed relation is stable while its defining query can change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A table-valued parameter passes a row set without a shared temporary table**: A user-defined table type plus a TVP parameter removes the need for a global temporary table",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based statements compose without a cursor**: `INSERT ... SELECT`, `UPDATE ... FROM`, and `MERGE` express the whole transformation in one statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers fire implicitly**: An `AFTER` or `INSTEAD OF` trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Session `SET` options change the meaning of a statement**: `ANSI_NULLS` and `QUOTED_IDENTIFIER` are captured when a stored procedure is created, while `DATEFORMAT` applies when the statement runs, so the same text can parse or convert differently elsewhere",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The SQL Server buffer pool and the query workspace own the memory, and a batch never names an address",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server grants memory to a query**: The query's memory grant comes from the server's calculator or the Resource Governor, so the batch does not request bytes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Buffer pool and `tempdb` behaviour are server configuration**: `max server memory`, the `tempdb` files, and a Resource Governor pool are settings, not batch properties",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A sort or hash can spill to `tempdb`**: An operation whose grant is too small writes to `tempdb`, which costs I/O even though the language hides allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A cursor allocates per fetch**: A row-by-row cursor uses workspace per fetch, so the memory pattern follows the loop",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**`TRY ... CATCH` gives a structured path**: The `CATCH` block runs on error and exposes `ERROR_NUMBER`, `ERROR_MESSAGE`, `ERROR_SEVERITY`, and `ERROR_LINE`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`THROW` and `RAISERROR` raise with a number and a message**: `THROW 50001, 'msg', 1` carries a number, so a handler can branch on it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`XACT_STATE()` and `@@TRANCOUNT` tell the handler whether the transaction is committable**: A doomed transaction is detectable inside `CATCH`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Errors ignored or non-exhaustive (Er3)**: A `CATCH` block that swallows the error, or a skipped `@@ERROR` check, lets the batch continue past the failure",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Errors do not abort the batch by default**: Without `SET XACT_ABORT ON`, a statement error rolls back that statement and the batch continues",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Severity decides whether the caller sees the error**: A low-severity error is informational, so the same statement text can pass a caller by",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions group statements atomically**: `BEGIN TRANSACTION`, `COMMIT`, and `ROLLBACK` make a unit of work commit or abort as one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Isolation levels are selectable and versioned**: `READ UNCOMMITTED`, `READ COMMITTED` (default), `REPEATABLE READ`, `SNAPSHOT`, and `SERIALIZABLE`, while the database options `READ_COMMITTED_SNAPSHOT` and `ALLOW_SNAPSHOT_ISOLATION` switch `READ COMMITTED` to row versioning and enable `SNAPSHOT`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Snapshot isolation removes reader–writer blocking**: With `READ_COMMITTED_SNAPSHOT ON`, a reader uses row versions and does not block a writer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based statements reduce explicit locking**: One `UPDATE` moves many rows without a row-by-row lock protocol in application code",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Shared mutable state by default (K2)**: `SET` options, `CONTEXT_INFO`, and a global temporary table `##t` are visible to code the caller did not write",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A locking hint couples the query to the engine's concurrency model**: `WITH (NOLOCK)`, `UPDLOCK`, and `READPAST` are engine-shaped and must agree with the application's lock ordering",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Client interfaces are standard**: ODBC, JDBC, OLE DB, and ADO.NET reach the engine, so a client is not bound to one binary protocol",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Bulk interfaces are documented**: `bcp` and `BULK INSERT` use a documented format, so data exchange is not tied to an application API",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Two implementations exist under separate vendors**: Microsoft SQL Server and SAP ASE share a lineage and a core syntax, but the two diverge, and Microsoft and SAP document them separately",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Azure SQL is the same vendor with a different deployment**: The managed service changes availability, administration, and some features, so code targets a specific surface",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Cannot function outside one vendor (P1)**: The language needs SQL Server, Azure SQL, or SAP ASE",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The T-SQL surface is engine-specific**: `TOP`, `IDENTITY`, `GO`, the `sys` catalog views, and the `sp_` procedures are SQL Server features, so a port to another engine is a rewrite",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**A cost-based optimiser with a plan cache executes a statement**: A procedure's plan can be reused, so the caller does not choose an access path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A columnstore index and batch mode scan analytically**: `CREATE COLUMNSTORE INDEX` plus batch mode processes a large scan in vectorised batches",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Query Store records plans and regressions**: An operator can see a plan change and force a previous plan",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**In-memory OLTP tables are lock-free and memory-optimised**: `MEMORY_OPTIMIZED = ON` tables and natively compiled procedures remove latch contention",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Parameter sniffing can choose a plan for the wrong input**: A cached plan built for one parameter value can be poor for another",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A plan can regress without a query change**: New statistics, a version upgrade, or a changed data volume can select a worse plan",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**Tooling is mature and first-party**: SQL Server Management Studio, Azure Data Studio, and `sqlcmd` cover administration and query work",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The market and the hiring pool are large**: SQL Server is widely deployed in Microsoft environments, so documentation, training, and consultants are abundant",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Cloud deployment is a first-party service**: Azure SQL Database and Managed Instance run the same engine with a managed administration model",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Proprietary (Ec4)**: The engine, the tooling, and the support come from Microsoft (and, for ASE, from SAP) under licence",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The ASE toolchain is separate from the SQL Server toolchain**: SAP maintains its own documentation, tools, and support, so knowledge does not transfer freely",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The release cadence is regular and active**: SQL Server ships a major release periodically, and Azure SQL receives continuous updates",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A compatibility level keeps old behaviour**: A database at an older compatibility level keeps the older optimiser and syntax behaviour while the engine is upgraded",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The engine leads the standard**: `TRY ... CATCH`, `MERGE`, window functions, and JSON support arrived as engine features, so users get them without waiting for the standard",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A deprecated feature is warned and then removed**: The documentation lists deprecated features, and an upgrade can require edits",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Feature availability differs by edition and deployment**: An Enterprise feature or an Azure-only feature may not exist on a local Standard edition",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for transactional and analytical logic in the database**: A stored procedure runs beside the data with a plan and a transaction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One language spans OLTP and analytics**: Set-based DML, window functions, and a columnstore scan all live in the same language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The surrounding pipeline is first-party**: Integration Services, the Agent scheduler, and Reporting Services cover the rest of a data workflow",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain and vendor lock-in (D1)**: The language exists inside SQL Server or SAP ASE, so both the domain and the vendor are fixed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Procedural row logic reads poorly**: A row-by-row algorithm in a cursor is verbose and slow beside its set-based equivalent",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is not a runtime for arbitrary programs**: The language assumes a SQL Server database and a set-based workload",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Gentle for a SQL developer**: A procedure with `BEGIN ... END`, `TRY ... CATCH`, and `SELECT ... INTO` is readable to anyone who knows SQL",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation and examples are complete**: The Microsoft T-SQL reference documents every statement with examples",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The procedural and the set-based model coexist**: A developer must choose between a cursor and a set-based statement, and the wrong choice shows up as a performance problem",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**NULL handling must be learned**: With `ANSI_NULLS ON`, `= NULL` never matches, and a comparison with NULL yields unknown",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan and locking behaviour is a separate body of knowledge**: Performance work means reading plans and lock waits rather than syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The SAP ASE dialect diverges in details**: Differences in `GO`, `IDENTITY`, and built-in functions mean knowledge transfers only in part",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Keyword-based and readable**: `SELECT ... FROM ... WHERE` and `BEGIN ... END` read close to English",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A procedure is a readable unit**: The parameter list, the body, and the `RETURN` value are declared in one `CREATE PROCEDURE` statement",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GO` marks a batch boundary in a script**: The client tool sends the batch, so the boundary is visible in the source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`SET` options prefix every script**: `SET NOCOUNT ON`, `ANSI_NULLS ON`, and `QUOTED_IDENTIFIER ON` are usually written at the top, so the boilerplate grows",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@` and `@@` distinguish kinds of variable by convention**: A local variable, a parameter, and a global function share the sigil, so a reader distinguishes them by spelling",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Identifier quoting depends on a setting**: `[name]` and `\"name\"` both quote an identifier, and the second form needs `QUOTED_IDENTIFIER ON`",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`tSQLt` is the established framework**: An open-source unit-test framework runs test classes with mocked tables and assertions",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`TRY ... CATCH` makes a unit test expressible in the language**: A test procedure asserts and `THROW`s on a mismatch",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A transaction wraps a test and rolls it back**: The database is unchanged after the test",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Error metadata supports an assertion on a failure path**: `ERROR_NUMBER` and `ERROR_MESSAGE` inside `CATCH` let a test check the rejection",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The base product ships no test framework**: `tSQLt` is a third-party install, so a suite depends on deployment and permissions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A server-side suite needs a server**: The harness needs a SQL Server instance, so the tests couple to infrastructure",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**`sp_executesql` with parameters removes the injection surface**: `EXEC sp_executesql N'SELECT ... WHERE x = @p', N'@p int', @p = 1` passes the value out of band",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GRANT`, `DENY`, and `REVOKE` with roles express least privilege**: Access is declared per object, per schema, and per role",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Row-level security limits what a statement can see**: A `SECURITY POLICY` with a predicate function filters rows by the caller's identity",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`EXECUTE AS` makes the effective identity explicit**: A procedure can run as its owner or as a named user",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Known vulnerability/injection (Q3)**: A statement built with `EXEC (@sql)` from concatenated input lets the input become code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic SQL and owner-rights execution re-open the risk**: `EXEC` on a built string, `sp_OA*` procedures, and `xp_cmdshell` where enabled defeat parameterisation",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Logic beside the data is deliberate**: Keeping a rule in the database guarantees it for every writer",
+    "**A cursor is a deliberate trade for row-by-row work**: It makes a per-row algorithm expressible, at the cost of the set-based model",
+    "**Dynamic SQL is deliberate for DDL and for a flexible query**: `sp_executesql` and `EXEC` reach constructs a static statement cannot name",
+    "**`NOLOCK` trades consistency for concurrency**: A reader that accepts dirty reads avoids blocking",
+    "**The engine is proprietary by design**: The licence buys one integrated stack of engine, tooling, and support",
+    "**T-SQL is not a general-purpose language**: The assumption of a SQL Server database is a scope decision"
+  ],
+  "verdict": "Transact-SQL's coupling follows its host engine. Stored procedures, views, and table-valued parameters give real modularity, `TRY ... CATCH` gives a structured failure path, and the optimiser, Query Store, columnstore, and in-memory OLTP carry performance work. Main strengths: a mature first-party toolchain, a regular release cadence, and standard client interfaces. Main weaknesses: the language only runs on SQL Server or SAP ASE, the useful surface is engine-specific, NULL starts in every declared variable, an unhandled `CATCH` continues the batch, cursor code paths are slow, and a string-built statement is a standing injection hazard.",
+  "verdictExtra": []
+}

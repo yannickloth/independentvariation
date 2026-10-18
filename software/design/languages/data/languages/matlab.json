@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "id": "matlab",
+  "name": "MATLAB",
+  "assessedAs": "MATLAB",
+  "version": "R2026a",
+  "title": "MATLAB (R2026a)",
+  "indexLabel": "MATLAB (R2026a)",
+  "group": "domain-specific",
+  "order": 2,
+  "displayOrder": 54,
+  "presenceOrder": 54,
+  "presenceList": {
+    "core": "T1, C1, C2, M2, M3, M4, Er2, K3",
+    "meta": "R1, Ec4, D1, L1"
+  },
+  "matrixOrder": 31,
+  "tagline": "Engineering Domain",
+  "sbName": "MATLAB",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "matlabDoc"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": true,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing with no static check (T1)**: A variable takes its type from the value assigned to it, so a type error is reported only when the statement runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A numeric value carries a class but no shape**: `double` is the default for a literal, and a 1×1 scalar, a vector, and a matrix are the same class, so the type does not state the dimensions the algorithm needs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Cell arrays and structs are weak structural types**: They group heterogeneous values but declare no schema, so a consumer learns a struct's fields from the code that fills it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Only a package folder scopes a name**: A `+pkg` folder gives its functions and classes their own namespace, but a plain function or script on the search path shares one flat name space with every other file on the path, so a collision is resolved by path order",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Argument validation is opt-in**: An `arguments` block (R2019b+) checks class, size, and shape at call time, but a function without one accepts anything",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Toolboxes separate domain computation from the core language**: Signal Processing, Control System, and Image Processing operations are ordinary function calls, so an algorithm does not embed its own filter or transform code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `classdef` file groups state with its operations**: Properties and methods are declared in one unit, so a consumer binds to the class name",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Global mutable state by default (C1)**: The base workspace and every shared function workspace hold variables that running code can read and overwrite at any time",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No immutability by default (C2)**: Every array is mutable, and there is no `const`-like freeze for ordinary data",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Constructors are ordinary methods with no enforced invariant**: A class defines its own `Name(...)` constructor, so a well-formed instance depends on the author's validation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Scripts run in the caller's workspace**: A variable a script creates stays in the caller after the script returns, so a script couples to every caller's variable names",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Copy-on-modify protects the reader**: An assignment copies a value only when the copy is modified, so a function that receives an array does not change the caller's value",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The collector runs on its own schedule (M2)**: Memory returns when the interpreter decides, so release timing is not owned by the code",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No RAII (M3)**: There is no block-scoped destructor, so a file handle, timer, or instrument connection stays open until `delete` or an `onCleanup` object runs",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model (M4)**: No static lifetime or aliasing rule ties an array's storage to one owner",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`clear` and `pack` are manual controls**: Freeing a large array and defragmenting the workspace are explicit calls, so the memory strategy is the programmer's",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch` gives a structured recovery path**: A `catch` block receives the `MException` object, with its identifier, message, and stack, so recovery need not parse text",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`error` takes a stable identifier**: `error('pkg:func:reason', ...)` sets `MException.identifier`, so a caller can branch on the code rather than on the message",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Unchecked exceptions only (Er2)**: A raised `MException` travels up until something catches it or the program stops, and no caller is required to handle it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An empty `catch` is common in legacy code**: A `catch` block with no body discards the failure without a trace",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Many failures are detected only at run time**: An out-of-bound index, a class mismatch, or a singular matrix is reported when the statement executes",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "caution",
+        "text": "**Manual synchronisation with no race detection (K3)**: `parfor`, `spmd`, and `parfeval` leave the shared-variable reasoning to the programmer, and the language reports no data race",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`parfor` separates loop iterations**: An independent loop is split across workers, so iteration order is not part of the result",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`labSend` and `labReceive` pass data between `spmd` workers**: A worker sends a value to a named peer instead of writing into shared memory",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The parallel constructs need the Parallel Computing Toolbox**: `parfor`, distributed arrays, and `parpool` are a separate licensed product",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A captured variable is broadcast to every worker**: A `parfor` body sees a copy of the outer variable, and a reduction must use a supported form or a temporary variable",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**GNU Octave is a compatible open implementation**: Most MATLAB programs run under Octave, so a project is not bound to one vendor's binary alone",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A licence still governs the base product**: An installation of MATLAB itself needs a licence, so deployment and continuous integration depend on MathWorks' terms and pricing",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Toolbox coverage is proprietary**: Domain functions come from licensed MathWorks toolboxes, so portability depends on which toolboxes the code calls",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A compiled component still needs the MATLAB Runtime**: MATLAB Compiler builds a library callable from C, C++, .NET, or Python, but the component runs against a version-matched MATLAB Runtime",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Matrix expressions call tuned BLAS and LAPACK libraries**: `A*B`, `A\\b`, and `fft` run in compiled libraries, so numerical throughput does not depend on hand-written loops",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Vectorisation removes per-element interpreter overhead**: One array expression is one interpreted call, whatever the element count",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The interpreter performs no ahead-of-time compilation (R1)**: Base MATLAB executes an interpreted form, so a loop that cannot be vectorised is slower than its compiled equivalent",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The execution engine compiles eligible code just in time**: The engine introduced in R2015b accelerates a repeated loop after warm-up",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Speed follows the shipped library, not the source**: The cost of a signal-processing or control operation depends on the toolbox build and on the CPU it was tuned for",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is proprietary (Ec4)**: Toolboxes, the editor, and the reference documentation come from one vendor under licence",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The toolbox library covers most engineering fields**: Optimization, Statistics and Machine Learning, Signal Processing, and Control System toolboxes are long-established products",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The Add-On Explorer installs packages by name**: MathWorks and community add-ons are installed through one manager, so a project does not have to vendor source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**MATLAB Central File Exchange is a large community index**: User-contributed functions and toolboxes are published together and searchable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Toolboxes ship in lockstep with the release**: A toolbox is versioned for the MATLAB release it targets, so an upgrade can require every toolbox to move",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Every tool in the chain assumes a licensed installation**: Editors and continuous-integration integrations exist, but they resolve back to a licensed MATLAB",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Backward compatibility is a stated commitment**: MathWorks keeps old syntax working and warns before a feature is removed, so a program from an earlier release generally still runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Two releases a year on a known cadence**: R2026a and R2026b follow a predictable schedule, so an upgrade path can be planned",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`verLessThan` lets one source span two releases**: A program can branch on the MATLAB version, so an old and a new release can be supported together",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An upgrade can change performance or a default**: A new execution engine, a new library version, or a changed default can alter timing or output for code that relied on the old behaviour",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A deprecated function may stop working later**: Deprecation is announced, but a function or toolbox marked for removal eventually goes away",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for numerical linear algebra**: Matrix syntax, `\\` for a linear solve, and N-D arrays match the mathematics directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Signal processing, control systems, and image processing are first-class domains**: Each ships as an endorsed toolbox with the reference algorithms",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain and vendor lock-in (D1)**: The language and its library set target one vendor's platform, so adoption is also a procurement decision",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Simulink is a second modelling toolchain**: A graphical model is not MATLAB source, so a control design that uses Simulink couples to a second product and file format",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**General application work sits outside the design centre**: File handling, text processing, and network code read as additions to a numerical language",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "caution",
+        "text": "**Moderate at the start and steeper later (L1)**: `A\\b` and `1:n` are learnable in days, while vectorisation, the workspace model, and copy semantics take practice",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The workspace model confuses newcomers**: A variable a script creates persists in the caller, so a beginner cannot tell where state lives",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**One-based indexing diverges from most languages**: Code ported from a C-family or Python source needs every index checked by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation is uniform and complete**: Every function has a reference page with examples, and the language is taught in standard textbooks",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Toolbox knowledge is separate from language knowledge**: Finding the right function means knowing which toolbox owns the domain",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Matrix-oriented and compact**: `A(:, 2) = A(:, 1) * 3;` expresses a whole-column operation in one statement",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Keyword-light and readable**: Most statements are operations on data, with few punctuation-only constructs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Element-wise and matrix operators differ by one dot**: `*` versus `.*` and `^` versus `.^` are distinct operations, so a missing dot silently changes the computation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`end` is overloaded**: It terminates a block and marks the last index inside a subscript",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The semicolon controls output rather than the statement**: A missing `;` prints every intermediate result, which clutters a long run",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**A test framework ships in the base product**: `matlab.unittest.TestCase`, `functiontests`, and `runtests` provide assertions, fixtures, and parameterised cases",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A failure reports the value and the assertion**: The framework prints the constraint that failed and the observed value, so a failure is localised",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Mocking and coverage are part of the framework**: `matlab.mock` creates replacement objects, and the code-coverage plugin reports unexecuted lines",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A test suite lives in function files beside the code**: There is no separate test manifest, so a suite's scope follows the folder layout",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Automated runs need a licence**: Continuous integration needs a licence seat or a pre-built component with the MATLAB Runtime",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**No pointers and no manual memory access**: The language offers no address arithmetic, so a buffer overflow cannot be written in MATLAB source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**External access is explicit in the source**: `fopen`, `readmatrix`, and `webread` are visible calls, so a reader can see every file and network access",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`eval`, `evalin`, and `str2func` execute text as code**: A string built from untrusted input can become a statement, which is the injection pattern",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`load` can introduce undeclared variables**: Restoring a `.mat` file creates variables whose names the source does not state, and such a name can shadow a live variable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Static proof of run-time error freedom needs a separate product**: Polyspace Code Prover proves the absence of certain run-time errors, but it is licensed apart from the language",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**One-based indexing is a convention choice**: Starting an array at index 1 is a documented decision, and the cost is re-learning for a user who comes from a zero-based language",
+    "**The global workspace suits interactive work**: A session-wide namespace is convenient at the command line, and the coupling it creates at scale follows from using session state as program state",
+    "**Everything-is-an-array is a deliberate uniformity**: One container for scalars, vectors, matrices, and N-D arrays keeps the language small, and the loss of shape in the type is the price",
+    "**The filename rule is a lookup convention**: A function file is named for its entry point, and local functions in scripts (a later addition) reduce the constraint",
+    "**A proprietary platform is traded for an integrated toolchain**: The licence buys one install, one editor, and one support channel",
+    "**Scripts are for session-scale tasks**: Converting a script to a function removes the caller-workspace coupling"
+  ],
+  "verdict": "MATLAB's design yields moderate language-imposed coupling for numerical engineering work. Matrix operations remove per-element iteration from the source, and toolboxes separate domain algorithms from the core language. Main strengths: an excellent fit for linear algebra, signal processing, and control systems; a large library; and a strong backward-compatibility record. Main weaknesses: the base workspace and every script variable form one shared mutable namespace with no namespaces, typing is dynamic with no static check, indexing is one-based against most languages, and the whole platform is proprietary, so cost and portability follow MathWorks' licence and pricing.",
+  "verdictExtra": []
+}

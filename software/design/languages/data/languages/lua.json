@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "lua",
+  "name": "Lua",
+  "assessedAs": "Lua",
+  "version": "5.5",
+  "title": "Lua (5.5)",
+  "indexLabel": "Lua (5.5)",
+  "group": "functional-declarative-legacy",
+  "order": 14,
+  "displayOrder": 44,
+  "presenceOrder": 44,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T6, T8, C1, C2, M2, M3, M4, Er2, Er3",
+    "meta": "Ec3, L1"
+  },
+  "matrixOrder": 30,
+  "tagline": "Embedded Scripting",
+  "sbName": "Lua",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "luaMan"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": true,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**There is no static type check**: Every value is a tagged variant and `type()` answers at run time, so a wrong shape is found when the operation runs rather than when the file loads",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Dispatch is a lookup, not a declared type**: `obj:m()` reads the field `m` through the metatable chain, so which function runs depends on the table's metatable rather than on a declared receiver type",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**There are no sum types**: An alternative is a tag field beside the payload (`{kind = \"circle\", r = 1}`), and nothing checks that the branch matches the tag",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**There are no generics**: Reuse across element types is a naming convention or a documented contract, because the element type of a table is declared nowhere",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no namespace (T6)**: `require` returns a value and every global name lives in one shared table, so two modules that define the same name collide",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Metamethods overload the operators**: `__add`, `__eq`, `__lt`, `__concat`, `__len`, and `__call` redefine the notation for a table, so an operator at a call site may run a function the reader cannot see",
+        "mechanism": "T8"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Globals are the default, so a construction site can write shared state**: `x = 1` without `local` creates a field in the global table that every chunk sees",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Nothing is immutable**: There is no `const` and no frozen table, so any code that holds a table can change it",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A table constructor and a closure are values**: `{1, 2, 3}` and `function(x) return x * 2 end` are built where they are written, with no class or factory in the way",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A metatable gives construction its own meaning**: `setmetatable(t, {__index = proto})` decides how the value answers a missing field, so the object-like behaviour is installed rather than inherited by the syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`__call` makes any table callable**: A table with a `__call` metamethod can be used as a function, so a design need not wrap it in one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An upvalue is private by construction**: A variable declared `local` outside a nested function is reachable only through that function's closure, so a private field needs no keyword",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Collection is non-deterministic in its timing**: The collector runs on its own schedule, so the moment a table's storage is reclaimed is not the moment the last reference to it goes out of scope",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model**: The collector sees reachability rather than ownership, so nothing states which part of a program is responsible for dropping a reference",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Most values have no destructor**: A table's `__gc` metamethod runs only if its metatable already carried `__gc` when it was set, so release is not tied to a scope by default",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A to-be-closed variable releases deterministically**: `local f <close> = res` calls the value's `__close` metamethod when the block ends, including on an error (Lua 5.4)",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A weak table lets the collector take an entry**: With `__mode` set to `\"k\"`, `\"v\"`, or `\"kv\"`, an entry whose key or value is otherwise unreachable is removed, so a memo table does not pin its values",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The collector can be inspected and driven**: `collectgarbage \"count\"` reports the footprint in kilobytes, and a program can request a step or select the incremental or generational mode (Lua 5.4)",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**An error carries no declared type**: `error` accepts any value and `pcall` returns it unchanged, so there is no error type a handler can be checked against",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A nil result is easy to leave unchecked**: `io.open` and `os.remove` report a failure by returning `nil` plus a message, and nothing requires the caller to look",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`pcall` and `xpcall` state the protected call**: A call is placed in a protected region and its status is returned, so the recovery path is an explicit second call",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A message handler is attached in the language**: `xpcall(f, handler)` passes the error through a function, which is where a traceback from `debug.traceback` is added",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`assert` states a precondition with its message**: `assert(cond, \"msg\")` raises when the condition fails, so the check and its text are one call",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An error value can be a table**: A structured error with a code and a message is an ordinary table, because `error` raises the value it is given",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Coroutines are the only concurrency in the core**: `coroutine.create`, `resume`, `yield`, and `status` give a cooperative task, so there is no lock, no shared-memory race, and no preemption to reason about",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A yield point is explicit**: Control returns to the resumer only at a `coroutine.yield`, so the interleaving is visible at the line it happens",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A generator is a coroutine and a call site**: An iterator is a function that yields, and `for x in gen() do` consumes it, so the producer does not know its consumer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`coroutine.wrap` and `coroutine.close` complete the protocol**: `wrap` returns a callable that propagates the error, and `close` closes a suspended coroutine and runs its pending to-be-closed variables (Lua 5.4)",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no scheduler and no parallelism**: A coroutine runs only when it is resumed, so one blocking call stops the whole interpreter and parallel work needs a host with several interpreter states",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A table shared between coroutines is still shared mutable state**: The language treats the state as one, so the discipline of not yielding mid-update is the programmer's",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The reference implementation is portable C**: The interpreter builds from one small C library on any platform with a C compiler, and the embedding API (`luaL_newstate`, `lua_pcall`, the `lua_push*` and `lua_to*` stack functions) is the intended interface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The host controls a script's environment**: A chunk can be loaded with a table as its `_ENV`, so the set of names a script can see is the host's decision (Lua 5.2 and later)",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Several independent implementations exist**: PUC-Rio's `lua`, `LuaJIT`, `Luau`, and hosted implementations in other languages each provide the language or a near variant",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A compiled chunk is data the host decides to load**: `load` and `lua_load` take text or a binary chunk, so the host chooses what code runs and in which environment",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The implementations diverge**: `LuaJIT` implements Lua 5.1 with extensions and `Luau` diverges for its host, so a script that uses `goto`, integer division, or `<close>` needs the reference implementation or a recent alternative",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The default library reaches the operating system**: `os.execute`, `os.remove`, and `io.open` are in the standard library, so a host that needs a sandbox must remove them",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The reference implementation is a compact register-based virtual machine**: The compiler emits bytecode for a small instruction set (`luac -l` prints it), so start-up is immediate",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`LuaJIT` traces a hot loop into machine code**: The tracing compiler specialises the recorded path, which is why a numeric or table loop runs far faster than in the interpreter (the implementation is Lua 5.1 with extensions)",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Strings are interned, so a string key hashes once**: Every string is hash-consed and its hash is cached, so a table lookup by string is cheap",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tail calls are proper and do not grow the stack**: A tail call reuses the frame, so a state machine written as tail recursion runs in constant space",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The collector takes bounded steps**: The incremental mode does a small amount of work between bytecodes, and Lua 5.4 adds a generational mode for the allocation-heavy case",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The array part and the hash part of a table are a performance fact of its shape**: The same logical sequence is a fast array or a slow hash depending on how it was built, so a hot path must keep the dense part dense",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The library pool is small**: `LuaRocks` carries many small modules and few large frameworks, so a project writes its own glue",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`LuaRocks` is a standard package manager and build tool**: A rockspec declares a module and its dependencies, and `luarocks install` and `luarocks make` build and install it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language server and the linter are mature**: `lua-language-server` checks the code against annotations such as `---@param` and `---@type`, and `luacheck` reports unused variables, globals, and a module's public surface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The C API is documented and versioned**: The manual's C API chapter and `lua.h`/`lauxlib.h` state the stack protocol, and bindings exist for C++, C#, Go, Rust, and Java",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language runs wherever a C library runs**: The interpreter is embedded in web servers, editors, games, and network equipment, which is why it is the standard embedded scripting layer",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The implementations split the ecosystem**: A binding written for the `LuaJIT` foreign function interface or for `Luau` does not work in the reference interpreter, and the reverse",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**A release is a deliberate, documented step**: Each version has its own manual and a changes list, and the reference implementation is small enough to read",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The C API of a version line is stable within that line**: A program builds against one set of headers and the matching library",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Feature additions are small and conservative**: `goto`, integer division, the `<close>` attribute, and the generational collector were added as syntax or library functions rather than as a redesign of the language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Source compatibility is not kept across minor versions**: 5.2 replaced `setfenv`, `getfenv`, and `loadstring` with `_ENV` and `load`, and 5.3 introduced the integer subtype, so a codebase is usually pinned to one version",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The implementations lag the reference**: `LuaJIT` remains at 5.1, so a program that wants the newer syntax gives up the tracing compiler",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A dialect can move the language forward on its own**: `Luau` adds gradual typing and performance annotations to its host's variant, which is not the standard language",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Embedding a scripting layer in a host program is the design point**: The interpreter is a C library with no external dependency, and the host decides the API it exposes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Game scripting is the widest adoption**: The language is the scripting layer of World of Warcraft, Roblox (as Luau), and many engines",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Configuration and data description work by construction**: A table literal is a data format, and `load` or `dofile` evaluates it into a value",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Prototype-style objects are expressible with `__index`**: The object model is a library idiom over tables rather than a language feature",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is not a systems language**: There is no pointer, no placement control, and no unchecked array, so work at that level belongs to the host C code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A CPU-bound kernel needs `LuaJIT` or C**: The interpreter is fast for a scripting language and is not a substitute for compiled numerical code",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The core syntax is small and regular**: About two dozen keywords, one compound structure, and no declaration ceremony, so the language itself is learned quickly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One document is the complete specification**: The reference manual covers the syntax, the standard library, and the C API in a single short text",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The advanced layer is a second subject**: Metatables, `__index` chains, closures over coroutines, and the C API are where the difficulty is, and the core syntax does not announce them",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The types live in the programmer's head**: With no declaration and no annotation, a reader infers a table's shape from its uses unless the language server's annotations or `Luau` types are added",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The interpreter reports the line and the call stack**: An uncaught error prints its message with a Lua traceback, so a failure is located from the output",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**The syntax is small and uses words as delimiters**: `local`, `if ... then ... else ... end`, `for ... do ... end`, and `function ... end`, with no braces and no required semicolons",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A table constructor is a compact data notation**: `{x = 1, y = 2}` is a record and `{1, 2, 3}` is an array, in the same brackets",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Short forms carry the common idioms**: `#t` is the length, `a .. b` concatenates, `t:k()` calls a method, and `...` is the variable argument list",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multiple assignment and multiple return are one form**: `local x, y = f()` and `return a, b` pass several values without a tuple type",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A missing `local` is a global write**: `x = 1` inside a function writes a field of the global table, and the mistake is invisible at the line",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The notation does not state the structure**: The same `{}` is an array, a record, an object, or a module, so the intent is a comment rather than a declaration",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`busted` gives a describe/it suite with matchers**: A third-party runner with `luassert` matchers runs a `spec/` directory from the command line",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`luaunit` gives a single-file test framework**: One file supplies the assertions and the runner, which suits an embedded project",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A test can substitute a chunk's environment**: `load(src, name, \"t\", env)` runs the module against a table the test supplies, so a dependency is replaced without editing the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The debug library can instrument a run**: `debug.sethook` counts calls and samples, and `debug.getinfo` reports the source line, so a profiler or a coverage tool is written in Lua itself",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Static checks catch mistakes before a run**: The language server reports an annotation mismatch and `luacheck` reports an unused variable and a global leak",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Testing is not part of the standard library**: `assert` is the only built-in check, so the runner and the fixtures are dependencies",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "caution",
+        "text": "**A binary chunk from an untrusted source is unsafe**: The manual states that `load` does not check the consistency of a binary chunk and that a crafted one can crash the interpreter or run arbitrary machine code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`_ENV` gives a chunk a restricted global table**: A sandbox loads a chunk with an environment that holds only the functions the host allows, and the chunk has no other path to the host's state",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The `debug` library defeats a sandbox**: `debug.setupvalue`, `debug.getregistry`, and `debug.sethook` reach past the environment, so a sandbox must remove the library and the host must not reopen it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The standard library includes file and process access**: `io.open`, `io.popen`, and `os.execute` are available unless the host removes them from the environment",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A pure Lua value cannot be a forged pointer**: A value is a tagged variant, an out-of-bounds access is a table miss rather than an address, and there is no pointer type or pointer arithmetic in the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The interpreter imposes no host dependency of its own**: It makes no call outside the C library unless the program does, so the attack surface of a script is the surface the host exposed",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**One compound structure is a deliberate economy**: The language trades a declared type for one constructor that covers arrays, records, objects, and modules",
+    "**Metatables are an opt-in object model**: The core has no classes, and the idiom that adds them is chosen by the program rather than imposed",
+    "**Embedding is the primary use, so the host owns the runtime**: The small library and the C API are the reason to choose the language, not a defect",
+    "**Cooperative scheduling is a design decision**: With no preemption there is no thread of the language's own, and the host decides about parallelism",
+    "**The global table is a scripting convenience**: It keeps a short script short and lets a host inject functions, and avoiding it is a discipline",
+    "**A version pin is an adoption cost, not a mechanism**: A library written for one version does not load on another, which follows from separate version lines rather than from a coupling in the language"
+  ],
+  "verdict": "Lua's design yields the low core score of a dynamic scripting language, with the coupling concentrated in its data model. One table type serves as array, record, object, and module, so the shape of the data is a convention and every structure error waits for a run time; the global table is the default and errors are unchecked. The counterweight is that the language is small, orthogonal, and easy to embed, and that its separating constructs are real: `__index` decouples object-like behaviour from syntax, a coroutine makes every interleaving explicit, `<close>` and weak tables tie release to a block or to reachability, and the C API decouples the language from its host. Main strengths: exceptional performance for a scripting language, a very small footprint, and mature tooling. Main weaknesses: no static type check, globals by default, an unchecked error channel, and a library pool that is small beside the language's adoption.",
+  "verdictExtra": []
+}

@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "prolog",
+  "name": "Prolog",
+  "assessedAs": "Prolog",
+  "version": "SWI 9.4",
+  "title": "Prolog (SWI 9.4)",
+  "indexLabel": "Prolog (SWI 9.4)",
+  "group": "functional-declarative-legacy",
+  "order": 2,
+  "displayOrder": 28,
+  "presenceOrder": 28,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T11, C1, C2, M2, M3, M4",
+    "meta": "R1, Ec1, Ec3, D1, D2, L1, G3, Q2"
+  },
+  "matrixOrder": 39,
+  "tagline": "Logic Programming",
+  "sbName": "Prolog",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "prologISO"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": true,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**There is no static type check (T1)**: A term's type is its functor and its arity, known only at run time, so a type fault appears when the goal executes rather than when it is compiled",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There are no sum types (T4)**: An alternative is a separate clause or an atom such as `ok` and `error(...)`, and nothing checks that the cases are exhaustive",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There are no generics (T5)**: Every predicate is polymorphic over any term by construction, so there is no declared type parameter that a definition could be reused over",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no namespace and no module boundary (T6, T11)**: The standard gives one global predicate space, so two files that define `foo/2` collide, and the module system that SWI-Prolog provides is a non-standard extension",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Unification matches in any direction**: `append(X, Y, [1, 2, 3])` enumerates every split, so a relation is not fixed to one input and one output direction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The clause head is the pattern match**: `len([], 0).` states a case directly in the head, so matching and dispatch are the same mechanism",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global mutable state is the default (C1)**: The clause database is one global store, and `assertz/1`, `retract/1`, and `set_prolog_flag/2` change it from anywhere in the program",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no immutability by default (C2)**: A term is immutable once built, but the state the program reads — clauses, flags, and the global variables of `b_setval/2` — is mutable without a declared owner",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A compound term is built by a functor and its arguments**: `point(1, 2)` builds a term, and no constructor declaration must be kept in step with it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A clause is a term and can be constructed at run time**: `assertz(Head :- Body)` takes an ordinary term, so a program and its data share one form",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A clause added at run time depends on the database's state**: A program that asserts or retracts clauses couples its result to the clauses that are present and to the order they are in",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Global variables are not logical variables**: `b_setval/2` stores a value that survives backtracking, so a part of the state lives outside the logical model",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Backtracking reclaims automatically**: When a goal fails, the bindings it made are undone and the space they held is reclaimed, so a search loop does not leak per-attempt state",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The system collects the heap and the stacks**: `garbage_collect/0` and the atom-space controls are system predicates, so a program never frees a term itself",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Collection is non-deterministic and stack-based (M2)**: Reclamation is the system's decision, made through the trail, through stack unwinding, and through a garbage collection that the program cannot schedule",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no RAII (M3)**: There is no scope-bound destructor, so an open stream, a socket, or a temporary file is released by an explicit `close/1`, and an exception can skip it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model (M4)**: No static lifetime or aliasing rule ties a term to an owner, so a shared structure is freed by the trail discipline rather than by a declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Deep recursion grows the stacks**: Recursion that is not a tail call consumes stack and heap, and the bound is a system limit rather than a language rule",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**`throw/1` and `catch/3` give a structured path**: `catch(Goal, Ball, Recovery)` receives the thrown term and selects the recovery by matching it, so the handler is chosen by the error's shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard error term is a structured value**: `error(existence_error(procedure, P), Context)` and the `type_error`, `domain_error`, `instantiation_error`, and `permission_error` forms are declared in ISO/IEC 13211-1, so a handler matches a pattern and not a message string",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Failure stays distinct from an error**: A goal that fails is not an error, and `catch/3` does not intercept a failure, so the two outcomes remain separate",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A runaway goal can be bounded**: `call_with_depth_limit/3` and `call_with_inference_limit/3` are SWI extensions rather than ISO predicates, so a non-terminating search can be bounded and reported",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A thrown ball of another shape is unchecked**: A predicate may throw any term, and no declaration lists the throws it can make",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A catch-all handler hides the cause**: `catch(Goal, _, fail)` turns every failure reason into a plain failure, so a bug looks like a false result",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**SWI-Prolog provides threads and message queues**: `thread_create/3`, `thread_send_message/2`, and `thread_get_message/1` pass terms between threads without shared memory",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An engine is an isolated computation**: `engine_create/3` and `engine_next/2` (SWI) run a goal as an independent engine, so two computations interleave without sharing a stack",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Message passing is the idiomatic design**: A worker thread that receives a goal on a queue and answers on another queue couples the two sides to a term shape rather than to a lock",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constraint propagation needs no thread**: `library(clpfd)` and `library(clpz)` propagate constraints inside one engine, so a constraint problem is solved by search rather than by parallelism",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The ISO standard defines no concurrency**: The core standard has no thread or task, so every concurrency mechanism comes from one implementation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Threads share the clause database**: A mutation (`assertz/1`) or a global variable seen from two threads needs a lock such as `with_mutex/2` or an explicit message protocol, and the system reports no race",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The ISO standard is the reference**: ISO/IEC 13211-1 fixes the syntax and the built-ins, and parts 2 and 3 add modules and Definite Clause Grammars, so code written to the core runs on several systems",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Several independent implementations exist**: SWI-Prolog, SICStus Prolog, GNU Prolog, YAP, Trealla, and Scryer Prolog implement the standard, and no single vendor owns the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The system embeds in a host program**: `libswipl` and `libsicstus` expose Prolog as a library, so a host language can call a predicate directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard term syntax is a portable text form**: `write_canonical/1` and `read/1` write and read a term in the standard syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The standard covers the core, not the libraries**: `library(clpfd)`, `library(lists)`, `library(readutil)`, and the HTTP server are one system's, so a program that uses them is bound to that system",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Behaviour outside the core differs**: The ordering of `assert` and `retract`, tabling, and the exact error terms vary between systems, so portability means staying inside the core",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "cost",
+        "text": "**The core resolves goals over a clause database (R1)**: A call is a search over the clauses through the engine's instruction set, so a tight arithmetic or string loop trails an ahead-of-time compiled language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Indexing prunes the candidate clauses**: First-argument indexing, and deep indexing in SWI-Prolog, selects the clauses that can match, so a well-keyed predicate does not scan the whole definition",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A last call runs in constant space**: Tail-call optimisation executes a final goal in place, so an iterative predicate does not grow the stack",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tabling avoids repeated subcomputations**: `:- table p/1` (XSB, SWI) memoises the answers of a relation, so a dynamic-programming problem is computed once",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The cost model is the search**: Unification, backtracking, and choice points are the units of work, so performance depends on how the problem was written as a search",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A compiler is separate from the engine**: `compile/1` in SICStus and the JIT and optimised compiler in SWI change the measurement, so a benchmark states which mode and which system it used",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**There is no package manager across the systems (Ec1)**: The standard defines no distribution, and each system ships its own mechanism, so a dependency is shaped by the system that provides it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is small (Ec3)**: The library set beyond the core, `lists`, `apply`, `readutil`, and the constraint libraries, is thin next to a mainstream language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**SWI-Prolog ships a large standard library**: `clpfd`, `clpq`, `assoc`, `sgml`, `http/http_open`, `prolog_pack`, and `pengines` come with one installation, so common work needs no external package",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The systems are long-lived and maintained**: SWI-Prolog has been developed since 1987, and SICStus, GNU Prolog, and YAP have decades of releases",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The main manual is thorough**: The SWI-Prolog manual documents each built-in with its mode, its determinism, and its errors",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community is small**: Questions are answered, but by fewer people than in a mainstream language, so an unusual problem takes longer to resolve",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The ISO standard fixes the core**: ISO/IEC 13211-1 (1995) pins the syntax and the built-ins, so core code does not move under a new release",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**SWI-Prolog stays backward compatible**: `swipl` runs old code, offers `--traditional` for a strict ISO mode, and adds features as extensions",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The established systems are stable**: A program written for SICStus, GNU Prolog, or YAP years ago still runs on the current release",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A program can be confined to the standard**: `write_canonical/1`, `read/1`, and the standard control constructs give a form that moves between systems",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The standard is not revised quickly**: The core has seen no substantial revision since 1995, so a needed feature is added as an extension rather than to the standard",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Extensions do not move between systems**: `library(clpfd)` and `library(assoc)` differ in name and in detail, so a program that uses them is fixed to one system",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The domain and the implementation are one choice (D1)**: The fit is logic programming over a clause database, and the system chosen fixes the flags, the library names, and the `assert` semantics",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**It is a poor fit for general-purpose work (D2)**: File handling, text processing, and numeric computation read as additions to a search language, so a general application belongs in another language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for a rule engine or an expert system**: The facts and the rules are the program, and the inference engine is the language itself",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constraint solving is a strength**: `library(clpfd)` solves finite-domain constraints, so a scheduling or puzzle problem is a few clauses rather than an algorithm",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Natural-language processing is a traditional strength**: A Definite Clause Grammar (`-->`) states a grammar production directly, and ISO/IEC 13211-3 standardises the form",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A service application needs a library on top**: A web endpoint depends on `library(http/http_server)`, which is one system's addition to the core",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Declarative thinking is a different model (L1)**: A beginner must write relations instead of steps, and the change of mental model, not the syntax, is the hard part",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The search must be understood to debug a program**: The order of the clauses, the trail, and the cut decide how a program behaves, and a wrong order is a common beginner fault",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Unification has its own rules**: The treatment of the occurs check, the anonymous variable `_`, and the difference between `=` and `==` must be learned before a program can be read",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core language is small**: A program is facts, rules, and a query, and the constructs beyond `:-`, `,`, `;`, and `!` are few",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The classic textbooks are excellent**: The standard references, including Clocksin and Mellish, Sterling and Shapiro, and O'Keefe's *The Craft of Prolog*, remain current",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Terms, clauses, and queries share one form**: A fact and a rule differ only by the `:-` body, so a reader learns one shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A Definite Clause Grammar reads as a production**: `sentence --> noun_phrase, verb_phrase.` states the rule directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The operator table can be extended**: `:- op(700, xfx, ===)` declares a notation, so a domain can add an operator such as `-->`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A clause ends with a full stop**: The `.` terminates a clause and the term syntax is uniform across the file",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The comma has two roles**: `f(a, b)` separates arguments and `(a, b)` conjoins goals, so the context decides the meaning of one character",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator precedence must be tracked**: An expression such as `a ; b, c` parses by the precedence table, so a missing pair of brackets changes the meaning",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**A type fault surfaces only at run time (G3)**: No static check rejects a goal, so a wrong argument, an unbound variable in an arithmetic goal, or a misspelled predicate fails during the run",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`plunit` ships with SWI-Prolog**: `:- begin_tests(...)` and `:- end_tests(...)` declare tests, and `run_tests/0` runs the suite",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Property-based testing is available**: `library(quickcheck)` generates terms from a type skeleton and reports a minimal counterexample",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The tracer steps through the search**: `trace/0` and `gtrace/0` show the `call`, `exit`, `redo`, and `fail` ports of every goal, so a search can be watched one step at a time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A query is itself a test**: A goal that must succeed and a goal that must fail are statements about the relation, so the test needs no fixture",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A left choice point is a fault a success hides**: A predicate that should be deterministic can leave an alternative, so a test must assert `det` or `semidet` to catch it",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing weakens a trust boundary (Q2)**: A term carries no declared type, so a value from an untrusted source is separated from a goal only by an explicit check, and the check is the programmer's",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Unification binds symbols, not memory**: There is no pointer arithmetic and no buffer in the language, so a buffer overflow cannot be written in Prolog source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`catch/3` isolates a failure**: A goal that throws is caught at a known point, so a fault need not end the process",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core has no text interpreter**: ISO Prolog does not evaluate a string; a term is built from a functor and its arguments, so text becomes control only where the program asks for it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`call/1` on a term built from input is the injection pattern**: `call(term_to_atom(T, Input))` executes the goal that the input describes",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The atom space is finite**: A program that makes an atom from every input, through `atom_concat/3` or `atom_length/2`, can exhaust the atom space of the system",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The declarative reading is the premise of the language**: Writing what holds rather than how to find it is the design decision, and the loss of an explicit loop follows from it",
+    "**The cut is a deliberate control tool**: `!` commits to the current clause, and the order-coupling it creates is the price of pruning the search rather than a forced property of every program",
+    "**Clause order expresses a preference**: Putting a base case first is a style that terminates a recursion, so order matters to the search and not to the specification",
+    "**`is/2` evaluates arithmetic eagerly**: `X is Y + 1` needs `Y` to be bound, which is a documented direction requirement rather than a coupling defect",
+    "**Negation as failure is a semantics choice**: `\\+ Goal` succeeds when `Goal` fails, and the language documents the resulting restriction rather than hiding it",
+    "**Prolog is not a general-purpose runtime**: The assumption of a logic database and a search is a scope decision, not a coupling defect"
+  ],
+  "verdict": "Prolog's design yields a mixed profile: a moderate core coupling score (55/100) and a low platform and ecosystem score (45/100). One core mechanism is genuinely decoupling, because unification matches a pattern in any direction and so a relation is not fixed to one input and one output. Everything else is the price of the paradigm: there is no static type, no sum type, no generic, and no namespace or module boundary, the clause database is global mutable state, the search couples a result to clause order, collection follows the trail rather than the program, and the domain fit is narrow. The surrounding platform adds the rest, since the core resolves goals over a clause database, the standard has not moved since 1995, the ecosystem is small, and whichever system is chosen fixes the libraries.",
+  "verdictExtra": []
+}

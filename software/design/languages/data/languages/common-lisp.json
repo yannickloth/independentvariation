@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "id": "common-lisp",
+  "name": "Common Lisp",
+  "assessedAs": "Common Lisp",
+  "version": "ANSI",
+  "title": "Common Lisp (ANSI X3.226-1994)",
+  "indexLabel": "Common Lisp (ANSI)",
+  "group": "functional-declarative-legacy",
+  "order": 1,
+  "displayOrder": 38,
+  "presenceOrder": 38,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T8, C1, C2, M2, M3, M4, Er2",
+    "meta": "R2, Ec3, L1, S3"
+  },
+  "matrixOrder": 9,
+  "tagline": "Macro Power",
+  "sbName": "Common Lisp",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "commonLispSpec"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": true,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": true,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing defers every check to run time**: No declaration states an object's type, so a call with a wrong argument type fails when the operation executes",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Generic dispatch resolves at run time**: `defmethod` chooses a method from the run-time types of its arguments",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: Alternatives are tagged lists or structures by convention, so the set of cases is neither declared nor checked",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A function accepts any object, so no compile-time check constrains its arguments or its result",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "caution",
+        "text": "**Operators are ordinary functions**: `+` and `slot-value` can be redefined or shadowed, so a reader must resolve a symbol from the current package",
+        "mechanism": "T8"
+      },
+      {
+        "kind": "enabling",
+        "text": "**CLOS decouples polymorphism from a class hierarchy**: A `defgeneric` method specialises on any number of argument types, so behaviour is not owned by one class",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global functions are the default**: `defun` interns a function in the current package, so two modules that define the same name collide unless they use separate packages",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No immutability by default**: Lists, vectors, and structures are mutable, and `setf` changes them in place",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Special variables create implicit dependencies (C1)**: A `defvar` or `defparameter` marked special is dynamically scoped, so a binding is visible to every function in the dynamic extent, not only the lexical one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Packages give a namespace boundary**: `defpackage` with `:use` and `:export` controls which symbols a module exposes and which it imports",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Macros decouple surface syntax from evaluation**: `defmacro` expands a form before evaluation, so the core evaluator stays small while the notation is extensible",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Structure and class accessors decouple callers from layout**: `defstruct` and `defclass` generate constructors and accessors, so a caller names a field rather than a position",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**The garbage collector pauses the program**: The generational collectors in SBCL and CCL stop execution for collection",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No RAII**: Destruction is not tied to scope, so cleanup needs `unwind-protect` or a finalizer",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: Any object can be referenced from anywhere, and a cycle is reclaimed only by the collector",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`unwind-protect` gives deterministic cleanup**: The cleanup form runs on every exit path, including a non-local exit, so a resource is still released",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Weak pointers observe liveness without holding an object**: `sb-ext:make-weak-pointer` and the portable `trivial-garbage` library let a program act when an object becomes unreachable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`dynamic-extent` keeps short-lived data off the heap**: A declaration lets the compiler place a value on the stack, decoupling allocation strategy from the object",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked and untyped**: `error` and `signal` do not declare what a function may raise, so a caller cannot read the failure set from the signature",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Signalling is separated from handling**: `error` and `signal` raise a condition, and `handler-case` or `handler-bind` decides recovery, so the raiser need not know the handler",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`restart-case` offers recovery strategies**: The failing code publishes named restarts such as `retry` and `use-value`, and a handler selects one, decoupling the recovery policy from the code that failed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`handler-bind` runs before the stack unwinds**: A handler inspects the live stack and can continue, unlike a `try`/`catch` that unwinds first",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Conditions are classes**: `define-condition` makes a condition a CLOS class with slots, so error data is structured and inspectable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An unhandled condition reaches the debugger**: An error with no handler enters the interactive debugger, which a batch run must suppress",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The standard defines no threads**: ANSI X3.226-1994 leaves threading to the implementation, so a program that uses none is portable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**SBCL provides a thread API**: `sb-thread` supplies `make-thread`, mutexes, and condition variables",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`bordeaux-threads` is a portable wrapper**: One API maps to SBCL, CCL, ECL, and other implementations",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`lparallel` gives data-parallel abstractions**: A task and channel library builds on the implementation's threads",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Thread support is not standardised**: Code that spawns a thread couples to one implementation or to a compatibility library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Shared mutable state needs an explicit lock discipline**: With no ownership model, correct synchronisation is the programmer's responsibility",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Native code on several implementations**: SBCL, CCL, ECL, Allegro, and LispWorks compile to machine code on Linux, macOS, and Windows",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Open-source implementations are actively developed**: SBCL and CCL are freely available and maintained",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**CFFI gives a portable foreign-function interface**: `defcfun` and `cffi:with-foreign-object` work across implementations",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**ASDF defines systems portably**: `defsystem` states components and dependencies, and every implementation loads it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Behaviour outside the standard differs**: Thread APIs, finalisation, and compiler internals are implementation-specific",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Standalone delivery is implementation-specific**: Building an executable uses `save-lisp-and-die` or `dump-image`, so packaging couples to the implementation",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "cost",
+        "text": "**Garbage-collector pauses**: The generational collector in SBCL and CCL stops the program for collection",
+        "mechanism": "R2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Ahead-of-time native compilation**: SBCL compiles to machine code, so ordinary code runs without interpreter overhead",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Type declarations enable optimisation**: `(declare (type fixnum x))` and `(the ...)` let the compiler emit unboxed, specialised code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`dynamic-extent` keeps data on the stack**: A declared value can avoid heap allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`time` and `disassemble` expose the compiled result**: A program can inspect allocation (bytes consed) and generated code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Performance varies by implementation**: SBCL and CCL differ, so a program tuned for one may not be fast on another",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is small and fragmented across implementations**: SBCL and CCL are separate worlds, and libraries support one or several implementations",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Quicklisp provides a package manager**: `ql:quickload` fetches a library from a curated, versioned distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**ASDF orders the build**: `defsystem` declares dependencies, so a build is reproducible",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A long history of libraries for symbolic work**: AI, NLP, and theorem-proving packages reach back decades",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Library maintenance varies**: Some widely used libraries are stable but low-activity, so a project may need to vendor or fork them",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The standard is stable**: ANSI X3.226-1994 has not changed, so conforming code keeps working",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Implementations evolve without breaking the standard core**: SBCL and CCL add capability in their own packages",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The standard is frozen, so new needs are met by extensions**: Modern features arrive as implementation extensions or libraries, so a project couples to one implementation to use them",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Conservative evolution keeps legacy conventions alive**: Slow change leaves older idioms and library styles in current use",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent for AI and symbolic computation**: List processing, macros, and CLOS suit symbolic algorithms",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Strong for exploratory, image-based work**: The REPL and `save-lisp-and-die` images fit incremental development",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**CLOS multiple dispatch fits multi-argument domains**: Simulation and rule systems that dispatch on several arguments map onto it directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Poorly suited for modern web and systems development**: The ecosystem has little of the tooling mainstream web and systems work expects",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Numeric and low-level work is uncommon**: Collection and dynamic typing make it unusual for kernels and HPC",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The learning curve is steep**: Parentheses-heavy syntax and the macro system must both be learned",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core forms are few and regular**: `defun`, `let`, `lambda`, `cond`, `quote`, and `cons` build most programs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The image gives immediate feedback**: A form is evaluated in the running image, so a mistake surfaces at once",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Macros are the hard second step**: Understanding expansion, hygiene, and evaluation order takes practice",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`loop` and `format` are mini-languages**: These widely used forms are learned separately from the core",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Parentheses are dense**: Deep nesting is hard to read without an editor that matches and highlights delimiters",
+        "mechanism": "S3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**S-expressions are uniform**: Code and data share one representation, so there is no grammar beyond lists",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Prefix notation removes precedence rules**: `(+ a (* b c))` states the order explicitly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`loop` provides a prose-like layer where wanted**: `(loop for x in xs collect (* x 2))` reads almost as English",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Reader macros add notation**: `#(...)`, backquote, comma, and `#'` are terse and easy to confuse",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**The image supports interactive testing**: A function is redefined and re-run without a restart",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**FiveAM and Prove provide test frameworks**: Both are available through Quicklisp",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`assert` and `check-type` are in the standard**: A program states and checks an invariant without a library",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Conditions let a test assert on a failure class**: `handler-case` and `handler-bind` distinguish the condition type",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No test runner is in the standard**: The harness is a library, so a suite couples to it",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Typed objects and a collector give memory safety**: References are checked, and unreachable memory is reclaimed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No raw pointers in the standard**: A program cannot forge an address without implementation-specific foreign interfaces",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing permits type-confusion bugs**: A value of the wrong type is a run-time error, and an unchecked path can act on the wrong shape",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`read` and `eval` execute data**: `(eval (read ...))` on untrusted input is code execution, and the reader's `#.` form evaluates at read time",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**CFFI bypasses the safety model**: A foreign call can reach arbitrary native code, so safety at that boundary is the programmer's concern",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Parentheses are the price of homoiconicity**: The uniform S-expression is what makes macros possible, and the readability trade is deliberate",
+    "**Dynamic typing is a scope decision**: No declarations suit interactive development in a running image, and the run-time checks follow from that choice",
+    "**The large standard library is a design value**: ANSI CL defines `format`, `loop`, CLOS, and a condition system in the standard itself",
+    "**Implementation extensions are a portability trade**: `sb-ext`, `ext`, and `mp` packages buy capability at the cost of portability, by choice",
+    "**The frozen standard is a stability trade**: ANSI X3.226-1994 has never been revised, which keeps existing code stable and freezes the language",
+    "**Lisp is not a systems language**: The image-based, collector-reliant model assumes a runtime host, which is a scope boundary rather than a defect"
+  ],
+  "verdict": "Common Lisp decouples syntax, dispatch, and error handling well: S-expressions make code and data one representation, macros expand notation without changing the evaluator, CLOS methods dispatch on any number of argument types, and the condition system separates signalling, handling, and restarting. Core coupling stays high because typing is dynamic, global functions and special variables tie modules together implicitly, and every value lives on a collected heap. The platform dimension is middling: several mature native compilers plus Quicklisp and ASDF for distribution, but a small ecosystem fragmented across implementations, a standard frozen since 1994, and a steep learning curve built on parentheses and macros.",
+  "verdictExtra": []
+}

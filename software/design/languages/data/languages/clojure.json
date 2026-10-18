@@ -1,0 +1,496 @@
+{
+  "schemaVersion": 1,
+  "id": "clojure",
+  "name": "Clojure",
+  "assessedAs": "Clojure",
+  "version": "1.12",
+  "title": "Clojure (1.12)",
+  "indexLabel": "Clojure (1.12)",
+  "group": "functional-declarative-legacy",
+  "order": 9,
+  "displayOrder": 19,
+  "presenceOrder": 19,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T8, M2, M3, M4, Er2",
+    "meta": "R3, Ec3, L1"
+  },
+  "matrixOrder": 8,
+  "tagline": "Immutable JVM",
+  "sbName": "Clojure",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "clojureDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": true,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Protocols decouple behaviour from inheritance**: `defprotocol` declares a set of functions, and `extend-type` and `extend-protocol` implement them for any type, including Java classes and `nil`, so behaviour is added without a class hierarchy",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing defers every type check to run time**: A function declares no parameter or return type, so a mismatch is found when the value is used",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Protocol dispatch resolves at run time**: The implementation is chosen from the value's type when the call executes, and a type with no implementation fails then",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types and no generics**: Alternatives are tagged maps or `:type` keywords by convention, and a function accepts any value, so neither the case set nor the argument shape is checked by the compiler (T4, T5)",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator names are ordinary vars**: `+` and `=` can be shadowed in a namespace or a local binding, so a reader resolves the symbol from the current scope",
+        "mechanism": "T8"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`clojure.spec` checks a boundary on demand**: A spec declares the shape of arguments and results, and `instrument` turns it into a run-time assertion where a program chooses to",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Immutable structures decouple a change from its readers**: `assoc`, `conj`, and `update` return a new value and leave the old one intact, so a reader that holds the earlier value sees no change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Persistent structures share their unchanged parts**: A vector, map, or set update copies only the changed path, so immutability does not cost a full copy",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`let` scopes a binding to its form**: A value's lifetime is its lexical form, so construction does not depend on a declaration elsewhere",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Records separate data from behaviour**: `defrecord` gives an associative value with named fields, and plain functions operate on it without a class that owns them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Macros extend the surface syntax without changing the core**: `defmacro` transforms forms at compile time, so a domain notation is added outside the language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Top-level `def` state is globally visible**: A `def` or `defonce` var is reachable from every namespace, and `alter-var-root` can rebind it, so shared state needs discipline",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**The JVM garbage collector pauses the program**: Reclamation timing is the collector's decision, so a latency-sensitive path cannot assume a bound",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No RAII**: Destruction is not tied to scope, and `finalize` and `java.lang.ref.Cleaner` are unreliable, so release must be explicit",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: A value can be referenced from anywhere on the heap, and the collector reclaims it only after the last reference disappears",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Immutable values make sharing safe**: Because a value cannot change in place, handing the same reference to another thread cannot alter the first holder's view",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`with-open` releases a resource at scope exit**: The macro expands to `try`/`finally`, so a file, socket, or stream is closed even on an exception",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Direct buffers keep bulk data off the managed heap**: `java.nio.ByteBuffer.allocateDirect` and primitive arrays reduce collector pressure on large payloads",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: A JVM exception propagates without declaration, so a function's failure set is not visible in its signature",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`ex-info` carries a data map**: `ex-info` attaches a map that `ex-data` reads, so a handler inspects structured context instead of parsing a message",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch`/`finally` separates the recovery path**: Recovery code sits in a dedicated form beside the normal path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Function preconditions and postconditions are declarative**: `:pre` and `:post` in a `defn` attribute map check a call and its result at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A failure surfaces only when the value is used**: With no declared types there is no compile-time list of what a call can raise",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Immutable data is the default**: A value shared between threads cannot be changed by another thread, so most data needs no lock",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Atoms give uncoordinated synchronous change**: `swap!` updates one reference with compare-and-set semantics and `reset!` stores a value outright, independent of every other reference",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Refs and `dosync` give coordinated STM transactions**: `alter` inside a transaction commits all its references atomically or retries, so a multi-reference change is isolated and composable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Agents give asynchronous serialised updates**: `send` and `send-off` queue an action, and each agent runs its actions in order",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`core.async` channels decouple producers from consumers**: `chan` and `go` blocks transfer values without shared mutable state",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A transaction can retry its body**: A conflicting `dosync` block runs again, so a side effect inside it may happen more than once",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Full access to the JVM ecosystem**: `import`, `proxy`, and `gen-class` let Clojure call any Java library directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**ClojureScript compiles the same language to JavaScript**: The Google Closure compiler targets the browser and Node.js from the same source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`.cljc` reader conditionals share code across hosts**: One file selects host-specific forms at read time, so common logic stays in one place",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**JVM start-up precedes `main`**: A command-line run pays the JVM initialisation cost before the program executes",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Host interop couples a namespace to its host**: A namespace that imports `java.util.Date` cannot run on ClojureScript unless the host-specific parts are isolated",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "caution",
+        "text": "**JIT warm-up precedes peak speed**: HotSpot interprets first and compiles hot paths later, so a short-lived process may never reach peak throughput",
+        "mechanism": "R3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Hot paths reach native speed**: On a long-running service the JIT compiles the hot loops to machine code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Persistent structures keep update cost logarithmic**: An update shares the unchanged parts, so immutability does not multiply allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Transients build a collection in place**: `transient` and `persistent!` construct a large collection without intermediate copies where it is not yet shared",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Boxing and reflection cost throughput**: Untyped arithmetic boxes numbers, and a reflective Java call resolves at run time unless a type hint (`^`) is present",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Start-up is slow**: JVM initialisation and namespace loading make a short command-line program slower than a native binary",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The library base is small beside Java and npm**: The number of available libraries is a fraction of those ecosystems",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The whole JVM library base is reachable**: A `deps.edn` or Leiningen project resolves Maven artifacts, so Java libraries are used directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Clojars and Maven give dependency management**: Resolution, versioning, and publishing are tooled and reproducible",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core library is small and deliberate**: `clojure.core` is stable and rarely needs a breaking change",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Build conventions differ between teams**: Leiningen, `deps.edn`/`tools.deps`, and `babashka` coexist, so project layouts vary",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The core language changes conservatively**: New capability usually arrives as a library, so `clojure.core` stays stable",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Old code keeps running**: Releases add functions and rarely remove or change existing behaviour",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Reader conditionals support one source for several hosts**: A `.cljc` file keeps shared code current across Clojure and ClojureScript",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A new JDK is a platform event**: Running on a newer Java release follows the JVM's schedule, not Clojure's",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent for web services**: Ring, Compojure, and Reitit express HTTP handling in plain functions and data",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent for data processing**: Transducers and `core.async` pipelines process sequences and streams without intermediate collections",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The REPL suits exploratory and interactive work**: The running image allows a function to be redefined and retried immediately",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**ClojureScript reaches the browser**: One language covers frontend and backend",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Less common for systems and numeric work**: No native memory control and no static numeric types make it unusual for kernels and HPC",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The learning curve is steep**: It combines Lisp syntax, functional programming, and JVM integration in one language",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core is small and consistent**: `clojure.core` fits in a reference page, and one data model applies everywhere",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The REPL gives immediate feedback**: A form is evaluated at once and its value is visible",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Macro writing is a second step**: Understanding expansion and hygiene takes practice beyond ordinary functions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Stack traces cross into the JVM**: A failure reports Java frames and reader positions together",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Parenthesised forms are uniform**: Code and data share the S-expression representation, so there is no grammar beyond lists",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Prefix notation removes precedence rules**: `(+ 1 2)` puts the operator first everywhere",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Few special forms**: `let`, `fn`, `def`, `if`, `do`, and `quote` cover most of the core",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Delimiters are dense**: Deep nesting is hard to read without an editor that matches parentheses",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Threading and reader macros add notation**: `->`, `->>`, `#()`, and `@` are terse and must be learned",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`clojure.test` is in the core library**: `deftest`, `is`, and `testing` need no external dependency",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A test runs against the live image**: Code can be redefined and a test re-run without a restart",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`clojure.spec` supports generative testing**: `clojure.spec.test.alpha/check` generates inputs from a spec and validates the results",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No compiler check finds a broken call site**: With dynamic typing the test suite, not the compiler, catches it",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Immutability limits accidental sharing**: A value cannot be mutated behind another holder's back",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No unsafe memory access in the language**: Clojure code cannot forge a pointer, and the JVM verifies bytecode",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The JVM's process and sandbox model applies**: A program runs under the host VM's isolation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`eval` of constructed data is code execution**: `clojure.core/read-string` can run reader macros, so untrusted input must not reach `read` or `eval`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A boundary check helps only where it is enabled**: A `spec` check runs when the program instruments or validates, not automatically",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Dynamic typing is a deliberate trade**: No declarations speed construction and suit a REPL-first workflow, at the cost of run-time type checking",
+    "**Lisp syntax is the price of homoiconicity**: Parentheses and prefix notation buy code-as-data, which is what macros need",
+    "**Simple versus easy is a design value**: Hickey's distinction favours composable values over convenient wrappers, and that choice shapes the standard library rather than forcing a dependency",
+    "**A hosted language inherits its host's trade-offs**: JVM start-up and collection come from the platform choice, not from a mechanism of the language",
+    "**REPL-driven development assumes a running image**: The workflow favours exploration and interactive work, which is a team scope decision",
+    "**Clojure is not a systems language**: It assumes a host VM and a collector, which is a scope boundary rather than a defect"
+  ],
+  "verdict": "Clojure removes a large class of coupling in its own constructs: immutable values by default, protocols that add behaviour without a class hierarchy, atoms, refs, and agents for the three coordination styles, STM for coordinated change, and macros for extending syntax. Core coupling stays moderate because typing is dynamic, so a mismatch is caught at run time rather than at compile time, and because every value lives on a JVM heap with a collector. The platform and ecosystem dimension is the stronger half: full access to the JVM library base, a stable core, and ClojureScript for the browser, at the cost of JVM start-up, a library base smaller than Java's, and a steep combination of Lisp syntax, functional style, and JVM integration.",
+  "verdictExtra": []
+}

@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "crystal",
+  "name": "Crystal",
+  "assessedAs": "Crystal",
+  "version": "1.15",
+  "title": "Crystal (1.15)",
+  "indexLabel": "Crystal (1.15)",
+  "group": "emerging-specialty",
+  "order": 5,
+  "displayOrder": 20,
+  "presenceOrder": 20,
+  "presenceList": {
+    "core": "T8, C2, M2, M3, M4, Er2, K3",
+    "meta": "Ec3"
+  },
+  "matrixOrder": 10,
+  "tagline": "Ruby Syntax, Static Types",
+  "sbName": "Crystal",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "crystalDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": true,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing with full inference**: The compiler infers every local and parameter type, so the code reads like Ruby while the type is known at compile time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Nil` is a type, not a universal value**: `T?` is `T | Nil`, and the compiler forces a `nil?` check or an explicit `not_nil!` before a member is reached",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Union types name the alternatives**: `Int32 | String` is a declared type that a `case` narrows, so an alternative is expressed rather than encoded",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Modules mix in behaviour at compile time**: `include` and `extend` add a module's methods to a type, so composition is the ordinary route and the class hierarchy stays shallow; a reopened class is fixed when the program is compiled, so there is no runtime monkey-patching",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Generics are specialised per instantiation**: `Array(T)`, `Hash(K, V)`, and generic classes produce a specialised type, so a collection carries its element type",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operator overloading is per type and unchecked in cost**: `+`, `<=>`, and `[]` are ordinary method definitions, so the notation can hide the call",
+        "mechanism": "T8"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**`new` is generated from `initialize`**: Construction is an ordinary method call, and a `struct` is built where it is declared",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Structs are value types**: A `struct` is copied on assignment and passed by value, so construction does not allocate or alias",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`record` generates a value type in one line**: `record Point, x : Int32, y : Int32` creates the getters, the constructor, `==`, and `hash`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Named arguments separate the call from the parameter order**: `foo(b: 1, a: 2)` names each argument at the call site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A block binds a resource to its construction**: `File.open(path) { |f| ... }` opens the resource around the block and closes it at the end",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Mutability is the default**: An instance variable is writable unless the class prevents it, so immutability is a convention rather than a declared property",
+        "mechanism": "C2"
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**The collector owns deallocation**: Crystal uses a conservative garbage collector, and a collection runs on the collector's schedule rather than the program's",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "caution",
+        "text": "**No RAII**: `File.open` with a block closes through `ensure`, but no destructor runs automatically at the end of an arbitrary scope",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership or borrow checking**: Aliasing and lifetime are unchecked, and a value stays alive while any reference to it exists",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Structs keep small values off the heap**: A `struct` is stored in place, so an ordinary value does not involve the collector",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The unsafe boundary has its own types**: `Pointer(T)`, `Slice(T)`, and `StaticArray(T, N)` name a raw region explicitly, so an unsafe access is visible in the type",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A conservative collector retains conservatively**: Any bit pattern on the stack that looks like a pointer keeps an object alive",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: `raise` needs no declaration in the signature, and the compiler does not require a handler",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`begin`/`rescue`/`else`/`ensure` is the structured path**: Each clause separates one stage of the recovery",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`ensure` runs on every exit path**: A normal return, a raised exception, and an explicit `return` all run the `ensure` clause",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`T?` makes absence a value, not an error**: A method that may not produce a value returns `T?`, and the caller must handle `Nil`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An exception hierarchy is ordinary classes**: `class MyError < Exception` declares a new error type",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A bare `raise \"message\"` creates a plain `Exception`**: A `rescue` clause that names a specific type does not catch it, so the message-only form is a coarse signal",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Fibers are lightweight concurrency**: `spawn` starts a fiber with its own stack and no operating-system thread",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Channels pass messages between fibers**: `Channel(T)` with `send`/`receive` implements CSP-style communication, so two fibers hand off a value without a shared lock",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`select` waits on several channels at once**: The first ready message is taken",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A completion channel expresses a join**: A `Channel(Nil)` closed by the worker is the ordinary signal that a fiber has finished",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Synchronisation is manual with no race detection**: `Mutex`, `Atomic`, and `WaitGroup` are library types, and the compiler checks no locking discipline",
+        "mechanism": "K3"
+      },
+      {
+        "kind": "caution",
+        "text": "**One fiber runs at a time by default**: The runtime is single-threaded until parallel multi-threading is enabled at build time, so a CPU-bound fiber blocks the others between yields",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler uses the LLVM backend and emits native code**: The toolchain produces machine code rather than bytecode",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The output is one self-contained binary**: A Crystal program links to a single executable with no runtime installed separately",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**C bindings are direct**: A `lib` declaration with a `@[Link(...)]` annotation calls a C function from the shared library",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard library covers the system surface**: HTTP, JSON, YAML, sockets, and cryptography are in the distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Windows support lags**: The Windows target is less complete than Linux and macOS, so a Windows-first program takes the harder path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A \"self-contained\" binary still follows the platform**: The Crystal runtime is linked into the executable, but libc is linked dynamically unless `--static` and the linker flags say otherwise, so portability depends on the build",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Native code from LLVM**: The optimisation pipeline used for C and C++ applies to Crystal",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no interpreter and no JIT warm-up**: A compiled binary starts and stays at its compiled speed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The whole program is visible to the compiler**: The compiler sees every call site, so it can inline and devirtualise across files",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Concrete types dispatch directly**: When the type is known, a method call is a direct call, and a union type dispatches on a type identifier",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Compile time is long**: Whole-program type inference and LLVM optimisation make a build heavy, which slows the edit-build-run loop",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The library pool is small**: `shards` is the dependency manager, and the available libraries are far fewer than Ruby's or Go's",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`shards` is a standard dependency manager**: `shard.yml` declares the dependencies, and `shards install` resolves them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard library is high quality**: An HTTP server, JSON, YAML, cryptography, and concurrency are in the box",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Kemal and Lucky are established web frameworks**: A program has a real web path on the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The toolchain is one command**: `crystal` compiles and runs, `crystal tool format` formats, and `crystal docs` generates documentation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community is small but active**: The project depends on a small contributor base, so a package is more likely to be left unmaintained than in a large ecosystem",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The 1.x line has held a stability promise**: Crystal 1.0 established the compatibility expectation, and the 1.x series has kept it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An experimental feature is gated behind a flag**: Parallel multi-threading is enabled at build time, so an unstable feature is opt-in",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A formatter keeps the style stable across versions**: `crystal tool format` removes a class of style change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Deprecations precede removals**: A method is marked deprecated for a series and then removed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The 0.x line was a breaking series**: The stability promise begins at 1.0, so code older than 1.0 needed a migration",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The Windows target is still maturing**: The platform's support level changes across releases",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**CLI tools are a strong fit**: A single native binary with immediate start-up",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Web services are a strong fit**: Kemal and Lucky cover the service layer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Network daemons are a strong fit**: Fibers and channels give cheap concurrent connection handling",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**C interoperability work is a strong fit**: A `lib` declaration calls a C library without a wrapper generator",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Large application backends are less proven**: The library pool and the hiring pool are both smaller",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Windows-first desktop work is not the target**: The platform support is the constraint",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Gentle for a Ruby or Python developer**: The syntax is familiar, and the type annotations are usually inferred",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler teaches the type model**: A union-type error names the case that was not handled",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard library reads like the language**: The same block and `?` conventions appear throughout",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Flow-sensitive typing is the real subject**: A union type and `Nil` narrowing must be understood to use the language well",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The macro system is a second language**: Compile-time macros use their own `{% %}` and `{{ }}` syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The build loop is slow**: A long compile makes each experiment expensive",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Ruby-like and readable**: Method calls, blocks, and string interpolation follow the familiar shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Type annotations are optional in most positions**: Inference removes the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Blocks are the call idiom**: `do ... end` and `{ ... }` pass a closure, so resource handling and iteration look alike",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`?` and `!` name a method's contract**: `nil?` asks a question and `not_nil!` asserts the answer",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The macro syntax sits beside the ordinary syntax**: `{% ... %}` and `{{ ... }}` appear only inside a macro",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A union type is written in the type position**: `T?` is shorthand for `T | Nil`, which must be read correctly",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`crystal spec` is built in**: The standard library's `Spec` module gives `describe`, `it`, and `expect`, with a runner",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Specs live under `spec/` by convention**: The compiler builds a spec target from the project",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler checks the test code**: A spec that calls a method with the wrong type fails the build",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The `?` and `!` convention carries into assertions**: Absence is tested explicitly rather than caught as an exception",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The standard library has no mocking layer**: A double, a stub, or a property test comes from a third-party shard",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The compile time is paid again for the spec target**: A slow build slows the test loop as well",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**No null reference**: `Nil` is a type, and a member is reached only after a check",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Memory safety is the runtime's**: The collector and the index checks remove the use-after-free and out-of-bounds classes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no runtime `eval`**: The program is compiled, so a string cannot become code at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Static typing removes dynamic type confusion**: A value's type is known before the program runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`Pointer(T)` and `LibC` are the unsafe surface**: They are declared escapes and must be reviewed by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A macro expands to code the reader cannot see**: The compiled program differs from the source text at the macro site",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Ruby-like syntax with compile-time typing is the design bet**: Readability with safety, and the price is a long compile",
+    "**A single-threaded runtime by default is a deliberate choice**: Simplicity and predictable behaviour before parallel throughput",
+    "**Compile-time macros instead of runtime monkey-patching**: The flexibility is available at the build, not after it",
+    "**The conservative collector is a pragmatic pick**: There is no borrow checker to satisfy, and the cost is a collector that can pause",
+    "**The small ecosystem is an adoption fact**: A market outcome, not a construction of the language",
+    "**Limited IDE support is a tooling fact**: An editor plugin cannot infer the whole program as the compiler does"
+  ],
+  "verdict": "Crystal's design separates what the language itself controls, and the score is held back mainly by the runtime it inherits. The Memory dimension caps at the model's severe weight, because the collector schedules its own pauses, no destructor is tied to a scope, and no ownership or borrow check exists; manual synchronisation and unchecked exceptions are the other significant marks. Inference gives static types with a light syntax, `Nil` and union types make absence and alternatives explicit, and compile-time macros keep metaprogramming out of the runtime. Main strengths: a high platform and ecosystem score, native binaries from the LLVM backend, and a C library reachable through a `lib` declaration. Main weaknesses: the package ecosystem is niche, Windows support lags, the compile is slow, and the default runtime runs one fiber at a time.",
+  "verdictExtra": []
+}

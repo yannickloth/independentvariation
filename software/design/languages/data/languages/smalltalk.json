@@ -1,0 +1,526 @@
+{
+  "schemaVersion": 1,
+  "id": "smalltalk",
+  "name": "Smalltalk",
+  "assessedAs": "Smalltalk",
+  "version": "ANSI",
+  "title": "Smalltalk (ANSI Smalltalk)",
+  "indexLabel": "Smalltalk (ANSI)",
+  "group": "functional-declarative-legacy",
+  "order": 12,
+  "displayOrder": 39,
+  "presenceOrder": 39,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T6, T10, T11, C1, C2, M2, M3, M4, Er2",
+    "meta": "Ec3, L1, Q2, G3"
+  },
+  "matrixOrder": 54,
+  "tagline": "OOP Pioneer",
+  "sbName": "Smalltalk",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "ansiSmalltalk1998"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**No static type check**: A variable has no declared type, and a message send is resolved when it executes, so a mismatch is reported at run time",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A receiver's type is a protocol, not a class**: Any object that answers a selector is acceptable, and the compiler checks no such promise",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types and no generics**: An alternative is a class hierarchy or a `Symbol` and a collection holds `Object`s, so both the branch and the element type are conventions (T4, T5)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No namespaces**: A class is entered in the one global system dictionary, so a class name collision is a system-wide event",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**`nil` is an object, not an absent type**: A send to `nil` raises `MessageNotUnderstood` rather than failing a static check",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Message passing separates a request from its implementation**: A send names a selector, and the receiver chooses the method that runs",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global mutable state is the default**: A class variable, a class instance variable, or a `Smalltalk at:` global is reachable from every method, so construction couples to shared state",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Objects are mutable by default**: An accessor writes a field in place, and nothing in the language makes an object immutable",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Every operation is a message**: `+`, `new`, and `size` are all sends, so a call site does not distinguish an operator from a method",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The class object holds the constructor and its `initialize` hook**: `new` and `new:` are class-side methods and a subclass can override the setup that follows",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The class browser compiles into the running system**: A change is made in the live image, and the deployed artifact is the image rather than the source files",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Open classes allow a change from anywhere**: Any tool or package can add a method to `Object`, so a change has system-wide reach",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**A garbage collector reclaims memory**: Collection runs on the virtual machine's schedule, so the program cannot choose when a pause happens",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No RAII**: A resource is released by an explicit message, though `ensure:` or `ifCurtailed:` runs a release block on the way out",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: A reference is an untracked alias, and only the virtual machine knows when an object is unreachable",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**No manual deallocation**: An object becomes garbage, and no free message exists",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`ensure:` binds a release to a protected block**: The block runs on a normal return and on a signal that unwinds through it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Collection is invisible in the source**: An instantiation is `new`, and no deallocation is ever written",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Failures are signals and no selector describes them**: A send may raise any `Error` subclass, so the failure set is not readable from the method name",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`on:do:` installs a structured handler**: A handler is bound to a class of signal for the duration of a block, and it returns a value to the sender",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`ensure:` and `ifCurtailed:` separate the normal path from the cleanup path**: The cleanup runs however the block exits",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`MessageNotUnderstood` is a defined signal**: A send that no method implements raises it with the receiver and the selector",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`resume:`, `return:`, and `retry` state the recovery**: A handler can resume the signal, return a value, or re-run the block",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No handler is checked to exist**: The compiler does not know which signals a send raises, so the handler is written from documentation",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**`Process` and `Semaphore` are part of the class library**: A scheduler multiplexes processes, and a semaphore is the synchronisation primitive",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Monitor` and `SharedQueue` are in the class library**: The common coordination patterns ship with the environment",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Delay` suspends a process for a stated time**: The scheduler resumes it, so a timed wait is a library call rather than a system call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Every object is reachable from every process**: The class library supplies the synchronisation primitives, and the discipline that keeps two processes apart from one shared object is the programmer's",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The classic virtual machine decides when a process runs**: Priority decides which process resumes, and the switch points belong to the interpreter, so a process at the same priority can hold the CPU through a tight loop",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The language is standardised independently of a vendor**: ANSI INCITS 319-1998 fixes the syntax and the protocols of the standard class library",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Several independent implementations exist**: Squeak, Pharo, VisualWorks, GNU Smalltalk, and GemStone/S each run the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GNU Smalltalk runs a text file as an executable**: `gst file.st` needs no image, so a program can be deployed as source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The deployment unit is a virtual-machine image**: An image carries the classes, the methods, and the live state, so a deployment couples to one virtual machine",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The image format is not standardised**: A program moves between dialects through source, not through an image file",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Portability stops at the dialect's tools**: `Monticello`, `Metacello`, and `Seaside` are dialect packages, so a portable program stays within the ANSI subset",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Modern dialects compile the hot path**: The Cog virtual machine of Pharo and Squeak compiles a method to machine code once it becomes hot",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The virtual machine is the optimisation boundary**: The runtime optimises a method, so no source-level tuning is needed to reach the native path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**In-line caches make a polymorphic send cheap**: A send site caches the receiver's class and its method, so a repeated send costs one lookup",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Steady-state speed is below a statically compiled language**: A dynamic send is a polymorphic call site, so a numeric inner loop is slower than in Ada or C",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Warm-up precedes peak speed**: The interpreter runs a method until the runtime decides to compile it",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is small and centred on a few communities**: Pharo and Squeak carry most of the active library work, and commercial Smalltalk is a niche",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pharo and Squeak are active open-source communities**: Each ships a maintained image with tools, a package manager, and libraries",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The commercial implementations are long-lived**: VisualWorks, VA Smalltalk, and GemStone/S have decades of use",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Metacello` and `Monticello` give package management and versioning**: A package is loaded from a repository with a version map",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Seaside and Glamorous Toolkit add depth**: A continuation-based web framework and a moldable development environment are both maintained",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A library is often image- or dialect-specific**: A package loaded into one dialect usually needs adaptation for another",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Pharo releases on a regular cadence with a migration guide**: A release names the changes to the image and the tools",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A file-in of source is the migration unit across dialects**: A program's classes and methods load into another image",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The ANSI standard is a stable foundation**: The standardised language does not move under a program that stays within it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Later work is dialect-specific**: Each community extends the class library and the tools on its own, so the dialects diverge",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A dialect fork is the usual form of a break**: Squeak and Pharo diverged from a shared image, so a program may target one community only",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The image carries its own history**: An old image can hold classes and methods that the source no longer describes, so a migration needs care",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent for prototyping and live systems**: The image, the class browser, and the debugger let a system be built and changed while it runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A strong fit for exploratory modelling**: The uniform object model and the interactive debugger support a step-by-step design",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A web application has a framework**: Seaside serves a deployed web application with continuations, and GemStone/S adds a transactional object store",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The environment is the development tool**: A refactoring browser, a debugger, and a test runner are part of the image",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Commercial product work is rare today**: A new product team usually picks another language, so precedents and hiring are scarce",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The image-based workflow is unfamiliar and steep**: A program is edited inside a running system, and a newcomer must learn the browser, the debugger, and the image at once",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The uniform message model must be internalised**: Control flow is a message (`ifTrue:`, `whileTrue:`) and class creation is a message, which is unlike an expression-based language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The debugger teaches by inspection**: A `MessageNotUnderstood` opens on the failing frame with the receiver and the selector in view",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The browser shows the whole system**: A method, its senders, and its implementors are reachable from one tool",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Little feedback arrives before run time**: With no static check, a mistake appears when the path executes",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**A message send has three small forms**: Unary (`size`), binary (`+`), and keyword (`at:put:`), and all three are sends",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Blocks give inline control flow**: `[:x | x + 1]` is a closure in the same syntax as everywhere else",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Cascades group several sends to one receiver**: `a add: 1; add: 2` sends both messages to `a`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The grammar is small**: The language is famously described in a few lines, and the class library carries the rest",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A keyword message can nest confusingly**: `a b: c d: e` parses by fixed rules, so a reader must recall them",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**A selector or type error appears only when the line runs**: With no static check, the first execution of a path is the first check of it",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`TestCase` and the SUnit runner ship with the environment**: A test class with test-prefixed methods is run by the test runner",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The debugger opens on the failing test frame**: A failure can be inspected and fixed in the running system",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`should:raise:` asserts on a signal**: A test states the error class it expects",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The test suite lives in the image with the code**: A test is a class beside the class it tests",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An unexecuted path is untested and unchecked**: A test covers the branches it runs, and a dynamic mistake in another branch waits",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**The absent static typing is a security-relevant gap**: A selector error, a wrong argument, or a type confusion is detected at run time, and an unexecuted path is not checked",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Memory safety is the virtual machine's responsibility**: The machine manages references, so a buffer overflow or a use-after-free is not expressible in Smalltalk source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard class library exposes no address**: There is no pointer value in the language for a program to misuse",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The image persists running state to a file**: An image is a serialised object graph, so a value that should not be saved can be written into the deployed artifact",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`perform:` reaches a method by a computed selector**: A selector built from input invokes code the source does not name",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`Compiler evaluate:` compiles a string into the running system**: An untrusted string must never reach it",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The image is a deliberate development model**: A running system is editable and the image is the artifact, which is the point of the environment",
+    "**Live coding is a workflow choice**: A change is compiled into the running system; the compiler is the mechanism, and the workflow is the choice",
+    "**Open classes are deliberate flexibility**: A method can be added to any class, and the global reach of that change is the price",
+    "**The absent static typing is a design choice**: No annotation is required, so the discipline is the programmer's",
+    "**Everything is an object by design**: Classes, blocks, and `nil` are objects, and the uniformity is the language's identity",
+    "**Niche adoption is an outcome**: The language predates and influenced the mainstream object-oriented languages"
+  ],
+  "verdict": "Smalltalk's uniform object model keeps one kind of coupling low — a send names a selector, so a caller is not bound to the receiver's implementation, and blocks, `on:do:`, and `ensure:` give structured behaviour and recovery. The core score is nevertheless in the middle band, because the language's own constructs force coupling elsewhere: no static type check, no namespaces, no module boundary, no ownership model, global mutable state by default, and open classes that let any tool change any class. The platform cost adds a small ecosystem, an image-based deployment that couples to one virtual machine, a run-time-only error model, and a steep learning curve. Main strength: live, image-based development with a best-in-class debugger, and the language's proven influence on later object-oriented languages.",
+  "verdictExtra": []
+}

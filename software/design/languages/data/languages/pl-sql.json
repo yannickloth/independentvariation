@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 1,
+  "id": "pl-sql",
+  "name": "PL/SQL",
+  "assessedAs": "PL/SQL",
+  "version": "Oracle",
+  "title": "PL/SQL (Oracle)",
+  "indexLabel": "PL/SQL (Oracle)",
+  "group": "domain-specific",
+  "order": 4,
+  "displayOrder": 42,
+  "presenceOrder": 42,
+  "presenceList": {
+    "core": "T10, C1, Er3, Er4, K2, P1",
+    "meta": "Ec4, D1, S1, Q3"
+  },
+  "matrixOrder": 36,
+  "tagline": "Oracle Procedural SQL",
+  "sbName": "PL/SQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "plsqlDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "C1": true,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing over SQL data types**: Every variable, constant, parameter, and function return declares a type, and a mismatch is a compilation error",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`%TYPE` and `%ROWTYPE` anchor a declaration to the schema**: `emp%ROWTYPE` follows the table's column list, so a column change does not require editing the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Subtypes declare a constrained domain once**: `SUBTYPE` and a constrained type such as `NUMBER(7,2)` state a range or a shape and reuse it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is not type-safe absence (T10)**: An unassigned variable and an unused column are NULL, and NULL propagates through expressions, so `IF x = 5` is not true when `x` is NULL",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `REF CURSOR` carries a row set without fixing its row type**: `SYS_REFCURSOR` passes a result between program units, so the producer and the consumer need not share a record type",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Implicit conversion is allowed**: Oracle converts between numeric and character types on its own, so a mismatch can pass compilation and fail at run time",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The package separates specification from body**: The spec declares the public interface — types, variables, constants, exceptions, cursors, and subprograms — and the body holds the implementation, so a consumer binds to the spec",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Subprogram overloading is available in a package**: Two subprograms with one name differ by parameter list, so a family of operations shares one name",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A cursor `FOR ... LOOP` iterates the query result directly**: Iteration ends at the result's last row, so the code does not track a row count",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Global mutable state by default (C1)**: A package variable is declared once and lives for the whole session, so every caller that touches the package sees and changes the same value",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Package initialisation runs on first use**: An initialisation block in the body runs when the package is first touched in the session, so setup timing follows call order",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers fire implicitly**: A trigger runs in response to an insert, update, or delete, so the writer of a statement cannot see from the statement which code will run",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The Oracle server owns SGA and PGA memory, and a block never names an address or frees a byte",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server sizes the work areas**: Automatic PGA management gives a sort or a hash operation its memory from `PGA_AGGREGATE_TARGET`, so the block does not reserve it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A session-scoped collection holds its memory**: An associative array or nested table kept in a package variable stays for the session, so retained state is a standing cost",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A bulk fetch needs a deliberate size limit**: `BULK COLLECT ... LIMIT` bounds a fetch, and its absence can materialise a whole result set in PGA",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A cursor is released by `CLOSE`**: The server reclaims the cursor's memory, so the program does not track bytes",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**The block separates the normal path from the recovery path**: `DECLARE ... BEGIN ... EXCEPTION ... END;` gives a named handler section",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Exceptions are matched by name**: A predefined exception (`NO_DATA_FOUND`, `TOO_MANY_ROWS`, `ZERO_DIVIDE`) and a user-declared `EXCEPTION` are caught by name, and `WHEN OTHERS` catches the remainder",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`RAISE_APPLICATION_ERROR` sets a code and a message**: A custom failure carries a number in the application range −20000 to −20999, so a caller can branch on it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`WHEN OTHERS` hides the class of the failure (Er3)**: A handler that catches everything without logging `SQLCODE` and `SQLERRM`, or that does not re-raise, lets the enclosing block see a normal return where the inner block failed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No composable result type (Er4)**: A failure cannot be returned as a value the caller must inspect, so error information does not compose through a call chain",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions are the unit of concurrency**: `COMMIT`, `ROLLBACK`, and `SAVEPOINT` make a unit of work atomic, so a block does not coordinate with other sessions statement by statement",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An autonomous transaction decouples a log write**: `PRAGMA AUTONOMOUS_TRANSACTION` commits on its own, so the entry survives the caller's rollback",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`SELECT ... FOR UPDATE` names the rows to lock**: The lock is declared by the cursor text rather than by a separate call",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Shared mutable state by default (K2)**: A package variable is shared with every program unit that runs in the session, and nothing in the declaration marks it private",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No language-level synchronisation and no race detection**: PL/SQL has no mutex or atomic primitive, so serialisation rests on Oracle's row locks and on the application's lock ordering",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`DBMS_LOCK` provides an explicit lock service**: A named user lock serialises a critical section across sessions",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**It implements the ISO SQL/PSM stored-module standard**: Persistent stored modules are specified in ISO/IEC 9075 Part 4, so the package and block model is standard in concept",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is implemented outside Oracle Database**: TimesTen and IBM Db2 support PL/SQL, so there is more than one implementation, though the dialects are not fully interchangeable",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Cannot function outside one vendor (P1)**: A PL/SQL program needs an Oracle-family database, so the unit of deployment is an Oracle schema",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The useful surface is Oracle-specific**: `DBMS_*` server packages, `ROWNUM`, sequences, and `SQL%ROWCOUNT` are Oracle features, so the code cannot move to another engine unedited",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A port to Transact-SQL is a rewrite, not a translation**: Feature differences and different concurrency and locking models separate the two dialects",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Compilation happens at deployment**: A package or procedure is compiled once and the stored form is reused, so a call does not re-parse the source",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Native compilation is selectable**: `PLSQL_CODE_TYPE = NATIVE` compiles to machine code, so a hot subprogram does not pay the interpreter",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Bulk processing amortises the SQL boundary**: `FORALL` and `BULK COLLECT` move many rows per round trip, so per-row context switches do not dominate",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The optimiser and the SGA serve the data path**: Plan selection and buffer caching are the server's job, not the block's",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Cost follows the plan and the retained state**: A poorly chosen plan, or a package variable holding a large collection, is a cost the unit cannot see",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is proprietary (Ec4)**: The engine, the tooling, and the support come from Oracle under licence",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tooling is mature and long-established**: SQL\\*Plus, SQL Developer, and third-party IDEs have existed for decades",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Published practice is extensive**: The PL/SQL language reference, the database manuals, and decades of books and courses document the language in detail",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Capability follows the licence**: Tooling, support, and advanced features are licensed per seat or per processor, so a team reaches only what it has bought",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Enterprise code bases are long-lived and heavy**: A schema commonly spans many versions, so a change has to keep the oldest callers working",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Backward compatibility is strong**: A program written for an early Oracle release generally still compiles and runs in the current one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Edition-based redefinition supports an online change**: `EDITIONABLE` objects let a new version of a package be deployed and switched over without downtime",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Deprecation is announced before removal**: Oracle documents deprecated features, so an upgrade is planned rather than discovered",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A language feature arrives with a database release**: Adoption timing therefore follows the customer's upgrade cycle, not a separate language release",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A new feature is unavailable on a pinned older database**: Code that must run on an old release cannot use a recent construct",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for data-centric business logic**: A procedure operates on tables with SQL directly, so a rule runs where the data is",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language is a full procedural language inside SQL**: Loops, records, collections, and subprograms live in the same unit as the queries",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Server packages reach outside the schema**: `UTL_FILE`, `UTL_HTTP`, and `DBMS_SCHEDULER` give file, network, and job facilities from inside the database",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain and vendor lock-in (D1)**: The language exists to run inside an Oracle database, so the Oracle data tier is the only domain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A trigger can hide a domain rule**: An invariant implemented in a trigger is enforced for every writer, but a reader of the application source cannot see it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language is not a general-purpose runtime**: A user interface, a heavy text workload, or a high-rate service belongs in another language beside PL/SQL",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Moderate for a SQL-plus-Pascal background**: The block structure follows Ada and Pascal, so a developer from those languages reads it quickly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The SQL-to-PL/SQL boundary needs practice**: A `SELECT` inside a block must return exactly one row, so `NO_DATA_FOUND` and `TOO_MANY_ROWS` are everyday cases",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Package semantics take time**: Spec versus body, per-session package state, and initialisation timing are not visible in the syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Exception semantics reward careful reading**: An exception in a nested block propagates to the enclosing handler unless it is handled there",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference documentation is complete**: The Oracle Database PL/SQL Language Reference documents every construct with examples",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Readable and keyword-led**: Statements read as verbs — `INSERT INTO`, `FETCH`, `RAISE` — so intent is visible",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Blocks nest visibly**: An inner `BEGIN ... END` holds its own declarations and handler, so scope follows the indentation",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Verbose (S1)**: Even a small unit needs a declaration section, a `BEGIN ... END`, and an exception section, so the block structure adds lines to every subprogram",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`END` closes several constructs**: `END IF;`, `END LOOP;`, and a package `END` must each be matched, so a long body is read against its terminators",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A large package body is one long file**: The spec and the body are a unit boundary, not a file-per-subprogram rule",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`utPLSQL` is the established framework**: An open-source test framework runs suites with assertions and reporting, so tests need not be hand-rolled",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Transaction control isolates a test**: A test can run and `ROLLBACK`, leaving the database unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The toolchain traces execution**: `DBMS_PROFILER`, `DBMS_TRACE`, and the hierarchical profiler report call counts and coverage",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The base product ships no unit-test framework**: SQL Developer offers a unit-testing feature, but the language itself has no test construct",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A suite depends on grants and deployment**: The framework is installed in the database it tests, so permissions and schema state are preconditions",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Bind variables remove the injection surface**: `EXECUTE IMMEDIATE 'SELECT ... WHERE x = :1' USING v` passes the value out of band, so it cannot change the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`DBMS_ASSERT` validates an identifier before interpolation**: `SIMPLE_SQL_NAME`, `QUALIFIED_SQL_NAME`, and `ENQUOTE_NAME` check the string",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The rights model is explicit**: `AUTHID DEFINER` and `AUTHID CURRENT_USER` select whether a unit runs with its owner's privileges or the caller's",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Privileges are granted per object**: `GRANT EXECUTE ON pkg TO role` scopes access, and the package specification is the grantable interface",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Known vulnerability/injection (Q3)**: `EXECUTE IMMEDIATE` and `DBMS_SQL` build a statement as text, so concatenated input can become code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Definer's-rights code can escalate**: A unit that runs with its definer's rights reaches more than the caller, so it needs an audit",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**A session-scoped package variable is a deliberate cache**: Keeping a value for the session trades hidden shared state for a repeated read",
+    "**Implicit conversion is convenient in short blocks**: Letting numeric and character types mix keeps ad-hoc code short, at a cost that appears in code that must be reliable",
+    "**A trigger is a data-integrity mechanism**: A rule kept in the database is enforced for every writer, where the same rule in the application would be visible at each call site",
+    "**Logic beside the data is the purpose of the language**: A procedure that runs in the database avoids shipping rows to a client",
+    "**PL/SQL is not a general-purpose language**: The assumption of an Oracle database is a scope decision",
+    "**Dynamic SQL buys flexibility**: `EXECUTE IMMEDIATE` runs DDL and changes object names in a statement, which static SQL cannot do"
+  ],
+  "verdict": "PL/SQL's coupling is set by its host, not its syntax. The package separates a specification from its body, blocks and named exceptions give a structured failure path, and bind variables close the injection surface. Main strengths: interface and implementation are separable, error handling is structured, and server-side code runs beside its data. Main weaknesses: everything runs inside an Oracle database, a package variable is shared session state, every variable starts as NULL and NULL propagates, dynamic SQL turns concatenated text into code, and `WHEN OTHERS` is a standing invitation to swallow a failure.",
+  "verdictExtra": []
+}

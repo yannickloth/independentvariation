@@ -1,0 +1,1477 @@
+{
+  "schemaVersion": 1,
+  "dimensions": [
+    {
+      "id": "type",
+      "family": "core",
+      "label": "Type",
+      "order": 1,
+      "asks": "can the language keep the *meaning of a value* in one place, or must every reader reconstruct it?"
+    },
+    {
+      "id": "construction",
+      "family": "core",
+      "label": "Construction",
+      "order": 2,
+      "asks": "can the language keep state local, and can a value only come into existence through a path that establishes its invariant?"
+    },
+    {
+      "id": "memory",
+      "family": "core",
+      "label": "Memory",
+      "order": 3,
+      "asks": "can the language state when storage and other resources are released, and who owns them?"
+    },
+    {
+      "id": "error",
+      "family": "core",
+      "label": "Error",
+      "order": 4,
+      "asks": "can a failure travel from where it is detected to where it can be handled, and does anything require a caller to decide?"
+    },
+    {
+      "id": "concurrency",
+      "family": "core",
+      "label": "Concurrency",
+      "order": 5,
+      "asks": "can the language express parallel work, and can it keep that work from touching shared state unintentionally?"
+    },
+    {
+      "id": "platform",
+      "family": "core",
+      "label": "Platform",
+      "order": 6,
+      "asks": "can the artifact run anywhere other than where it was built for?"
+    },
+    {
+      "id": "performance",
+      "family": "meta",
+      "label": "Performance",
+      "order": 1,
+      "asks": "is there a cost the program pays at run time that its source does not show?"
+    },
+    {
+      "id": "ecosystem",
+      "family": "meta",
+      "label": "Ecosystem",
+      "order": 2,
+      "asks": "does the surrounding supply of libraries, tools, and people make the language's own costs worse?"
+    },
+    {
+      "id": "evolution",
+      "family": "meta",
+      "label": "Evolution",
+      "order": 3,
+      "asks": "will the code still mean what it means after the language moves?"
+    },
+    {
+      "id": "domain",
+      "family": "meta",
+      "label": "Domain",
+      "order": 4,
+      "asks": "is the language shaped for one target so tightly that adopting it means adopting that target?"
+    },
+    {
+      "id": "learning",
+      "family": "meta",
+      "label": "Learning",
+      "order": 5,
+      "asks": "what does a practitioner pay to become productive, and who bears that cost?"
+    },
+    {
+      "id": "syntax",
+      "family": "meta",
+      "label": "Syntax",
+      "order": 6,
+      "asks": "how much of the reader's attention does the notation itself consume?"
+    },
+    {
+      "id": "testing",
+      "family": "meta",
+      "label": "Testing",
+      "order": 7,
+      "asks": "how does the language help the program find its own mistakes, and how much of that work is left to the team?"
+    },
+    {
+      "id": "security",
+      "family": "meta",
+      "label": "Security",
+      "order": 8,
+      "asks": "does the language make a whole class of exploit possible, or a whole class of mistake silent?"
+    }
+  ],
+  "mechanisms": [
+    {
+      "id": "T1",
+      "dimension": "type",
+      "weight": 15,
+      "severity": "High",
+      "label": "dynamic no static check",
+      "title": "Dynamic typing, no static check",
+      "anchor": "t1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A value carries its type at run time, so nothing checks that an operation suits its operand until the operation runs. The meaning of every value becomes a shared agreement between the site that produces it and every site that consumes it, and no tool holds that agreement: it lives in the tests and in the reader's memory."
+        },
+        {
+          "kind": "example",
+          "text": "Python accepts `n = 1` and then `n = \"one\"`, and `n + 1` fails only on the path that reaches it, and only for the inputs that take that path. MATLAB, R, SAS, Lua, and every POSIX shell behave the same way."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean a checker is unavailable.** The criterion asks whether the language *enforces* a check. A program that runs `mypy --strict` in CI has a check the language did not give it, and the score still records the language."
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "weak static",
+      "title": "Weak static typing",
+      "anchor": "t2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The compiler knows the types, but it converts between them implicitly, so a check that would catch a mistake becomes a silent conversion. The conversion rules become the shared resource: every expression depends on a table that nothing forces a reader to know."
+        },
+        {
+          "kind": "example",
+          "text": "C compiles `int i = 3.7;` and discards the fraction, and lets an integer stand in for a pointer. COBOL converts between two different `PICTURE` clauses on a `MOVE` without complaint. Visual Basic's `Option Strict Off` default admits a narrowing conversion and a late-bound call."
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "dynamic/duck dispatch",
+      "title": "Dispatch by run-time type",
+      "anchor": "t3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Which code a call reaches is decided by the value's run-time type rather than by a declared contract. The set of operations a value must answer becomes a shared agreement that no declaration holds, so a rename in one module breaks a caller in another — and only at run time."
+        },
+        {
+          "kind": "example",
+          "text": "Erlang resolves `Mod:Fun(Args)` when it is called, so a missing function fails there; Elixir and Clojure choose a protocol or a pattern clause from the value they receive; Ruby and Python resolve an attribute at the moment of the call."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean `T1`.** Objective-C is statically typed at the pointer level and still dispatches every message at run time, so it is charged `T3` and not `T1`. TypeScript is statically typed and still reaches a method through the prototype at run time, so it is charged the same way. Duck typing is about *which code runs*; `T1` is about *what a value is*."
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "dimension": "type",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no sum types",
+      "title": "No sum types",
+      "anchor": "t4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language cannot declare that a value is one of several alternatives and have the compiler track which one. The alternatives are encoded by convention, so the tag and its payload are a shared resource that every consumer re-derives, and the compiler cannot prove that a consumer handles every case."
+        },
+        {
+          "kind": "example",
+          "text": "Go has no sum type, so \"a value or a failure\" is a pair and a `nil` check stands in for a match. SQL models an alternative as nullable columns, and the caller must know the encoding. Rust's `enum` and C++'s `std::variant` are the constructs whose absence is charged."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because it is containable.** A constructor plus its accessors can confine the cost to one place — but never to zero, because exhaustiveness stays unchecked."
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "dimension": "type",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no generics",
+      "title": "No generic type parameter",
+      "anchor": "t5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language cannot write an algorithm once over a type parameter, so it duplicates the code per type or falls back on one universal representation. That representation becomes the shared resource, and every user casts out of it, so the type is known by convention."
+        },
+        {
+          "kind": "example",
+          "text": "Pre-generics Java needed `(String) list.get(0)` from an `Object` container; C passes `void *` with a callback; Go before 1.18 used `interface{}`; SQL has no type parameter at all and generates DDL per column type instead."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean the *checking* half of generics.** A language with generics whose parameters cannot be constrained still leaves a gap — but that gap is charged under `T2` or `T3`. `T5` records only the absence of the type parameter itself."
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no namespaces",
+      "title": "One name space",
+      "anchor": "t6",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has a single flat name space, so two declarations with the same name collide whichever module they live in. The global name space is the clearest shared resource there is: every name is a claim on it, and a new module can break an unrelated one."
+        },
+        {
+          "kind": "example",
+          "text": "Two C libraries that both define `init` cannot be linked without renaming one, which is why C libraries prefix their symbols (`gl_`, `png_`). Lua keeps every global in one shared table. An assembler puts every global symbol in one flat symbol table."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence asks about the mechanism, not the idiom.** MATLAB is not charged, because `+pkg` folders scope a name, and R is not charged, because a package declares a `NAMESPACE`. C is charged, because a header's declarations all land in one translator-level name space."
+        }
+      ]
+    },
+    {
+      "id": "T7",
+      "dimension": "type",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "type erasure/reflection",
+      "title": "Type erasure and reflection",
+      "anchor": "t7",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The type parameter is present in the source and gone from the artifact, and the program can inspect and alter its own structure at run time. The erased type is a shared resource that no longer travels with the value, so a consumer must recover it by convention — and reflection turns every private field into a reachable one."
+        },
+        {
+          "kind": "example",
+          "text": "Java's `List<String>` is a `List` at run time, so `get(0)` returns `Object` and the cast is unchecked. Objective-C's `id` carries no compile-time type at all. TypeScript's types exist in the editor and the build, and not in the running program."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because the cost sits at the boundary** where the type is recovered — a cast, a `Class<T>` token, an `isKindOfClass:` test — not in the body of the algorithm."
+        }
+      ]
+    },
+    {
+      "id": "T8",
+      "dimension": "type",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "operator overloading",
+      "title": "Operator overloading",
+      "anchor": "t8",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A symbol such as `+`, `==`, or `[]` takes its meaning from the operand types. A symbol is a shared resource with one meaning by default, and overloading makes that meaning depend on a lookup the reader has to perform."
+        },
+        {
+          "kind": "example",
+          "text": "C++'s `<<` both shifts and inserts into a stream. Scala's `+` on a `Set` performs a union. Racket's `+` accepts exact and inexact numbers and returns whichever type the operands dictate."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because the operator still carries a type signature**, so its meaning is discoverable by resolving one type — unlike a macro, which can mean anything at all."
+        }
+      ]
+    },
+    {
+      "id": "T9",
+      "dimension": "type",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "inheritance required for polymorphism",
+      "title": "Inheritance required for polymorphism",
+      "anchor": "t9",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The only way to use two types through one interface is to place both in an inheritance chain. The base type becomes a shared resource that the types must be *placed into*, which forces an \"is-a\" commitment wherever the domain has only \"does-this\", and a change to the base changes every subtype."
+        },
+        {
+          "kind": "example",
+          "text": "Eiffel's polymorphism runs through its inheritance and genericity rules. C approximates it with a `struct` holding function pointers, or with a `void *` and a convention. TclOO expresses a shared protocol as a class or a mixin rather than a declared type."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor, and the cheapest to remove.** Go's implicit interfaces, Rust's traits, and Elixir's protocols supply polymorphism without a chain, so those languages are not charged."
+        }
+      ]
+    },
+    {
+      "id": "T10",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no null-safety",
+      "title": "No null-safety",
+      "anchor": "t10",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Any reference can be the absent value, and nothing in the type says whether it is. \"May be absent\" becomes a shared resource that every consumer must guard, and no signature records the guard, so each reader repeats the check or forgets it."
+        },
+        {
+          "kind": "example",
+          "text": "Java compiles `String s = null; s.length()`. SQL's `NULL` is compatible with every domain and propagates through three-valued logic, so `IF x = 5` is not true when `x` is `NULL`. In PL/SQL a variable that is never assigned is `NULL`. A null pointer in Assembly is a zero register, and a load from it is an ordinary instruction."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean \"the language has an absent value\".** Kotlin's `String?` against `String`, Swift's optionals, Rust's `Option<T>`, and TypeScript's `string | null` under `strict` are exactly the construct whose absence is charged, which is why those languages are not charged `T10`."
+        }
+      ]
+    },
+    {
+      "id": "T11",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no module boundary",
+      "title": "No module boundary",
+      "anchor": "t11",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "There is no construct that declares what a module exposes and what it keeps. The boundary is the shared resource, and its absence means every declaration is reachable by every consumer, so an internal change can break an unrelated caller."
+        },
+        {
+          "kind": "example",
+          "text": "A C header makes everything it declares public, and `static` is the only file-scoped boundary. A POSIX shell script sources another script into the same variable space. VBScript's `ExecuteGlobal` writes into the same global scope. Scratch exposes every sprite's blocks with no declared interface."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean \"no files\".** Splitting code across files is not a boundary. Go is not charged, because a package-level unexported name is a real boundary, and neither is MATLAB, whose `+pkg` and `private` folders hide what they do not export."
+        }
+      ]
+    },
+    {
+      "id": "C1",
+      "dimension": "construction",
+      "weight": 15,
+      "severity": "High",
+      "label": "global mutable state by default",
+      "title": "Global mutable state by default",
+      "anchor": "c1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The default home for a value is a global that any code can read and write; state is local only when the programmer asks for it. The global is the widest shared resource there is — the whole program is its consumer — so any module can change it, and any change can surprise any reader."
+        },
+        {
+          "kind": "example",
+          "text": "Python's module-level names and `global`. MATLAB's base workspace, and R's global environment with `<<-`. A POSIX shell, where `x=1` inside a function can write the caller's variable. COBOL's `WORKING-STORAGE`. A PL/SQL package variable, which lives for the whole session."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence asks whether a global is the *default*.** Every language permits a global. Kotlin and Rust make top-level state immutable unless it is declared otherwise, so neither is charged."
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "dimension": "construction",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no immutability by default",
+      "title": "No immutability by default",
+      "anchor": "c2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A binding, and the value behind it, can be changed unless the programmer says otherwise. \"Who may write this?\" then has no default answer, so every reader has to trace the writes."
+        },
+        {
+          "kind": "example",
+          "text": "Java fields are mutable unless they are `final`; C++ members unless they are `const`; a MATLAB array is mutable with no `const` at all; a SAS DATA step may overwrite the dataset it is reading."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because immutability is usually a local decision.** A language that inverts the default — Rust's `let` with `mut`, Haskell's bindings — is not charged."
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "dimension": "construction",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "constructors coupled to allocation",
+      "title": "Construction coupled to allocation",
+      "anchor": "c3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Creating a value and obtaining its storage are one act, and the construction cannot be redirected to different storage. The storage site becomes a shared resource, so a caller cannot choose where a value lives, and the code that builds a value cannot be separated from the code that reserves it."
+        },
+        {
+          "kind": "example",
+          "text": "In C a value exists only because storage was reserved and then filled, and a constructor is a naming convention over `malloc`. In Assembly the reservation is a register or a stack slot, and nothing constructs."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because one indirection restores the separation.** C++'s placement construction and allocator-aware containers, and Rust's `Box` and `Vec::with_capacity`, build in storage that already exists, so those languages are not charged."
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "dimension": "construction",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no constructor/validation",
+      "title": "No constructor or validation",
+      "anchor": "c4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A value of the type can exist without having passed any validating path. The invariant becomes a shared resource that nothing enforces, so every consumer either re-validates or simply trusts."
+        },
+        {
+          "kind": "example",
+          "text": "A C `struct` is uninitialized memory until each field is assigned. A Fortran variable can be referenced before it is set. A Solidity contract without a `constructor` is deployed with whatever the default state is. In a POSIX shell a variable comes into existence on first assignment, and no construct can state an invariant about it."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because the invariant can often be re-established cheaply** — a smart constructor, a factory, a private field plus a validating entry point. The criterion is the same either way."
+        }
+      ]
+    },
+    {
+      "id": "M1",
+      "dimension": "memory",
+      "weight": 15,
+      "severity": "High",
+      "label": "manual deallocation",
+      "title": "Manual deallocation",
+      "anchor": "m1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The programmer decides when storage is released, and the program is wrong if the decision is wrong in either direction — a missed release leaks, and a doubled release corrupts. The heap becomes a shared resource, and \"who frees this, and when\" is a question that every path through the program must answer identically."
+        },
+        {
+          "kind": "example",
+          "text": "`malloc` and `free` in C. A stack frame plus `malloc` plus `free` in Assembly. `New` and `Dispose` in Turbo Pascal. Zig's `allocator.free`. In Fortran, `allocate` and `deallocate` are written by hand for a `pointer`, and a missing statement leaks."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence follows the ordinary path.** A language with an optional collector for one allocation class is charged when the ordinary path is manual, because the ordinary path carries the cost."
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "dimension": "memory",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "GC non-deterministic pauses",
+      "title": "Garbage collection on a schedule the program cannot state",
+      "anchor": "m2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Memory returns when the collector decides, not when the last reference goes away. The heap becomes a shared resource whose release schedule the program cannot name, so a latency-sensitive path is coupled to a component it never calls."
+        },
+        {
+          "kind": "example",
+          "text": "The JVM family (Java, Kotlin, Scala, Groovy, Clojure), the CLR (C#, F#), Go, Crystal, D, Nim, OCaml, Haskell, Dart, Unison, and the Lisp family (Common Lisp, Racket, Scheme). Elixir, Erlang, JavaScript, and Ruby each collect on their own runtime's schedule, and TypeScript inherits the JavaScript runtime's."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean \"the language has a collector for one thing\".** Reference counting is deterministic and is not `M2`: Swift's ARC and Delphi's strings and interfaces release at the last reference, and Delphi on Windows frees objects explicitly, so neither is charged. Objective-C is charged, because an autorelease pool defers a release past the last reference and a Core Foundation handle is released by hand."
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "dimension": "memory",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no RAII",
+      "title": "No release tied to scope",
+      "anchor": "m3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Nothing runs automatically when a scope ends, so a resource is released in a `finally`, by a project convention, or not at all. The resource — a lock, a file, a connection — is shared, and its release depends on every path remembering."
+        },
+        {
+          "kind": "example",
+          "text": "C reaches a release path through `goto cleanup`. R uses `on.exit` and MATLAB uses `onCleanup`. Java's `try-with-resources` was added precisely to supply the destructor the language lacks. Python's `with` covers context managers, but only the ones that exist."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because one convention removes it**, and because a missed release is often caught in testing. Rust's `Drop` and Zig's `defer` run at scope exit by construction, so neither is charged."
+        }
+      ]
+    },
+    {
+      "id": "M4",
+      "dimension": "memory",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no ownership model",
+      "title": "No ownership model",
+      "anchor": "m4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language does not track which of several handles owns a resource, and aliasing is unrestricted. \"Who may free or mutate this?\" becomes a shared resource that the program states in comments rather than in the type, and every reader has to reconstruct the answer."
+        },
+        {
+          "kind": "example",
+          "text": "In C, two pointers can share one buffer with no way to say who owns it. In C++ a raw pointer and a reference alias the same object. Go offers no way to declare that a value moves, so a slice and its backing array stay aliased. In C# and Java, any two references can reach the same mutable object."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean \"the language has references\".** Rust is not charged: moves, borrows, and lifetimes are exactly the construct whose absence `M4` records."
+        }
+      ]
+    },
+    {
+      "id": "Er1",
+      "dimension": "error",
+      "weight": 15,
+      "severity": "High",
+      "label": "no structured path",
+      "title": "No structured error path",
+      "anchor": "er1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no construct that carries a failure from where it is detected to where it is handled. The failure travels by side channel — a return code, an out-parameter, a log line, a global status flag — so every caller must remember to check it, and nothing checks that a caller did."
+        },
+        {
+          "kind": "example",
+          "text": "C returns a sentinel and sets `errno`. A shell returns an exit code that nothing reads unless `set -e` is set. Fortran reports through `iostat=`, and COBOL through `FILE STATUS`. SAS writes a note to the log and moves to the next observation. VBScript's `On Error Resume Next` turns a failure into a silent continuation."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence records the path, not its enforcement.** A language whose ordinary failure path is an exception is charged `Er2` instead."
+        }
+      ]
+    },
+    {
+      "id": "Er2",
+      "dimension": "error",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "unchecked exceptions only",
+      "title": "Failures nobody is required to handle",
+      "anchor": "er2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A failure can be raised without the signature saying so, and no caller is required to handle it. The set of failures a call can produce becomes a shared resource that the type system does not carry, so a caller discovers it in production."
+        },
+        {
+          "kind": "example",
+          "text": "A MATLAB `MException` propagates until something catches it, and nothing must. An R condition is signalled and carried on. D's `throw` needs no declaration, and `nothrow` is an opt-in promise that no caller sees. Go's `panic` is unchecked and `recover` is optional. Java's unchecked exceptions carry the failures that actually occur — `NullPointerException`, `IllegalArgumentException` — even though the language also has checked ones."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean \"the language has no checked failures\".** The criterion is charged when the failures that arrive in practice are the unchecked ones, because those are the ones no signature can enumerate."
+        }
+      ]
+    },
+    {
+      "id": "Er3",
+      "dimension": "error",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "errors ignored/non-exhaustive",
+      "title": "A failure can be ignored",
+      "anchor": "er3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language lets a failure pass without any decision, and it does not force exhaustiveness. \"Handled or not\" becomes a shared decision that nothing records, so a caller's silence is indistinguishable from its approval."
+        },
+        {
+          "kind": "example",
+          "text": "In C a return value and an `errno` value carry no consequence until the code branches on them, and a `switch` over an `enum` may leave cases unhandled without a diagnostic. In Haskell a non-exhaustive pattern compiles and fails only when reached. A `-1` from an Assembly call is a value, not a signal."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because one discipline removes it locally** — a checked return, a total `switch`, an exhaustive match — but the discipline has to be written down, and the language will not check that it is kept."
+        }
+      ]
+    },
+    {
+      "id": "Er4",
+      "dimension": "error",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no composable result type",
+      "title": "No composable result type",
+      "anchor": "er4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A failure cannot be carried as an ordinary value through an ordinary expression, so it cannot be threaded, combined, or returned from a helper. The success-and-failure pair has to be rebuilt at every level, through out-parameters, sentinel values, or a global status, so the *shape* of the error path becomes a shared convention."
+        },
+        {
+          "kind": "example",
+          "text": "Ada reports through `raise`, so a fallible operation cannot be folded into an expression. In C the pair is an out-parameter or `errno`. In Go it is a second return value, which cannot be mapped or chained without a second statement. In Assembly there is no value that can carry \"this failed\"."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because the cost is syntactic rather than structural** — but it is the difference between an error path that composes and one that is everywhere a special case. Rust's `Result`, Haskell's `Either`, and C++'s `std::expected` are the constructs whose absence is charged."
+        }
+      ]
+    },
+    {
+      "id": "K1",
+      "dimension": "concurrency",
+      "weight": 15,
+      "severity": "High",
+      "label": "GIL/no parallel",
+      "title": "No parallel execution",
+      "anchor": "k1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language cannot run two computations at the same time. \"How much may run at once\" is fixed by the runtime, so every part of the program that wants throughput is coupled to that one decision."
+        },
+        {
+          "kind": "example",
+          "text": "Python's global interpreter lock serialises bytecode execution, so a CPU-bound program must leave the language — multiprocessing, a native extension — to use a second core. JavaScript and PHP take a request or an event as the unit of work. Solidity runs a transaction on one EVM thread, and PureScript and TypeScript inherit the single-threaded JavaScript runtime."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is about what the language can express**, not about what a library can reach. A language whose only route to a second core is a separate process or a native extension is charged, because the program's structure is then not the language's."
+        }
+      ]
+    },
+    {
+      "id": "K2",
+      "dimension": "concurrency",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "shared mutable state default",
+      "title": "Shared mutable state by default",
+      "anchor": "k2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Concurrency shares memory by default, and nothing marks a value as thread-local, immutable, or owned. The shared cell becomes the resource, and every reader has to reconstruct which lock protects it."
+        },
+        {
+          "kind": "example",
+          "text": "An Assembly store to a global is visible to every core, with no privacy notion attached to the address. A PL/SQL package variable is shared by every program unit in the session. In T-SQL, `SET` options and session-scoped state are visible to code the caller did not write. A C file-scope object is shared by every thread that reaches it."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence records the *default*.** `K2` and `K3` often appear together, and they are different claims: `K2` says the shared state is the default, and `K3` says the language gives no help in finding the resulting races."
+        }
+      ]
+    },
+    {
+      "id": "K3",
+      "dimension": "concurrency",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "manual sync no race detection",
+      "title": "Manual synchronisation, no race detection",
+      "anchor": "k3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Locks and atomics are library types, and the language neither proves the locking discipline nor detects a race. The discipline becomes an agreement across every file that touches the data, and the compiler checks none of it."
+        },
+        {
+          "kind": "example",
+          "text": "Java's `synchronized`, C#'s `lock`, Go's `sync.Mutex`, Kotlin's `@Synchronized`, and Scala's synchronized blocks serialise access but do not find a missing lock. D's `core.atomic` and Crystal's `Mutex` and `WaitGroup` are libraries over the same primitive. A `lock` prefix on one x86-64 instruction is the whole of Assembly's provision."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is about detection, not about threads.** A language that proves thread safety at compile time is not charged, even though it has threads."
+        }
+      ]
+    },
+    {
+      "id": "K4",
+      "dimension": "concurrency",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no structured concurrency",
+      "title": "No structured concurrency",
+      "anchor": "k4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language gives no construct that scopes a task's lifetime to a block, so nothing guarantees that a task has finished when the block ends. The task's lifetime becomes a shared resource that the program tracks by hand, and a scope can end while work it started is still running."
+        },
+        {
+          "kind": "example",
+          "text": "C's threads and Zig's threads have no scope that joins them. Perl's `threads` leaves the task tree to the program. A Groovy executor service is joined by hand or not at all. In Assembly a thread is a `clone` or `pthread_create` call with nothing around it."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because a scope construct can be added by convention**, and because the failure it causes — work outliving its scope — is usually visible in testing. Kotlin's `coroutineScope` and Swift's task groups are the constructs whose absence is charged."
+        }
+      ]
+    },
+    {
+      "id": "K5",
+      "dimension": "concurrency",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no primitives",
+      "title": "No concurrency primitives",
+      "anchor": "k5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no lock, channel, or await, so concurrent work is started and steered outside the language. The synchronisation becomes a shared resource that lives in signals, exit codes, or a foreign library, so no declaration states the protocol."
+        },
+        {
+          "kind": "example",
+          "text": "A shell starts a job with `&`, steers it with signals, and communicates through exit codes, with no lock and no channel anywhere in the language. Turbo Pascal 7.0 in DOS reaches concurrent work through an interrupt procedure, and its synchronisation is the hardware's."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is the complement of `K1`.** `K1` is a runtime that forbids parallelism; `K5` is a language that offers nothing to coordinate it."
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "dimension": "platform",
+      "weight": 15,
+      "severity": "High",
+      "label": "cannot function outside one vendor/domain",
+      "title": "Cannot leave one vendor or one domain",
+      "anchor": "p1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The program runs only inside one vendor's product or one domain, so the deployment unit *is* that platform. The platform is the widest shared resource of all: every line is coupled to a runtime, an API surface, and a release cycle the program does not control."
+        },
+        {
+          "kind": "example",
+          "text": "A PL/SQL program needs an Oracle-family database and deploys as a schema. SAS needs a SAS installation and deploys as a library on a SAS host. Transact-SQL needs SQL Server, Azure SQL, or SAP ASE. A Rocq development runs only after extraction to another language. An x86-64 Assembly artifact runs only where that instruction set runs. A Solidity contract runs only on an EVM."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is about the artifact.** A language whose compiler runs anywhere but whose programs run in one place is still charged."
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "dimension": "platform",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "single-vendor but other uses",
+      "title": "One vendor dominates, other uses exist",
+      "anchor": "p2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has a single dominant implementation or platform, even though alternatives exist in principle. The toolchain, the library set, and the release schedule of one vendor become the program's agreed reality."
+        },
+        {
+          "kind": "example",
+          "text": "Groovy has no non-JVM implementation. Objective-C's complete language, reference compiler, and flagship frameworks are one vendor's. Most production COBOL runs on one mainframe platform with that vendor's compilers. Eiffel's practical toolchain is EiffelStudio, and Tcl's is its own interpreter. Swift's toolchain and frameworks are one platform's."
+        },
+        {
+          "kind": "note",
+          "text": "**P2 is a degree below `P1`.** The artifact could in principle run elsewhere, and in practice does not."
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "dimension": "platform",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "legacy/discontinued platform",
+      "title": "A legacy or discontinued platform",
+      "anchor": "p3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The program targets a platform that is no longer developed, so the artifact is frozen with it. The platform's limits — its word size, its memory model, its APIs — become permanent constraints on the program."
+        },
+        {
+          "kind": "example",
+          "text": "Turbo Pascal 7.0 compiles real-mode DOS executables, and it was the last release of that line: the target, not just the tool, has ended."
+        },
+        {
+          "kind": "note",
+          "text": "**`P3` is not `P1`.** `P1` is one live vendor with one domain; `P3` is a platform whose own life has ended. Assembly on x86-64 is charged `P1` for its instruction-set lock-in, and not `P3`, because that instruction set is current."
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "dimension": "performance",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "interpreted no AOT/JIT",
+      "title": "Interpreted, with no ahead-of-time compilation",
+      "anchor": "r1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The source is executed by an interpreter or a virtual machine rather than compiled to the machine's code ahead of time. The execution model becomes a shared resource fixed by the runtime, so the shape of every hot loop is decided by the interpreter's dispatch rather than by the algorithm."
+        },
+        {
+          "kind": "example",
+          "text": "A Prolog goal is a search over the clause database through the engine's instruction set, so a tight arithmetic loop trails a compiled equivalent. A shell parses and evaluates text at run time, so a loop over files pays parser cost per iteration. Base R and base MATLAB execute an interpreted form, and Perl's reference interpreter has no JIT. Ruby is charged because its JIT is opt-in, so a default run stays interpreted."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence does not mean \"slow\".** The criterion is about the *absence of an ahead-of-time path*, which is why a language with a mature library behind it (MATLAB's BLAS and LAPACK calls) can still be charged while remaining fast where it matters."
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "dimension": "performance",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "GC pauses",
+      "title": "Collector pauses visible to the program",
+      "anchor": "r2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A collector's pause is part of the program's timing, and the program cannot state when it will occur. The heap's release schedule becomes a shared resource decided outside the program, so a latency target couples to the runtime's collector."
+        },
+        {
+          "kind": "example",
+          "text": "Dart's generational collector stops the mutator, which shows as a frame-time spike. SBCL and CCL stop the program to collect Common Lisp, GHC pauses to collect Haskell, and Nim's collector stalls its mutator. The JVM's pause reaches Java, Kotlin, Scala, and Groovy alike, and the CLR's reaches C#, F#, and the Visual Basic runtime. JavaScript pauses the one event loop it has, so a pause blocks every pending callback, and TypeScript and PureScript inherit that runtime. Go's pause is short but present, Eiffel's and D's collectors remain a latency risk, and Unison's own runtime collects on its own schedule."
+        },
+        {
+          "kind": "note",
+          "text": "**`R2` is not `M2`.** `M2` records that the heap's schedule is not the program's; `R2` records that the schedule is *observable* — a pause a latency budget has to absorb. The two are marked independently: a language can hold `M2` without `R2`, because a collector whose pause the page does not record as a cost (Python's, Ruby's, Crystal's, Racket's) is not charged. Where the page records the pause as a cost, the mechanism is charged — which is what keeps the charge set checkable against the pages themselves."
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "dimension": "performance",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "JIT warmup",
+      "title": "JIT warm-up",
+      "anchor": "r3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The first execution of a function compiles it, so the code's speed depends on which path runs first and on how long the process has been up. Measurement itself becomes the shared convention: a benchmark has to agree on a warm-up, and a short-lived process never reaches the optimized state."
+        },
+        {
+          "kind": "example",
+          "text": "Julia compiles a method on its first call, so latency depends on which path runs first. The JVM and the CLR tier their compilation, so Groovy, Clojure, Kotlin, F#, C#, Java, and PowerShell are slower on their first requests than in steady state."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because a long-running process amortises it**, and because it can be pre-warmed."
+        }
+      ]
+    },
+    {
+      "id": "Ec1",
+      "dimension": "ecosystem",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no package manager",
+      "title": "No package manager",
+      "anchor": "ec1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no standard way to declare, fetch, and resolve a dependency. The build's dependency graph becomes a shared resource owned by the build system rather than the language, so a project's dependencies are a local convention that no tool can check."
+        },
+        {
+          "kind": "example",
+          "text": "In Assembly a dependency is an object file or a linked library resolved by the build script. The C and C++ standard defines no distribution, so the platform's toolchain supplies one. Prolog's standard defines no distribution, so each system ships its own. A shell has no dependency declaration beyond what the script itself probes for."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because the cost is confined to the build** — but the build's convention is the whole program's convention."
+        }
+      ]
+    },
+    {
+      "id": "Ec2",
+      "dimension": "ecosystem",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "fragmented tooling",
+      "title": "Fragmented tooling",
+      "anchor": "ec2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "No single toolchain covers the language, so every tool targets a dialect, a version, or a vendor. The workflow becomes a shared resource with several incompatible owners, and a team's tooling choices must agree file by file."
+        },
+        {
+          "kind": "example",
+          "text": "ORMs, migration tools, linters, and formatters each target one SQL engine's dialect, so there is no single SQL toolchain. C and C++ are split across platform toolchains with different extensions and different warning sets. Go's module and build conventions grew in parallel with the wider Go toolchain, so a project's conventions are partly its own."
+        },
+        {
+          "kind": "note",
+          "text": "**Moderate because the fragmentation is structural** — it comes from the language's reach, not from anyone's neglect."
+        }
+      ]
+    },
+    {
+      "id": "Ec3",
+      "dimension": "ecosystem",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "small/niche/discontinued",
+      "title": "Small, niche, or discontinued ecosystem",
+      "anchor": "ec3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The library pool, the hiring market, or the vendor's investment is small, so more code is written than found. The library surface is a shared resource the whole community draws on, and when it is thin, each project re-invents and the local convention becomes the only one."
+        },
+        {
+          "kind": "example",
+          "text": "`dub`'s registry is far smaller than crates.io, npm, or Maven, so a D project is likelier to write a library than to find one. SAS's market shrank against R and Python, so new packages arrive more slowly. Tcl, Eiffel, Prolog, Delphi, Crystal, and Lua sit in the same position. This criterion is charged in just over half the inventory, and it is deliberately held at Moderate: a niche language is a cost, not a defect."
+        }
+      ]
+    },
+    {
+      "id": "Ec4",
+      "dimension": "ecosystem",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "proprietary",
+      "title": "Proprietary ecosystem",
+      "anchor": "ec4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The engine, the tooling, and the documentation come from one vendor under licence. The right to continue becomes a shared resource owned by a licensor, so the program's future depends on a commercial decision."
+        },
+        {
+          "kind": "example",
+          "text": "MATLAB's toolboxes, editor, and reference documentation come from one vendor under licence. PL/SQL's engine, tooling, and support come from Oracle. SAS, COBOL, Eiffel, Transact-SQL, Objective-C, and VBScript are in the same position, and so is any language whose manuals are behind a paywall."
+        },
+        {
+          "kind": "note",
+          "text": "**Moderate because the licence is a structural dependency**, not merely a price: the artifacts, the formats, and the support channel are all the vendor's."
+        }
+      ]
+    },
+    {
+      "id": "Ec5",
+      "dimension": "ecosystem",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "platform-locked tooling",
+      "title": "Tooling locked to one platform",
+      "anchor": "ec5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The build, the debugger, or the package tooling runs on one operating system or one runtime only. The development environment becomes a shared resource the team cannot choose, so the workflow is coupled to a platform."
+        },
+        {
+          "kind": "example",
+          "text": "Swift's toolchain, its debugger, and its frameworks belong to one platform, so a Swift team outside it works with a second-class toolchain."
+        },
+        {
+          "kind": "note",
+          "text": "**Ec5 is not `P2`.** `P2` is about where the *program* runs; `Ec5` is about where the *tools* run."
+        }
+      ]
+    },
+    {
+      "id": "Ec6",
+      "dimension": "ecosystem",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "monoculture",
+      "title": "Ecosystem monoculture",
+      "anchor": "ec6",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "One framework, library, or runtime dominates to the point that the alternatives are not really alternatives. The dominant choice becomes a shared resource with one owner, so the whole community's assumptions move together — and a defect or a policy change in that one component reaches everything."
+        },
+        {
+          "kind": "example",
+          "text": "Elixir's ecosystem is a monoculture around Phoenix and OTP, so alternatives to the dominant framework are few. Java's and C#'s enterprise worlds, PHP's web stack, and Ruby's Rails are each dominated by one framework family."
+        },
+        {
+          "kind": "note",
+          "text": "**Moderate because the concentration is a risk, not a defect**: it delivers consistency, and it removes the escape route."
+        }
+      ]
+    },
+    {
+      "id": "Ec7",
+      "dimension": "ecosystem",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "legacy burden",
+      "title": "Legacy burden",
+      "anchor": "ec7",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The ecosystem carries versions, APIs, or idioms that must still be supported, so old and new coexist. The compatibility surface becomes a shared resource that every new feature has to respect, so no part of the ecosystem can change freely."
+        },
+        {
+          "kind": "example",
+          "text": "Java's enterprise stack keeps a 1999-era API in service next to a 2026 one, and a library has to keep both working. Ruby's ecosystem pins older runtimes through older gems, so an upgrade has to wait for the slowest dependency."
+        },
+        {
+          "kind": "note",
+          "text": "**`Ec7` is the twin of `V1`.** `V1` is the language changing under the code; `Ec7` is the ecosystem refusing to change."
+        }
+      ]
+    },
+    {
+      "id": "V1",
+      "dimension": "evolution",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "breaking changes",
+      "title": "Breaking changes",
+      "anchor": "v1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language, or its standard library, changes in a way that invalidates existing code. The language itself becomes the shared resource, so every consumer has to revisit code when the language moves."
+        },
+        {
+          "kind": "example",
+          "text": "Rust's edition 2024 rewrote the capture rules of `impl Trait`, required `unsafe extern`, and reserved `gen`, so a crate that adopts the edition has to be revisited. Scala's 2-to-3 migration, Nim's and Zig's moving standard libraries, and Haskell's library-level breakage put the same cost on their users."
+        },
+        {
+          "kind": "note",
+          "text": "**An edition system is the mitigation, not the absence.** Rust isolates the changes to an opt-in edition and is still charged, because the cost of the migration is real."
+        }
+      ]
+    },
+    {
+      "id": "V2",
+      "dimension": "evolution",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "frozen",
+      "title": "Frozen definition",
+      "anchor": "v2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language is complete and will not change further. \"What the language will do next\" becomes settled, which removes one shared uncertainty — and also means that a missing feature or a defect is permanent."
+        },
+        {
+          "kind": "example",
+          "text": "Objective-C 2.0 is effectively the last revision of the language, and platform-facing work moved to a successor. Turbo Pascal's definition is frozen at 7.0."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because a freeze is a promise.** Nothing in the existing code will break."
+        }
+      ]
+    },
+    {
+      "id": "V3",
+      "dimension": "evolution",
+      "weight": 15,
+      "severity": "High",
+      "label": "discontinued",
+      "title": "Discontinued",
+      "anchor": "v3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no vendor, no steward, and no expectation of another version. The language becomes a shared resource that will never be maintained again, so every defect and every security issue is permanent, and every dependency is a dead end."
+        },
+        {
+          "kind": "example",
+          "text": "Borland ended the Turbo Pascal line in the mid-1990s and moved it to a successor product. Microsoft announced VBScript's deprecation in 2023, with removal from the operating system planned after 2027, so the remaining life of the language is a published countdown."
+        },
+        {
+          "kind": "note",
+          "text": "**High because the cost is total and irreversible.** There is no migration path inside the language, and none can be added."
+        }
+      ]
+    },
+    {
+      "id": "V4",
+      "dimension": "evolution",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "glacial standards",
+      "title": "Standards that move glacially",
+      "anchor": "v4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language is defined by a standard that revises on a multi-year cycle, so a needed feature waits for the committee. The definition becomes a shared resource whose revision schedule is not the user's, and a program's design is bounded by when the standard catches up."
+        },
+        {
+          "kind": "example",
+          "text": "SQL:2023 appeared seven years after SQL:2016, so a feature outside the standard stays an extension in the meantime. Ada 2022 followed Ada 2012 by a decade, and the POSIX shell specification moves slowly enough that a shell's own extensions are the practical definition of its behaviour."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because implementations commonly lead the standard** with extensions — at the cost of portability, which is charged elsewhere, under `P2` and `Ec2`."
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "dimension": "domain",
+      "weight": 15,
+      "severity": "High",
+      "label": "domain/vendor lock-in",
+      "title": "Domain or vendor lock-in",
+      "anchor": "d1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language exists to serve one domain or one vendor's product, so adopting it is also adopting that target. The domain's model becomes the shared resource, and every abstraction in the program has to be expressible in it."
+        },
+        {
+          "kind": "example",
+          "text": "MATLAB's library set targets one vendor's platform, so adoption is a procurement decision as much as a technical one. PL/SQL exists to run inside an Oracle database, so the Oracle data tier is the only domain. SAS's data-step model is the SAS library. Transact-SQL's domain is one database engine, and Solidity's is one blockchain's execution model. Rocq's, SPARK's, and Lean's domain is machine-checked proof."
+        },
+        {
+          "kind": "note",
+          "text": "**`D1` and `P1` ask different questions.** `P1` is where the artifact can *run*; `D1` is what the language is *for*. MATLAB is charged `D1` and not `P1`: the vendor's platform is the language's purpose, and the artifact is not confined to one machine."
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "dimension": "domain",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "poor domain fit",
+      "title": "Poor fit for general application work",
+      "anchor": "d2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language is a bad fit for ordinary application work, because the constructs it lacks make ordinary logic expensive. Every abstraction the program needs has to be built from primitives, so the program's structure becomes a local invention rather than a shared convention."
+        },
+        {
+          "kind": "example",
+          "text": "Assembly has no types, no data abstraction, and no error path, so application logic is expensive to write and to change. Scratch has no file access, no network, and no general library, so it is not usable for a production application. Prolog's computation model fits relational search and resists ordinary imperative application code. Ada's and Fortran's constructs fit their own problem classes first."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is judged against general-purpose use**, not against the language's intended domain — otherwise every domain-specific language would be charged twice, once for its fit and once for its narrowness."
+        }
+      ]
+    },
+    {
+      "id": "D3",
+      "dimension": "domain",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "framework forces architecture",
+      "title": "A framework dictates the architecture",
+      "anchor": "d3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The idiomatic way to use the language is inside a host framework whose execution model decides the program's structure. The framework's callbacks, lifecycles, and conventions become the shared resource, so the program's architecture is set by a third party."
+        },
+        {
+          "kind": "example",
+          "text": "A Java program is idiomatically assembled as a Spring application, so its wiring, its transactions, and its entry points follow the framework's model. A C# program follows the same path through ASP.NET. In Groovy the build script and the pipeline run inside a host's execution model and obey its conventions. Go's project layout and module conventions are conventions the toolchain assumes."
+        },
+        {
+          "kind": "note",
+          "text": "**Moderate because the framework is hard to leave**: the code is written against the framework's lifecycle, not merely called by it."
+        }
+      ]
+    },
+    {
+      "id": "L1",
+      "dimension": "learning",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "steep",
+      "title": "Steep learning curve",
+      "anchor": "l1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A practitioner has to learn concepts that build on nothing else they already know. That knowledge becomes a shared resource with a narrow entry, so the onboarding cost is borne by every team and every hiring decision."
+        },
+        {
+          "kind": "example",
+          "text": "Erlang asks for functional programming, the actor model, and OTP at once, on top of a Prolog-derived syntax. Rust asks for ownership, borrows, and lifetimes. Haskell asks for type classes, monads, and laziness. Lean and Rocq ask for dependent types and proof engineering. Ada's language and its annexes are large enough that a team learns them for a while."
+        },
+        {
+          "kind": "note",
+          "text": "**`L1` measures distance from the mainstream**, so a language whose concepts are unusual is charged even when the concepts are excellent. The cost is real even when the design is good."
+        }
+      ]
+    },
+    {
+      "id": "L2",
+      "dimension": "learning",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "large surface/multi-paradigm",
+      "title": "Large surface, or several paradigms at once",
+      "anchor": "l2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language is large, or it supports several paradigms at once, so there are many ways to write the same thing. \"The way we do it here\" becomes the shared resource, and it has to be written down, because the language will not narrow the choice."
+        },
+        {
+          "kind": "example",
+          "text": "Ada's standard library, annexes, and profiles add to a large core. C++ mixes four paradigms and several generations of idiom. Scala, Kotlin, F#, Elixir, Erlang, Nim, and Swift each admit both object and functional styles. PowerShell mixes cmdlets, .NET calls, and pipelines."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because a team can cut the surface** with a style guide — but the guide is the team's, not the language's."
+        }
+      ]
+    },
+    {
+      "id": "L3",
+      "dimension": "learning",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "sparse docs",
+      "title": "Sparse or unintuitive documentation",
+      "anchor": "l3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The reference material is thin, or it omits the knowledge a practitioner actually needs. The understanding of the language becomes a shared resource held privately, so it is rediscovered by each practitioner in turn."
+        },
+        {
+          "kind": "example",
+          "text": "In Lean 4, why a `simp` call succeeded, or why an instance was not found, has to be read out of the goal state and the option list rather than from a reference. Zig's language reference is still evolving with the language, so the authoritative answer is sometimes the compiler's source."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because it is the cheapest criterion to fix externally**: a book, a wiki, or a community can supply what the vendor did not."
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "dimension": "syntax",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "verbose",
+      "title": "Verbose",
+      "anchor": "s1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The notation requires many words or lines to express a small idea. The reading surface grows, so a lower signal-to-noise ratio is a cost every reader pays on every review."
+        },
+        {
+          "kind": "example",
+          "text": "A PL/SQL unit needs a declaration section, a `BEGIN ... END` block, and an exception section before it does anything. A SAS step is a list of `KEYWORD option;` lines, and `LENGTH`, `FORMAT`, and `LABEL` add lines before any data is touched. COBOL and Ada require a declaration before nearly every statement, and Fortran and Delphi carry a long legacy of required keywords."
+        },
+        {
+          "kind": "note",
+          "text": "**`S1` is not a style preference.** It is charged where the language *requires* the words, not where a programmer chose them."
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "dimension": "syntax",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "inconsistent",
+      "title": "Inconsistent",
+      "anchor": "s2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Comparable things are written differently, so there is no rule to learn, only cases. The syntax becomes a shared resource whose mapping is not predictable, so every reader has to look things up."
+        },
+        {
+          "kind": "example",
+          "text": "PHP's standard library names follow no single rule: `str_replace`, `strpos`, and `str_contains` disagree on placement of the underscore and on argument order between neighbours. Perl's built-ins read the current context, so `$_`, `@_`, and `%+` change what a call does."
+        },
+        {
+          "kind": "note",
+          "text": "**S2 is the most expensive syntax criterion because it cannot be automated away.** A formatter normalises layout, not names."
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "dimension": "syntax",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "punctuation-heavy",
+      "title": "Punctuation-heavy",
+      "anchor": "s3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The notation leans on dense delimiters, so the structure is carried by characters the reader has to match. Reading then requires tracking a delimiter stack, which couples comprehension to an editor's matching and folding."
+        },
+        {
+          "kind": "example",
+          "text": "Common Lisp's parentheses nest deeply, and the text is hard to read without an editor that matches them. Perl's sigils add a character to nearly every variable reference."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because tooling removes most of it**, and because the cost is paid once per reading rather than once per change."
+        }
+      ]
+    },
+    {
+      "id": "G1",
+      "dimension": "testing",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "weak tooling",
+      "title": "Weak test tooling",
+      "anchor": "g1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language or its standard toolchain provides no test framework, assertion, or runner. The verification of the code becomes a shared resource that each project has to build and maintain for itself."
+        },
+        {
+          "kind": "example",
+          "text": "In Assembly a test is another program that runs and compares, and the harness lives outside the assembler. Scratch has no assertion and no runner, so a test is a manual run. Turbo Pascal ships no test framework, and neither do most shells beyond what an exit code can say."
+        },
+        {
+          "kind": "note",
+          "text": "**`G1` records what the language and its standard toolchain ship.** A mature third-party framework can remove the practical cost without changing what the language provides — which is what the criterion is about."
+        }
+      ]
+    },
+    {
+      "id": "G2",
+      "dimension": "testing",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "poor debugging",
+      "title": "Poor debugging",
+      "anchor": "g2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Finding a failure means reading machine state or log output rather than a named abstraction. The diagnosis becomes a shared resource held only by whoever can read the raw state, so debugging skill does not travel with the code."
+        },
+        {
+          "kind": "example",
+          "text": "A debugger that exposes registers and raw memory turns a fault into a machine-state question. Haskell's laziness means the failing expression is not the one that produced the value. Zig's comptime evaluation and Unison's content-addressed code make the executed form differ from the source. Turbo Pascal's IDE steps and watches variables, with no assertion or coverage support."
+        },
+        {
+          "kind": "note",
+          "text": "**`G2` is not `G3`.** `G2` is \"you cannot see what happened\"; `G3` is \"nothing told you beforehand\"."
+        }
+      ]
+    },
+    {
+      "id": "G3",
+      "dimension": "testing",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "runtime-only errors",
+      "title": "Errors only at run time",
+      "anchor": "g3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A mistake of the kind a compiler could catch is deferred to the executed path. The correctness of an unexecuted path is then unknown, so coverage becomes the only evidence of safety — a shared resource that every contributor has to maintain."
+        },
+        {
+          "kind": "example",
+          "text": "A wrong block in Scratch is found by running the project. A type mistake in Elixir, Erlang, Python, Ruby, JavaScript, or Perl surfaces on the path that reaches it. TypeScript's `any` re-opens the gap the language closes elsewhere. In Prolog a goal fails at run time, and in R a coercion fails when it is evaluated."
+        },
+        {
+          "kind": "note",
+          "text": "**`G3` is deliberately `T1` counted again.** The same language property costs once as coupling, under `T1`, and once as deferred verification, here. The model counts both because a program pays both — and the dimensions are separate because the remedies are separate."
+        }
+      ]
+    },
+    {
+      "id": "Q1",
+      "dimension": "security",
+      "weight": 15,
+      "severity": "High",
+      "label": "memory-unsafe",
+      "title": "Memory-unsafe",
+      "anchor": "q1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language permits access to memory outside the bounds of an object, and to storage that has already been freed. Every pointer becomes a shared resource with no owner and no bound, so a fault in one module can corrupt another module's data."
+        },
+        {
+          "kind": "example",
+          "text": "In C a buffer overflow, a use-after-free, a double free, and an out-of-bounds write are all possible, and nothing in the language prevents them. In C++ the same faults compile: `reinterpret_cast`, pointer arithmetic, and manual `new`/`delete` remain available, and the standard library is safe only where a program uses it. Zig keeps manual memory management and undefined behaviour, so a use-after-free and a mistyped `@ptrCast` are reachable. In Assembly an address is a number, with no abstraction in between."
+        },
+        {
+          "kind": "note",
+          "text": "**`Q1` is the only criterion attached to a class of *vulnerability*.** The others price maintainability; this one prices an exploit, which is why it carries the top weight."
+        }
+      ]
+    },
+    {
+      "id": "Q2",
+      "dimension": "security",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "dynamic/weak typing risk",
+      "title": "Dynamic or weak typing as a security risk",
+      "anchor": "q2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A value from an untrusted source arrives with no declared type, so keeping it away from a dangerous operation is the programmer's check. The trust boundary becomes a shared resource that the type system does not mark, so a missing check leaves no trace."
+        },
+        {
+          "kind": "example",
+          "text": "In Python, Ruby, JavaScript, and PHP a request value is whatever the input made it, so a check has to be written and kept. A Prolog term carries no declared type, so a value from an untrusted source is separated from a goal only by an explicit test. In Smalltalk a type confusion is discovered at run time, so an unexecuted path stays unchecked."
+        },
+        {
+          "kind": "note",
+          "text": "**`Q2` is `Q1`'s sibling for dynamic languages.** The same missing type information costs once as coupling, under `T1` or `T2`, and once as a security surface here."
+        }
+      ]
+    },
+    {
+      "id": "Q3",
+      "dimension": "security",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "known vulnerability/injection",
+      "title": "A known injection surface",
+      "anchor": "q3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language turns text into code or commands as an ordinary operation, so concatenated input is an injection path. The code's own text becomes a shared resource reachable from data, so a data path can become a control path."
+        },
+        {
+          "kind": "example",
+          "text": "PL/SQL's `EXECUTE IMMEDIATE` and `DBMS_SQL` build a statement as text. R's `eval(parse(text = ...))`, `do.call` on a string, and `system()` turn text into code or into a command. A shell's `eval` sends a quoted variable back through the parser. In Transact-SQL and SQL a statement assembled by concatenation carries the caller's text. PowerShell's `Invoke-Expression` does the same."
+        },
+        {
+          "kind": "note",
+          "text": "**`Q3` records the language-level facility, not its misuse.** Parameterised queries and prepared statements are the mitigation, and the criterion is charged because the facility remains available and remains the path of least resistance."
+        }
+      ]
+    }
+  ]
+}

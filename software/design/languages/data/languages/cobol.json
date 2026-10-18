@@ -1,0 +1,495 @@
+{
+  "schemaVersion": 1,
+  "id": "cobol",
+  "name": "COBOL",
+  "assessedAs": "COBOL",
+  "version": "1989:2023",
+  "title": "COBOL (ISO/IEC 1989:2023)",
+  "indexLabel": "COBOL (1989:2023)",
+  "group": "functional-declarative-legacy",
+  "order": 17,
+  "displayOrder": 32,
+  "presenceOrder": 32,
+  "presenceList": {
+    "core": "T2, C1, Er1, P2",
+    "meta": "Ec3, Ec4, D1, S1, L1"
+  },
+  "matrixOrder": 7,
+  "tagline": "Mainframe Business",
+  "sbName": "COBOL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "isoCobol2023"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": true,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": true,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Typing is weak and static**: A `PICTURE` clause fixes an item's shape, but a `MOVE` between items with different pictures converts the value silently, so the declared type does not protect it",
+        "mechanism": "T2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The Data Division declares the shape once**: Level numbers and `PICTURE` state each item's size and category, and the Procedure Division uses that declaration without repeating it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Group items give a structured record**: Level numbers nest elementary items inside groups, so a record layout is one declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Fixed decimal arithmetic is exact**: `COMP-3` packed-decimal operations do not accumulate binary floating-point error, so the numeric representation matches monetary values",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`USAGE` decides the representation**: `COMP-3` (packed decimal), `COMP` (binary), and `DISPLAY` differ, and a move between them converts without a type error",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An alphanumeric item accepts any character string**: An `X(n)` item holds any text, so a category mistake is caught only by the program's own checks",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Every data item is visible to every paragraph**: A `WORKING-STORAGE` item can be read and modified from any procedure, and before COBOL-85 the language offered no way to restrict access to it",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The four divisions separate concerns**: Identification, Environment, Data, and Procedure give each declaration a fixed place, so data definition does not share a space with program logic",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`CALL ... USING` passes parameters to a subprogram**: A called program receives its arguments explicitly, so a subprogram boundary is a declared interface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`LOCAL-STORAGE` gives per-call state**: It is allocated for each invocation, so a re-entrant call does not share the state held in `WORKING-STORAGE`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`PERFORM THRU` names a range of paragraphs and passes nothing**: The called region is a text span and the performed code communicates only through shared data items, with no parameter list and no call stack",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`GO TO` and `ALTER` break structured flow**: The language permits control transfers that obscure which paragraph runs next",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Ordinary program data needs no allocator**: `WORKING-STORAGE` and `LOCAL-STORAGE` come from a declared layout, so a program that uses only them calls no allocator and no free",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No garbage collector**: Storage is fixed at compile time, so reclamation is deterministic and unobserved",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`OCCURS` declares fixed-size tables**: The size of a table is known at compile time",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`OCCURS DEPENDING ON` varies a table's length at run time**: The logic then couples to the actual occurrence count",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`ALLOCATE` and `FREE` put deallocation back on the programmer**: The 2002 standard added dynamic allocation for tables and objects, and release is an explicit statement",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Error handling has no structured path**: `USE AFTER STANDARD ERROR` and other declaratives are declared globally in the `DECLARATIVES` section, and control may or may not return to the failing statement",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The declaratives section is separated from the main procedure**: Recovery code is declared apart from the normal path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`FILE STATUS` reports I/O results as data**: A file's `FILE STATUS` item holds a two-character code that the program can test after each I/O statement",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`INVALID KEY` and `AT END` put the failure case at the statement**: `READ ... INVALID KEY ... NOT INVALID KEY` and `AT END` handle the result inside the operation itself",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**An error need not terminate the program**: A declarative can return control after a failure, so a caller cannot rely on termination",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No value carries the failure**: There is no exception object and no result type, so detail travels only through shared items",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Concurrency belongs to the transaction monitor**: `EXEC CICS` and IMS link a program to a transaction environment instead of a language thread model",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Batch steps are single-threaded by design**: A batch program runs to completion without shared-memory concurrency",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The 2023 standard defines asynchronous messaging**: ISO/IEC 1989:2023 adds asynchronous message handling and transaction processing, so a program need not hand-roll that loop",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language has no threads or synchronisation primitives**: Any parallel work couples the program to the monitor",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Shared `WORKING-STORAGE` across transactions needs external discipline**: A pseudo-conversational program must reset its state between transactions",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**A large share of production runs on IBM mainframes**: Much COBOL executes on z/OS with IBM compilers, so practice is largely one vendor's",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language is an ISO standard**: ISO/IEC 1989:2023 is the current edition, so the language is not owned by a single vendor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GnuCOBOL is an independent compiler**: It is an open-source project separate from GCC and translates COBOL to C",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Vendor extensions bind a program to a compiler**: `EXEC CICS`, `EXEC SQL`, and vendor libraries do not compile unchanged elsewhere",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Newer standard features are unevenly implemented**: The 2002 object-oriented features and the 2023 additions are not uniformly available across compilers",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Compiled ahead of time to native code**: IBM Enterprise COBOL and GnuCOBOL (through generated C) produce machine code, so no interpreter and no JIT warm-up sits on the path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`USAGE` selects the representation per item**: `COMP-3` packs two digits per byte where compact storage matters",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A batch step amortises start-up over millions of records**: One run processes the whole job",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tuning is platform-specific**: IBM's optimiser and GnuCOBOL produce different code, so a tuned program does not transfer unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Exact decimal arithmetic is slower than binary**: `COMP-3` operations cost more than native binary arithmetic",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is legacy and vendor-fragmented**: IBM, Micro Focus, and GnuCOBOL each supply their own compiler, runtime, and tooling",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The mainframe tooling is proprietary**: The compilers, monitors, and debuggers are commercial products",
+        "mechanism": "Ec4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**GnuCOBOL is open source and maintained**: It gives the language a free compiler",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A long-lived body of documentation exists**: The ISO standard and the vendor manuals are complete and stable over decades",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The deployed base is enormous**: Gartner reported over 200 billion lines of COBOL in 1997, and the language remains among the most widely deployed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The skills base is shrinking**: Retirements reduce the pool of maintainers, a risk exposed by the COVID-era unemployment-systems crisis",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The standard is backward compatible across decades**: COBOL-74, -85, 2002, 2014, and 2023 code coexist, and programs written decades ago still compile",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**ISO/IEC 1989:2023 added modern features**: Asynchronous messaging, transaction processing, and dynamic-capacity tables join the language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Revisions are infrequent**: A new standard edition arrives at intervals of a decade or more, so a needed feature waits a long time",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Adoption of a new feature is uneven**: A compiler may not implement a standard feature for years after publication",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Strong lock-in to mainframe transaction and batch processing**: The language assumes fixed records, files, and a monitor runtime, so code carries that shape outside its home domain",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Superb for high-volume batch and transaction processing**: The fit to financial and administrative workloads is close",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Still runs the bulk of card-payment background processing**: The source reports COBOL behind most credit and debit-card swipe processing",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Fixed-point decimal arithmetic fits money**: The data model matches monetary computation without floating-point error",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Poor for nearly everything else**: Interactive, systems, and scientific work have little COBOL tooling",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The learning curve is steep in practice**: Verbosity and over 300 reserved words must be learned",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The syntax is English-like**: `MOVE A TO B`, `ADD ... GIVING`, `IF ... END-IF`, and `DISPLAY` read close to prose",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The division structure is a fixed learning path**: Four divisions in a defined order give a predictable place for each declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The vocabulary is large**: More than 300 reserved words, and each verb carries many optional clauses",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The tooling is not beginner-friendly**: Mainframe editors, JCL, and compile procedures are learned separately from the language",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Verbose**: Every statement names its verb and its operands, and paragraphs need explicit names",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**English-like and self-describing**: The verb names the operation, so a statement is readable without symbol decoding",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`END-IF`, `END-PERFORM`, and `END-READ` bound a scope**: Explicit terminators remove the ambiguity of implicit scope",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Fixed-format column rules still shape style**: Column 7 is an indicator and the code sits in columns 8–72 in the classic reference format, and free format is an option",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The four-division prologue is long**: Even a minimal program declares Identification, Environment, Data, and Procedure",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`FILE STATUS` and `INVALID KEY` give checkable I/O outcomes**: A test can assert on the status item after a file operation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Compilers supply tracing and dump facilities**: IBM Debug Tool and GnuCOBOL's runtime tracing report execution, and `COB_SET_TRACE` enables a trace at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GnuCOBOL runs on ordinary workstations**: The open-source compiler executes test jobs locally",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No test framework is in the language or the standard**: A harness is external, so a suite couples to the tooling",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A batch test needs representative data**: The job needs real files and JCL, not just a unit of code",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Fixed `PICTURE` sizes bound every item**: An oversized source value is truncated or padded on assignment rather than overrunning a buffer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No pointers in the classic language**: A COBOL program cannot forge an address",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The transaction monitor authorises access**: CICS and RACF check a transaction's resource use",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Truncation is silent**: A value that does not fit an item is truncated without an error, so data can be lost quietly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic SQL is injectable unless host variables are used**: `EXEC SQL` with host variables is parameterised, but a statement built from a string re-opens SQL injection",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The small standard library is a scope decision**: The standard specifies 43 statements, 87 functions, and one class, and adds no general-purpose library beyond them",
+    "**The fixed reference format comes from the punched card**: Columns 1–6 hold a sequence number and column 7 an indicator, and free format is now permitted, so the old constraint is optional",
+    "**Mainframe batch orientation is a scope decision**: COBOL assumes file and transaction processing in a monitor, which suits high-volume work and excludes systems programming",
+    "**The `PICTURE`-driven fixed record suits flat files**: The declared layout matches a fixed-length record, which is a modelling choice for the domain",
+    "**The installed base is a business constraint**: Retaining legacy programs is an organisational decision, not a property of the language"
+  ],
+  "verdict": "COBOL's two scores are deliberately even: its own constructs impose about as much coupling as its platform and ecosystem do. The four divisions and the `PICTURE` clause declare a record once, `CALL ... USING` gives a subprogram an explicit parameter interface, and `LOCAL-STORAGE` gives per-call state, but the default visibility of every data item to every paragraph, the paragraph-range semantics of `PERFORM THRU`, and error handling by declaratives that may not terminate the program make global coupling the norm. The platform side is legacy, vendor-fragmented, and locked to mainframe transaction processing, with a shrinking skills base. Inside high-volume batch and transaction processing COBOL is excellent; outside that niche the fit is poor.",
+  "verdictExtra": []
+}

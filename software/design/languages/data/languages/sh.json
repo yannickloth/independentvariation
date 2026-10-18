@@ -1,0 +1,551 @@
+{
+  "schemaVersion": 1,
+  "id": "sh",
+  "name": "Sh",
+  "assessedAs": "sh",
+  "version": "POSIX",
+  "title": "Sh (POSIX.1-2024)",
+  "indexLabel": "Sh (POSIX)",
+  "group": "shells-automation",
+  "order": 6,
+  "displayOrder": 48,
+  "presenceOrder": 49,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er1, Er3, Er4, K5, P2",
+    "meta": "R1, Ec1, V4, G1, G3, Q2, Q3"
+  },
+  "matrixOrder": 53,
+  "tagline": "POSIX Shell",
+  "sbName": "Sh",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "posix2024"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": true,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": true,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": true,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**All values are strings, and numbers live in a second grammar**: `x=1` and `x=abc` are the same assignment, and `$(( ... ))` evaluates a signed-integer expression that is re-parsed at each use",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No arrays and no associative arrays**: A list is a string split on `IFS`, and the specification provides no indexed or keyed aggregate",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics and no dispatch by type**: A routine is specialised only by its positional parameters, and behaviour is selected by the command name (T5, T9)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**One flat namespace**: The specification gives a function no local scope, so a function's working variables are the caller's variables (T6, T11)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**An unset name and an empty name are indistinguishable**: `set -u` turns a reference to an unset name into an error, but it is off by default and an empty value still passes",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Default and alternate expansions are part of the language**: `${var:-default}` and `${var:+alternate}` carry the missing-value case in the expansion itself, so many ad-hoc checks disappear",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global by default and mutable by default**: An assignment writes the single namespace, and only `readonly` fixes a value (C1, C2)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor or validation at the point of assignment**: Nothing checks a value when it is bound, so validation is written as a separate `case` statement or `test`",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Functions share the caller's variables**: The standard provides no local declaration — `local` is a ksh and Bash extension, and shells that offer it differ in detail — so a helper must save and restore every name it touches, or run in a subshell",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A subshell is a scope**: `( ... )` runs in a child process, so a subroutine is isolated from the parent's values by wrapping it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Positional parameters are the argument list**: A function or a `sh -c` string reads its inputs as `$1`, `$2`, and so on, so a routine consumes its arguments instead of reading a global",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`ENV` separates interactive setup from scripts**: An interactive shell reads its personalisation file from `$ENV`, so a non-interactive script starts with none of it",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No allocation or free in the language**: There is no pointer and no deallocation builtin; the shell owns every string",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A subshell releases its memory at exit**: `( ... )` ends and its environment is discarded, so temporary state does not survive it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`unset` drops a name**: The shell reclaims the storage, so no free order and no double free can arise",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Assignment copies the value**: `b=$a` duplicates the string, and there is no way to reference a value without copying it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A pipeline is a set of processes**: The shell forks each stage, so the memory cost of a pipeline is the sum of its parts",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Command substitution is buffered whole**: `$(cmd)` collects the entire output before the enclosing command runs, so the whole result is held in memory and then split",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured error path**: The entire apparatus is `$?` and `trap`, with no exception and no error value",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**`$?` is lost by the next command**: Any command resets it, so an interposed test discards the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Errors do not compose**: A failure is an exit status, so it cannot carry a payload, be returned as data, or be combined with another",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "caution",
+        "text": "**`set -e` is not a reliable policy**: `errexit` does not fire in `&&` and `||` chains, in conditions, or after a negation, so a wrapper that suppresses it changes the behaviour of the whole script",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no `ERR` trap in the standard**: Reporting and cleanup must be attached to `EXIT`, to a named signal, or to an explicit check after each command",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`trap ... EXIT` runs on every exit path**: Cleanup can be attached once and will run on a normal exit or on a handled signal",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No concurrency primitives**: No lock, channel, semaphore, or await exists; the only parallel construct is `&`",
+        "mechanism": "K5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pipelines are a first-class composition**: The pipeline is a core operator of the language, so stages are connected without the script manipulating file descriptors",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`wait` and `$!` make a job addressable**: `cmd &` records the process id in `$!`, so a script can wait for one job rather than for all of them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A subshell isolates concurrent state**: `( ... ) &` gives a job its own copy of the environment, so the job cannot change the parent's values",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Background jobs share files and the working directory**: A `&` job inherits the environment, the umask, and the current directory, so ordering is unspecified unless the script waits",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No value comes back from a job**: A status arrives through `wait`, and a result must travel through a file, a pipe, or a named pipe",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**`sh` is an implementable name, not an implementation**: POSIX defines the language but not which program provides it, so `/bin/sh` is dash, ash, bash in POSIX mode, or a vendor shell depending on the system, and only the standard subset is portable",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**POSIX guarantees that a shell exists**: Every conforming system provides `sh`, so a script invokes an interpreter without installing anything",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard is written for maximum reach**: The language contains no optional syntax that a conforming shell may omit",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Implementations are not equally complete**: An older `sh` may lack behaviour added in Issue 8, so a script that uses `pipefail` or `$'...'` is portable only to newer systems",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`sh -c` is the universal entry point**: `system()`, `make`, containers, and `cron` all use it, which makes the shell the assumed execution layer even when no script is written",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Extensions are common and not portable**: `local`, `[[ ... ]]`, arrays, and `function` are available in many `sh` implementations but are outside the standard",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "caution",
+        "text": "**Interpreted with no compilation**: Each command is parsed and executed as text, and there is no artifact and no JIT",
+        "mechanism": "R1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A minimal implementation starts fast**: `dash` and `ash` reach the first command in a fraction of the time a feature-rich shell needs, which matters for the many `sh -c` calls in a build or a boot",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Builtins replace processes for common work**: `printf`, `read`, `test`, `getopts`, and parameter expansion avoid an external command",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Every external command forks**: The builtin set is small, so a loop that calls `sed`, `grep`, or `basename` per item pays a process per iteration",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Command substitution is buffered and re-split**: `$(cmd)` reads the whole output and then splits it on `IFS`, so a large result is walked twice",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scripts pay no start-up configuration**: The `ENV` file is read only by an interactive shell, so a non-interactive script pays nothing for user setup",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**No package manager**: There is no dependency mechanism for shell code, so shared routines are sourced from a directory or vendored",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Every UNIX-like system has an implementation**: Dash, ash and BusyBox `ash`, FreeBSD `sh`, ksh, and bash in POSIX mode all provide an `sh` mode, so a script always has a host",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard is published and maintained**: The Open Group Base Specifications define the language in one stable document with a change history",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Analysers target `sh` by default**: ShellCheck and similar tools treat `sh` as the base case, so a minimal script is the best-supported one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`checkbashisms` detects non-portable constructs**: A script can be checked against the POSIX surface before it is released",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Most published shell libraries assume Bash**: They use arrays and `[[ ... ]]`, so they cannot be used in a strictly conforming script",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The standard moves slowly**: Issue 7 appeared in 2018 and Issue 8 in 2024, so a needed feature waits years for the committee",
+        "mechanism": "V4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard is backward compatible**: Issue 8 adds features and removes only what was already marked obsolescent, so old scripts keep running",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Removals are signposted for years**: `test`'s `-a` and `-o` primaries were marked obsolescent in Issue 7 before Issue 8 removed them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The change history ships with the text**: Every change from the previous issue is recorded in the specification rationale",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Adoption lags publication**: A shipped `sh` may implement an older issue for years, so a script written to Issue 8 may not run on the host it is deployed to",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The committee decides on defect reports**: A change enters the standard only through an accepted interpretation, so the process is deliberate rather than responsive",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for its intended domain**: Boot scripts, installers, container entrypoints, and `configure` scripts need the one interpreter that is always present",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Stop-gap automation is a native use**: A two-line `sh -c` avoids a build step and a binary, which is why build tools, `cron`, and orchestrators embed it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Portable text filtering composes well**: Pipelines over `grep`, `sed`, and `awk` are the idiom the language was designed around",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Configuration and environment setup read cleanly**: Exporting variables, setting `umask`, and changing directories is a few lines",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Data structures push the script elsewhere**: Without arrays, a keyed or indexed collection becomes a temporary file and a series of `awk` invocations",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Not a general-purpose language**: The model is a shell over external commands, so a program with real logic belongs in another language",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**A small surface to learn**: Assignments, `if`, `case`, and pipelines cover most scripts, and the standard is short compared with `bash` or `zsh`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Skills transfer upward**: Everything learned in `sh` applies to Bash, ksh, and zsh, which is why it is the usual starting point",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The specification is the reference**: A precise description of every construct exists in one place",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Quoting and word splitting trap newcomers**: `$var` unquoted splits and globs, so a space or an asterisk in a value changes the command",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`[` is a command, not syntax**: `test` parses its arguments, so an unquoted empty variable changes the argument count and can turn a test into an error or a truth",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The specification is written for implementers**: It is precise about behaviour and thin on explanation, so learners need other material",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**The language is small and predictable**: Assignments, `if`, `while`, `for`, `case`, and pipelines cover the whole grammar",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Here-documents handle multi-line input**: `<<` and `<<-` embed a block of text in a script without escaping",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Expansion has five forms to remember**: `%`, `%%`, `#`, `##`, and `${#var}` are compact but each has its own rule",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Quoting rules are context-dependent**: Single quotes, double quotes, and backslash escapes each treat `$`, backtick, and newline differently",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`[` and `test` need the operands spaced out**: The bracket form requires a space after `[` and before `]`, which is easy to forget",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No `[[ ... ]]` in the standard**: The construct was removed from the shell language description in an early POSIX proposal, so richer tests are written with `case` or with `expr`",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test framework in the language**: A test is a script that checks `$?`, with no assertion, fixture, or reporting facility",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Faults appear only on the branch that runs**: With no static check, a mistyped variable or a missing file is found during the run",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A syntax check runs without execution**: `sh -n` parses a script and reports errors without running it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`set -x` shows the expansion**: The traced command reveals how a value was split and quoted before it ran",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Exit status is a reliable oracle**: `$?` after a command gives one unambiguous value to assert on",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A test can be isolated with a subshell**: `( ... )` gives each case a fresh copy of the environment, so one case cannot leak into the next",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Command construction from text is the classic injection path**: A value expanded into a command line or passed to `eval` becomes code, so unquoted expansion of untrusted input is unsafe",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Weak typing removes a check the shell cannot make**: A value that should be a number, a path, or a flag is a string, and only the command that receives it can object",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`test` can be made argument-safe**: `[ \"X$response\" = \"Xexpected\" ]` or `${var:+...}` expansion removes the ambiguity that an unquoted variable introduces",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`set -f` disables globbing**: `noglob` stops an expanded `*` from becoming a path list",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`umask` is part of the language**: File-creation permissions are set inside the script rather than left to the ambient environment",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No memory-safety surface**: Strings are interpreter-managed, so a script has no buffer to overflow",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Minimalism is the point**: The language is small because every construct must be implementable on every conforming system, so the absence of arrays is a scope decision",
+    "**Portability costs expressiveness**: Writing to the standard means doing without associative arrays, pattern-replacement expansions, and floating point",
+    "**No interactive features is a deliberate omission**: Line editing, history, and completion are terminal concerns and are kept out of the standard",
+    "**`/bin/sh` is a policy choice on each system**: A distribution links it to dash, bash, or another shell, and that choice is not the language's",
+    "**Integer arithmetic is the standard's floor**: A script that needs floating point calls an external tool, which is a design boundary rather than a defect",
+    "**The specification is written for implementers**: Its precision makes it slow to read, and that is the price of one text that many shells obey"
+  ],
+  "verdict": "sh is the smallest language in the shell family, and its coupling profile is the family floor: every value is a string, one namespace holds every name, a function has no private scope, and an error is an exit status rather than a value. What it returns for that price is reach — one text that every conforming system implements, so a script runs wherever POSIX is present, and its standard is slow to change but never breaks what it already promised. The platform and ecosystem score of 57 reflects that trade: the tooling and the specification are complete and stable, while the glacial standardisation cycle and the missing test and error apparatus remain real costs.",
+  "verdictExtra": []
+}

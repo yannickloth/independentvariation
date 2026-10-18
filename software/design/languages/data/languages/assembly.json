@@ -1,0 +1,501 @@
+{
+  "schemaVersion": 1,
+  "id": "assembly",
+  "name": "Assembly",
+  "assessedAs": "Assembly",
+  "version": "x86-64",
+  "title": "Assembly (x86-64, System V AMD64 ABI)",
+  "indexLabel": "Assembly (x86-64)",
+  "group": "educational-special",
+  "order": 2,
+  "displayOrder": 65,
+  "presenceOrder": 65,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T10, T11, C1, C2, C3, C4, M1, M3, M4, Er1, Er3, Er4, K2, K3, K4, P1",
+    "meta": "Ec1, D2, G1, G2, Q1"
+  },
+  "matrixOrder": 2,
+  "tagline": "Maximum Control",
+  "sbName": "Assembly",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "assemblyISA"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "M1": true,
+    "M2": false,
+    "M3": true,
+    "M4": true,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": true,
+    "K3": true,
+    "K4": true,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": true,
+    "G3": false,
+    "Q1": true,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**There is no type system**: An operand is a register or a memory address of a fixed width, and the assembler does not check that an integer, a pointer, and an address are used consistently",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: An alternative must be encoded by hand in a register or in a memory layout the programmer invents",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A macro can repeat a sequence, but there is no type parameter through which a repeated sequence can be checked",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No namespaces**: Every global symbol shares one flat namespace in the object file, so a collision is resolved by naming convention",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**No null safety**: A null pointer is a zero register value, and a load from it is an ordinary instruction",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**No module boundary**: Separate translation units share the same global symbol space and ABI, and the only encapsulation is the assembler's local label",
+        "mechanism": "T11"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Registers are global mutable state**: Every instruction reads and writes the same fixed register file, so the meaning of a register depends on the whole instruction stream",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Mutability is the only mode**: Nothing is immutable unless a section is marked read-only, and that is enforced by the loader rather than by a type",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Construction is allocation**: Creating a value means writing a register or a memory cell that must already have been reserved",
+        "mechanism": "C3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor or validation**: A value is legal only because the programmer kept it legal, and nothing checks it",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Macros decouple a repeated sequence**: `.macro` in GAS and `%macro` in NASM let a reusable instruction sequence be named and expanded, so a repeated pattern is written once",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Sections separate data from code**: `.text`, `.data`, `.rodata`, and `.bss` place each kind of content in its own segment of the object file",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Every allocation and deallocation is manual**: The stack frame, the `malloc` call, and the `free` call are the programmer's responsibility",
+        "mechanism": "M1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No release tied to scope**: There is no RAII; nothing runs at the end of a block",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: A pointer may alias, dangle, or be freed twice, and the assembler does not see pointers as a type",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The stack is a structured allocation**: `push`/`pop` and the `rsp`/`rbp` frame give a scoped allocation with a defined lifetime for the duration of a call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The layout is the ABI's, not the program's**: The System V AMD64 ABI fixes which registers are caller-saved and how the stack frame is formed, so the layout choices are constrained",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**There is no structured error path**: No exception, no error type, and no return-result convention; a failed call is signalled by a flag or a register the caller must test",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**An error can be ignored by design**: A non-zero value in `rax` or a set carry flag does nothing unless the code branches on it",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: An error cannot be returned as a value the caller's code carries in a checked way",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Flags give a structured condition test**: `cmp` and `test` set `ZF`, `CF`, `SF`, and `OF`, and a conditional jump branches on a named condition",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The recovery path is a jump target**: Recovery is a branch to a label, so its structure exists only in the programmer's discipline",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Shared mutable state is the default**: Registers and memory are equally visible to every core, and there is no notion of private state",
+        "mechanism": "K2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Synchronisation is manual with no race detection**: A lock is a `lock` prefix on one instruction or a call into a library, and nothing analyses the program for a race",
+        "mechanism": "K3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured concurrency**: A thread is a `clone` or `pthread_create` call, and nothing scopes or joins its lifetime",
+        "mechanism": "K4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Atomic operations are instruction-level**: `lock cmpxchg`, `lock xadd`, and `mfence` express a defined atomic primitive directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The `lock` prefix gives a defined ordering**: It serialises the decorated instruction across the cores of the machine",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The memory ordering is reasoned about by hand**: The x86-64 model is comparatively strong, but nothing in the language states or checks the ordering the algorithm needs",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The program is bound to one instruction set**: x86-64 opcodes do not run on AArch64 or RISC-V, so the source is not portable across architectures",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The calling convention is one ABI**: A call must agree with the System V AMD64 register and stack rules, so the function interface is fit for one platform's convention",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The object format is documented and stable**: An ELF object file is linked with the platform linker through a published format",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The assembler is a choice within the target**: GAS and NASM produce code for the same instruction set",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Windows uses a different x86-64 convention**: The Microsoft x64 ABI differs from System V in its argument registers and its shadow space, so the source is bound to one operating-system convention as well",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Extension instructions need runtime dispatch**: AVX-512 and the other vector extensions require a CPU feature check before they are used",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The program is the machine code**: There is no interpreter, JIT, or runtime between the source and the CPU, so the cost of an instruction is the instruction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Instruction selection is under program control**: `lea`, fused operations, and vector instructions can be chosen for each site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no runtime start-up cost**: A static executable needs no runtime initialisation beyond the loader",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The CPU optimises beyond the instruction stream**: Out-of-order execution, branch prediction, and the micro-operation cache mean the source-order cost is not the measured cost",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A hand-written routine can lose to a compiler**: Without the optimiser's cross-block analysis, hand-scheduled and hand-allocated code can be slower than `-O2` output",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**There is no package manager**: A dependency is an object file or a linked library, resolved by the linker and the build script",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The assemblers are standard and maintained**: GAS, NASM, and the LLVM assembler are widely available",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The code interoperates with C at the ABI**: An assembly routine can be called from C and can call C",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The reusable corpus is small**: Most assembly source is written for one program and its ABI, so few libraries exist as assembly source",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The instruction set is specified and backward compatible**: x86-64 adds encodings and keeps the earlier ones",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**New extensions are opt-in**: SSE, AVX, and AVX-512 code is gated by CPU feature detection rather than by the instruction set as a whole",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The manuals are public and maintained**: The Intel SDM and the AMD APM document each instruction",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Assembler syntax is not standardised across tools**: GAS and NASM disagree on directives, operand order, and macro syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A microarchitecture change invalidates tuning**: Code hand-scheduled for one CPU generation can be mistuned on the next",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**The kernel-level operations are the native domain**: Hardware access, interrupt entry, context switch, and boot code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Some instructions are reachable only here**: The special registers, `cpuid`, `rdtsc`, and the privileged instructions have no higher-level equivalent",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Vector kernels benefit**: A hand-tuned SIMD routine writes exactly the instruction the target supports",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**It is a poor fit above the machine**: With no types, no data abstraction, and no error handling, ordinary application logic is expensive to write and to change",
+        "mechanism": "D2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Even kernel work is mostly C with small assembly islands**: The fit is real but narrow",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The curve is extremely steep**: The programmer must hold the register file, the instruction set, and the target ABI in mind at once",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no abstraction to learn instead of the machine**: Nothing is hidden and nothing is named above the instruction level",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference material is complete and public**: Intel and AMD document every instruction and every flag",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The machine gives immediate feedback**: A debugger shows the registers and the memory directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Three bodies of knowledge are separate subjects**: The instruction set, the ABI, and the toolchain must each be learned on its own",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**The Intel and AT&T dialects differ in the same instruction set**: Operand order reverses and the register and constant prefixes differ, so the notation is a toolchain choice",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The directive syntax differs by assembler**: GAS uses `.globl` and `.section`, NASM uses `global` and `section`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Every operand form is spelled out**: `%rax`, `$42`, and `8(%rbp)` write the addressing mode at each site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The mnemonics are short and uniform**: `mov`, `add`, and `jmp` each name one operation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A label is a fixed position in the code**: A label names a location for a jump, a call, or a data symbol, so a transfer target is coupled to that position in the listing",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**There is no test framework in the language**: A test is a program that runs and compares, and the harness lives outside the assembler",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Debugging is low-level**: The debugger exposes registers and raw memory, so a fault is found in machine state rather than in a named abstraction",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A single-step debugger is exact**: `gdb` and `lldb` can run one instruction and show every register and flag",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Repetition is deterministic**: With no scheduler and no collector, the same input produces the same instruction sequence",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The usual check is a test in a higher-level language**: The assembly routine is called from C and compared there",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Every memory-safety class is open**: A buffer overflow, a use-after-free, a double free, and an out-of-bounds write are all possible and nothing prevents them",
+        "mechanism": "Q1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Return-oriented programming is possible**: The stack holds return addresses that are writable, so a memory write can redirect control flow",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no bounds checking and no guard page by default**: An array index is an address calculation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Stack canaries, ASLR, and CET are external mitigations**: They come from the toolchain flags, the loader, and the operating system, and the source must cooperate with them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Non-executable and write-or-execute pages are available**: The operating system can mark the stack non-executable and enforce `W^X`, which removes some code injection",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The sandbox is the operating system's**: A program runs with the privileges the loader grants it, not with a language-level capability model",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Full machine control is the point**: The absence of an abstraction layer is a deliberate removal, not a defect",
+    "**Assembly is a last resort by design**: It is used where a higher-level language cannot express the operation",
+    "**A hand-written kernel can repay the discipline cost**: The performance-critical kernel and the cryptographic primitive are the cases where it does",
+    "**Reverse engineering is a use, not an application**: Disassembly is read, not maintained as a product",
+    "**The dialect choice is a surface choice**: The Intel and AT&T notations name the same instruction set",
+    "**Inline assembly inside a host language is a scoping decision**: What remains is a coupling to the compiler's `asm` syntax"
+  ],
+  "verdict": "Assembly's design produces the lowest core score in this comparison, because it removes every separating construct rather than misplacing one. There is no type system, no release tied to scope, no structured error path, and no concurrency construct; the register file is global mutable state, and the machine is the only abstraction. What the language does give is exact control: the programmer chooses the instruction, the register, and the schedule, and the flags give a defined condition test. Main strengths: no runtime overhead, direct access to the privileged instructions, and a fully public specification. Main weaknesses: the source is bound to one instruction set and one ABI, every memory-safety class is open, and the work is expensive to learn, to test, and to maintain.",
+  "verdictExtra": []
+}

@@ -1,0 +1,526 @@
+{
+  "schemaVersion": 1,
+  "id": "delphi",
+  "name": "Delphi",
+  "assessedAs": "Delphi",
+  "version": "12.3",
+  "title": "Delphi (12.3 Athens)",
+  "indexLabel": "Delphi (12.3)",
+  "group": "functional-declarative-legacy",
+  "order": 15,
+  "displayOrder": 29,
+  "presenceOrder": 29,
+  "presenceList": {
+    "core": "T4, C2, M1, M3, M4, Er2, K2, K3",
+    "meta": "Ec3, S1"
+  },
+  "matrixOrder": 14,
+  "tagline": "RAD Legacy",
+  "sbName": "Delphi",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "delphiDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": true,
+    "M2": false,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": true,
+    "K3": true,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Unit `interface` sections separate the declaration from the implementation**: A consumer compiles against the `interface` part of a unit and never sees its `implementation` part, so either part can change without the consumer being rewritten",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Class, record, and interface types are declared and checked at compile time**: A method call, a field access, and an argument are resolved against the declared type, so no name lookup happens at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Dotted unit names give a namespace**: `System.SysUtils`, `Vcl.Forms`, and the project's unit scope names qualify every entity, so two units may declare the same identifier without a collision",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A variant record is a sum type without a checked tag**: A `case` part in a record lays alternatives over the same storage, but reading the field of the wrong alternative is not diagnosed, so the tag lives in the programmer's discipline",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Generics exist but the constraint vocabulary is small**: Generic classes and records (`TList<T>`, `TDictionary<TKey, TValue>`) have been in the language since Delphi 2009, but a type parameter can be constrained only by a class, a record, a constructor, or an interface, so older library code still passes `TObject` and `TValue`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`nil` is a value of every class, interface, and pointer type**: There is no non-nullable reference type, so a call through `nil` is a run-time fault rather than a compile-time error",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A property separates the name from the accessor**: `property Count: Integer read GetCount write SetCount` lets a consumer use one name while the class moves between a field and a method without touching the consumer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An event separates the publisher from the subscriber**: `property OnClick: TNotifyEvent` and anonymous methods let the framework raise a notification without knowing which handler is attached, which is the observer pattern in the language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `class helper` extends an existing type from outside it**: A helper adds a method to a class declared in another unit, so an extension does not require editing the type or inheriting it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A constructor is an ordinary method named `Create`**: Construction is a call rather than a special form, and `Create` may be `virtual`, so a factory returns the right subclass",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`initialization` and `finalization` give a unit a declared start and end**: The start-up and shutdown code of a unit has a named place, so a unit-level resource is not acquired in a random procedure",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Mutability is the default**: A field, a global variable, and an ordinary parameter are writable unless the declaration says `const` or `constref`, so the default reading of a variable promises nothing about it being unchanged",
+        "mechanism": "C2"
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Nothing ties a release to the end of a block**: An object from `Create` is released by an explicit `.Free`, usually inside `try/finally`, and no destructor runs at scope exit, so cleanup is a written obligation (M1, M3)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model**: The compiler does not track which reference owns an instance, so a double `.Free`, a use after `.Free`, and a leak are neither diagnosed nor reported",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Managed types are reference-counted and the rule differs by compiler**: `string`, dynamic arrays, and interface references release their storage when the last reference goes away, but an object is reference-counted only on the mobile compilers, so the lifetime rule depends on the target",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An interface reference cycle is never released**: The reference count of a cycle never reaches zero and there is no tracing collector, so the cycle leaks unless a weak reference breaks it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`TComponent.Owner` gives a declared lifetime to a component graph**: A component frees the components it owns when it is freed, so the object graph of a form is released deterministically",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A managed record extends scope-tied release to a value type**: `Initialize`, `Finalize`, `AddRef`, and `RemoveRef` operators let a `record` run code at the end of the block that holds it (Delphi 10.4 and later)",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: `raise` needs no declaration in the signature and no caller is obliged to handle the exception type, so the failure set of a routine is not part of its interface",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`except` with `on E: T do` binds the handler to a type**: The handler names the exception class it catches and an unmatched exception propagates, so the recovery region is stated",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`finally` separates cleanup from recovery**: A `finally` block runs on both the normal exit and the exceptional one, which is where a release belongs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An exception object carries its own data**: A class derived from `Exception` can carry context and `raise` propagates it unchanged, so a caller does not parse a message string",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A bare `except` swallows the cause**: An `except` block without `on` catches everything, including an access violation, and the recovery code may not know which failure it is covering",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A memory fault arrives as an exception**: A read through a dangling pointer raises `EAccessViolation` at the faulting instruction, so an unsafe pointer becomes a run-time error that the program may or may not handle",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Synchronisation is manual and unchecked**: `System.SyncObjs` supplies `TCriticalSection`, `TMutex`, `TSemaphore`, `TEvent`, and `TInterlocked`, but the compiler does not check the locking discipline or diagnose a race",
+        "mechanism": "K3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`System.Threading` gives a task abstraction**: `TTask.Run`, `TParallel.For`, and futures carry work across a thread pool, so a parallel loop is stated rather than hand-threaded",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`TThread` wraps a thread as an object with a lifetime**: The execution and the termination of a thread belong to one object, and `Synchronize` and `Queue` marshal a call back to another thread",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A queued call separates a worker from the UI thread**: `TThread.Queue`, `TThread.ForceQueue`, and `PostMessage` deliver work without a shared lock",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Shared mutable state is the default**: An ordinary field or global variable is reachable from every thread, and the language does not mark which state is confined to one thread",
+        "mechanism": "K2"
+      },
+      {
+        "kind": "caution",
+        "text": "**The VCL is single-threaded by contract**: The GUI may be touched only from the main thread, and that rule is documented rather than enforced",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**One source targets Windows, macOS, iOS, Android, and Linux**: The Object Pascal front end and the RTL are shared, and only the GUI framework differs between the targets",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A second compiler implements the same language**: Free Pascal and Lazarus compile Object Pascal in a Delphi-compatible mode (`{$MODE DELPHI}`), so a program is not bound to one vendor's binary alone",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The RTL is usable without the GUI framework**: A console or service program links the runtime alone, so a non-GUI program does not depend on a windowing framework",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**FireMonkey is the cross-platform GUI path and it is second to the VCL**: The component sets and the visual behaviour of the two frameworks differ, so a GUI program depends on the one it was written for",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A program that calls the Windows API is bound to Windows**: The `Windows` unit, COM, and the registry are used beside the RTL, and that part of the program is not portable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The compiler and the IDE are one vendor's licensed product**: The direction of the language follows that vendor, even though a compatible open compiler exists",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler emits native machine code**: `dcc32` and `dcc64` produce an executable directly, so no interpreter or JIT sits between the source and the CPU",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A desktop release does not scan the heap**: With reference-counted strings, dynamic arrays, and interfaces, the runtime has no tracing collector, so there is no collection pause to plan around",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`inline`, `const` parameters, and record passing control cost at the declaration**: The call convention is stated beside the routine rather than inferred from its use",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The classic optimiser is modest beside a modern back end**: The vendor compiler does not apply the cross-module inlining and vectorisation that Clang or LLVM at `-O2` applies, so a numerical kernel is usually delegated to a library",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An interface call is an indirect call**: Dispatch through an interface adds an indirection the compiler cannot resolve across units",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The library pool is small and centered on the vendor's own packages**: A project draws on `GetIt`, the bundled RTL/VCL/FireMonkey, and a small third-party set, so a missing library is often written in-house",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The IDE is a complete tool**: Editor, visual designer, debugger, profiler, and refactoring sit in one product, with no plugin assembly required",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GetIt` and open source cover the common needs**: The IDE's package channel, and community projects such as `DUnitX`, `Spring4D`, and ORM and JSON libraries, supply the usual layer",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The vendor documentation is a reference work**: The DocWiki holds an entry per type and per routine of the language, the RTL, and the VCL",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The platform is one vendor's commercial product**: The compiler, the IDE, and the frameworks are maintained by Embarcadero, so support and direction are commercial decisions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Adoption is declining and the community is concentrated**: The hiring pool and the library pool shrink with the Windows desktop market, and the active community is organized around a few sites",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Annual releases add features with a published changelog**: Each `12.x` release records its language and RTL additions in the release notes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Backward compatibility is long-lived**: Turbo Pascal-era source mostly still compiles with warnings, so a codebase is rarely rewritten for the toolchain alone",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A deprecation is reported with a replacement**: The compiler warns on a deprecated routine and names its successor, so a migration is guided",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The roadmap is one vendor's**: A needed language feature waits for the vendor's release decision, and the community cannot change the language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A program that uses the VCL cannot leave Windows**: The framework choice fixes the platform, and the cross-platform path is a separate framework",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A project is often pinned to an older IDE**: The compiler version becomes part of the codebase, and an upgrade is a project of its own",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Windows desktop line-of-business software is the native target**: A database front end, a form, and a grid are the idiom the framework is built for",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Rapid UI construction is a documented strength**: The visual designer, the data-aware components (`TDataSet`, `TDataSource`), and live bindings make a screen quick to build",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A cross-platform client is supported through FireMonkey**: One source produces a Windows, macOS, iOS, and Android client, although that path is secondary to the VCL",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Native Windows integration is direct**: The `Windows` unit, COM, and the registry are reachable from the same code as the language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The market the language fits best is now a legacy market**: New Windows desktop development is a smaller share than web and service development",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The fit outside a GUI application is thin**: A service, a web back end, or an embedded program is written against the RTL alone, with little framework support",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The curve is gentle for a Pascal or C-family developer**: `begin`/`end`, a single-pass declaration order, and readable identifiers make the language quick to read",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The IDE teaches the framework interactively**: Dropping a component and reading the generated code is the standard on-ramp",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A reader sees each name's type at hand**: `var`, `const`, and `type` sections and typed parameters put the declaration beside its use",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The framework is a second subject beyond the language**: The VCL/FireMonkey object model, the streaming of a form (`.dfm`), and the RTTI layer are knowledge the language does not imply",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The Windows mental model is required for real work**: The message loop, handles, threads, and COM are needed as soon as the program touches the system",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Keywords delimit blocks and the statements read as English**: `if ... then ... else`, `for ... do`, `while ... do`, and `begin`/`end`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Identifiers are case-insensitive and the layout is free**: The compiler ignores case, and the IDE's formatter keeps the source uniform across a team",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language is verbose**: Each declaration opens a `var`, `const`, or `type` section, and a unit needs an `interface`, an `implementation`, and a closing `end.` even for a few statements",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "caution",
+        "text": "**`try` and `begin` pairs nest into an `end` ladder**: An ordinary routine with two `try/finally` blocks ends in a run of `end;` lines",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Attributes and compiler directives share the bracket notation**: `[Weak]`, `{$IFDEF}`, and `{$WARN}` mix the language and the compiler controls in the same text",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**A test framework ships with the toolchain**: `DUnitX`, and the older `DUnit`, provide fixtures, attributes, and assertions, and the IDE runs the suite",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The debugger steps through a test and shows the fault**: The IDE debugger shows the call stack, the locals, and the thread state at the failure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Assert` is in the RTL**: `Assert(cond)` raises `EAssertionFailed` when assertions are enabled, so a precondition is stated in the code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The checks that would catch a fault are off by default**: Range and overflow checking (`{$R+}`, `{$Q+}`) must be enabled per project, so an out-of-bounds index in a release build is undefined",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Assertions are compiled out of a release build**: `{$ASSERTIONS OFF}` removes them, so their guarantee is a debug-time one",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Debugging is the vendor's IDE's**: A command-line debug session is not the standard workflow, so a headless build server runs tests without the interactive state",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "caution",
+        "text": "**Memory safety is not guaranteed**: `Pointer`, `GetMem`/`FreeMem`, `System.Move`, and `PChar` arithmetic are available, nothing marks the part of a program that uses them, and in that part the type system is not in the path, so its safety is the author's claim",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Managed types carry their length and are checked when range checking is on**: `{$R+}` makes an out-of-range index raise `ERangeError`, and a string or a dynamic array knows its own length",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no dynamic evaluation of source text**: The language has no `eval` that compiles a string, and reflection reaches only published members through the RTTI, so an injection path needs the program to build the call itself",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language offers no sandbox and no capability model**: A program runs with the authority of the process, and the mitigations (DEP, ASLR, control-flow guard) are linker and loader options",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The VCL/FireMonkey choice is a GUI decision**: A RAD component couples the program to the framework it was dropped onto, and the alternative is to build the user interface against the raw platform",
+    "**Single inheritance is a deliberate simplification**: The language gives interface types for the shared-behaviour case and keeps the class tree one level deep",
+    "**The RAD model trades control for speed of construction**: A designer-saved form and a live object graph are why the framework owns the lifetime of the components",
+    "**`nil` is a convenience as much as a hazard**: An unset reference has a natural empty value, and the discipline of an `assigned` check is the programmer's",
+    "**Pointer arithmetic is opt-in in practice**: `Pointer`, `GetMem`, and `System.Move` exist for the low-level case, and ordinary code need not use them",
+    "**The language is an Object Pascal dialect, not Pascal**: The dialect follows from the RAD requirement, and the compatibility with Turbo Pascal is historical"
+  ],
+  "verdict": "Delphi's design yields a middling core score, because its separating constructs sit beside its coupling ones. The `interface` section of a unit, a property, an event, and an interface type each decouple a consumer from an implementation, while the single-inheritance tree is the one hierarchy the language imposes. Main strengths: native compilation, a gentle Pascal-derived syntax, and a mature IDE and framework for Windows desktop work. Main weaknesses: exceptions are unchecked, a release is written rather than tied to scope, references are nilable with no ownership check, and the platform is one vendor's commercial product in a declining market.",
+  "verdictExtra": []
+}

@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "id": "sql",
+  "name": "SQL",
+  "assessedAs": "SQL",
+  "version": "SQL:2023",
+  "title": "SQL (ANSI SQL:2023)",
+  "indexLabel": "SQL (ANSI SQL:2023)",
+  "group": "domain-specific",
+  "order": 3,
+  "displayOrder": 5,
+  "presenceOrder": 5,
+  "presenceList": {
+    "core": "T4, T5, T10",
+    "meta": "Ec2, V4, Q3"
+  },
+  "matrixOrder": 49,
+  "tagline": "Declarative Data",
+  "sbName": "SQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "isoSql2023"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": true,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static column typing**: Every column, parameter, and result column has a declared type, checked when the statement is prepared or planned",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Schema is declared independently of queries**: A table declares its structure once; queries consume it without redeclaring it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: A column carries one scalar type, so alternatives are modelled with nullable columns or separate tables and the caller must know the encoding",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: There is no type parameter, so reuse across types is done by generating DDL, not by the type system",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is not type-safe absence**: NULL is compatible with every domain, three-valued logic propagates through expressions, and `NULL = NULL` is unknown rather than true",
+        "mechanism": "T10"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Declarative query construction**: A statement states the result set, and the engine chooses the access path, so construction does not couple to a storage layout or an algorithm",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Views separate consumers from the query behind them**: A view exposes a stable relation whose defining query can change without changing its consumers",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based composition**: Joins, unions, and subqueries compose relations, so logic composes without imperative sequencing or shared cursors",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Schema and use are separated**: Tables declare the data, and normalisation stores each fact once so a fact duplicated across columns cannot drift out of agreement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers fire implicitly**: A trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Stored procedures couple construction to the engine**: SQL/PSM standardises persistent stored modules (Part 4 of ISO/IEC 9075), but the dialects used in practice — PL/pgSQL, PL/SQL, and T-SQL — share little beyond the basics, so the code depends on one engine",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The storage engine owns buffers, caches, and page allocation, and a statement never names an address or frees anything",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No explicit allocation in queries**: The engine materialises or streams a result set, so query text does not couple to a memory layout",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Resource limits are declarative configuration**: Work memory and temp-file behaviour are engine settings, not properties the query must manage",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Large intermediate results still cost memory**: An unbounded sort, hash join, or `SELECT *` spool can exhaust the engine's memory even though the language hides allocation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Materialised views and temporary tables persist engine-side state**: They pin storage and need a refresh policy, coupling the data to a refresh lifecycle",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Standard SQLSTATE**: An error carries a five-character SQLSTATE class and subclass, so a handler matches a portable code instead of a message string",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Structured handlers in SQL/PSM**: `DECLARE ... HANDLER` and `EXCEPTION` blocks separate the normal path from the recovery path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constraint violations are errors, not silent writes**: A primary-key, foreign-key, UNIQUE, or CHECK violation aborts the statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Vendor error codes extend SQLSTATE**: PostgreSQL `SQLSTATE` codes, Oracle `ORA-` numbers, and SQL Server error numbers differ outside the standard classes, so handlers are not portable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Some failures depend on the data**: Name and type errors are caught at prepare time, but division by zero, overflow, and constraint violations are detected only at execution",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions group statements atomically**: BEGIN, COMMIT, and ROLLBACK make a unit of work commit or abort as one, so a statement does not coordinate with others by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Isolation is selectable**: READ COMMITTED, REPEATABLE READ, and SERIALIZABLE let the application declare the visibility contract it needs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**MVCC in PostgreSQL and Oracle**: Readers do not block writers and writers do not block readers, so read and write traffic decouple",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based statements reduce explicit locking**: One UPDATE moves many rows without a row-by-row lock protocol in application code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Default isolation permits anomalies**: READ COMMITTED is the default in PostgreSQL, so non-repeatable reads and write skew are possible unless the application raises the level",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Explicit locking couples code to the engine**: `SELECT ... FOR UPDATE`, `LOCK TABLE`, and advisory locks are vendor-shaped and must agree with the lock ordering of the whole application",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**A standard core is portable**: DDL, DML, and joins written to core SQL run on PostgreSQL, MySQL, Oracle, SQL Server, Db2, and SQLite with little change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Standard call interfaces**: ODBC and JDBC let one client reach many engines, so an application does not bind to one engine's binary protocol",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multiple independent implementations**: No single vendor owns the language, so the standard cannot be changed unilaterally",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dialects diverge outside the core**: String functions, date arithmetic, `LIMIT` versus `FETCH FIRST`, and window-function details differ by vendor",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Vendor extensions bind queries to one engine**: JSON operators, array types, regex syntax, and identity or sequence clauses are engine-specific",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Decades of query-optimisation research**: Cost-based planners, index selection, join reordering, and predicate pushdown produce good plans without hand-tuning in the common case",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based execution**: One statement moves many rows, so per-row interpreter overhead is amortised by the engine",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Indexes and partitions are declarative**: An index is declared once and then used by any matching query",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Engines are written in C or C++ with mature storage layers**: Throughput and buffer management are the engine's responsibility, not the query's",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan quality is an engine property**: The same query can be fast on PostgreSQL and slow on another engine, and the language guarantees no plan",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plans can regress without a query change**: New statistics, a version upgrade, or changed data volume can select a worse plan",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling is fragmented by dialect**: ORMs, migration tools, linters, and formatters commonly target one engine's dialect, and there is no single SQL toolchain",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The standard interfaces are universal**: ODBC, JDBC, and ADO.NET drivers exist for nearly every engine and host language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Mature, independently maintained engines**: PostgreSQL, MySQL, Oracle, SQL Server, Db2, and SQLite are all long-lived and actively developed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A very large body of published knowledge**: Standards documents, engine manuals, and books are abundant and stable over decades",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The standard evolves slowly**: SQL:2023 appeared six years after SQL:2016, so a needed feature can wait years for standardisation",
+        "mechanism": "V4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language is broadly backward compatible**: New editions add features and rarely remove them, so decades-old queries keep running",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Vendor implementations lead the standard**: PostgreSQL, Oracle, and others ship features before standardisation, which gives users early access",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Adoption lags publication**: An engine may take years to implement a newly standardised feature, so code written to the standard may not run everywhere yet",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for relational data**: The model of relations, tuples, and set operations matches tabular data directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One language spans several data domains**: Analytics with window functions, transactional writes with DML, and semi-structured data with SQL/JSON all live in the same language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**SQL/PGQ in SQL:2023 adds property-graph queries**: Graph patterns are expressible without leaving SQL",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Procedural logic is awkward**: Row-by-row algorithms and complex control flow read poorly in SQL/PSM and are usually pushed to a host language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is not a runtime for arbitrary programs**: SQL assumes a database engine and a set-based workload, which limits use outside data management",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Basic queries are gentle**: `SELECT ... FROM ... WHERE` is readable and learnable within days",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The declarative surface hides the hard part**: A beginner writes a correct query without knowing the plan the engine will choose",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Advanced work is steep**: Query optimisation, join ordering, and window semantics take years to master",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**NULL semantics surprise newcomers**: Three-valued logic makes an intuitive predicate such as `a <> 5` fail to match rows where `a` is NULL",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dialect knowledge is required in practice**: Beyond the standard core, a developer must learn one engine's functions, types, and plan output",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Keyword-based and readable**: Statements read close to English and do not lean on punctuation or symbols",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Compact for the result produced**: A join and filter over several tables fits in a few lines",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**DDL is verbose**: `CREATE TABLE`, constraints, indexes, and `ALTER TABLE` statements are long and repetitive",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Identifier quoting differs by engine**: Double quotes, backticks, and square brackets each mark an identifier in a different dialect",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**Plan inspection is standard practice**: PostgreSQL and MySQL report the chosen plan and actual timings through `EXPLAIN` and `EXPLAIN ANALYZE`, and Oracle and SQL Server expose equivalent plan and runtime statistics",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constraints are executable invariants**: PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, and NOT NULL reject bad data at write time, so tests need not re-check them",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Transactions isolate a test**: A test can run inside a transaction and roll back, leaving the database unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Standard schema introspection**: `INFORMATION_SCHEMA` and catalog views let tooling verify structure",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No in-language test framework**: Test harnesses live in the host language, so a suite couples to the driver and to a fixture loader",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Injection is the canonical failure**: Because a statement is text, building it by concatenating untrusted input lets that input become code",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parameterised statements remove the injection surface**: Bind variables and prepared statements carry data out of band, so a value cannot change the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**GRANT and REVOKE express least privilege**: Access is declared per object and per role",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Views and row-level security restrict visibility**: A view, or PostgreSQL row-level security, limits what a statement can see",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic SQL re-opens the risk**: `EXECUTE IMMEDIATE`, dynamic PL/pgSQL, and string-built queries defeat parameterisation where they are unavoidable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Definer's-rights procedures can escalate**: A procedure that runs with its definer's rights (`SECURITY DEFINER`) can grant more access than intended unless it is audited",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Denormalisation is a modelling choice**: Storing a value in two places trades redundancy for fewer joins; the language permits it but does not force it",
+    "**NULL versus NOT NULL is a modelling decision**: Making a column nullable widens its value set, and the three-valued-logic cost follows from that decision, not from a forced dependency",
+    "**The optimiser owns the execution plan**: A declarative statement gives up control of access paths, so plan hints are a choice about how far to override the engine",
+    "**Schema migration is a process, not a mechanism**: Changing a column couples deploy order to schema version, but the coupling follows from sharing one schema, which is the purpose of a relational store",
+    "**Vendor-specific SQL may be worth the portability cost**: Writing to one dialect buys features and performance; the loss of portability is a deliberate trade, not a property of the language",
+    "**SQL is not a general-purpose language**: The assumption of a database engine and a set-based workload is a scope decision, not a coupling defect"
+  ],
+  "verdict": "SQL's design yields low language-imposed coupling for the work it is built for. The declarative model separates what a result is from how it is computed, and the schema separates data structure from the queries that consume it. Views decouple consumers from the query behind them, and transactions decouple statements from each other's timing. Main strengths: the standard core is portable across many independent engines, types come from the schema, and a mature optimiser takes on execution plans. Main weaknesses: NULL is not type-safe, no sum types or generics exist, the standard moves slowly, tooling fragments by dialect, and a string-built statement is a standing injection hazard unless parameters are used.",
+  "verdictExtra": []
+}

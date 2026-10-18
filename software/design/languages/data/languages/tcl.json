@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "tcl",
+  "name": "Tcl",
+  "assessedAs": "Tcl",
+  "version": "9.0",
+  "title": "Tcl (9.0)",
+  "indexLabel": "Tcl (9.0)",
+  "group": "functional-declarative-legacy",
+  "order": 13,
+  "displayOrder": 22,
+  "presenceOrder": 22,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T9, T10, T11, C1, C2, C4, Er3, P2",
+    "meta": "Ec3, Q2, Q3"
+  },
+  "matrixOrder": 57,
+  "tagline": "Embedded Legacy",
+  "sbName": "Tcl",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "tclDocs"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": true,
+    "T10": true,
+    "T11": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**No static type checking**: A variable holds any value and a command converts its arguments when it runs, so a type error appears at the point of use rather than at compile time",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types and no generics**: A choice between alternatives is a string, a list, or a `dict` with a discriminating key, and a `proc` declares no type parameter, so neither the alternative read nor the types a body expects are checked (T4, T5)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No null-safety**: There is no null type; an empty string, an empty list, and an unset variable are distinct states, and `$x` on an unset variable aborts the script",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**One global namespace and no module boundary**: A `proc` declared at the top level is a global command, `namespace eval` is opt-in, and `source` evaluates a file into the current interpreter without restricting what that file makes visible (T6, T11)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A protocol is not a declared type**: TclOO, in the core since 8.6, provides classes, mixins, and multiple inheritance, so a shared protocol is captured by a class hierarchy or a mixin rather than by an interface the interpreter checks",
+        "mechanism": "T9"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A value's subtype is inspectable**: `string is` and the `expr` conversions such as `int()`, `double()`, and `boolean()` let a script test a value before it is used",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Global state appears at the first assignment**: At the top level a name becomes a global variable when it is assigned, so two scripts in one interpreter share those variables",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Nothing is immutable**: `set` is the only declaration a variable receives, and it can reassign or `unset` the value at any time",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor or validation hook**: A value is whatever a command stored, and a `proc` cannot reject a malformed argument unless it checks by hand",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`proc` gives a body its own local scope**: A procedure is a named command with a parameter list, and its parameters and locals do not touch a caller's variables unless `global`, `variable`, or `upvar` says so",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`namespace eval` gives a scope of its own**: A namespace holds its own variables and commands, so a package need not write into the global scope",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`upvar` and `uplevel` reach into the caller's frame**: A procedure that binds a caller's variable, or evaluates in the caller's scope, depends on where it was called from, and `global` and `variable` make a shared variable explicit but still shared",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The interpreter owns the heap**: There is no allocate or free command, and a script never names an address",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A value is reclaimed when its last reference goes away**: Reference counting releases a `Tcl_Obj` without a lifetime written in the script",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The dual representation keeps a compiled form beside the string**: A `Tcl_Obj` holds its string and, once used as a list or an integer, an internal representation that is reused",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A C extension allocates through the interpreter**: An extension uses `Tcl_Alloc` and `Tcl_Free`, so the interpreter's accounting still applies",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A reference cycle is not reclaimed by counting alone**: Two objects that reference each other are released only by the interpreter's cycle collection, and a cycle held by an extension is not collected at all",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Taking the string form discards the internal representation**: An operation that needs the string regenerates it, so a hot loop can pay the same conversion more than once",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**A failure can be ignored by design**: `catch` returns a status and nothing requires the caller to test it, so an unchecked return value discards the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Every failure is a value**: `catch` returns a status such as `ok`, `error`, `return`, `break`, or `continue`, together with the result and the error options",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`errorInfo` and `errorCode` carry the detail**: After an error the interpreter records the stack trace and a machine-readable code such as `POSIX ENOENT`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`error` raises and `return -code` states a status**: A command states the status it wants to propagate to its caller",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A handler that matches the message text is bound to the wording**: The message is a string, and `errorCode` is the documented field to test instead",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`catch` also catches `return` and `break`**: A nested return arrives as a status, so it must be passed on deliberately rather than by accident",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**I/O is a channel**: `chan` reads and writes a stream, so a program composes I/O without naming a file descriptor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`after` and `vwait` give an event loop**: A callback runs on the interpreter's event loop, and the script does not block the process while it waits",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coroutines are in the core since Tcl 8.6**: `coroutine`, `yield`, and `tailcall` express a suspendable computation as an ordinary command",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Threads are available when the core is built with them**: Each thread runs its own interpreter and threads exchange values through a thread-safe channel queue rather than shared variables",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A script runs on the thread that calls it**: One `Tcl_Interp` is not usable from two threads at once, so state is partitioned per thread",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A callback can outlive its intended state**: An `after` script or a channel handler holds the interpreter's state, so a cancelled operation must be cancelled explicitly",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**One implementation is portable across platforms**: The core builds and runs on Windows, macOS, and Unix-like systems from one source base",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Embedding is a first-class use**: The C API (`Tcl_CreateInterp`, `Tcl_Eval`, `Tcl_CreateObjCommand`) lets a host application embed an interpreter and expose its own commands",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A script needs no build step**: A `.tcl` file runs as written through `tclsh`",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The implementation is one project**: Tcl and Tk are maintained by a single core team that sets the language direction, so the platform has one centre",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Tk and every extension are separate packages**: GUI work requires Tk beside the core, and a package must be found on `auto_path` or `TCLLIBPATH`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A native extension is built per platform**: A package that wraps a C library ships a compiled binary for each target, and the binary must match the interpreter version",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The core compiles a script to bytecode**: The bytecode compiler added in the 8.x series means a loop body is not re-parsed at each iteration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`expr` compiles arithmetic**: An expression is compiled to instructions rather than dispatched as a sequence of commands",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A C extension removes the interpreter from the hot path**: A command implemented in C runs compiled code, which is how performance-critical work is normally done",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Each command still costs a dispatch**: A loop written in Tcl pays parse and dispatch overhead per iteration, so the speed comes from moving the loop into C or into `expr` and `string` operations",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A re-generated string form costs again**: An operation that needs the string representation discards the internal one, so a hot loop can convert repeatedly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tk redraw bounds GUI throughput**: A large widget tree redraws at the rate the toolkit can service it",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is small and largely legacy**: The active package field is far smaller than that of a mainstream language, and much Tcl code still in use was written decades ago",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tcllib and Tklib are maintained standard libraries**: Pure-Tcl packages for containers, lists, and protocols, distributed separately from the core",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The distribution is a complete tool**: `tclsh` and `wish` need nothing else installed to run a script",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A package system names and resolves packages**: `package provide`, `package require`, and the `teacup` distribution machinery locate and version a package",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A binary package is distributed per platform**: A compiled extension must match the platform and the interpreter version, so a pure-Tcl package travels more easily",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The documentation corpus is stable but old**: The manual pages are complete, and most tutorials and examples date from the 1990s and 2000s",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Tcl 9.0 is an actively released line**: Tcl/Tk 9.0 appeared in September 2024 after the long 8.x series, and 9.0.x maintenance releases continue",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scripts are largely backward compatible**: The migration notes list a small set of removed pre-8.0 legacies such as the old `case`, `puts`, and `read` forms",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tcl 9.0 broke the C extension interface**: `Tcl_Size` replaced `int` for lengths and indices and `Tcl_UniChar` became 32-bit, so an extension built for 8.6 must be rebuilt",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A major release arrives rarely**: 9.0 came 27 years after 8.0, so a core change can wait a long time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The project publishes a migration guide for scripts and for extensions**: \"Migrating scripts to Tcl 9\" and \"Migrating C extensions to Tcl 9\" state each required change",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Embedded scripting is the native domain**: A C or C++ host embeds an interpreter and exposes its own commands, which is how Tcl is most often used",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tk is a mature cross-platform GUI toolkit**: Tcl/Tk remains a workable choice for a simple desktop GUI",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Expect automates an interactive program**: The Expect extension drives a terminal program through its prompts and is the standard tool for that job",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tcl is used as a test and build harness**: The core's own test suite and many command-line tools use a Tcl driver",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**General application work is rare**: Outside embedded scripting, GUI, and automation a new project rarely chooses Tcl",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The heavy computation is normally in C**: A Tcl program is usually a thin layer over an extension that does the work",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The syntax is tiny**: A script is a sequence of commands, and `set`, `proc`, `if`, and `foreach` cover most of the surface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The manual is uniform**: Every command has a manual page with the same sections, so the reference is easy to navigate",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An interactive shell is part of the tool**: `tclsh` evaluates a line as it is typed, so an experiment is immediate",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Substitution and quoting need care**: `$var`, `[command]`, braces, and backslash interact, so a command that builds another command is a skill of its own",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The single-value model surprises a newcomer**: A list, a number, and a script are values of one kind, and the difference appears only when a command interprets the value",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The object systems are additional**: TclOO is built in and [incr Tcl] is an extension, so object-oriented Tcl is a layer above the command core",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**A command is words separated by whitespace**: `puts hello` is a command with one argument, and the language uses almost no operator punctuation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Braces group a block without substitution**: `{ ... }` passes the enclosed text unevaluated, which is how `if`, `proc`, and `foreach` receive a body",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A script is data**: Because a script is a list of words, a command can build and evaluate one",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`expr` has its own grammar**: An expression uses operators and functions rather than command words, so the syntax changes inside its braces",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Substitution is dense**: `$`, `[`, and `\\` each start a substitution, and a missing escape changes the meaning of a line",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An unbalanced brace or bracket changes the parse**: A newline ends a command, so an unclosed group swallows the following lines",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`tcltest` is part of the core**: The standard test package supplies `test`, `testConstraint`, and a summary, so a suite needs no external framework",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A test is a script the same interpreter runs**: The check and the code under test share one language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`catch` makes a failure assertable**: A test states the expected status and message, and the return value of `catch` is the assertion",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`trace` observes a variable or a command**: A test can watch a variable write or a command call without changing the code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`tclsh` is the debugger**: An interactive shell with `info` and `trace` exposes the state without a separate tool",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Nothing checks a command before it runs**: A misspelled command name or a wrong argument count appears only when that line executes",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Untrusted input can become code**: `eval`, `subst`, `uplevel`, and `expr` evaluate text, so a value built from input can be executed as a command",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The single-value model cannot reject a malformed input at the boundary**: Because every value is a string, an injection that forms a valid command is not distinguishable from a legitimate one by the type system",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A safe interpreter removes the dangerous commands**: `interp create -safe` makes an interpreter without `exec`, `open`, `source`, and `load`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A host can define the whole command surface**: An embedded interpreter exposes only the commands the host creates, which is the usual Tcl sandbox",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`catch` and `error` bound a failure**: A failing command can be reported instead of ending the interpreter",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Correct quoting is the mitigation and it must be uniform**: `list` and `lindex` build a command safely, but only at every site where input becomes code",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Everything is a string is a design choice**: One representation for scripts, lists, and data buys uniform introspection at a conversion cost",
+    "**A command is the only abstraction**: The language has no operator table and no macro layer, so a domain language is built by writing commands",
+    "**A small core plus packages is a scope decision**: Tcllib, Tk, and Expect are separate distributions, and a program chooses which to depend on",
+    "**There is no compile step by design**: A syntax error appears when the script reaches the command",
+    "**Tcl 9.0 treats compatibility with 8.6 extensions as a non-goal**: The project states that ABI compatibility was not an aim, so the rebuild cost is a stated trade rather than an accident",
+    "**A Tcl program is meant to be a layer over a host**: The design point is a C or C++ program with a Tcl configuration and control layer"
+  ],
+  "verdict": "Tcl's design yields a moderate core score, and its losses cluster where declaration is absent: the type is dynamic, a variable defaults to the global scope, and nothing is immutable or validated. What the language does provide is a small, uniform command core that separates a procedure from its call sites, a real namespace construct with `namespace eval`, and an interpreter that manages memory for the script. Main strengths: embedding through the C API, the mature Tk toolkit, the built-in `tcltest` package, and a bytecode compiler that keeps the loop cost off the parser. Main weaknesses: everything is a string, so injection is an inherent risk and no type error is caught before run time; the implementation is a single project; the ecosystem is small and largely legacy; and the upgrade to Tcl 9.0 obliges every compiled extension to be rebuilt.",
+  "verdictExtra": []
+}

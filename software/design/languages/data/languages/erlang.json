@@ -1,0 +1,531 @@
+{
+  "schemaVersion": 1,
+  "id": "erlang",
+  "name": "Erlang",
+  "assessedAs": "Erlang",
+  "version": "OTP 29",
+  "title": "Erlang (OTP 29)",
+  "indexLabel": "Erlang (OTP 29)",
+  "group": "emerging-specialty",
+  "order": 1,
+  "displayOrder": 15,
+  "presenceOrder": 15,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, M2, Er2",
+    "meta": "G3, D2, L1, L2"
+  },
+  "matrixOrder": 17,
+  "tagline": "Actor Gold Standard",
+  "sbName": "Erlang",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "erlangSpec"
+  ],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": true,
+    "D3": false,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing**: A value carries its type at run time, so a type fault appears when the expression executes",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No declared parameter or return types**: `-spec` is optional metadata, and the language has no generic type parameters",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: A tagged tuple such as `{ok, Value}` or `{error, Reason}` is a convention, and no type checks the union",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Dispatch is checked at run time**: `Mod:Fun(Args)` resolves when called, so a missing function fails there rather than at compile time",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`-spec` and Dialyzer give optional static analysis**: A success-typing pass over the compiled BEAM files detects inconsistent calls",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Atoms serve as named constants**: An atom such as `ok`, `error`, or `undefined` is a distinct value, so the language needs no null",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**All data is immutable**: A term cannot be changed after it is built",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A pattern in the clause head selects the construction path**: The arguments decide which clause runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Records and maps declare named structure**: `-record(user, {name, age})` gives compile-time named fields over a tuple",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**State is a value threaded through recursion**: An OTP behaviour receives its state and returns the new state, so no object owns it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A process is the unit of mutable state**: A `gen_server` owns its state and exposes it by message",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A record is a tuple**: Field access is positional at run time, so the record definition must be shared by every module that uses it",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Collection is per-process and non-deterministic**: A process collects its own heap on its own schedule",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A private heap confines a pause**: A collection affects one process, and there is no global stop-the-world pause",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No manual deallocation**: The VM reclaims memory, and a program never frees a term",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Off-heap binaries are reference counted**: A binary above the heap threshold is shared between processes rather than copied",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A large live set costs more per collection**: A process that accumulates state pays a higher collection cost",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An ETS table lives outside the collector**: The table persists until its owner deletes it or dies",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked**: `throw`, `error`, and `exit` are not declared, so a caller cannot see the failure set from a signature",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**\"Let it crash\" makes failure a supervision event**: A supervisor restarts a failed process, and the normal path carries no recovery code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Links and monitors define propagation**: `link/1` couples the fates of two processes, and `monitor/2` reports a failure without dying",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A pattern-match failure raises a defined error**: An unmatched value raises `badmatch`, and an unmatched clause raises `function_clause`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch`/`after` is available when recovery is local**: A `catch` clause separates `throw`, `error`, and `exit`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A restart resets process state**: Supervision restores the process, not the data it held, so state must be recoverable",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The actor model is the core of the language**: Processes share no memory and communicate by message",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`spawn`, `link`, and `monitor` are primitives**: Starting and observing a process needs no library",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The BEAM schedules preemptively by reductions**: A process cannot hold a scheduler indefinitely",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Messages are immutable values**: A message is copied or shared by reference count, never aliased mutably",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Distribution is built into the VM**: `net_kernel` and `epmd` let a process send to a node as if it were local",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Distribution is designed, not automatic**: Node failure, network partition, and message loss must be handled by the application",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The BEAM is portable and open source**: The Erlang runtime runs on Linux, macOS, Windows, and BSD",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Hot code loading is a runtime feature**: `code:load_file/1` replaces a module while the system runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A release bundles the runtime and the application**: `release_handler` and `reltool` produce a deployable node",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Distribution across nodes is a platform feature**: Nodes discover each other and pass messages without an external broker",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The runtime must be present**: An Erlang program runs on the VM, so the artefact is not a native binary on its own",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The BEAM handles very many concurrent I/O processes**: A process is cheap and needs no thread",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**BeamAsm compiles hot code**: The JIT added in OTP 24 means bytecode is not always interpreted",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Per-process collection avoids a global pause**: A collection affects one process",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Reduction scheduling bounds latency**: A process yields after a fixed number of reductions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**CPU-bound computation is weak relative to native code**: A tight numeric loop trails C or Rust",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A NIF runs on a scheduler thread**: A native function that runs long blocks other processes on that scheduler",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**Hex.pm and `rebar3` cover packages and builds**: A registry, dependency resolution, and release builds are all present",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**OTP ships with the language**: Supervision, `gen_server`, `application`, and release handling are part of the distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Elixir libraries are reachable through interop**: The two languages run on one VM and call each other directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The flagship projects are long-lived and battle-tested**: RabbitMQ, CouchDB, Riak, and WhatsApp's messaging stack are Erlang systems",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**OTP is documented as a first-class topic**: The OTP design principles document the behaviours",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The library count is smaller than the mainstream**: Fewer general-purpose packages exist outside messaging and telecom",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The language has kept backward compatibility for decades**: Code written against an old OTP release continues to run",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Hot code loading decouples deployment from runtime**: A module is replaced while the system runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`code_change/3` migrates state across a version change**: An OTP behaviour converts old state to the new shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**OTP release handling gives a controlled upgrade path**: `release_handler` applies a version change to a running node",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A hot upgrade must be designed**: State migration and dependency order are the application's responsibility",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for distributed, fault-tolerant systems**: Supervision, distribution, and the actor model match the problem directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Proven in telecom and messaging**: WhatsApp, RabbitMQ, and Discord's infrastructure run on the BEAM",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Binary parsing is a strength**: The bit syntax `<<A:8, B:16/little>>` matches a protocol frame directly",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Poor fit for CPU-bound numerical work**: The VM is not built for dense numeric computation, so that work belongs in another language",
+        "mechanism": "D2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Distribution across nodes requires explicit design effort**: The application must decide how to handle a lost node",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The learning curve is steep**: A developer learns functional programming, the actor model, and OTP at once",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The Prolog-derived syntax is unfamiliar**: The `.`, `,`, and `;` delimiters and the term syntax differ from the mainstream",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The surface is large**: The language, the OTP behaviours, and the VM's semantics are separate bodies of knowledge",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The official documentation is thorough**: The Erlang reference manual and the OTP design principles are authoritative",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The community is established**: Decades of accumulated material and answered questions exist",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**The term syntax is uniform**: Every construct is a term, and a module is a sequence of forms ending in a period",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The delimiter roles are consistent**: A comma separates expressions, a semicolon separates clauses, and a period ends a form",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Bit syntax is compact for protocols**: A binary pattern states field widths and endianness in one expression",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pattern matching is part of the function-head syntax**: A clause states its cases directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The comma, semicolon, and period distinction is easy to get wrong**: One misplaced delimiter changes the meaning of a form",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Atoms and variables differ only by case**: `ok` is an atom and `Ok` is a variable",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**EUnit and Common Test ship with OTP**: Unit tests and system tests are part of the standard distribution",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Property-based testing is available**: PropEr and QuickCheck generate inputs from a property",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Tracing and `observer` inspect a running system**: `dbg`, `recon`, and the observer tool expose processes, messages, and scheduler load",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Common Test runs a distributed suite**: A test can start several nodes and drive them together",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Errors surface at run time**: Dynamic typing defers a type fault to the executed path",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Dialyzer catches some faults and not all**: Success typing proves the absence of some inconsistencies, not the presence of correctness",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Process isolation contains a fault**: A crashed process does not corrupt another process's memory",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Messages are immutable values**: No shared mutable state exists to race on",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The supervision tree bounds a failure**: A restarted process returns the system to a known state",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The atom table has a fixed limit**: `list_to_atom/1` or `binary_to_atom/2` on untrusted input can exhaust the table, whose default ceiling is about one million atoms",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`binary_to_term/1` on untrusted input is dangerous**: Decoding an external term can allocate a large structure unless the `safe` option is used",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A NIF and a `Port` reach unsafe code**: Native code can break the VM's guarantees",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The syntax is Prolog-derived**: The form is unfamiliar to most developers; this is a learning property, not a coupling",
+    "**Distribution is a design task**: The language supplies the transport, and the application decides the failure semantics",
+    "**Weak CPU-bound performance is a domain fit note**: The VM is built for I/O concurrency, not for numeric loops",
+    "**Hot upgrade constrains state handling**: The running system can change module code, so the application must supply a `code_change/3` callback to migrate state",
+    "**Atoms are named constants in place of null**: Absence is carried by an atom convention such as `undefined`",
+    "**Records are tuples by design**: The representation is a deliberate choice made for compactness and speed"
+  ],
+  "verdict": "Erlang's design yields moderate language-imposed coupling in the domain it was built for. The actor model removes shared memory from concurrency, immutability removes in-place mutation, and \"let it crash\" with OTP supervision moves recovery out of the business logic. Main strengths: processes are cheap and isolated, the BEAM schedules preemptively, per-process collection avoids a global pause, and hot code loading decouples deployment from runtime. Main weaknesses: the language is dynamically typed, so a type fault surfaces at run time; exceptions are unchecked; the syntax is unfamiliar; and distribution across nodes must be designed rather than assumed.",
+  "verdictExtra": []
+}

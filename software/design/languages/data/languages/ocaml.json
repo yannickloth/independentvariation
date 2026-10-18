@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 1,
+  "id": "ocaml",
+  "name": "OCaml",
+  "assessedAs": "OCaml",
+  "version": "5.4",
+  "title": "OCaml (5.4)",
+  "indexLabel": "OCaml (5.4)",
+  "group": "functional-declarative-legacy",
+  "order": 8,
+  "displayOrder": 12,
+  "presenceOrder": 12,
+  "presenceList": {
+    "core": "T8, C2, M2, M3, M4, Er2",
+    "meta": "Ec3, L1"
+  },
+  "matrixOrder": 33,
+  "tagline": "Module System",
+  "sbName": "OCaml",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "ocamlMan"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "Er1": false,
+    "Er2": true,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Variant types declare a checked case distinction**: `type shape = Circle of float | Square of float` is a closed sum, and the compiler checks that a `match` covers every constructor",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Types are static and inferred**: The Hindley–Milner algorithm gives a principal type without annotations, and no value is untyped",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A signature hides a type behind an interface**: A `.mli` file can export `type t` as abstract, so a consumer binds to the operations and not to the representation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A functor makes a type a parameter**: `Set.Make(String)` builds a set module for a given ordered type, so one algorithm is reused across types without run-time dispatch",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operators are rebound in scope rather than overloaded (T8)**: `+` is `int` addition and `+.` is `float` addition, and a module-qualified form such as `Int64.(a + b)` or a local `let (+) = ...` changes which operator is in scope, so the reader must track the binding",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The object layer is a second type system**: Classes and row-polymorphic object types sit beside the core types, so a codebase can mix two paradigms",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**Mutable state is the natural default container for shared data (C2)**: The idiomatic way to hold module state is a `ref` cell, an `Array`, or a `Hashtbl`, each mutable, so any caller of the interface can change what the module holds",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A variant constructor is the only way to build a value of the type**: `Node (l, x, r)` names the construction path, so every construction is visible in the type declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A record literal states every field**: `{ x = 1.; y = 2. }` must be complete unless `with` is used, so a field cannot be left unset silently",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A signature can hide the constructor of an abstract type**: With `type t` abstract and `val create : unit -> t`, construction goes through the module, so the invariant holds by construction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A `let` binding evaluates its right-hand side once**: `let x = expensive ()` evaluates at that point, and the result is a value rather than a re-evaluable expression",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `mutable` field relaxes the invariant**: A record field declared `mutable` can be assigned at any time, so an invariant over the record is maintained by the code rather than by the type",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Collection is automatic with no manual free**: The collector reclaims an unreachable block, and a program never calls `free`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Collection is not tied to the last reference (M2)**: A block stays allocated until the collector decides, so a latency-sensitive path is coupled to a component it never calls",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no RAII (M3)**: There is no scope-bound destructor, so a file descriptor, a `Unix.file_descr`, or another non-memory handle is released by an explicit call or a bracket such as `Fun.protect`",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no ownership model (M4)**: No static lifetime or aliasing rule ties a value to an owner, so a mutable structure that escapes its module is shared without a trace",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Fun.protect` brackets a resource**: `Fun.protect ~finally:close body` runs the release on the normal path and on the exceptional path, so the release need not be repeated at every exit",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The major heap is measured and tuned by hand**: `Gc.set` and `Gc.stat` control and report `space_overhead` and the major cycle, so a latency-sensitive program reads collector statistics itself",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**C stubs and `Marshal` sit outside the collector's view**: A value held in a C global must be registered with `caml_register_generational_global_root`, and `Marshal.from_string` builds a value the collector then owns, so the boundary is the programmer's to manage",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Exceptions are unchecked (Er2)**: `raise`, `Failure`, and `Not_found` are not declared in the type of a function, so a caller cannot see the failure set from a signature",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`result` is a composable value**: `('a, 'b) result` is `Ok of 'a | Error of 'b`, and `Result.map`, `Result.bind`, and `Result.fold` chain operations without a `match` at every step",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A variant closes the failure set**: `type error = Not_found | Permission_denied` makes the cases finite, so a `match` over the failure is checked for exhaustiveness",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try ... with` separates the abnormal path**: A handler can match an exception constructor such as `Sys_error _ | Unix.Unix_error _` and re-raise cheaply with `raise_notrace`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Option` carries an absence without an exception**: `Some x` and `None` give a missing result a value, and `Option.map` and `Option.get` compose it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A wildcard handler hides a fault**: `try f () with _ -> default` catches every exception, including `Out_of_memory` and an unintended bug, so the cause disappears",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**OCaml 5 runs OCaml code on several cores**: `Domain.spawn` starts a second domain, so the global runtime lock that serialised all code in earlier versions no longer applies",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Effects express a scheduler in the language**: An effect handler such as `Effect.Deep.try_with` or `Effect.Shallow` defines what an effect does, so a concurrency library is ordinary OCaml",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Eio` supplies structured concurrency**: `Eio_main.run` gives a scheduler with fibers, cancellation, and capability-scoped resources, so a program names a scope rather than a thread",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`Atomic`, `Mutex`, and `Condition` are primitives of the runtime**: A shared cell of type `'a Atomic.t` has defined operations, and `Mutex.lock` guards a critical section",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A channel passes values between domains**: `Domainslib.Chan` with `Domain.spawn` gives a message-passing design instead of a shared one",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A library written for one domain must be revisited**: Code that relied on the single runtime's atomicity now shares state across domains, so the migration is a review rather than a recompile",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The native compiler emits machine code for many targets**: `ocamlopt` produces a native executable for x86-64, ARM64, RISC-V, and Power, and `ocamlc` produces bytecode wherever the virtual machine runs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A C stub reaches any system library**: An `external` declaration plus a small C stub links a C library, so the language's reach follows the reach of C",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**MirageOS links an OCaml program into a unikernel**: A set of modules builds a freestanding image, so the target needs no operating-system process",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The JavaScript backends target the browser**: `js_of_ocaml` compiles bytecode to JavaScript, and `Melange` compiles OCaml to JavaScript modules",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The foreign-function interface is manual**: An `external` declaration and its C stub must be kept in step by hand, so the boundary carries the correctness burden of both sides",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**`ocamlopt` compiles ahead of time to native code**: There is no interpreter and no warm-up, so a program starts at full speed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core type system erases at compile time**: An abstract type and a generic function carry no run-time dispatch, so the abstraction costs nothing to execute",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A functor is specialised at compile time**: `Set.Make(String)` produces a module whose calls are direct, so the reuse costs no dynamic dispatch",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An unboxed representation is available per declaration**: An all-float record and an `[@@unboxed]` declaration avoid a heap indirection, so a numeric structure can be dense",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A mixed record boxes its `float` field**: `type t = { n : int; x : float }` stores `x` in a box, and only an all-float record or an annotation removes it, so the representation is a per-declaration detail",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Allocation rate drives the collection schedule**: A high allocation rate fills the minor heap often, and the program cannot schedule that collection itself",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The library ecosystem is small next to Haskell or Rust (Ec3)**: Fewer general-purpose packages exist, so some work starts from a blank module",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`opam` is a mature package manager**: `opam` resolves versions, pins a package to a revision, and keeps per-project switches, and the opam repository index is curated",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`dune` builds, tests, and documents a project**: One file describes a library, an executable, and a test, so no external build system is needed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`merlin` and `ocaml-lsp` give editor support**: Type-directed completion, jump-to-definition, and error reporting are available in Emacs, VS Code, and others",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Substantial systems are written in it**: The Rocq (Coq) proof assistant, the Frama-C analyzer, Jane Street's trading systems, and the Tezos blockchain are OCaml codebases",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A niche language means fewer answers**: The community is smaller, so a team depends on the members it can find",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**OCaml 5 keeps the single-domain case working**: A program that ran on 4.x recompiles on 5.x, and the multicore runtime is the same source language",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Version changes have been additive in practice**: The core syntax and the standard library have stayed stable across decades",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A switch pins a compiler version per project**: `opam switch` keeps an old compiler and a new one side by side, so a project upgrades on its own schedule",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The multicore change has a migration path**: Code that used `Threads` can move to `Domain` and a scheduler library such as `Eio`, with `Domainslib` bridging the two",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A single-domain library needs a review for OCaml 5**: A global mutable structure that was safe under one runtime becomes shared state when several domains run",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for compilers and static analysis**: Algebraic data types, pattern matching, and a module system match a syntax tree and a typed pass directly, and the OCaml compiler itself is written in OCaml",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Proven in proof assistants and verification**: Rocq (Coq) and Frama-C are OCaml programs, and their term representations are OCaml variants",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Proven in finance**: Jane Street's trading systems are OCaml, and the language is used for typed, low-latency systems",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A strong fit for parsers and interpreters**: `menhir` generates a parser, and a variant-based abstract syntax tree keeps the grammar's cases explicit",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Numeric and tensor work needs a library**: Dense array and tensor programming depends on a package such as `Owl` or on a C binding, not on the core language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The object layer is rarely the right tool**: Most OCaml code uses modules and variants, and the object system is a separate, optional design",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The abstraction layer is steep even when the syntax is not (L1)**: A newcomer learns inference, the module and functor system, and pattern matching together, although the language is generally considered easier to approach than Haskell",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Inference removes annotation work**: `let rec fact n = if n = 0 then 1 else n * fact (n - 1)` is accepted without a type written by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The error messages point at the mismatch**: The compiler prints the inferred type and the conflicting type, and Merlin shows the type under the cursor",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The module language is a second language**: Functors, signatures, and `module type of` are a topic of their own beyond the expression language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Reading an inferred signature is a skill**: `val f : ('a -> 'b) -> 'a list -> 'b list` must be read fluently before an interface is easy to write",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**`let`, `match`, and `type` share one shape**: A binding, a case analysis, and a declaration all need no braces, and the toplevel ends a phrase with `;;`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pattern matching is written as data**: `match xs with [] -> 0 | x :: _ -> x` states the cases directly",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The keyword set is small and consistent**: The same `|`-case form serves a variant declaration, a `match`, and an exception handler",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Terse for the type information it carries**: One line declares a record, and inference fills in the annotations",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Integer and float operators differ by a character**: `+` is not `+.`, and `=` is structural while `==` is physical, so a sign or a repetition changes the meaning",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Extensions extend the notation**: `let*` binding operators, ppx rewrites, and `[@@deriving]` attributes are not core syntax, so a reader must know which extensions a file uses",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**A test framework lives in the package repository**: `alcotest` and `ounit2` provide assertions and runners, and `dune runtest` runs the suite",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Inline and expect tests sit beside the code**: `let%test` and `let%expect_test` (ppx_inline_test and ppx_expect) keep the expected output in the source and diff it on a run",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The type checker catches faults before a test does**: An exhaustiveness check reports a missing `match` case at compile time, which removes a whole class of test",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`bisect_ppx` measures coverage**: An instrumented build reports which points were executed",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A hand-written module is the usual stand-in**: There is no dynamic mocking of a module, so a seam must be a functor parameter or a signature",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An effectful path needs its handler installed**: A test of a scheduler runs the effect handler, which is a different setup from a test of plain code",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Memory safety is the default**: The collector and the type system prevent use-after-free, and an out-of-range `a.(i)` raises `Invalid_argument` instead of reading adjacent memory",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A signature hides the representation**: With `type t` abstract in the `.mli`, a consumer can neither forge a value nor read its internals",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A typed function cannot receive a value of another type**: A value that reaches a typed parameter is of that type, so a string cannot become a program structure at that boundary",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The runtime bounds an array access**: The bounds check is part of the language, so an off-by-one index is a defined exception",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`Marshal.from_string` trusts its input**: A crafted byte string can build a value that the type system then trusts, so untrusted input must not be unmarshalled",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`Obj.magic` and a C stub break the type system**: `Obj.magic` reinterprets a value without a check, and a stub can return an ill-typed value",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The object layer is opt-in**: Classes and objects are separate from the module system, so a project can ignore them entirely",
+    "**Inheritance instead of a functor is a design decision**: Using class inheritance where a functor would do is a choice the language permits and does not require",
+    "**Terse syntax is a stated preference**: `let f x = x + 1` and the `;;` toplevel separator are stylistic, and the adjustment period is not a forced dependency",
+    "**Persistent structures trade space for sharing**: A version-keeping data structure retains the older versions, which is a space cost rather than a coupling mechanism",
+    "**Interface files are a convention**: A project can omit the `.mli` file, and the abstraction benefit follows from the discipline rather than from the language",
+    "**Effect handlers are opt-in**: A program can ignore effects and write plain code, so the paradigm adds no dependency unless it is used"
+  ],
+  "verdict": "OCaml's design yields low core coupling (72/100) because its abstraction is checked at compile time. A variant type closes a case set, an abstract type in a `.mli` hides its representation, a functor makes a type a module parameter, and the inference engine reports a mismatch before the program runs. The coupling that remains is mostly about state and lifetime: there is no ownership rule and no block-scoped release, exceptions are unchecked, and mutable containers are the natural way to hold module state. On the platform side, the small library ecosystem and the concepts of the module language are the real cost, while observation of the collector is a matter of tuning rather than of correctness.",
+  "verdictExtra": []
+}

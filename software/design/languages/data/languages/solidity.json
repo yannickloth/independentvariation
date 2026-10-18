@@ -1,0 +1,536 @@
+{
+  "schemaVersion": 1,
+  "id": "solidity",
+  "name": "Solidity",
+  "assessedAs": "Solidity",
+  "version": "0.8.x",
+  "title": "Solidity (0.8.x)",
+  "indexLabel": "Solidity (0.8.x)",
+  "group": "emerging-specialty",
+  "order": 6,
+  "displayOrder": 23,
+  "presenceOrder": 23,
+  "presenceList": {
+    "core": "T4, C4, Er3, K1, P1",
+    "meta": "Ec3, D1, L1, Q3"
+  },
+  "matrixOrder": 55,
+  "tagline": "Smart Contracts",
+  "sbName": "Solidity",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "solidityDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": true,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": false,
+    "K1": true,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "D1": true,
+    "D2": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Statically typed and compiler-checked**: Every state variable, parameter, and return value has a declared type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Value and reference types are distinguished**: `uint256`, `address`, and `bool` are value types, while arrays, structs, and mappings are reference types",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: A choice between alternatives is an enum plus a struct, or a separate contract, and the compiler cannot check the union",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Contracts and interfaces declare the ABI**: A function signature in an `interface` fixes the external call shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No null**: A `uint256` starts at `0` and an `address` starts at the zero address, so absence is a value convention",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The data location is stated at every use**: `memory`, `storage`, and `calldata` must be written for a reference type, and a wrong location changes the meaning of an assignment",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "cost",
+        "text": "**A constructor is optional**: A contract without an explicit `constructor` is deployed with default state, so deployment validation is optional",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Contracts are the unit of encapsulation**: State and functions live in one contract, and `external`, `public`, `internal`, and `private` state the visibility",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Inheritance with C3 linearization gives a defined order**: `contract B is A` orders the bases linearly, so `super` resolves predictably",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Mappings and structs are declared members**: A `mapping(address => uint256)` and a `struct` state the storage shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constructors and initializer functions validate deployment**: `constructor(...)` and an `initializer` modifier set and check the initial state",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`delegatecall` couples two contracts to one storage layout**: The callee runs against the caller's storage, so the layouts must agree exactly",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No garbage collector and no collection pause**: The EVM memory is a per-call byte array that is discarded when the frame returns",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The data location makes copying visible**: `memory` copies a value into the call, and `calldata` reads it in place",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Values are freed when a call frame returns**: The caller never frees memory",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`constant` and `immutable` remove a storage read**: A value fixed at compile time or at construction is embedded in the bytecode",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Persistent storage is expensive and manual**: A write to a fresh storage slot costs 20 000 gas, so layout and write count are economic decisions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `storage` pointer aliases contract state**: A local `storage` reference points into state, so a write through it is persistent",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Failure is checkable but not exhaustive**: `require` and `revert` abort a call, and nothing forces a caller to handle the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**An unchecked low-level call is silently ignored**: `(bool ok, ) = addr.call(...)` compiles even when `ok` is discarded, so a failed external call can pass unnoticed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`require(cond, \"reason\")` states a precondition**: A failed precondition reverts with a message",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Custom errors carry structured data cheaply**: `error InsufficientBalance(uint256 available);` and `revert InsufficientBalance(a)` return named fields",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`try`/`catch` handles an external call failure**: Since 0.6 a failed external call can be caught",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Arithmetic is checked by default since 0.8**: An overflow or underflow reverts, and `unchecked { ... }` is the explicit opt-out",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**The language has no concurrency**: A transaction runs sequentially on a single EVM thread, so there is no concurrent primitive",
+        "mechanism": "K1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Execution is coupled to the gas limit**: A call that runs out of gas reverts, so control flow depends on the gas the sender supplies",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A transaction is atomic**: The state changes commit together or revert together, so no partial state remains",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**External calls within one transaction are ordered deterministically**: The sequence is fixed by the bytecode",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Reentrancy is an ordering hazard**: An external call can re-enter the contract before it returns, so checks-effects-interactions or a reentrancy guard must be applied by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Atomicity stops at the transaction boundary**: Two contracts touched in one transaction succeed or fail together, and no further coordination exists",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The EVM is the only target**: The compiler emits EVM bytecode, and there is no other runtime",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The chain context is injected into every contract**: `msg.sender`, `msg.value`, `block.timestamp`, `block.number`, and `tx.origin` are globals, so logic is coupled to the caller, the block, and the chain",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**EVM-compatible chains share the runtime**: A contract deploys to Ethereum, an L2, or any other EVM chain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The context globals differ in meaning per chain**: On an L2 `block.number` may be the L1 height and the sequencer sets `block.timestamp`, so a timing assumption does not transfer",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**An upgradeable contract separates logic from storage**: A proxy delegates to an implementation, and the storage layout must stay compatible",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The cost model is explicit in gas**: Every operation has a known price, so cost is stated rather than measured",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The `solc` optimiser reduces the emitted bytecode**: The compiler optimises the code it produces",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Execution is deterministic across nodes**: Every node computes the same result, which consensus requires",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Performance is not measured in wall-clock time**: Gas, not throughput, is the design constraint",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Storage reads and writes dominate cost**: A warm storage read costs 100 gas and a write costs far more, so a layout decision sets the cost",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The EVM is slow in general-computing terms**: A loop over state is expensive by construction",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**Foundry, Hardhat, and Truffle provide build and test tooling**: Compilation, testing, and deployment are covered",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**OpenZeppelin Contracts gives audited base contracts**: Standard tokens and access control arrive as reviewed libraries",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`solc` is a released, versioned compiler with a range pragma**: A file states the compiler versions it accepts",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is niche, young, and chain-specific**: Package reuse is limited to an EVM audience, and the tooling field is small",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Tooling churn is high**: The build-tool field has shifted toward Foundry, and older tooling is losing support",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There is no language-level package manager**: Dependency management comes from the build tool, such as npm or a git submodule",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler is released on an active cadence**: 0.8.x releases add features and fixes",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`pragma solidity ^0.8.0` pins the compiler range per file**: A source file states the versions it accepts",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Breaking changes are grouped into release lines**: 0.8 turned on checked arithmetic and removed implicit conversions",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The release notes state every breaking change**: A migration path is documented for each release",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The 0.x versioning carries no compatibility promise**: Every minor release may break, so a compiler range is mandatory in practice",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A deployed contract cannot be changed**: The bytecode on chain is fixed, so an upgrade needs a proxy pattern from the start",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**The language is the right tool for EVM smart contracts**: The ABI, the storage model, and the chain context match the problem",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The type-safe ABI supports standard interfaces**: An ERC-20 or ERC-721 contract is expressed as an interface with typed functions",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain lock-in to on-chain contracts**: Outside the EVM the language has no application",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Blockchain-specific concerns are only partly covered by constructs**: Reentrancy, front-running, and key management have no dedicated language construct",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The gas model is part of the domain semantics**: Every construct has an economic effect the programmer must consider",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The learning curve is steep**: The blockchain model — accounts, gas, storage, reentrancy, and the ABI — must be learned on top of the language",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The syntax is familiar to JavaScript developers**: The grammar is ECMAScript-like, with braces, semicolons, and dot access",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Modifiers give a readable access-control idiom**: `modifier onlyOwner` states a precondition at the function",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The documentation and community resources are good**: The Solidity documentation and the OpenZeppelin guides are maintained",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A mistake has a direct economic cost**: A vulnerability in a deployed contract can be exploited immediately, so experience is expensive to acquire",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**ECMAScript-style syntax**: Braces, semicolons, and the `.` member operator match JavaScript",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Modifiers are a declarative precondition**: A modifier wraps the function body and names the condition at the signature",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Data locations are stated in the signature**: `function f(uint[] calldata xs)` shows where the argument lives",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Contract and interface declarations read as a module**: The contract is the top-level unit and names its own scope",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Inline `assembly { ... }` uses the lower-level Yul syntax**: A low-level block changes the language inside the braces",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A modifier hides the code it wraps**: The reader sees the modifier name, not the rewritten body",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**Foundry runs tests written in Solidity**: `forge test` executes contracts as tests",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Hardhat runs a TypeScript test suite against a local chain**: Accounts, deployment, and assertions are scripted",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Fork testing reproduces mainnet state**: `forge test --fork-url` runs against a pinned block",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Fuzzing and invariant testing are built into Foundry**: A property is checked over generated inputs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coverage and gas reporting are available**: `forge coverage` and `forge snapshot` report coverage and cost",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The compiler does not catch reentrancy or access-control faults**: Those faults pass every type check",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**The domain has canonical vulnerability classes**: Reentrancy, front-running, and access-control faults are the field's recurring failures, and Solidity was partly blamed for The DAO hack in 2016",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Reentrancy needs an explicit ordering discipline**: Checks-effects-interactions or a reentrancy guard must be applied by hand",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Arithmetic is checked by default since 0.8**: An overflow or underflow reverts rather than wrapping silently",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`require` and custom errors make a failure explicit**: A failed precondition reverts with a reason",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`delegatecall` and low-level calls bypass type checking**: The callee and the target are chosen at run time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Static typing and the ABI prevent type confusion at the boundary**: An external call is encoded against a declared signature",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Gas metering is the execution model**: A deliberate economic constraint, not a language defect",
+    "**Turing completeness is an expressive-power choice**: Decidable automated verification of arbitrary properties cannot follow from it",
+    "**The domain is on-chain contracts**: Outside that domain the language has no use, which is a scope decision",
+    "**Inheritance is provided**: The language includes single and multiple inheritance, and C3 linearization orders multiple bases",
+    "**Static typing helps but does not remove domain risk**: The type system checks types, not economic or adversarial behaviour",
+    "**The 0.8 release line changes semantics**: Checked arithmetic and removed implicit conversions are a deliberate tightening, not a defect"
+  ],
+  "verdict": "Solidity's design yields high language-imposed coupling, most of it imposed by its domain. The type system is static and the data locations are explicit, but the EVM injects the chain context into every contract, execution is single-threaded and gas-metered, and the language runs nowhere else. Main strengths: a type-safe ABI, checked arithmetic since 0.8, custom errors, and mature test tooling in Foundry and Hardhat. Main weaknesses: no sum types, an optional constructor, a failure path a caller may ignore, no concurrency, platform lock-in to the EVM, and a security model in which reentrancy and access-control faults are the domain's canonical failures.",
+  "verdictExtra": []
+}
