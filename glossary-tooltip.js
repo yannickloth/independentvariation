@@ -21,7 +21,9 @@
     concept: 'Concept', driver: 'Change Driver', module: 'Module', coupling: 'Coupling',
     cohesion: 'Cohesion', knowledge: 'Knowledge', metric: 'Metric', pattern: 'Pattern',
     architecture: 'Architecture', paradigm: 'Paradigm', mechanism: 'Mechanism',
-    organization: 'Organization', language: 'Language', type: 'Type', hypothesis: 'Hypothesis'
+    organization: 'Organization', language: 'Language', type: 'Type', hypothesis: 'Hypothesis',
+    runtime: 'Runtime', memory: 'Memory', typing: 'Typing', concurrency: 'Concurrency',
+    feature: 'Language feature', data: 'Data'
   };
 
   const ESCAPE_RE = /[&<>"]/g;
