@@ -98,6 +98,48 @@
       "label": "Security",
       "order": 8,
       "asks": "does the language make a whole class of exploit possible, or a whole class of mistake silent?"
+    },
+    {
+      "id": "reproducibility",
+      "family": "readiness",
+      "label": "Reproducibility",
+      "order": 1,
+      "asks": "can you rebuild the artifact and get the same thing?"
+    },
+    {
+      "id": "supplychain",
+      "family": "readiness",
+      "label": "Supply chain",
+      "order": 2,
+      "asks": "can you verify what you shipped?"
+    },
+    {
+      "id": "observability",
+      "family": "readiness",
+      "label": "Observability",
+      "order": 3,
+      "asks": "can you see what the program does in production?"
+    },
+    {
+      "id": "feedback",
+      "family": "readiness",
+      "label": "Feedback",
+      "order": 4,
+      "asks": "how fast is the edit-build-test loop?"
+    },
+    {
+      "id": "interop",
+      "family": "readiness",
+      "label": "Interop",
+      "order": 5,
+      "asks": "can the language work with code written in another language?"
+    },
+    {
+      "id": "governance",
+      "family": "readiness",
+      "label": "Governance",
+      "order": 6,
+      "asks": "will the language be maintained, and by whom?"
     }
   ],
   "mechanisms": [
@@ -347,6 +389,83 @@
         {
           "kind": "note",
           "text": "**Presence does not mean \"no files\".** Splitting code across files is not a boundary. Go is not charged, because a package-level unexported name is a real boundary, and neither is MATLAB, whose `+pkg` and `private` folders hide what they do not export."
+        }
+      ]
+    },
+    {
+      "id": "T12",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no effect tracking",
+      "title": "No effect or capability tracking",
+      "anchor": "t12",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A call's signature says what it returns, not what it does. The effects a call may perform — input and output, mutation of shared state, exceptions, randomness — are a shared resource that no declaration carries, so every caller learns them by reading the body or by testing. A change to an effect is invisible to every caller [@brachthauser2020effects]."
+        },
+        {
+          "kind": "example",
+          "text": "Haskell's `IO`, PureScript's `Effect`, and Unison's abilities put the effects in the type, so a function cannot hide a socket behind a pure signature. In Java, Python, Go, and C a function that writes a file, mutates a global, and throws looks like any other function."
+        },
+        {
+          "kind": "note",
+          "text": "**Held at Moderate, not High.** The breadth is the whole program — any call may perform any effect — but nothing breaks when the effect set is wrong. The cost is the reading and refactoring work an untracked effect adds, not a missed check, so the mechanism does not carry a High mechanism's weight."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence records whether the type states the effects.** Every language has effects. Haskell, PureScript, Unison, Lean 4, and Rocq carry them in the type; so do Nim (its `raises` and `tags` lists are part of a proc type) and D (`pure`, `nothrow`, and `@nogc` are constituents of the function type). Java's `throws` clause is a signature annotation, not part of the method type, so Java is charged."
+        }
+      ]
+    },
+    {
+      "id": "T13",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "async/sync colouring",
+      "title": "Function colouring",
+      "anchor": "t13",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has two kinds of function — one that may suspend and one that may not — and the two do not compose. A synchronous function cannot call an asynchronous one without a bridge, so the kind spreads outward through the call graph and every caller must agree on it. The kind is a shared resource that a change in one function imposes on the whole chain [@nystrom2015color]."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence records a function-kind split**, not the existence of concurrency. Go's goroutines and Erlang's processes are concurrency without a second function kind, so neither is charged."
+        },
+        {
+          "kind": "example",
+          "text": "In JavaScript, C#, and Dart an `async` function returns a future, and a plain function that calls it must itself become `async` or block. Rust's `async fn` returns a `Future` that only an executor drives, Nim's `{.async.}` proc can be awaited only inside another async proc, and Python's `async def` and Kotlin's `suspend` draw the same line."
+        }
+      ]
+    },
+    {
+      "id": "T14",
+      "dimension": "type",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "unchecked foreign boundary",
+      "title": "Unchecked foreign boundary",
+      "anchor": "t14",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language can call code outside its own type system, and nothing checks that the two sides agree. The foreign interface — argument order, ownership, layout, lifetime, and error convention — is a shared resource held by a hand-written declaration, so a mismatch is found at run time or not at all."
+        },
+        {
+          "kind": "example",
+          "text": "Rust's `extern \"C\"` block is an unchecked promise. Python's `ctypes` and Ruby's `Fiddle` accept any signature. JNI requires the C side to agree by hand, and a Java exception that crosses the boundary unwinds nothing on the other side."
+        },
+        {
+          "kind": "note",
+          "text": "**Minor because the boundary is containable to one module** — but never zero, because the compiler cannot check across it."
+        },
+        {
+          "kind": "note",
+          "text": "**Covers the native boundary, not a boundary inside one runtime.** Unison 1.0 added a C FFI, so it is charged. PostgreSQL, Oracle, and SQL Server can load native code through a user-defined function, so the procedural SQL dialects are charged with them. Solidity calls only inside the EVM, and a shell reaches foreign code by starting a process, so neither is charged. The readiness axis prices the other side of the same boundary, under `Y9`: a language is charged there for having no interface, and here for the interface being unchecked. Both can be charged at once."
         }
       ]
     },
@@ -637,7 +756,7 @@
       "criteria": [
         {
           "kind": "body",
-          "text": "The language cannot run two computations at the same time. \"How much may run at once\" is fixed by the runtime, so every part of the program that wants throughput is coupled to that one decision."
+          "text": "The ordinary execution model offers no second thread of control: running two computations at once needs a worker, a separate process, or a native extension. \"How much may run at once\" is fixed by the runtime, so every part of the program that wants throughput is coupled to that one decision."
         },
         {
           "kind": "example",
@@ -729,7 +848,7 @@
       "criteria": [
         {
           "kind": "body",
-          "text": "The language has no lock, channel, or await, so concurrent work is started and steered outside the language. The synchronisation becomes a shared resource that lives in signals, exit codes, or a foreign library, so no declaration states the protocol."
+          "text": "The language has no first-class lock, channel, or await, so concurrent work is started and steered outside the language. The synchronisation becomes a shared resource that lives in signals, exit codes, or a foreign library, so no declaration states the protocol."
         },
         {
           "kind": "example",
@@ -1472,6 +1591,325 @@
           "text": "**`Q3` records the language-level facility, not its misuse.** Parameterised queries and prepared statements are the mitigation, and the criterion is charged because the facility remains available and remains the path of least resistance."
         }
       ]
+    },
+    {
+      "id": "Y1",
+      "dimension": "reproducibility",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "build not reproducible",
+      "title": "Build not reproducible",
+      "anchor": "y1",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Two builds of the same source do not produce the same artifact. The build environment — timestamps, absolute paths, file order, a random seed — becomes an input the source does not name, so the artifact is tied to the machine that made it and no third party can confirm that it matches the source."
+        },
+        {
+          "kind": "example",
+          "text": "Maven, PyPI, and RubyGems packages are largely unreproducible as published, because archive metadata and build paths leak into the artifact; Cargo and npm fix those values and reach reproducible builds [@benedetti2025reproducible]; the general problem is surveyed in [@lamb2022reproducible]."
+        },
+        {
+          "kind": "note",
+          "text": "**The criterion records the default of the language's own build tool**, not what a careful team can arrange."
+        }
+      ],
+      "observation": {
+        "kind": "cost",
+        "text": "Builds are not byte-reproducible by default."
+      }
+    },
+    {
+      "id": "Y2",
+      "dimension": "reproducibility",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "dependencies not pinned",
+      "title": "Dependencies not pinned",
+      "anchor": "y2",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The dependency set is not pinned, so the build resolves to different versions at two points in time. The resolved graph is a shared resource that the source does not record, and the build that passed is not the build that ships."
+        },
+        {
+          "kind": "example",
+          "text": "A Python `requirements.txt` without hashes, or a `setup.py` that names ranges, leaves the resolution to the index. Cargo's `Cargo.lock`, npm's `package-lock.json`, and Go's `go.sum` pin the graph."
+        }
+      ],
+      "observation": {
+        "kind": "cost",
+        "text": "Dependencies resolve without a lock by default."
+      }
+    },
+    {
+      "id": "Y3",
+      "dimension": "supplychain",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no signed provenance",
+      "title": "No signed provenance for published packages",
+      "anchor": "y3",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A published package carries no verifiable statement of who built it and from what source. The artifact's origin is a shared resource that the consumer must take on trust, so a compromised build is indistinguishable from a genuine one."
+        },
+        {
+          "kind": "example",
+          "text": "npm and PyPI can attach Sigstore-signed provenance, and Maven Central now validates Sigstore signatures [@sigstoreProject; @slsaSpec]. A bare checksum gives integrity against corruption, not against substitution."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is \"no signing or provenance facility\", not \"no Sigstore\".** Maven Central requires a PGP signature, npm ships registry signatures, PyPI ships TUF metadata and opt-in attestations, RubyGems and NuGet have their own signing, and Go's checksum database is a signed transparency log. A registry that offers only a bare checksum, and a language with no registry, are charged."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "Published packages carry no signed provenance by default."
+      }
+    },
+    {
+      "id": "Y4",
+      "dimension": "supplychain",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "registry without namespacing",
+      "title": "Registry without namespacing",
+      "anchor": "y4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The package registry has one flat name space and no ownership model, so a name can be claimed or confused. The name is the shared resource, and a dependency can be redirected to a different author without a change in the consumer's source."
+        },
+        {
+          "kind": "example",
+          "text": "PyPI, npm, crates.io, RubyGems, Hex, NuGet, and pub.dev reserve a flat name first-come, and npm and PyPI have both suffered dependency-confusion and typosquatting attacks. Maven Central's group coordinates, Go's module paths, CPAN's nested namespaces, SwiftPM's `scope.package-name`, and Packagist's `vendor/package` carry a namespace. **A language with no package registry is not charged**: the mechanism is about a name space that exists."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "The package registry is a flat name space."
+      }
+    },
+    {
+      "id": "Y5",
+      "dimension": "observability",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no stable tracing standard",
+      "title": "No stable tracing and metrics standard",
+      "anchor": "y5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language and its standard library provide no agreed way to emit traces and metrics, so each project invents one. The instrumentation contract is a shared resource, and a distributed call cannot be followed across a service the project did not write."
+        },
+        {
+          "kind": "example",
+          "text": "OpenTelemetry ships stable tracing for C++, C#, Erlang/Elixir, Go, Java, JavaScript, PHP, Python, Ruby, and Swift, beta for Rust, and development status for Kotlin [@opentelemetryLanguages]. A language on the JVM or the CLR can use the stable Java or .NET implementation."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "No stable tracing and metrics standard."
+      }
+    },
+    {
+      "id": "Y6",
+      "dimension": "observability",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no structured logging",
+      "title": "No structured logging in the standard library",
+      "anchor": "y6",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Diagnostics are free text, and the standard library exposes no structured record of them. The program's state is a shared resource held in an unstructured log, so a question about a running system requires a new deployment to answer."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "The standard library has no structured logging."
+      }
+    },
+    {
+      "id": "Y7",
+      "dimension": "feedback",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "slow build",
+      "title": "Slow or non-incremental build",
+      "anchor": "y7",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A change costs a long rebuild, and the rebuild repeats work it did not need to. The build is a shared resource on the critical path of every edit, so the feedback loop is set by the compiler rather than by the size of the change."
+        },
+        {
+          "kind": "example",
+          "text": "A large C++ translation unit and a large Rust crate both pay a long codegen and link step. Go and a scripting language pay almost none."
+        }
+      ],
+      "observation": {
+        "kind": "cost",
+        "text": "A change pays a slow build."
+      }
+    },
+    {
+      "id": "Y8",
+      "dimension": "feedback",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no fast in-editor analysis",
+      "title": "No fast in-editor analysis",
+      "anchor": "y8",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no incremental analyser that answers a question about the code as it is typed. The type and reference information is a shared resource available only after a full build, so the editor cannot answer while the author is working."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "No fast in-editor analysis."
+      }
+    },
+    {
+      "id": "Y9",
+      "dimension": "interop",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no foreign-function interface",
+      "title": "No foreign-function interface",
+      "anchor": "y9",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no in-process foreign-function interface: a library written in another language is reachable only by starting a process or through an external binding. Every library must be reimplemented in the language, so the program is coupled to the ecosystem of one language and cannot reuse the rest. This is the mirror of `T14`: `T14` prices an unchecked boundary, and `Y9` prices the absence of one."
+        },
+        {
+          "kind": "example",
+          "text": "A shell reaches another language only by starting a process. Scratch, Solidity, and Rocq reach none. SQL is not charged: PostgreSQL, Oracle, and SQL Server each load native code through a user-defined function (`LANGUAGE C`, `extproc`, SQLCLR)."
+        }
+      ],
+      "observation": {
+        "kind": "cost",
+        "text": "No general foreign-function interface."
+      }
+    },
+    {
+      "id": "Y10",
+      "dimension": "interop",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "no portable target",
+      "title": "No maintained portable target",
+      "anchor": "y10",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The program cannot be compiled to a portable target, so it runs only where the language's own runtime runs. The deployment surface is a shared resource fixed by the runtime."
+        },
+        {
+          "kind": "example",
+          "text": "Popcorn and AtomVM compile Erlang and Elixir to WebAssembly; GHC, `wasm_of_ocaml`, Pyodide, `php-wasm`, `webR`, and SwiftWasm cover their languages. Julia has no maintained official target."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "No maintained portable target."
+      }
+    },
+    {
+      "id": "Y11",
+      "dimension": "governance",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "single-vendor governance",
+      "title": "Single-vendor governance",
+      "anchor": "y11",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "One company decides the language's direction, and no independent body can change it. The language's future is a shared resource held by a commercial owner, so the program's roadmap follows that owner's priorities."
+        },
+        {
+          "kind": "example",
+          "text": "MATLAB, SAS, PL/SQL, Transact-SQL, Objective-C, Delphi, and VBScript are governed by one vendor, and Swift's project lead is appointed by Apple. Rust, Python, JavaScript, PHP, Kotlin, C#, and Eiffel sit with an independent foundation or a standards body."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "One vendor decides the language's direction."
+      }
+    },
+    {
+      "id": "Y12",
+      "dimension": "governance",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "closed specification",
+      "title": "Closed specification",
+      "anchor": "y12",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language has no public, complete definition that an independent implementation could follow. The meaning of a program is a shared resource held by one implementation, so portability and third-party tooling depend on reverse engineering."
+        },
+        {
+          "kind": "example",
+          "text": "ISO C, ISO SQL, Ada, Fortran, and Scheme have published standards. MATLAB, SAS, PL/SQL, Transact-SQL, and Objective-C do not."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "The specification is not public."
+      }
+    }
+  ],
+  "profileAxes": [
+    {
+      "id": "energy",
+      "label": "Energy and cost",
+      "order": 1,
+      "asks": "what does a running program cost in energy and time?"
+    },
+    {
+      "id": "ai-readiness",
+      "label": "AI and agent readiness",
+      "order": 2,
+      "asks": "how well does a coding model and an agent work in this language?"
+    },
+    {
+      "id": "safety",
+      "label": "Safety certification",
+      "order": 3,
+      "asks": "is there a certified or standards-qualified path to a safety-critical system?"
+    }
+  ],
+  "axes": [
+    {
+      "id": "core",
+      "label": "Core coupling",
+      "kind": "scored",
+      "order": 1,
+      "blurb": "what the language's own constructs force"
+    },
+    {
+      "id": "meta",
+      "label": "Ecosystem coupling",
+      "kind": "scored",
+      "order": 2,
+      "blurb": "what the surrounding platform, tooling, and community cost"
+    },
+    {
+      "id": "readiness",
+      "label": "Engineering readiness",
+      "kind": "scored",
+      "order": 3,
+      "blurb": "whether the language can be built reproducibly, shipped verifiably, observed, worked in quickly, connected to other languages, and governed openly"
     }
   ]
 }
