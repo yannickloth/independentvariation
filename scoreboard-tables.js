@@ -1,158 +1,172 @@
-// scoreboard-tables.js — sort and filter the scoreboard tables in place.
+// scoreboard-tables.js — filter every table, and sort every ranking table.
 //
 // The scoreboard is rendered from the published JSON at build time, so the
-// numbers need no fetch. This component only re-orders and hides the rows that
-// are already on the page, which keeps the page readable without JavaScript and
+// numbers need no fetch. This component only re-orders and hides rows that are
+// already on the page, which keeps the page readable without JavaScript and
 // indexable by search engines.
 //
-// It activates on the scoreboard only: it returns immediately unless all four
-// scoreboard tables are present.
+// Both features are derived from the rendered table itself:
+//   - a table is a RANKING when its first body cell parses as a rank, i.e. the
+//     rows are numbered 1..n in the rendered order;
+//   - a column is NUMERIC when every body cell parses as a number (a dash or a
+//     blank counts as empty and is ignored);
+//   - a column is a mechanism LIST when every body cell is a run of ids
+//     separated by commas.
+// Nothing is hand-written per table, so a new table on the page is covered.
 
 (() => {
-  const HEADERS = {
-    combined: ["Rank", "Language", "Version", "Core Coupling", "Ecosystem Coupling", "Overall Coupling Quality"],
-    core: ["Language", "Coupling Score"],
-    meta: ["Language", "Ecosystem Coupling Score"],
-    presence: ["Language (Version)", "Core", "Meta"],
-  };
-
-  const headerOf = (table) => {
-    const row = table.tHead && table.tHead.rows[0];
-    return row ? Array.from(row.cells).map((c) => c.textContent.trim()) : [];
-  };
-  const match = (cells, want) => want.every((w, i) => cells[i] === w);
-
   const tables = Array.from(document.querySelectorAll("table"));
-  const found = {};
-  for (const table of tables) {
-    const cells = headerOf(table);
-    for (const [name, want] of Object.entries(HEADERS)) {
-      if (!found[name] && match(cells, want)) found[name] = table;
-    }
-  }
-  if (!found.combined || !found.core || !found.meta || !found.presence) return;
 
-  // Column positions are read from the header, so adding a column to a table
-  // does not silently break the sort.
-  const colOf = (table, label) => headerOf(table).indexOf(label);
-  const nameOf = new Map(Object.entries(found).map(([n, t]) => [t, n]));
-  const langCol = new Map();
-  for (const [name, table] of Object.entries(found)) {
-    const cells = headerOf(table);
-    langCol.set(table, Math.max(0, cells.findIndex((c) => c.startsWith("Language"))));
-  }
-  const CORE_COL = colOf(found.combined, "Core Coupling");
-  const META_COL = colOf(found.combined, "Ecosystem Coupling");
-  const RANK_COL = colOf(found.combined, "Rank");
-
-  const rowsOf = (table) => Array.from(table.tBodies[0].rows);
-  // "Rust (1.96)" and "Ada (2022)" reduce to the language name.
-  const keyOf = (table, row) =>
-    row.cells[langCol.get(table)].textContent.replace(/\s*\([^)]*\)\s*$/, "").trim();
-
-  const index = new Map();
-  for (const row of rowsOf(found.combined)) {
-    const key = keyOf(found.combined, row);
-    index.set(key, {
-      // The rank column IS the published ordering: Core coupling, then
-      // Ecosystem coupling. Sorting by rank therefore reproduces the numbers.
-      rank: Number(row.cells[RANK_COL].textContent.trim()),
-      core: Number(row.cells[CORE_COL].textContent.trim()),
-      meta: Number(row.cells[META_COL].textContent.trim()),
-      name: key,
-    });
-  }
-
-  // Each key has a natural direction: the rank reads best-first, scores rank
-  // highest-first, names read A–Z.
-  const NATURAL = { core: 1, meta: -1, name: 1 };
-  let sort = "core";
-  let dir = NATURAL[sort];
-  let query = "";
-
-  const ordered = () => {
-    const keys = Array.from(index.values());
-    keys.sort((a, b) => {
-      let raw;
-      if (sort === "name") raw = a.name.localeCompare(b.name);
-      else if (sort === "core") raw = a.rank - b.rank; // rank = Core, then Ecosystem
-      else raw = a.meta - b.meta;
-      // Ties keep the published order, so the Rank column always reads in
-      // sequence when the table is ordered by rank.
-      return dir * raw || a.rank - b.rank;
-    });
-    return keys.map((k) => k.name);
+  const headRow = (t) => (t.tHead && t.tHead.rows[0]) || t.rows[0];
+  const labels = (t) => Array.from(headRow(t).cells).map((c) => c.textContent.trim());
+  // When there is no <tbody>, t.rows includes the header, so it is dropped here.
+  const bodyRows = (t) => {
+    const rows = Array.from(t.tBodies[0] ? t.tBodies[0].rows : t.rows);
+    const head = headRow(t);
+    return rows[0] === head ? rows.slice(1) : rows;
   };
+  const text = (row, i) => (row.cells[i] ? row.cells[i].textContent.trim() : "");
 
-  const apply = () => {
-    const order = ordered();
-    const rank = new Map(order.map((k, i) => [k, i]));
-    const q = query.trim().toLowerCase();
-    let visible = 0;
+  const isNumeric = (s) => s !== "" && s !== "\u2014" && Number.isFinite(Number(s.replace(/,/g, "")));
+  const isEmpty = (s) => s === "" || s === "\u2014" || s === "\u2013" || s === "-";
+  const isList = (s) => !isEmpty(s) && /^[A-Za-z]{1,3}\d{0,2}(\s*,\s*[A-Za-z]{1,3}\d{0,2})*$/.test(s);
 
-    for (const table of Object.values(found)) {
-      const rows = rowsOf(table);
-      rows.sort((a, b) => {
-        const ra = rank.has(keyOf(table, a)) ? rank.get(keyOf(table, a)) : order.length;
-        const rb = rank.has(keyOf(table, b)) ? rank.get(keyOf(table, b)) : order.length;
-        return ra - rb;
+  // The id prefix identifies the mechanism family, so R2 and Y12 both reduce to
+  // a family letter that orders the lists consistently.
+  const listKey = (s) =>
+    s.split(",").map((x) => x.trim()).filter(Boolean)
+      .map((id) => /^([A-Za-z]+)\d*$/.exec(id)?.[1].toLowerCase() ?? id.toLowerCase())
+      .sort().join(" ");
+
+  const model = tables.map((table, i) => {
+    const labels_ = labels(table);
+    const rows = bodyRows(table);
+    const first = rows.length ? text(rows[0], 0) : "";
+    const numeric = rows.length ? text(rows[rows.length - 1], 0) : "";
+    return {
+      index: i,
+      table,
+      labels: labels_,
+      rows,
+      isRanking: /^\d+$/.test(first) && /^\d+$/.test(numeric) && Number(numeric) === rows.length,
+      kinds: labels_.map((_, c) => {
+        const vals = rows.map((r) => text(r, c)).filter((v) => v !== "");
+        if (vals.length && vals.every(isNumeric)) return "number";
+        if (vals.length && vals.every(isList)) return "list";
+        return "text";
+      }),
+    };
+  });
+
+  const visible = () => model.filter((m) => m.rows.length > 0);
+
+  // ── one panel per table ────────────────────────────────────────────────────
+  model.forEach((m) => {
+    if (!m.rows.length) return;
+
+    const bar = document.createElement("div");
+    bar.className = "scoreboard-controls";
+
+    const field = (labelText, control) => {
+      const l = document.createElement("label");
+      l.className = "scoreboard-field";
+      l.append(document.createTextNode(labelText), control);
+      return l;
+    };
+
+    const filter = document.createElement("input");
+    filter.type = "search";
+    filter.className = "form-control form-control-sm";
+    filter.placeholder = "filter rows\u2026";
+    filter.autocomplete = "off";
+    bar.append(field("Filter", filter));
+
+    // A ranking table gets a sort control over its numeric columns.
+    const numericCols = m.labels
+      .map((label, c) => ({ label, c }))
+      .filter(({ c }) => m.kinds[c] === "number" && !/\brank\b/i.test(m.labels[c]));
+
+    let select = null;
+    let dir = null;
+    if (m.isRanking && numericCols.length) {
+      select = document.createElement("select");
+      select.className = "form-select form-select-sm";
+      numericCols.forEach(({ label, c }) => {
+        const o = document.createElement("option");
+        o.value = String(c);
+        o.textContent = label;
+        select.append(o);
       });
-      for (const row of rows) {
-        const key = keyOf(table, row);
-        const show = !q || key.toLowerCase().includes(q);
-        row.hidden = !show;
-        table.tBodies[0].appendChild(row);
+      bar.append(field("Sort by", select));
+
+      dir = document.createElement("button");
+      dir.type = "button";
+      dir.className = "btn btn-sm btn-outline-secondary";
+      bar.append(dir);
+    }
+
+    const status = document.createElement("p");
+    status.className = "scoreboard-status";
+    status.setAttribute("role", "status");
+
+    m.table.parentNode.insertBefore(bar, m.table);
+    m.table.parentNode.insertBefore(status, m.table);
+
+    // The rendered order is the default, and it is kept unless the reader asks
+    // for another. `state.col` starts at the first numeric column, or -1 when
+    // the table is not sorted.
+    const state = { col: select ? Number(select.value) : -1, desc: true, query: "" };
+    if (select) {
+      dir.textContent = state.desc ? "Highest first" : "Lowest first";
+      select.addEventListener("change", () => {
+        state.col = Number(select.value);
+        dir.textContent = state.desc ? "Highest first" : "Lowest first";
+        apply();
+      });
+      dir.addEventListener("click", () => {
+        state.desc = !state.desc;
+        dir.textContent = state.desc ? "Highest first" : "Lowest first";
+        apply();
+      });
+    }
+    filter.addEventListener("input", () => { state.query = filter.value; apply(); });
+
+    function apply() {
+      const q = state.query.trim().toLowerCase();
+      let shown = 0;
+      for (const row of m.rows) {
+        const matches = !q || row.textContent.toLowerCase().includes(q);
+        row.hidden = !matches;
+        if (matches) shown += 1;
+      }
+      if (state.col >= 0) {
+        const kind = m.kinds[state.col];
+        const key = (row) => {
+          const raw = text(row, state.col);
+          if (kind === "number") return isEmpty(raw) ? null : Number(raw.replace(/,/g, ""));
+          if (kind === "list") return isEmpty(raw) ? null : listKey(raw);
+          return raw.toLowerCase();
+        };
+        m.rows.sort((a, b) => {
+          const ka = key(a), kb = key(b);
+          // An empty cell always sorts last, whichever direction is chosen.
+          if (ka === null && kb === null) return 0;
+          if (ka === null) return 1;
+          if (kb === null) return -1;
+          const cmp = typeof ka === "number" ? ka - kb : String(ka).localeCompare(String(kb));
+          return state.desc ? -cmp : cmp;
+        });
+        for (const row of m.rows) m.table.tBodies[0].appendChild(row);
+      }
+      if (!state.query) {
+        status.textContent = m.isRanking
+          ? `All ${m.rows.length} rows, in the published order.`
+          : `All ${m.rows.length} rows.`;
+      } else {
+        status.textContent = `${shown} of ${m.rows.length} rows shown.`;
       }
     }
-    for (const row of rowsOf(found.combined)) {
-      if (!row.hidden) visible += 1;
-    }
-    status.textContent = visible === order.length
-      ? `All ${order.length} languages.`
-      : `${visible} of ${order.length} languages shown.`;
-  };
 
-  // ── controls ───────────────────────────────────────────────────────────────
-  const bar = document.createElement("div");
-  bar.className = "scoreboard-controls";
-  bar.innerHTML =
-    '<label class="scoreboard-field">Filter' +
-    '<input id="scoreboard-filter" type="search" class="form-control form-control-sm" ' +
-    'placeholder="language or version…" autocomplete="off"></label>' +
-    '<label class="scoreboard-field">Sort by' +
-    '<select id="scoreboard-sort" class="form-select form-select-sm">' +
-    '<option value="core">Core coupling</option>' +
-    '<option value="meta">Ecosystem coupling</option>' +
-    '<option value="name">Name</option></select></label>' +
-    '<button id="scoreboard-dir" type="button" class="btn btn-sm btn-outline-secondary"></button>';
-
-  const status = document.createElement("p");
-  status.className = "scoreboard-status";
-  status.setAttribute("role", "status");
-
-  const combined = found.combined;
-  combined.parentNode.insertBefore(bar, combined);
-  combined.parentNode.insertBefore(status, combined);
-
-  const filter = bar.querySelector("#scoreboard-filter");
-  const select = bar.querySelector("#scoreboard-sort");
-  const button = bar.querySelector("#scoreboard-dir");
-
-  const labelDir = () => {
-    if (sort === "name") button.textContent = dir === 1 ? "A \u2192 Z" : "Z \u2192 A";
-    else if (sort === "core") button.textContent = dir === 1 ? "Best first" : "Worst first";
-    else button.textContent = dir === 1 ? "Highest first" : "Lowest first";
-  };
-
-  filter.addEventListener("input", () => { query = filter.value; apply(); });
-  select.addEventListener("change", () => {
-    sort = select.value;
-    dir = NATURAL[sort];
-    labelDir();
     apply();
   });
-  button.addEventListener("click", () => { dir = -dir; labelDir(); apply(); });
-
-  labelDir();
-  apply();
 })();
