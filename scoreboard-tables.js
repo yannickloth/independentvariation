@@ -100,17 +100,24 @@
     filter.autocomplete = "off";
     bar.append(field("Filter", filter));
 
-    // A ranking table gets a sort control over every column that carries an
-    // order: numbers, mechanism lists, and band labels.
     const sortableCols = m.labels
       .map((label, c) => ({ label, c, kind: m.kinds[c] }))
-      .filter(({ c, kind }) => c !== m.rankCol && (kind === "number" || kind === "list" || kind === "label"));
+      .filter(({ c, kind }) => c !== m.rankCol && (kind === "number" || kind === "list" || kind === "label"))
+      .sort((a, b) => (a.label === "Rank" ? -1 : b.label === "Rank" ? 1 : a.c - b.c));
 
     let select = null;
     let dir = null;
     if (m.isRanking && sortableCols.length) {
       select = document.createElement("select");
       select.className = "form-select form-select-sm";
+      // Rank is the first option and the default: the page opens in the
+      // published order, and any other key is a deliberate choice.
+      if (m.rankCol >= 0) {
+        const o = document.createElement("option");
+        o.value = String(m.rankCol);
+        o.textContent = "Rank";
+        select.append(o);
+      }
       sortableCols.forEach(({ label, c }) => {
         const o = document.createElement("option");
         o.value = String(c);
@@ -132,20 +139,27 @@
     m.table.parentNode.insertBefore(bar, m.table);
     m.table.parentNode.insertBefore(status, m.table);
 
-    // The rendered order is the default, and it is kept unless the reader asks
-    // for another. `state.col` starts at the first numeric column, or -1 when
-    // the table is not sorted.
-    const state = { col: select ? Number(select.value) : -1, desc: true, query: "" };
+    // The page opens in the published order. The sort control starts on Rank,
+    // so nothing is re-ordered until the reader chooses another key. Rank reads
+    // best-first (ascending) and every score reads highest-first; the button
+    // reverses whichever is selected.
+    const naturalDesc = (col) => !(m.rankCol >= 0 && col === m.rankCol);
+    const state = { col: select ? Number(select.value) : -1, desc: naturalDesc(select ? Number(select.value) : -1), query: "" };
+    const dirLabel = () => {
+      if (m.rankCol >= 0 && state.col === m.rankCol) return state.desc ? "Worst first" : "Best first";
+      return state.desc ? "Highest first" : "Lowest first";
+    };
     if (select) {
-      dir.textContent = state.desc ? "Highest first" : "Lowest first";
+      dir.textContent = dirLabel();
       select.addEventListener("change", () => {
         state.col = Number(select.value);
-        dir.textContent = state.desc ? "Highest first" : "Lowest first";
+        state.desc = naturalDesc(state.col);
+        dir.textContent = dirLabel();
         apply();
       });
       dir.addEventListener("click", () => {
         state.desc = !state.desc;
-        dir.textContent = state.desc ? "Highest first" : "Lowest first";
+        dir.textContent = dirLabel();
         apply();
       });
     }
@@ -184,7 +198,7 @@
       }
       if (!state.query) {
         status.textContent = m.isRanking
-          ? `All ${m.rows.length} rows, in the published order.`
+          ? `All ${m.rows.length} ranked rows.`
           : `All ${m.rows.length} rows.`;
       } else {
         status.textContent = `${shown} of ${m.rows.length} rows shown.`;
