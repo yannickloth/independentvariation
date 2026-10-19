@@ -27,6 +27,14 @@
   };
   const text = (row, i) => (row.cells[i] ? row.cells[i].textContent.trim() : "");
 
+  // A code span in the rendered HTML is a mechanism list, so the strongest
+  // signal is the element itself: a cell that contains <code> is a list, and it
+  // wins over the numeric test (a single-id list such as "Y4" also parses as a
+  // number, and must not be treated as one).
+  const isListCell = (row, c) => {
+    const cell = row.cells[c];
+    return !!cell && !!cell.querySelector("code");
+  };
   const isNumeric = (s) => s !== "" && s !== "\u2014" && Number.isFinite(Number(s.replace(/,/g, "")));
   const isEmpty = (s) => s === "" || s === "\u2014" || s === "\u2013" || s === "-";
   const isList = (s) => !isEmpty(s) && /^[A-Za-z]{1,3}\d{0,2}(\s*,\s*[A-Za-z]{1,3}\d{0,2})*$/.test(s);
@@ -38,21 +46,32 @@
       .map((id) => /^([A-Za-z]+)\d*$/.exec(id)?.[1].toLowerCase() ?? id.toLowerCase())
       .sort().join(" ");
 
+  // A "label" column is a band word plus a characterization, e.g. "Pragmatic FP"
+  // or a star run. It sorts by the word itself, ignoring the stars.
+  const isLabel = (s) => !isEmpty(s) && !isNumeric(s) && /\s/.test(s);
+
   const model = tables.map((table, i) => {
     const labels_ = labels(table);
     const rows = bodyRows(table);
     const first = rows.length ? text(rows[0], 0) : "";
     const numeric = rows.length ? text(rows[rows.length - 1], 0) : "";
+    // The rank column carries the published order, so it is a sortable key and
+    // it is also the tie-break for every other key.
+    const rankCol = /^rank$/i.test(labels_[0] || "") ? 0 : -1;
     return {
       index: i,
       table,
       labels: labels_,
       rows,
-      isRanking: /^\d+$/.test(first) && /^\d+$/.test(numeric) && Number(numeric) === rows.length,
+      rankCol,
+      isRanking: rankCol === 0 && /^\d+$/.test(first) && /^\d+$/.test(numeric)
+                 && Number(numeric) === rows.length,
       kinds: labels_.map((_, c) => {
         const vals = rows.map((r) => text(r, c)).filter((v) => v !== "");
+        if (rows.length && rows.every((r) => isListCell(r, c) || isEmpty(text(r, c)))) return "list";
         if (vals.length && vals.every(isNumeric)) return "number";
         if (vals.length && vals.every(isList)) return "list";
+        if (vals.length && vals.every(isLabel)) return "label";
         return "text";
       }),
     };
@@ -81,17 +100,18 @@
     filter.autocomplete = "off";
     bar.append(field("Filter", filter));
 
-    // A ranking table gets a sort control over its numeric columns.
-    const numericCols = m.labels
-      .map((label, c) => ({ label, c }))
-      .filter(({ c }) => m.kinds[c] === "number" && !/\brank\b/i.test(m.labels[c]));
+    // A ranking table gets a sort control over every column that carries an
+    // order: numbers, mechanism lists, and band labels.
+    const sortableCols = m.labels
+      .map((label, c) => ({ label, c, kind: m.kinds[c] }))
+      .filter(({ c, kind }) => c !== m.rankCol && (kind === "number" || kind === "list" || kind === "label"));
 
     let select = null;
     let dir = null;
-    if (m.isRanking && numericCols.length) {
+    if (m.isRanking && sortableCols.length) {
       select = document.createElement("select");
       select.className = "form-select form-select-sm";
-      numericCols.forEach(({ label, c }) => {
+      sortableCols.forEach(({ label, c }) => {
         const o = document.createElement("option");
         o.value = String(c);
         o.textContent = label;
@@ -145,16 +165,20 @@
           const raw = text(row, state.col);
           if (kind === "number") return isEmpty(raw) ? null : Number(raw.replace(/,/g, ""));
           if (kind === "list") return isEmpty(raw) ? null : listKey(raw);
+          if (kind === "label") return isEmpty(raw) ? null : raw.replace(/[^\p{L}\p{N}\s]/gu, "").trim().toLowerCase();
           return raw.toLowerCase();
         };
+        // The published rank is the tie-break, so equal keys keep their order.
+        const rankOf = (row) =>
+          m.rankCol >= 0 ? Number(text(row, m.rankCol)) || 0 : m.rows.indexOf(row);
         m.rows.sort((a, b) => {
           const ka = key(a), kb = key(b);
           // An empty cell always sorts last, whichever direction is chosen.
-          if (ka === null && kb === null) return 0;
+          if (ka === null && kb === null) return rankOf(a) - rankOf(b);
           if (ka === null) return 1;
           if (kb === null) return -1;
           const cmp = typeof ka === "number" ? ka - kb : String(ka).localeCompare(String(kb));
-          return state.desc ? -cmp : cmp;
+          return state.desc ? -cmp : cmp || rankOf(a) - rankOf(b);
         });
         for (const row of m.rows) m.table.tBodies[0].appendChild(row);
       }
