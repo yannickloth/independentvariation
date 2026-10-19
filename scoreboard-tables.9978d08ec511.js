@@ -35,7 +35,16 @@
     const cell = row.cells[c];
     return !!cell && !!cell.querySelector("code");
   };
-  const isNumeric = (s) => s !== "" && s !== "\u2014" && Number.isFinite(Number(s.replace(/,/g, "")));
+  // A cost cell may carry an uncapped value in parentheses, e.g. "-15 (-28)".
+  // The capped value leads, so that is the key; the parentheses are detail.
+  const costValue = (s) => {
+    const t = s.trim();
+    if (t === "0") return 0;
+    const m = /^([\u2212-])(\d+(?:\.\d+)?)/.exec(t);
+    return m ? -Number(m[2]) : null;
+  };
+  const isCost = (s) => costValue(s) !== null;
+  const isNumeric = (s) => s !== "" && s !== "\u2014" && Number.isFinite(Number(s.replace(/,/g, ""))) && !s.includes("(");
   const isEmpty = (s) => s === "" || s === "\u2014" || s === "\u2013" || s === "-";
   const isList = (s) => !isEmpty(s) && /^[A-Za-z]{1,3}\d{0,2}(\s*,\s*[A-Za-z]{1,3}\d{0,2})*$/.test(s);
 
@@ -69,6 +78,7 @@
       kinds: labels_.map((_, c) => {
         const vals = rows.map((r) => text(r, c)).filter((v) => v !== "");
         if (rows.length && rows.every((r) => isListCell(r, c) || isEmpty(text(r, c)))) return "list";
+        if (vals.length && vals.every(isCost)) return "cost";
         if (vals.length && vals.every(isNumeric)) return "number";
         if (vals.length && vals.every(isList)) return "list";
         if (vals.length && vals.every(isLabel)) return "label";
@@ -102,7 +112,7 @@
 
     const sortableCols = m.labels
       .map((label, c) => ({ label, c, kind: m.kinds[c] }))
-      .filter(({ c, kind }) => c !== m.rankCol && (kind === "number" || kind === "list" || kind === "label"))
+      .filter(({ c, kind }) => c !== m.rankCol && (kind === "number" || kind === "cost" || kind === "list" || kind === "label"))
       .sort((a, b) => (a.label === "Rank" ? -1 : b.label === "Rank" ? 1 : a.c - b.c));
 
     let select = null;
@@ -143,10 +153,11 @@
     // so nothing is re-ordered until the reader chooses another key. Rank reads
     // best-first (ascending) and every score reads highest-first; the button
     // reverses whichever is selected.
-    const naturalDesc = (col) => !(m.rankCol >= 0 && col === m.rankCol);
+    const naturalDesc = (col) => !(m.rankCol >= 0 && col === m.rankCol) && m.kinds[col] !== "cost";
     const state = { col: select ? Number(select.value) : -1, desc: naturalDesc(select ? Number(select.value) : -1), query: "" };
     const dirLabel = () => {
       if (m.rankCol >= 0 && state.col === m.rankCol) return state.desc ? "Worst first" : "Best first";
+      if (m.kinds[state.col] === "cost") return state.desc ? "Most costly first" : "Cheapest first";
       return state.desc ? "Highest first" : "Lowest first";
     };
     if (select) {
@@ -177,6 +188,7 @@
         const kind = m.kinds[state.col];
         const key = (row) => {
           const raw = text(row, state.col);
+          if (kind === "cost") return isEmpty(raw) ? null : costValue(raw);
           if (kind === "number") return isEmpty(raw) ? null : Number(raw.replace(/,/g, ""));
           if (kind === "list") return isEmpty(raw) ? null : listKey(raw);
           if (kind === "label") return isEmpty(raw) ? null : raw.replace(/[^\p{L}\p{N}\s]/gu, "").trim().toLowerCase();
