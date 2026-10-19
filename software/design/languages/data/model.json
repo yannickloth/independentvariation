@@ -98,19 +98,22 @@
     }
   ],
   "aggregation": {
-    "id": "mean",
+    "id": "coupling-primary",
     "label": "Ranking score",
-    "formula": "(core + readiness) / 2",
+    "formula": "core * (1 - LIFT + LIFT * readiness / 100)",
+    "lift": 0.15,
+    "primary": "core",
+    "modifier": "readiness",
     "terms": {
       "core": {
-        "weight": 0.5,
+        "weight": 1.0,
         "label": "Core Coupling",
-        "why": "the coupling the language's own constructs force"
+        "why": "the coupling the language's own constructs force into the code. This is primary, because once the code is written the code is what remains, and coupling is structural and cumulative."
       },
       "readiness": {
-        "weight": 0.5,
+        "weight": 0.15,
         "label": "Engineering Readiness",
-        "why": "whether the artifact can be rebuilt, verified, observed, worked in quickly, connected, and governed"
+        "why": "a modifier on the primary score, capped at 15 points. Readiness is real but conditional and remediable: a toolchain, a registry, and an observability stack can be fixed by process, while coupling written into the code cannot."
       }
     },
     "excluded": {
@@ -119,7 +122,7 @@
         "why": "it is a dependency context, not a quality: a near-monoculture ecosystem lowers risk through consistency, so its band can disagree with its number. It is a lens, and it stays sortable, but it does not rank."
       }
     },
-    "rationale": "Core coupling and Engineering readiness both order languages, and neither encompasses the other, so the ranking weighs them equally. The weight is stated here rather than hidden: it is a modeling choice, like the clamp and the mechanism weights, and a reader who weights the axes differently can sort by either one.",
+    "rationale": "Coupling is primary. A language that forces accidental coupling into every line has damaged the artifact permanently, and the artifact is what a maintainer faces for most of a system's life. Readiness surrounds the code rather than entering it, and it is remediable by process. So readiness does not weigh against coupling as a peer: it modifies the coupling score by at most the LIFT fraction, which at the top of the range is 15 points, the weight of one High mechanism. A language scoring 100 on readiness can therefore overtake at most a 15-point coupling gap at the top of the scale, and never a large one. The LIFT value is an authored choice, stated here beside the clamp and the mechanism weights; a reader who wants pure coupling sorts by that column.",
     "tiebreak": [
       "core",
       "readiness",
