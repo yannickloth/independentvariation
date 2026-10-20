@@ -30,7 +30,6 @@
   const posts = nodes.map(function (el) {
     return {
       slug: el.dataset.slug,
-      n: el.dataset.n,
       pattern: el.dataset.pattern,
       date: el.dataset.date,
       platform: el.dataset.platform,
@@ -93,24 +92,19 @@
     }
   });
 
+  // One list entry: the pattern name over its date and platform. The entries
+  // carry no series number — the posts are a family list, not an ordered
+  // sequence, and a running number said nothing about the pattern.
   function itemHtml(p) {
     return (
       '<a class="kg-item" data-slug="' +
       esc(p.slug) +
       '" href="#' +
       esc(p.slug) +
-      '" aria-label="Post ' +
-      esc(p.n) +
-      ": " +
-      esc(p.pattern) +
       '">' +
-      '<span class="kg-item-top">' +
-      '<span class="kg-num">' +
-      esc(p.n) +
-      "</span>" +
       '<span class="kg-name">' +
       esc(p.pattern) +
-      "</span></span>" +
+      "</span>" +
       '<span class="kg-meta">' +
       esc(p.date) +
       " · " +
@@ -164,10 +158,10 @@
       el.addEventListener("click", function (ev) {
         ev.preventDefault();
         const slug = el.dataset.slug;
-        // Accordion behaviour: clicking the open post closes it.
-        if (slug === current) {
-          location.hash = "";
-          close();
+        // Clicking an item always opens it. A click on the post that is
+        // already open leaves it open — never toggles it closed.
+        if (fromHash() === slug) {
+          show(slug);
         } else {
           location.hash = slug;
         }
@@ -246,7 +240,7 @@
     expandGroupOf(p.slug);
     showIntro(p.group);
     bar.classList.add("kg-bar-on");
-    barTitle.textContent = "#" + p.n + " " + p.pattern;
+    barTitle.textContent = p.pattern;
     viewer.classList.remove("kg-empty");
     document.title = p.pattern + " — " + SERIES + " — IVP";
     // Bring the opened post to the top of the pane.
