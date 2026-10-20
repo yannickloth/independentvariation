@@ -1,7 +1,8 @@
 // Accordion browser for the Knowledge-Gap Indicators posts.
 // All post content lives on this page as .kg-post blocks. The script
 // builds the left-hand list from those blocks, grouped by pattern
-// family, and opens one post at a time with its family framing.
+// family (families and the patterns inside them sorted
+// alphabetically), and opens one post at a time with its family framing.
 (function () {
   "use strict";
 
@@ -31,11 +32,8 @@
     return {
       slug: el.dataset.slug,
       pattern: el.dataset.pattern,
-      date: el.dataset.date,
-      platform: el.dataset.platform,
       group: el.dataset.group || "other",
       groupLabel: el.dataset.groupLabel || "Other",
-      groupOrder: Number(el.dataset.groupOrder || 99),
       el: el,
     };
   });
@@ -47,6 +45,7 @@
   let items = [];
   let groups = [];
   let current = null;
+  let defaultSlug = posts[0] ? posts[0].slug : null;
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -92,9 +91,9 @@
     }
   });
 
-  // One list entry: the pattern name over its date and platform. The entries
-  // carry no series number — the posts are a family list, not an ordered
-  // sequence, and a running number said nothing about the pattern.
+  // One list entry: the pattern name. The entries carry no series number —
+  // the posts are a family list, not an ordered sequence, and a running
+  // number said nothing about the pattern.
   function itemHtml(p) {
     return (
       '<a class="kg-item" data-slug="' +
@@ -104,11 +103,6 @@
       '">' +
       '<span class="kg-name">' +
       esc(p.pattern) +
-      "</span>" +
-      '<span class="kg-meta">' +
-      esc(p.date) +
-      " · " +
-      esc(p.platform) +
       "</span></a>"
     );
   }
@@ -123,13 +117,20 @@
     const map = new Map();
     for (const p of posts) {
       if (!map.has(p.group)) {
-        map.set(p.group, { id: p.group, label: p.groupLabel, order: p.groupOrder, posts: [] });
+        map.set(p.group, { id: p.group, label: p.groupLabel, posts: [] });
       }
       map.get(p.group).posts.push(p);
     }
-    const ordered = Array.from(map.values()).sort(
-      (a, b) => a.order - b.order || a.label.localeCompare(b.label)
+    // Families and the patterns inside them are both alphabetical.
+    const ordered = Array.from(map.values()).sort((a, b) =>
+      a.label.localeCompare(b.label)
     );
+    ordered.forEach(function (g) {
+      g.posts.sort((a, b) => a.pattern.localeCompare(b.pattern));
+    });
+    if (ordered.length && ordered[0].posts.length) {
+      defaultSlug = ordered[0].posts[0].slug;
+    }
 
     listEl.innerHTML = ordered
       .map(function (g) {
@@ -264,7 +265,7 @@
   if (initial) {
     show(initial);
   } else {
-    location.hash = posts[0].slug;
-    show(posts[0].slug);
+    location.hash = defaultSlug;
+    show(defaultSlug);
   }
 })();
