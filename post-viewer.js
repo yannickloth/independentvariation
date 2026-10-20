@@ -2,7 +2,8 @@
 // All post content lives on this page as .kg-post blocks. The script
 // builds the left-hand list from those blocks, grouped by pattern
 // family (families and the patterns inside them sorted
-// alphabetically), and opens one post at a time with its family framing.
+// alphabetically), filters the list by name, and opens one post at a
+// time with its family framing.
 (function () {
   "use strict";
 
@@ -46,6 +47,7 @@
   let groups = [];
   let current = null;
   let defaultSlug = posts[0] ? posts[0].slug : null;
+  let filterSnapshot = null; // per-group open state saved before filtering
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -75,6 +77,33 @@
   collapseBtn.className = "kg-collapse-btn";
   collapseBtn.textContent = "Collapse all but current";
   listEl.before(collapseBtn);
+
+  // Filter box, above the collapse control. Typing narrows the list to the
+  // patterns whose name contains the text; a family with no match
+  // disappears.
+  const filterWrap = document.createElement("div");
+  filterWrap.className = "kg-filter";
+  const filterInput = document.createElement("input");
+  filterInput.type = "search";
+  filterInput.className = "kg-filter-input";
+  filterInput.placeholder = "Filter patterns…";
+  filterInput.autocomplete = "off";
+  filterInput.setAttribute("aria-label", "Filter patterns by name");
+  const filterEmpty = document.createElement("p");
+  filterEmpty.className = "kg-filter-empty";
+  filterEmpty.textContent = "No patterns match.";
+  filterEmpty.hidden = true;
+  filterEmpty.setAttribute("role", "status");
+  filterWrap.append(filterInput, filterEmpty);
+  collapseBtn.before(filterWrap);
+
+  filterInput.addEventListener("input", function () {
+    applyFilter(filterInput.value);
+  });
+  // `search` fires when the box's native clear control is used.
+  filterInput.addEventListener("search", function () {
+    applyFilter(filterInput.value);
+  });
 
   copyBtn.addEventListener("click", function () {
     const url = location.pathname.replace(/[^/]*$/, "") + "#" + current;
@@ -111,6 +140,67 @@
     groupEl.classList.toggle("kg-group-closed", !open);
     const head = groupEl.querySelector(".kg-group-head");
     if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function setCount(groupEl, n) {
+    const count = groupEl.querySelector(".kg-group-count");
+    if (count) count.textContent = String(n);
+  }
+
+  // A pattern matches when its name contains the query. The family label is
+  // not matched: the request is to show only the patterns that match, and a
+  // family-name match would pull in patterns whose names do not contain it.
+  function itemMatches(p, q) {
+    return p.pattern.toLowerCase().indexOf(q) !== -1;
+  }
+
+  // Narrow the list to the patterns that match `raw`. The order stays
+  // alphabetical: the filter only hides entries, it never reorders them.
+  // Every family with a match opens, so the matches are visible.
+  function applyFilter(raw) {
+    const q = raw.trim().toLowerCase();
+    if (!q) {
+      clearFilter();
+      return;
+    }
+    // Save the collapse state once, so clearing the filter restores it.
+    if (!filterSnapshot) {
+      filterSnapshot = groups.map(function (groupEl) {
+        return !groupEl.classList.contains("kg-group-closed");
+      });
+    }
+    let anyMatch = false;
+    groups.forEach(function (groupEl) {
+      let shown = 0;
+      groupEl.querySelectorAll(".kg-item").forEach(function (el) {
+        const p = bySlug.get(el.dataset.slug);
+        const hit = !!p && itemMatches(p, q);
+        el.hidden = !hit;
+        if (hit) shown += 1;
+      });
+      groupEl.hidden = shown === 0;
+      setCount(groupEl, shown);
+      if (shown > 0) {
+        setGroup(groupEl, true);
+        anyMatch = true;
+      }
+    });
+    filterEmpty.hidden = anyMatch;
+    collapseBtn.hidden = true;
+  }
+
+  function clearFilter() {
+    groups.forEach(function (groupEl, i) {
+      groupEl.hidden = false;
+      groupEl.querySelectorAll(".kg-item").forEach(function (el) {
+        el.hidden = false;
+      });
+      setCount(groupEl, groupEl.querySelectorAll(".kg-item").length);
+      setGroup(groupEl, filterSnapshot ? filterSnapshot[i] : i === 0);
+    });
+    filterSnapshot = null;
+    filterEmpty.hidden = true;
+    collapseBtn.hidden = false;
   }
 
   function buildList() {
@@ -183,9 +273,14 @@
 
     collapseBtn.addEventListener("click", function () {
       const keep = current ? bySlug.get(current).group : null;
-      groups.forEach(function (groupEl) {
-        setGroup(groupEl, groupEl.dataset.group === keep);
+      const snapshot = groups.map(function (groupEl) {
+        return groupEl.dataset.group === keep;
       });
+      groups.forEach(function (groupEl, i) {
+        setGroup(groupEl, snapshot[i]);
+      });
+      // This is now the state the filter must restore, so record it.
+      if (filterSnapshot) filterSnapshot = snapshot;
     });
   }
 
