@@ -1,0 +1,2624 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Transact-SQL (SQL Server) – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../../">
+<script src="../../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../../site_libs/bootstrap/bootstrap-06d752f9228722e90720b3a7dd805577.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../site_libs/bootstrap/bootstrap-dark-30418100cf2bfa7929c04506306a7784.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../../site_libs/bootstrap/bootstrap-06d752f9228722e90720b3a7dd805577.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../../../styles.css">
+<meta property="og:title" content="Transact-SQL (SQL Server) – Independent Variation Principle">
+<meta property="og:description" content="">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Transact-SQL (SQL Server) – Independent Variation Principle">
+<meta name="twitter:description" content="">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../../../software/index.html" aria-current="page"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../knowledge-gap-indicators/index.html"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../../software/design/languages/index.html">Languages</a></li><li class="breadcrumb-item"><a href="../../../../software/design/languages/data-science.html">Data and Science</a></li><li class="breadcrumb-item"><a href="../../../../software/design/languages/data-science/transact-sql.html">Transact-SQL (SQL Server)</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/architecture/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architecture</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/architecture/styles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architecture Styles</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/cohesion/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cohesion</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/cohesion/core-conclusions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Core Conclusions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/cohesion/knowledge-embodiment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Knowledge Embodiment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/cohesion/metrics-survey.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metrics Survey</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/cohesion/no-scalar-metric.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Why Cohesion Has No Scalar Metric</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/cohesion/two-metrics-necessary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Why Two Metrics Are Necessary</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/coupling/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Coupling</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/scoreboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scoreboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/objective-coupling-scoring-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scoring Model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/scoring-criteria.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Criteria</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/tags.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tag Index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Systems</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/systems/c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C (C23)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/systems/cpp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C++ (C++23)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/systems/crystal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Crystal (1.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/systems/nim.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nim (2.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/systems/rust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust (1.96 / 2024 edition)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/systems/zig.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zig (0.16)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/application.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Application</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/ada.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ada (2022 / 2012)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/clojure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clojure (1.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/common-lisp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Common Lisp (ANSI X3.226-1994)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/csharp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C# (13)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/d.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">D (2.112)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/delphi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Delphi (12.3 Athens)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/eiffel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Eiffel (ECMA-367 / ISO/IEC 25436:2006)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/elixir.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Elixir (1.20)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/erlang.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Erlang (OTP 29)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/fsharp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F# (9)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/go.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Go (1.26)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/groovy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groovy (5.x)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/haskell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell (GHC 9.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/java26.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 26)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/java27.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 27)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/kotlin.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kotlin (2.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/lua.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lua (5.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/objective-c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Objective-C (2.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/ocaml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OCaml (5.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/prolog.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prolog (SWI 9.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/purescript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PureScript (0.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/python.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Python (3.14)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/ruby.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ruby (4.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/scala.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scala (3.8 / 3.3 LTS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/smalltalk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Smalltalk (ANSI Smalltalk)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/swift.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Swift (6.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/tcl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tcl (9.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/unison.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison (M5b)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/application/visual-basic-16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Basic 16 (.NET)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/web.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Web</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/web/dart.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dart (3.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/web/javascript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JavaScript (ES2025)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/web/php.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PHP (8.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/web/typescript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">TypeScript (6.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/data-science.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data and Science</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/fortran.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fortran (2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Julia (1.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/matlab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MATLAB (R2026a)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/pl-sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PL/SQL (Oracle)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">R (4.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/sas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SAS (9.4 / Viya)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL (ANSI SQL:2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/transact-sql.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Transact-SQL (SQL Server)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/shells-automation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Shells and Automation</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/bash.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bash (5.3)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/c-shell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C shell (csh 8.2 / tcsh)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/fish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fish (4.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/ksh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ksh (kSH 93u+)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/perl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Perl (5.42)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/powershell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PowerShell (7.6)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/sh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sh (POSIX.1-2024)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/shells-automation/zsh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zsh (5.9)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/embedded-realtime.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Embedded and Real-Time</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/embedded-realtime/assembly.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assembly (x86-64, System V AMD64 ABI)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/embedded-realtime/spark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SPARK (Pro 25)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/verification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verification and Proof</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/verification/lean-4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lean 4 (4.31)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/verification/rocq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rocq (9.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/legacy-retro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legacy and Retro</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/legacy-retro/cobol.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">COBOL (ISO/IEC 1989:2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/legacy-retro/turbo-pascal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Turbo Pascal (7.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/legacy-retro/vbscript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">VBScript (6.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/education.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Education</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/education/racket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Racket (8.17)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/education/scheme.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scheme (R7RS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/education/scratch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scratch (3.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/languages/blockchain.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Blockchain</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/blockchain/solidity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Solidity (0.8.x)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../../software/design/verdicts/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verdicts</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/hexagonal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hexagonal</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/onion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Onion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/clean.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clean</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/layered.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Layered</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/vertical-slice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vertical slice</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/solid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SOLID</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/verdicts/cupid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CUPID</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="3">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#assessment" id="toc-assessment" class="nav-link active" data-scroll-target="#assessment"><span class="header-section-number">1</span> Assessment</a>
+  <ul class="collapse">
+  <li><a href="#core-coupling" id="toc-core-coupling" class="nav-link" data-scroll-target="#core-coupling"><span class="header-section-number">1.1</span> Core coupling</a></li>
+  <li><a href="#ecosystem-coupling" id="toc-ecosystem-coupling" class="nav-link" data-scroll-target="#ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</a></li>
+  <li><a href="#engineering-readiness" id="toc-engineering-readiness" class="nav-link" data-scroll-target="#engineering-readiness"><span class="header-section-number">1.3</span> Engineering readiness</a></li>
+  <li><a href="#profile" id="toc-profile" class="nav-link" data-scroll-target="#profile"><span class="header-section-number">1.4</span> Profile</a></li>
+  <li><a href="#scoring-detail" id="toc-scoring-detail" class="nav-link" data-scroll-target="#scoring-detail"><span class="header-section-number">1.5</span> Scoring detail</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../../software/design/languages/index.html">Languages</a></li><li class="breadcrumb-item"><a href="../../../../software/design/languages/data-science.html">Data and Science</a></li><li class="breadcrumb-item"><a href="../../../../software/design/languages/data-science/transact-sql.html">Transact-SQL (SQL Server)</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Transact-SQL (SQL Server)</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><em>This assessment applies the coupling account — coupling as access to a shared resource, and the coupling floor <span class="citation" data-cites="loth2026couplingnature loth2026couplingconsequence"><a href="#ref-loth2026couplingnature" role="doc-biblioref">[1]</a>, <a href="#ref-loth2026couplingconsequence" role="doc-biblioref">[2]</a></span> — and the knowledge-embodiment theorem <span class="citation" data-cites="loth2026cohesion"><a href="#ref-loth2026cohesion" role="doc-biblioref">[3]</a></span>; the language is assessed against its official reference <span class="citation" data-cites="tsqlDocs"><a href="#ref-tsqlDocs" role="doc-biblioref">[4]</a></span>.</em></p>
+<p><strong>Snapshot</strong> Transact-SQL (SQL Server) — released November 2025 · <strong>lifecycle</strong> current (SQL Server 2025 (17.x))</p>
+<p><strong>Family</strong> Transact-SQL — shelf: Data and Science</p>
+<p><em>The language’s primary object is a dataset or a numeric array, not a program loop. A shelf groups; it does not classify — the tags below carry every use, paradigm, and platform of this snapshot.</em></p>
+<p><strong>Trajectory</strong> Transact-SQL (1984 — Sybase SQL Server) · <a href="../../../../software/design/languages/data-science/transact-sql.html">SQL Server 2025 (November 2025 — current engine release)</a></p>
+<p><strong>Tags</strong></p>
+<p><strong>Use</strong> — Query</p>
+<p><strong>Paradigm</strong> — Imperative, Procedural</p>
+<p><strong>Lifecycle</strong> — Current</p>
+<p><strong>Memory</strong> — Runtime-managed</p>
+<p><strong>Typing</strong> — Static, strong</p>
+<section id="assessment" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
+<p>This page assesses Transact-SQL in five parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; <strong>engineering readiness</strong> — whether the artifact can be reproduced, verified, observed, worked in quickly, connected to other languages, and governed openly; the <strong>profile</strong> — the unscored facts a score cannot express; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind every score. A ✅ bullet marks a construct that helps. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
+<p><strong>Core coupling 58/100</strong> · <strong>Ecosystem coupling 69/100</strong> · <strong>Engineering readiness 61/100</strong></p>
+<section id="core-coupling" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
+<section id="type" class="level4" data-number="1.1.1">
+<h4 data-number="1.1.1" class="anchored" data-anchor-id="type"><span class="header-section-number">1.1.1</span> Type</h4>
+<ul>
+<li>✅ <strong>Static typing over SQL data types</strong>: Every variable, parameter, and column has a declared type, and a block that violates it fails at parse or bind time</li>
+<li>✅ <strong>Table variables and table-valued parameters carry a declared row type</strong>: <code>DECLARE @t TABLE (...)</code> and a user-defined table type pass a typed row set between units</li>
+<li>✅ <strong>A procedure parameter declares its type and direction</strong>: <code>@p int OUTPUT</code> fixes the type and the direction, so a caller binds to a signature</li>
+<li>⚠️ <strong><code>DECLARE @name</code> defaults to NULL (T10)</strong>: A declared variable starts as NULL, so an unassigned variable is valid and propagates NULL into the expression</li>
+<li>⚠️ <strong>NULL comparison needs three-valued logic</strong>: With <code>ANSI_NULLS ON</code> (the default, and the only supported setting since SQL Server 2017), <code>@x = NULL</code> is unknown, so a check needs <code>IS NULL</code></li>
+<li>⚠️ <strong>There is no type beyond a SQL data type</strong>: No user-defined sum type or generic exists, so a variant is modelled with nullable columns or a discriminator</li>
+</ul>
+</section>
+<section id="construction" class="level4" data-number="1.1.2">
+<h4 data-number="1.1.2" class="anchored" data-anchor-id="construction"><span class="header-section-number">1.1.2</span> Construction</h4>
+<ul>
+<li>✅ <strong>A stored procedure provides modularity with a declared interface</strong>: <code>CREATE PROCEDURE</code> names the unit, its parameters, and its result, and can return a status value and OUTPUT parameters</li>
+<li>✅ <strong>A view or an inline table-valued function separates consumers from the query</strong>: The exposed relation is stable while its defining query can change</li>
+<li>✅ <strong>A table-valued parameter passes a row set without a shared temporary table</strong>: A user-defined table type plus a TVP parameter removes the need for a global temporary table</li>
+<li>✅ <strong>Set-based statements compose without a cursor</strong>: <code>INSERT ... SELECT</code>, <code>UPDATE ... FROM</code>, and <code>MERGE</code> express the whole transformation in one statement</li>
+<li>⚠️ <strong>Triggers fire implicitly</strong>: An <code>AFTER</code> or <code>INSTEAD OF</code> trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run</li>
+<li>⚠️ <strong>Session <code>SET</code> options change the meaning of a statement</strong>: <code>ANSI_NULLS</code> and <code>QUOTED_IDENTIFIER</code> are captured when a stored procedure is created, while <code>DATEFORMAT</code> applies when the statement runs, so the same text can parse or convert differently elsewhere</li>
+</ul>
+</section>
+<section id="memory" class="level4" data-number="1.1.3">
+<h4 data-number="1.1.3" class="anchored" data-anchor-id="memory"><span class="header-section-number">1.1.3</span> Memory</h4>
+<ul>
+<li>✅ <strong>No manual memory management</strong>: The SQL Server buffer pool and the query workspace own the memory, and a batch never names an address</li>
+<li>✅ <strong>The server grants memory to a query</strong>: The query’s memory grant comes from the server’s calculator or the Resource Governor, so the batch does not request bytes</li>
+<li>✅ <strong>Buffer pool and <code>tempdb</code> behaviour are server configuration</strong>: <code>max server memory</code>, the <code>tempdb</code> files, and a Resource Governor pool are settings, not batch properties</li>
+<li>⚠️ <strong>A sort or hash can spill to <code>tempdb</code></strong>: An operation whose grant is too small writes to <code>tempdb</code>, which costs I/O even though the language hides allocation</li>
+<li>⚠️ <strong>A cursor allocates per fetch</strong>: A row-by-row cursor uses workspace per fetch, so the memory pattern follows the loop</li>
+</ul>
+</section>
+<section id="error" class="level4" data-number="1.1.4">
+<h4 data-number="1.1.4" class="anchored" data-anchor-id="error"><span class="header-section-number">1.1.4</span> Error</h4>
+<ul>
+<li>✅ <strong><code>TRY ... CATCH</code> gives a structured path</strong>: The <code>CATCH</code> block runs on error and exposes <code>ERROR_NUMBER</code>, <code>ERROR_MESSAGE</code>, <code>ERROR_SEVERITY</code>, and <code>ERROR_LINE</code></li>
+<li>✅ <strong><code>THROW</code> and <code>RAISERROR</code> raise with a number and a message</strong>: <code>THROW 50001, 'msg', 1</code> carries a number, so a handler can branch on it</li>
+<li>✅ <strong><code>XACT_STATE()</code> and <code>@@TRANCOUNT</code> tell the handler whether the transaction is committable</strong>: A doomed transaction is detectable inside <code>CATCH</code></li>
+<li>⚠️ <strong>Errors ignored or non-exhaustive (Er3)</strong>: A <code>CATCH</code> block that swallows the error, or a skipped <code>@@ERROR</code> check, lets the batch continue past the failure</li>
+<li>⚠️ <strong>Errors do not abort the batch by default</strong>: Without <code>SET XACT_ABORT ON</code>, a statement error rolls back that statement and the batch continues</li>
+<li>⚠️ <strong>Severity decides whether the caller sees the error</strong>: A low-severity error is informational, so the same statement text can pass a caller by</li>
+</ul>
+</section>
+<section id="concurrency" class="level4" data-number="1.1.5">
+<h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
+<ul>
+<li>✅ <strong>Transactions group statements atomically</strong>: <code>BEGIN TRANSACTION</code>, <code>COMMIT</code>, and <code>ROLLBACK</code> make a unit of work commit or abort as one</li>
+<li>✅ <strong>Isolation levels are selectable and versioned</strong>: <code>READ UNCOMMITTED</code>, <code>READ COMMITTED</code> (default), <code>REPEATABLE READ</code>, <code>SNAPSHOT</code>, and <code>SERIALIZABLE</code>, while the database options <code>READ_COMMITTED_SNAPSHOT</code> and <code>ALLOW_SNAPSHOT_ISOLATION</code> switch <code>READ COMMITTED</code> to row versioning and enable <code>SNAPSHOT</code></li>
+<li>✅ <strong>Snapshot isolation removes reader–writer blocking</strong>: With <code>READ_COMMITTED_SNAPSHOT ON</code>, a reader uses row versions and does not block a writer</li>
+<li>✅ <strong>Set-based statements reduce explicit locking</strong>: One <code>UPDATE</code> moves many rows without a row-by-row lock protocol in application code</li>
+<li>❌ <strong>Shared mutable state by default (K2)</strong>: <code>SET</code> options, <code>CONTEXT_INFO</code>, and a global temporary table <code>##t</code> are visible to code the caller did not write</li>
+<li>⚠️ <strong>A locking hint couples the query to the engine’s concurrency model</strong>: <code>WITH (NOLOCK)</code>, <code>UPDLOCK</code>, and <code>READPAST</code> are engine-shaped and must agree with the application’s lock ordering</li>
+</ul>
+</section>
+<section id="platform" class="level4" data-number="1.1.6">
+<h4 data-number="1.1.6" class="anchored" data-anchor-id="platform"><span class="header-section-number">1.1.6</span> Platform</h4>
+<ul>
+<li>✅ <strong>Client interfaces are standard</strong>: ODBC, JDBC, OLE DB, and ADO.NET reach the engine, so a client is not bound to one binary protocol</li>
+<li>✅ <strong>Bulk interfaces are documented</strong>: <code>bcp</code> and <code>BULK INSERT</code> use a documented format, so data exchange is not tied to an application API</li>
+<li>⚠️ <strong>Two implementations exist under separate vendors</strong>: Microsoft SQL Server and SAP ASE share a lineage and a core syntax, but the two diverge, and Microsoft and SAP document them separately</li>
+<li>⚠️ <strong>Azure SQL is the same vendor with a different deployment</strong>: The managed service changes availability, administration, and some features, so code targets a specific surface</li>
+<li>❌ <strong>Cannot function outside one vendor (P1)</strong>: The language needs SQL Server, Azure SQL, or SAP ASE</li>
+<li>❌ <strong>The T-SQL surface is engine-specific</strong>: <code>TOP</code>, <code>IDENTITY</code>, <code>GO</code>, the <code>sys</code> catalog views, and the <code>sp_</code> procedures are SQL Server features, so a port to another engine is a rewrite</li>
+</ul>
+</section>
+<section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
+<h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
+<ul>
+<li><strong>Logic beside the data is deliberate</strong>: Keeping a rule in the database guarantees it for every writer</li>
+<li><strong>A cursor is a deliberate trade for row-by-row work</strong>: It makes a per-row algorithm expressible, at the cost of the set-based model</li>
+<li><strong>Dynamic SQL is deliberate for DDL and for a flexible query</strong>: <code>sp_executesql</code> and <code>EXEC</code> reach constructs a static statement cannot name</li>
+<li><strong><code>NOLOCK</code> trades consistency for concurrency</strong>: A reader that accepts dirty reads avoids blocking</li>
+<li><strong>The engine is proprietary by design</strong>: The licence buys one integrated stack of engine, tooling, and support</li>
+<li><strong>T-SQL is not a general-purpose language</strong>: The assumption of a SQL Server database is a scope decision</li>
+</ul>
+</section>
+</section>
+<section id="ecosystem-coupling" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="ecosystem-coupling"><span class="header-section-number">1.2</span> Ecosystem coupling</h3>
+<section id="performance" class="level4" data-number="1.2.1">
+<h4 data-number="1.2.1" class="anchored" data-anchor-id="performance"><span class="header-section-number">1.2.1</span> Performance</h4>
+<ul>
+<li>✅ <strong>A cost-based optimiser with a plan cache executes a statement</strong>: A procedure’s plan can be reused, so the caller does not choose an access path</li>
+<li>✅ <strong>A columnstore index and batch mode scan analytically</strong>: <code>CREATE COLUMNSTORE INDEX</code> plus batch mode processes a large scan in vectorised batches</li>
+<li>✅ <strong>Query Store records plans and regressions</strong>: An operator can see a plan change and force a previous plan</li>
+<li>✅ <strong>In-memory OLTP tables are lock-free and memory-optimised</strong>: <code>MEMORY_OPTIMIZED = ON</code> tables and natively compiled procedures remove latch contention</li>
+<li>⚠️ <strong>Parameter sniffing can choose a plan for the wrong input</strong>: A cached plan built for one parameter value can be poor for another</li>
+<li>⚠️ <strong>A plan can regress without a query change</strong>: New statistics, a version upgrade, or a changed data volume can select a worse plan</li>
+</ul>
+</section>
+<section id="ecosystem" class="level4" data-number="1.2.2">
+<h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
+<ul>
+<li>✅ <strong>Tooling is mature and first-party</strong>: SQL Server Management Studio, Azure Data Studio, and <code>sqlcmd</code> cover administration and query work</li>
+<li>✅ <strong>The market and the hiring pool are large</strong>: SQL Server is widely deployed in Microsoft environments, so documentation, training, and consultants are abundant</li>
+<li>✅ <strong>Cloud deployment is a first-party service</strong>: Azure SQL Database and Managed Instance run the same engine with a managed administration model</li>
+<li>❌ <strong>Proprietary (Ec4)</strong>: The engine, the tooling, and the support come from Microsoft (and, for ASE, from SAP) under licence</li>
+<li>⚠️ <strong>The ASE toolchain is separate from the SQL Server toolchain</strong>: SAP maintains its own documentation, tools, and support, so knowledge does not transfer freely</li>
+</ul>
+</section>
+<section id="evolution" class="level4" data-number="1.2.3">
+<h4 data-number="1.2.3" class="anchored" data-anchor-id="evolution"><span class="header-section-number">1.2.3</span> Evolution</h4>
+<ul>
+<li>✅ <strong>The release cadence is regular and active</strong>: SQL Server ships a major release periodically, and Azure SQL receives continuous updates</li>
+<li>✅ <strong>A compatibility level keeps old behaviour</strong>: A database at an older compatibility level keeps the older optimiser and syntax behaviour while the engine is upgraded</li>
+<li>✅ <strong>The engine leads the standard</strong>: <code>TRY ... CATCH</code>, <code>MERGE</code>, window functions, and JSON support arrived as engine features, so users get them without waiting for the standard</li>
+<li>⚠️ <strong>A deprecated feature is warned and then removed</strong>: The documentation lists deprecated features, and an upgrade can require edits</li>
+<li>⚠️ <strong>Feature availability differs by edition and deployment</strong>: An Enterprise feature or an Azure-only feature may not exist on a local Standard edition</li>
+</ul>
+</section>
+<section id="domain" class="level4" data-number="1.2.4">
+<h4 data-number="1.2.4" class="anchored" data-anchor-id="domain"><span class="header-section-number">1.2.4</span> Domain</h4>
+<ul>
+<li>✅ <strong>Excellent fit for transactional and analytical logic in the database</strong>: A stored procedure runs beside the data with a plan and a transaction</li>
+<li>✅ <strong>One language spans OLTP and analytics</strong>: Set-based DML, window functions, and a columnstore scan all live in the same language</li>
+<li>✅ <strong>The surrounding pipeline is first-party</strong>: Integration Services, the Agent scheduler, and Reporting Services cover the rest of a data workflow</li>
+<li>❌ <strong>Domain and vendor lock-in (D1)</strong>: The language exists inside SQL Server or SAP ASE, so both the domain and the vendor are fixed</li>
+<li>⚠️ <strong>Procedural row logic reads poorly</strong>: A row-by-row algorithm in a cursor is verbose and slow beside its set-based equivalent</li>
+<li>⚠️ <strong>It is not a runtime for arbitrary programs</strong>: The language assumes a SQL Server database and a set-based workload</li>
+</ul>
+</section>
+<section id="learning" class="level4" data-number="1.2.5">
+<h4 data-number="1.2.5" class="anchored" data-anchor-id="learning"><span class="header-section-number">1.2.5</span> Learning</h4>
+<ul>
+<li>✅ <strong>Gentle for a SQL developer</strong>: A procedure with <code>BEGIN ... END</code>, <code>TRY ... CATCH</code>, and <code>SELECT ... INTO</code> is readable to anyone who knows SQL</li>
+<li>✅ <strong>Documentation and examples are complete</strong>: The Microsoft T-SQL reference documents every statement with examples</li>
+<li>⚠️ <strong>The procedural and the set-based model coexist</strong>: A developer must choose between a cursor and a set-based statement, and the wrong choice shows up as a performance problem</li>
+<li>⚠️ <strong>NULL handling must be learned</strong>: With <code>ANSI_NULLS ON</code>, <code>= NULL</code> never matches, and a comparison with NULL yields unknown</li>
+<li>⚠️ <strong>Plan and locking behaviour is a separate body of knowledge</strong>: Performance work means reading plans and lock waits rather than syntax</li>
+<li>⚠️ <strong>The SAP ASE dialect diverges in details</strong>: Differences in <code>GO</code>, <code>IDENTITY</code>, and built-in functions mean knowledge transfers only in part</li>
+</ul>
+</section>
+<section id="syntax" class="level4" data-number="1.2.6">
+<h4 data-number="1.2.6" class="anchored" data-anchor-id="syntax"><span class="header-section-number">1.2.6</span> Syntax</h4>
+<ul>
+<li>✅ <strong>Keyword-based and readable</strong>: <code>SELECT ... FROM ... WHERE</code> and <code>BEGIN ... END</code> read close to English</li>
+<li>✅ <strong>A procedure is a readable unit</strong>: The parameter list, the body, and the <code>RETURN</code> value are declared in one <code>CREATE PROCEDURE</code> statement</li>
+<li>✅ <strong><code>GO</code> marks a batch boundary in a script</strong>: The client tool sends the batch, so the boundary is visible in the source</li>
+<li>⚠️ <strong><code>SET</code> options prefix every script</strong>: <code>SET NOCOUNT ON</code>, <code>ANSI_NULLS ON</code>, and <code>QUOTED_IDENTIFIER ON</code> are usually written at the top, so the boilerplate grows</li>
+<li>⚠️ <strong><code>@</code> and <code>@@</code> distinguish kinds of variable by convention</strong>: A local variable, a parameter, and a global function share the sigil, so a reader distinguishes them by spelling</li>
+<li>⚠️ <strong>Identifier quoting depends on a setting</strong>: <code>[name]</code> and <code>"name"</code> both quote an identifier, and the second form needs <code>QUOTED_IDENTIFIER ON</code></li>
+</ul>
+</section>
+<section id="testing" class="level4" data-number="1.2.7">
+<h4 data-number="1.2.7" class="anchored" data-anchor-id="testing"><span class="header-section-number">1.2.7</span> Testing</h4>
+<ul>
+<li>✅ <strong><code>tSQLt</code> is the established framework</strong>: An open-source unit-test framework runs test classes with mocked tables and assertions</li>
+<li>✅ <strong><code>TRY ... CATCH</code> makes a unit test expressible in the language</strong>: A test procedure asserts and <code>THROW</code>s on a mismatch</li>
+<li>✅ <strong>A transaction wraps a test and rolls it back</strong>: The database is unchanged after the test</li>
+<li>✅ <strong>Error metadata supports an assertion on a failure path</strong>: <code>ERROR_NUMBER</code> and <code>ERROR_MESSAGE</code> inside <code>CATCH</code> let a test check the rejection</li>
+<li>⚠️ <strong>The base product ships no test framework</strong>: <code>tSQLt</code> is a third-party install, so a suite depends on deployment and permissions</li>
+<li>⚠️ <strong>A server-side suite needs a server</strong>: The harness needs a SQL Server instance, so the tests couple to infrastructure</li>
+</ul>
+</section>
+<section id="security" class="level4" data-number="1.2.8">
+<h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
+<ul>
+<li>✅ <strong><code>sp_executesql</code> with parameters removes the injection surface</strong>: <code>EXEC sp_executesql N'SELECT ... WHERE x = @p', N'@p int', @p = 1</code> passes the value out of band</li>
+<li>✅ <strong><code>GRANT</code>, <code>DENY</code>, and <code>REVOKE</code> with roles express least privilege</strong>: Access is declared per object, per schema, and per role</li>
+<li>✅ <strong>Row-level security limits what a statement can see</strong>: A <code>SECURITY POLICY</code> with a predicate function filters rows by the caller’s identity</li>
+<li>✅ <strong><code>EXECUTE AS</code> makes the effective identity explicit</strong>: A procedure can run as its owner or as a named user</li>
+<li>❌ <strong>Known vulnerability/injection (Q3)</strong>: A statement built with <code>EXEC (@sql)</code> from concatenated input lets the input become code</li>
+<li>⚠️ <strong>Dynamic SQL and owner-rights execution re-open the risk</strong>: <code>EXEC</code> on a built string, <code>sp_OA*</code> procedures, and <code>xp_cmdshell</code> where enabled defeat parameterisation</li>
+</ul>
+</section>
+</section>
+<section id="engineering-readiness" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="engineering-readiness"><span class="header-section-number">1.3</span> Engineering readiness</h3>
+<section id="reproducibility" class="level4" data-number="1.3.1">
+<h4 data-number="1.3.1" class="anchored" data-anchor-id="reproducibility"><span class="header-section-number">1.3.1</span> Reproducibility</h4>
+<ul>
+<li>✅ No charged mechanism in this dimension.</li>
+</ul>
+</section>
+<section id="supply-chain" class="level4" data-number="1.3.2">
+<h4 data-number="1.3.2" class="anchored" data-anchor-id="supply-chain"><span class="header-section-number">1.3.2</span> Supply chain</h4>
+<ul>
+<li>⚠️ Published packages carry no signed provenance by default.</li>
+</ul>
+</section>
+<section id="observability" class="level4" data-number="1.3.3">
+<h4 data-number="1.3.3" class="anchored" data-anchor-id="observability"><span class="header-section-number">1.3.3</span> Observability</h4>
+<ul>
+<li>⚠️ No stable tracing and metrics standard.</li>
+<li>⚠️ The standard library has no structured logging.</li>
+</ul>
+</section>
+<section id="feedback" class="level4" data-number="1.3.4">
+<h4 data-number="1.3.4" class="anchored" data-anchor-id="feedback"><span class="header-section-number">1.3.4</span> Feedback</h4>
+<ul>
+<li>✅ No charged mechanism in this dimension.</li>
+</ul>
+</section>
+<section id="interop" class="level4" data-number="1.3.5">
+<h4 data-number="1.3.5" class="anchored" data-anchor-id="interop"><span class="header-section-number">1.3.5</span> Interop</h4>
+<ul>
+<li>⚠️ No maintained portable target.</li>
+</ul>
+</section>
+<section id="governance" class="level4" data-number="1.3.6">
+<h4 data-number="1.3.6" class="anchored" data-anchor-id="governance"><span class="header-section-number">1.3.6</span> Governance</h4>
+<ul>
+<li>⚠️ One vendor decides the language’s direction.</li>
+<li>⚠️ The specification is not public.</li>
+</ul>
+</section>
+</section>
+<section id="profile" class="level3" data-number="1.4">
+<h3 data-number="1.4" class="anchored" data-anchor-id="profile"><span class="header-section-number">1.4</span> Profile</h3>
+<p>Unscored, and kept separate from every score on purpose. The profile records what a mechanism price cannot express: what a running program costs, how well a coding model and an agent work in the language, and whether a safety-critical path exists.</p>
+<section id="energy-and-cost" class="level4" data-number="1.4.1">
+<h4 data-number="1.4.1" class="anchored" data-anchor-id="energy-and-cost"><span class="header-section-number">1.4.1</span> Energy and cost</h4>
+<p><em>What this axis asks: what does a running program cost in energy and time?</em></p>
+<ul>
+<li>⚠️ Runs inside a database engine: energy and time are the engine’s, not the program’s.</li>
+</ul>
+</section>
+<section id="ai-and-agent-readiness" class="level4" data-number="1.4.2">
+<h4 data-number="1.4.2" class="anchored" data-anchor-id="ai-and-agent-readiness"><span class="header-section-number">1.4.2</span> AI and agent readiness</h4>
+<p><em>What this axis asks: how well does a coding model and an agent work in this language?</em></p>
+<ul>
+<li>❌ Sparse training data: models write it unreliably <span class="citation" data-cites="joel2025lowresource"><a href="#ref-joel2025lowresource" role="doc-biblioref">[5]</a></span>.</li>
+</ul>
+</section>
+<section id="safety-certification" class="level4" data-number="1.4.3">
+<h4 data-number="1.4.3" class="anchored" data-anchor-id="safety-certification"><span class="header-section-number">1.4.3</span> Safety certification</h4>
+<p><em>What this axis asks: is there a certified or standards-qualified path to a safety-critical system?</em></p>
+<ul>
+<li>⚠️ No certified or standards-qualified path for safety-critical systems.</li>
+</ul>
+</section>
+</section>
+<section id="scoring-detail" class="level3" data-number="1.5">
+<h3 data-number="1.5" class="anchored" data-anchor-id="scoring-detail"><span class="header-section-number">1.5</span> Scoring detail</h3>
+<section id="core-coupling-dimensions" class="level4" data-number="1.5.1">
+<h4 data-number="1.5.1" class="anchored" data-anchor-id="core-coupling-dimensions"><span class="header-section-number">1.5.1</span> Core coupling Dimensions</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 20%">
+<col style="width: 19%">
+<col style="width: 14%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dimension</th>
+<th>Mechanism</th>
+<th>Description</th>
+<th>Imposed by</th>
+<th style="text-align: center;">Present</th>
+<th style="text-align: right;">Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Type</strong></td>
+<td><code>T1</code></td>
+<td>dynamic no static check</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T2</code></td>
+<td>weak static</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T3</code></td>
+<td>dynamic/duck dispatch</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T4</code></td>
+<td>no sum types</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T5</code></td>
+<td>no generics</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T6</code></td>
+<td>no namespaces</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T7</code></td>
+<td>type erasure/reflection</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T8</code></td>
+<td>operator overloading</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T9</code></td>
+<td>inheritance required for polymorphism</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T10</code></td>
+<td>no null-safety</td>
+<td>language</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T11</code></td>
+<td>no module boundary</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T12</code></td>
+<td>no effect tracking</td>
+<td>language</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>T13</code></td>
+<td>async/sync colouring</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>T14</code></td>
+<td>unchecked foreign boundary</td>
+<td>language</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
+</tr>
+<tr class="odd">
+<td><strong>Type subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−15 (−20)</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Construction</strong></td>
+<td><code>C1</code></td>
+<td>global mutable state by default</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C2</code></td>
+<td>no immutability by default</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>C3</code></td>
+<td>constructors coupled to allocation</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>C4</code></td>
+<td>no constructor/validation</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Construction subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Memory</strong></td>
+<td><code>M1</code></td>
+<td>manual deallocation</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M2</code></td>
+<td>GC non-deterministic pauses</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>M3</code></td>
+<td>no RAII</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>M4</code></td>
+<td>no ownership model</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Memory subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Error</strong></td>
+<td><code>Er1</code></td>
+<td>no structured path</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er2</code></td>
+<td>unchecked exceptions only</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Er3</code></td>
+<td>errors ignored/non-exhaustive</td>
+<td>language</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Er4</code></td>
+<td>no composable result type</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Error subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−4</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Concurrency</strong></td>
+<td><code>K1</code></td>
+<td>GIL/no parallel</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K2</code></td>
+<td>shared mutable state default</td>
+<td>language</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K3</code></td>
+<td>manual sync no race detection</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>K4</code></td>
+<td>no structured concurrency</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>K5</code></td>
+<td>no primitives</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Concurrency subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−8</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Platform</strong></td>
+<td><code>P1</code></td>
+<td>cannot function outside one vendor/domain</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>P2</code></td>
+<td>single-vendor but other uses</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>P3</code></td>
+<td>legacy/discontinued platform</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Platform subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−15</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Core Dimensions score: 58/100</strong> — total cost = −42 (per-dimension subtotals are capped at −15; an uncapped cost is shown in parentheses where the cap bites).</p>
+</section>
+<section id="ecosystem-coupling-dimensions" class="level4" data-number="1.5.2">
+<h4 data-number="1.5.2" class="anchored" data-anchor-id="ecosystem-coupling-dimensions"><span class="header-section-number">1.5.2</span> Ecosystem coupling Dimensions</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Dimension</th>
+<th>Mechanism</th>
+<th>Description</th>
+<th>Imposed by</th>
+<th style="text-align: center;">Present</th>
+<th style="text-align: right;">Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Performance</strong></td>
+<td><code>R1</code></td>
+<td>interpreted no AOT/JIT</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>R2</code></td>
+<td>GC pauses</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>R3</code></td>
+<td>JIT warmup</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Performance subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Ecosystem</strong></td>
+<td><code>Ec1</code></td>
+<td>no package manager</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec2</code></td>
+<td>fragmented tooling</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec3</code></td>
+<td>small/niche/discontinued</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec4</code></td>
+<td>proprietary</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec5</code></td>
+<td>platform-locked tooling</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Ec6</code></td>
+<td>monoculture</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Ec7</code></td>
+<td>legacy burden</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Ecosystem subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−8</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Evolution</strong></td>
+<td><code>V1</code></td>
+<td>breaking changes</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V2</code></td>
+<td>frozen</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V3</code></td>
+<td>discontinued</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>V4</code></td>
+<td>glacial standards</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>V5</code></td>
+<td>silent default drift</td>
+<td>runtime</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Evolution subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Domain</strong></td>
+<td><code>D1</code></td>
+<td>domain/vendor lock-in</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>D2</code></td>
+<td>poor domain fit</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>D3</code></td>
+<td>framework forces architecture</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Domain subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−15</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Learning</strong></td>
+<td><code>L1</code></td>
+<td>steep</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>L2</code></td>
+<td>large surface/multi-paradigm</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>L3</code></td>
+<td>sparse docs</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Learning subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Syntax</strong></td>
+<td><code>S1</code></td>
+<td>verbose</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>S2</code></td>
+<td>inconsistent</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>S3</code></td>
+<td>punctuation-heavy</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Syntax subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Testing</strong></td>
+<td><code>G1</code></td>
+<td>weak tooling</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>G2</code></td>
+<td>poor debugging</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>G3</code></td>
+<td>runtime-only errors</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Testing subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Security</strong></td>
+<td><code>Q1</code></td>
+<td>memory-unsafe</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Q2</code></td>
+<td>dynamic/weak typing risk</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Q3</code></td>
+<td>known vulnerability/injection</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="even">
+<td><strong>Security subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−8</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Meta Dimensions score: 69/100</strong> — total cost = −31 (per-dimension subtotals are capped at −15; an uncapped cost is shown in parentheses where the cap bites).</p>
+</section>
+<section id="engineering-readiness-dimensions" class="level4" data-number="1.5.3">
+<h4 data-number="1.5.3" class="anchored" data-anchor-id="engineering-readiness-dimensions"><span class="header-section-number">1.5.3</span> Engineering readiness Dimensions</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 20%">
+<col style="width: 19%">
+<col style="width: 14%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dimension</th>
+<th>Mechanism</th>
+<th>Description</th>
+<th>Imposed by</th>
+<th style="text-align: center;">Present</th>
+<th style="text-align: right;">Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Reproducibility</strong></td>
+<td><code>Y1</code></td>
+<td>build not reproducible</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Y2</code></td>
+<td>dependencies not pinned</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td><strong>Reproducibility subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Supply chain</strong></td>
+<td><code>Y3</code></td>
+<td>no signed provenance</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Y4</code></td>
+<td>registry without namespacing</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Supply chain subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−8</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Observability</strong></td>
+<td><code>Y5</code></td>
+<td>no stable tracing standard</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Y6</code></td>
+<td>no structured logging</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
+</tr>
+<tr class="odd">
+<td><strong>Observability subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−12</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Feedback</strong></td>
+<td><code>Y7</code></td>
+<td>slow build</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Y8</code></td>
+<td>no fast in-editor analysis</td>
+<td>context</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td><strong>Feedback subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Interop</strong></td>
+<td><code>Y9</code></td>
+<td>no foreign-function interface</td>
+<td>language</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>Y10</code></td>
+<td>no portable target</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
+</tr>
+<tr class="odd">
+<td><strong>Interop subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−4</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Governance</strong></td>
+<td><code>Y11</code></td>
+<td>single-vendor governance</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>Y12</code></td>
+<td>closed specification</td>
+<td>context</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
+</tr>
+<tr class="even">
+<td><strong>Governance subtotal</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;"><strong>−15 (−16)</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Readiness Dimensions score: 61/100</strong> — total cost = −39 (per-dimension subtotals are capped at −15; an uncapped cost is shown in parentheses where the cap bites).</p>
+<p><strong>Verdict:</strong> Transact-SQL’s coupling follows its host engine. Stored procedures, views, and table-valued parameters give real modularity, <code>TRY ... CATCH</code> gives a structured failure path, and the optimiser, Query Store, columnstore, and in-memory OLTP carry performance work. Main strengths: a mature first-party toolchain, a regular release cadence, and standard client interfaces. Main weaknesses: the language only runs on SQL Server or SAP ASE, the useful surface is engine-specific, NULL starts in every declared variable, an unhandled <code>CATCH</code> continues the batch, cursor code paths are slow, and a string-built statement is a standing injection hazard.</p>
+<!-- formal-development -->
+<hr>
+<p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
+<ul>
+<li><em>On the Nature of Coupling: All Coupling as Shared Resource Access</em> — Zenodo, 2026 — <a href="https://doi.org/10.5281/zenodo.21925122">doi:10.5281/zenodo.21925122</a></li>
+<li><em>Coupling as a Consequence of Cohesion: Decomposition, the Coupling Floor, and Domain-Imposed Coupling</em> — Zenodo, 2026 — <a href="https://doi.org/10.5281/zenodo.21925201">doi:10.5281/zenodo.21925201</a></li>
+<li><em>On the Nature of Cohesion: Cohesion as Correctness Relative to a Partitioning Rule</em> — Zenodo, 2026 — <a href="https://doi.org/10.5281/zenodo.21703193">doi:10.5281/zenodo.21703193</a></li>
+</ul>
+<p><a href="../../../../reference/papers.html">All published papers</a></p>
+
+
+
+</section>
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-loth2026couplingnature" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">Y. Loth, <span>“On the nature of coupling: All coupling as shared resource access.”</span> Zenodo, Aug. 2026. doi: <a href="https://doi.org/10.5281/zenodo.21925122">10.5281/zenodo.21925122</a>.</div>
+</div>
+<div id="ref-loth2026couplingconsequence" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">Y. Loth, <span>“Coupling as a consequence of cohesion: Decomposition, the coupling floor, and domain-imposed coupling.”</span> Zenodo, Aug. 2026. doi: <a href="https://doi.org/10.5281/zenodo.21925201">10.5281/zenodo.21925201</a>.</div>
+</div>
+<div id="ref-loth2026cohesion" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">Y. Loth, <span>“On the nature of cohesion: Cohesion as correctness relative to a partitioning rule.”</span> Zenodo, Jul. 2026. doi: <a href="https://doi.org/10.5281/zenodo.21703193">10.5281/zenodo.21703193</a>.</div>
+</div>
+<div id="ref-tsqlDocs" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">Microsoft, <span>“Transact-<span>SQL</span> reference (<span>SQL</span> server).”</span> Microsoft, 2024. Available: <a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference">https://learn.microsoft.com/en-us/sql/t-sql/language-reference</a></div>
+</div>
+<div id="ref-joel2025lowresource" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline">S. Joel, J. J. Wu, and F. H. Fard, <span>“A survey on <span>LLM</span>-based code generation for low-resource and domain-specific programming languages,”</span> <em>ACM Transactions on Software Engineering and Methodology</em>, 2025, doi: <a href="https://doi.org/10.1145/3770084">10.1145/3770084</a>.</div>
+</div>
+</div></section></div></main> <!-- /main -->
+<script src="../../../../toc-references.js"></script>
+<script src="../../../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../../../nav-active.js"></script>
+<script src="../../../../nav-tree.js"></script>
+<script src="../../../../scoreboard-tables.9978d08ec511.js"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
