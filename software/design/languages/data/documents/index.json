@@ -232,14 +232,14 @@
       "ol": [
         "1. A **closed mechanism inventory** — each coupling mechanism has a **fixed weight**.",
         "2. A **binary presence check** — for each language, each mechanism is marked *present* or *absent* (a factual determination, not a severity judgment).",
-        "3. An **arithmetic rule** — within each dimension the present weights are summed and **capped at −15** (one severe mechanism's worth), and the score is **100 − Σ(capped per-dimension contributions)**."
+        "3. An **arithmetic rule** — within each dimension the present weights are summed to a raw cost, the raw cost becomes a **charge** by `charge = 15 × (1 − e^(−raw/15))`, and the score is **100 − Σ(charges)**."
       ]
     },
     {
       "p": "Because the weights are fixed and the only per-language step is present/absent, any two analysts following these rules reach identical scores. The framework makes disagreement precise: to dispute a score, you must either contest a mechanism's presence in a specific language, or propose changing a fixed weight and then recompute."
     },
     {
-      "p": "**The full mechanism inventory** (Core coupling: Type, Construction, Memory, Error, Concurrency, Platform; Ecosystem coupling: Performance, Ecosystem, Evolution, Domain, Learning, Syntax, Testing, Security; Engineering readiness: Reproducibility, Supply chain, Observability, Feedback, Interop, Governance), the detailed capped-sum rule, and the tests that decide presence are on [The Scoring Model](objective-coupling-scoring-model.qmd). The ranked tables, the per-dimension sub-scores, and the **complete per-language mechanism-presence data** for all 89 languages — so any score can be reproduced from first principles — are on [The Scoreboard](scoreboard.qmd)."
+      "p": "**The full mechanism inventory** (Core coupling: Type, Construction, Memory, Error, Concurrency, Platform; Ecosystem coupling: Performance, Ecosystem, Evolution, Domain, Learning, Syntax, Testing, Security; Engineering readiness: Reproducibility, Supply chain, Observability, Feedback, Interop, Governance), the detailed saturating-sum rule, and the tests that decide presence are on [The Scoring Model](objective-coupling-scoring-model.qmd). The ranked tables, the per-dimension sub-scores, and the **complete per-language mechanism-presence data** for all 89 languages — so any score can be reproduced from first principles — are on [The Scoreboard](scoreboard.qmd)."
     },
     {
       "p": "**What each mechanism means** — what it is, what it forces to agree, how harmful it is, and why it removes the points it removes — is explained mechanism by mechanism, with examples, in [the Criteria](scoring-criteria.qmd)."
@@ -252,26 +252,26 @@
       "text": "What the coupling score means"
     },
     {
-      "p": "Because the model is a fixed-inventory capped-sum-per-dimension model, the bands follow directly from the mechanism weights:"
+      "p": "Because the model is a fixed-inventory saturating-sum-per-dimension model, the bands follow from the mechanism weights and the curve:"
     },
     {
       "ul": [
-        "**90+**: No dimension contains a severe (High) mechanism, and at most one dimension reaches even −8. Near the irreducible floor.",
-        "**75–89**: No dimension reaches −15; a small number of moderate (−8) mechanisms spread across dimensions.",
-        "**60–74**: At least one dimension caps at −15 (a severe mechanism), or several dimensions carry moderate mechanisms.",
-        "**45–59**: Two or three dimensions cap at −15, or one severe mechanism plus several moderate across other dimensions.",
-        "**Below 45**: Three or more dimensions cap at −15 — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
+        "**85+**: One or two dimensions carry a priced mechanism, and at most one of them reaches 15 in raw weight. Near the irreducible floor.",
+        "**70–84**: Two to four dimensions carry a priced mechanism, and at most one reaches 15 in raw weight.",
+        "**55–69**: Three to six dimensions carry a priced mechanism, and at least one reaches 15 in raw weight.",
+        "**40–54**: Four to six dimensions carry a priced mechanism, and at least two reach 15 in raw weight.",
+        "**Below 40**: Five or six dimensions carry a priced mechanism, and at least four reach 15 in raw weight — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
       ]
     },
     {
-      "p": "**No language reaches the 90+ band today.** That band is an ideal, not a description of the field: it means no dimension carries a severe mechanism and at most one reaches even −8. The current languages have not met that bar, and the gap to it is the progression margin left to language design."
+      "p": "**Five snapshots reach the 85+ band today** — Rocq 90.5, Unison 88.2, Rust 88.0 in both releases, and Lean 4 87.0. None reaches 100: every language carries at least one priced mechanism, and the gap to 100 is the progression margin left to language design."
     },
     {
       "h": 3,
       "text": "What the readiness score means"
     },
     {
-      "p": "The readiness score uses the same arithmetic over its six dimensions, but its bands are different. Readiness has no High mechanism, so a dimension caps only when two Moderate mechanisms meet, and its bands are stated over the total it can actually reach. A readiness band is therefore not comparable to a coupling band. The readiness bands are listed with the coupling bands under “By Score” below, and on the [Scoreboard](scoreboard.qmd)."
+      "p": "The readiness score uses the same arithmetic over its six dimensions, but its bands are different. Readiness has no High mechanism, so its largest raw dimension cost is 16, and its bands are stated over the total it can actually reach. A readiness band is therefore not comparable to a coupling band. The readiness bands are listed with the coupling bands under “By Score” below, and on the [Scoreboard](scoreboard.qmd)."
     },
     {
       "hr": true
@@ -317,7 +317,7 @@
       "text": "The Verdict: Coupling Edition"
     },
     {
-      "p": "*Ranked by Core coupling from the model (capped-sum-per-dimension); the numbers behind every grouping below are on the [Scoreboard](scoreboard.qmd). Analysis date June 2026 — older versions of the same language can score significantly lower (e.g., C++98, Java 8).*"
+      "p": "*Ranked by Core coupling from the model (saturating-sum-per-dimension); the numbers behind every grouping below are on the [Scoreboard](scoreboard.qmd). Analysis date June 2026 — older versions of the same language can score significantly lower (e.g., C++98, Java 8).*"
     },
     {
       "p": "**If you need mathematical proof of correctness:** Rocq, SPARK, Lean 4"
@@ -345,11 +345,11 @@
     },
     {
       "ol": [
-        "1. **Unison**: Content-addressed code, algebraic effects, distributed computing built-in",
-        "2. **Rocq**: Machine-checked proof as the unit of development",
+        "1. **Rocq**: Machine-checked proof as the unit of development",
+        "2. **Unison**: Content-addressed code, algebraic effects, distributed computing built-in",
         "3. **Rust**: Ownership enforces separation, Result types compose, no null, traits decouple",
-        "4. **SQL**: Declarative, no in-language coupling among your elements",
-        "5. **Lean 4**: Dependent types over a small trusted kernel"
+        "4. **Lean 4**: Dependent types over a small trusted kernel",
+        "5. **SPARK**: A proved Ada subset, so the proof is part of the build"
       ]
     },
     {
@@ -370,10 +370,10 @@
       "ol": [
         "1. **Assembly**: No abstractions, manual everything, maximum coupling risk",
         "2. **C**: Manual memory, weak typing, global state, undefined behavior",
-        "3. **JavaScript**: Dynamic, global state, unchecked errors, no types",
-        "4. **Perl**: Dynamic, global state, primitive objects, GIL",
-        "5. **PHP**: Dynamic, weak typing, superglobals, no concurrency",
-        "6. **Ruby**: Dynamic, global state, metaprogramming everywhere",
+        "3. **Perl**: Dynamic, global state, primitive objects, GIL",
+        "4. **JavaScript**: Dynamic, global state, unchecked errors, no types",
+        "5. **Ruby**: Dynamic, global state, metaprogramming everywhere",
+        "6. **PHP**: Dynamic, weak typing, superglobals, no concurrency",
         "7. **TypeScript**: JavaScript's runtime coupling under a compile-time type layer"
       ]
     },
@@ -430,7 +430,7 @@
       "p": "Languages with **domain-locked separation** (Objective-C, PL/SQL, Transact-SQL, SAS, Solidity) are coupled to a single platform or domain — the platform is the unit boundary, and the language's coupling quality only matters within it."
     },
     {
-      "p": "**One result worth stating plainly:** TypeScript now scores exactly what JavaScript scores. The type layer genuinely removes coupling — `strict` makes absence a checked case, and structural typing, union types, and generics remove the dynamic-typing mechanisms — but the per-dimension clamp maps both to the same Type sub-score. The difference is in the presence lists: JavaScript carries `T1`, `T4`, `T5`, and `T10`; TypeScript carries `T7`. A reader who wants the type-layer difference must read the presence table, because the score does not carry it."
+      "p": "**One result worth stating plainly:** the type layer now moves the number. TypeScript scores above JavaScript, because the type layer removes `T1`, `T4`, `T5`, and `T10` and leaves `T7`: JavaScript carries `T1`, `T3`, `T4`, `T5`, `T10`, `T12`, `T13`, and `T14`; TypeScript carries `T3`, `T7`, `T12`, `T13`, and `T14`. Under a hard cap both languages paid the Type ceiling and scored the same; the saturating curve makes the difference visible. The presence lists still carry the detail."
     },
     {
       "p": "**The lesson:** Match language coupling capabilities to your context AND your version. C++23 with modern idioms is a different beast from C++98. Java 26 with virtual threads, records, and sealed classes is not Java 8. Don't pick a language based on its worst version. Building life-critical systems? Use SPARK or Lean 4. Building a 20-year system with changing requirements? Invest in Rust. Building mobile apps? Swift or Kotlin. Building a weekend project? JavaScript is fine. Maintaining legacy code? TypeScript adds compile-time detection incrementally, though its runtime coupling is JavaScript's. Need shell automation? PowerShell adds objects, Fish adds interactive polish, and Bash stays the portable default."

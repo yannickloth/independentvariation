@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the capped-sum rule, the tests that decide presence, and the unscored profile.">
+<meta name="description" content="How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile.">
 
 <title>objective-coupling-scoring-model – Independent Variation Principle</title>
 <style>
@@ -102,10 +102,10 @@ div.csl-indent {
 
 <link rel="stylesheet" href="../../../styles.css">
 <meta property="og:title" content="Independent Variation Principle">
-<meta property="og:description" content="How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the capped-sum rule, the tests that decide presence, and the unscored profile.">
+<meta property="og:description" content="How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile.">
 <meta property="og:site_name" content="Independent Variation Principle">
 <meta name="twitter:title" content="Independent Variation Principle">
-<meta name="twitter:description" content="How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the capped-sum rule, the tests that decide presence, and the unscored profile.">
+<meta name="twitter:description" content="How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile.">
 <meta name="twitter:card" content="summary">
 </head>
 
@@ -1202,35 +1202,35 @@ div.csl-indent {
 <blockquote class="blockquote">
 <p><strong>Companion to:</strong> <a href="../../../software/design/languages/index.html">The Great Language Smackdown</a> · <a href="../../../software/design/languages/scoreboard.html">the Scoreboard</a> · <a href="../../../software/design/languages/scoring-criteria.html">the Criteria</a></p>
 </blockquote>
-<p>The main article ranks 89 languages by language-imposed coupling and by engineering readiness. This companion publishes the <strong>mechanism inventories, the arithmetic, and the tests that decide presence</strong>, so any reader can reproduce any number from first principles. The rules and the arithmetic are fixed; the weights and the clamp are authored judgments. The per-language data itself is on the <a href="../../../software/design/languages/scoreboard.html">Scoreboard</a>.</p>
+<p>The main article ranks 89 languages by language-imposed coupling and by engineering readiness. This companion publishes the <strong>mechanism inventories, the arithmetic, and the tests that decide presence</strong>, so any reader can reproduce any number from first principles. The rules and the arithmetic are fixed; the weights, the ceiling, and the curve are authored judgments. The per-language data itself is on the <a href="../../../software/design/languages/scoreboard.html">Scoreboard</a>.</p>
 <p>What each mechanism means, what it forces to agree, and why it costs what it costs is explained in <a href="../../../software/design/languages/scoring-criteria.html">the Criteria</a>.</p>
 <p>The coupling analysis this model operationalizes — coupling as access to a shared resource, and the derivation of a modularisation directive from coupling — is developed in the published coupling papers <span class="citation" data-cites="loth2026couplingnature loth2026couplingderivation"><a href="#ref-loth2026couplingnature" role="doc-biblioref">[1]</a>, <a href="#ref-loth2026couplingderivation" role="doc-biblioref">[2]</a></span>.</p>
 <p><strong>Analysis date: June 2026.</strong> All languages are assessed against the version shown.</p>
 <section id="how-a-score-is-computed" class="level2" data-number="1.1">
 <h2 data-number="1.1" class="anchored" data-anchor-id="how-a-score-is-computed"><span class="header-section-number">1.1</span> How a score is computed</h2>
-<p>The model is a <strong>capped-sum-per-dimension</strong> inventory:</p>
+<p>The model is a <strong>saturating-sum-per-dimension</strong> inventory:</p>
 <ol type="1">
 <li>A fixed mechanism inventory. Each mechanism has a fixed weight, except the one recorded mechanism, which carries the fact and no weight.</li>
 <li>For each language, every mechanism is marked <strong>present</strong> or <strong>absent</strong> (a factual determination).</li>
-<li>Within each dimension of one axis, the present weights are <strong>summed and clamped to at most −15</strong>.</li>
-<li><strong>Score = 100 − Σ(capped per-dimension contributions)</strong>, computed per axis.</li>
+<li>Within each dimension of one axis, the present weights are <strong>summed to a raw cost</strong>, and the raw cost is converted to a <strong>charge</strong> by a saturating curve: <code>charge = 15 × (1 − e^(−raw/15))</code>, rounded to one decimal. The charge approaches 15 and never reaches it.</li>
+<li><strong>Score = 100 − Σ(charges)</strong>, computed per axis.</li>
 </ol>
-<p>The cap equals the High weight (−15), so a dimension never costs more than one severe mechanism. This keeps scores bounded (a six-dimension axis never falls below 10), monotone (adding a mechanism never helps), and discriminative (no collapse to zero).</p>
+<p>The curve is the instrument, and the ceiling is its asymptote. A hard cap would charge every dimension at or above 15 the same amount, so a language that removed a mechanism inside a saturated dimension would not move — Java 1.4 and Java 17 both paid the full Type ceiling, and the generics and module boundary that Java 17 adds were invisible to the score. The curve keeps the ceiling as an asymptote and the sum monotone: adding a mechanism never helps, removing one always moves the number, and no dimension ever charges the full 15. A six-dimension axis therefore never falls below 10, and the charge records every change in the raw cost on a one-decimal grid.</p>
 <section id="score-bands" class="level3" data-number="1.1.1">
 <h3 data-number="1.1.1" class="anchored" data-anchor-id="score-bands"><span class="header-section-number">1.1.1</span> Score bands</h3>
-<p>Because the model is a fixed-inventory capped-sum-per-dimension model, the bands follow directly from the mechanism weights:</p>
+<p>Because the model is a fixed-inventory saturating-sum-per-dimension model, the bands follow from the mechanism weights and the curve:</p>
 <ul>
-<li><strong>90+</strong>: No dimension contains a severe (High) mechanism, and at most one dimension reaches even −8. Near the irreducible floor.</li>
-<li><strong>75–89</strong>: No dimension reaches −15; a small number of moderate (−8) mechanisms spread across dimensions.</li>
-<li><strong>60–74</strong>: At least one dimension caps at −15 (a severe mechanism), or several dimensions carry moderate mechanisms.</li>
-<li><strong>45–59</strong>: Two or three dimensions cap at −15, or one severe mechanism plus several moderate across other dimensions.</li>
-<li><strong>Below 45</strong>: Three or more dimensions cap at −15 — the language’s design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access).</li>
+<li><strong>85+</strong>: One or two dimensions carry a priced mechanism, and at most one of them reaches 15 in raw weight. Near the irreducible floor.</li>
+<li><strong>70–84</strong>: Two to four dimensions carry a priced mechanism, and at most one reaches 15 in raw weight.</li>
+<li><strong>55–69</strong>: Three to six dimensions carry a priced mechanism, and at least one reaches 15 in raw weight.</li>
+<li><strong>40–54</strong>: Four to six dimensions carry a priced mechanism, and at least two reach 15 in raw weight.</li>
+<li><strong>Below 40</strong>: Five or six dimensions carry a priced mechanism, and at least four reach 15 in raw weight — the language’s design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access).</li>
 </ul>
-<p>The readiness score uses the same arithmetic, over its six dimensions. Its <a href="../../../software/design/languages/scoreboard.html">bands</a> are stated over the total it can actually reach: readiness has no High mechanism, so only Reproducibility and Governance can reach the clamp, and a readiness dimension caps only when two Moderate mechanisms meet. A readiness band is not comparable to a coupling band, because the two axes price different kinds of cost; the profile is never scored at all.</p>
+<p>The readiness score uses the same arithmetic, over its six dimensions. Its <a href="../../../software/design/languages/scoreboard.html">bands</a> are stated over the total it can actually reach: readiness has no High mechanism, so its largest raw dimension cost is 16 — two Moderate mechanisms in one dimension — and its bands are 95+, 85–94, 75–84, 65–74, and below 65. A readiness band is not comparable to a coupling band, because the two axes price different kinds of cost; the profile is never scored at all.</p>
 </section>
 <section id="dimension-sub-scores" class="level3" data-number="1.1.2">
 <h3 data-number="1.1.2" class="anchored" data-anchor-id="dimension-sub-scores"><span class="header-section-number">1.1.2</span> Dimension sub-scores</h3>
-<p>The <strong>comparison matrices show each dimension’s cost</strong>, not a percentage: <code>0</code> means no mechanism is charged, and a negative number is the cost. Each dimension is capped at −15 when it feeds the score, and where the cap bites the uncapped cost is shown in parentheses, so two languages at the cap stay distinguishable. A language’s Core score is therefore 100 minus the sum of its six capped costs, its Ecosystem score the same over its eight, and its Readiness score the same over its six; the cells in a matrix do not sum to the total because each is capped independently.</p>
+<p>The <strong>comparison matrices show each dimension’s cost</strong>, not a percentage: <code>0</code> means no mechanism is charged, and a negative number is the charge the dimension carries. The charge is the saturating conversion of the raw weight sum, and the raw sum follows in parentheses, so the mechanism inventory stays checkable. A language’s Core score is therefore 100 minus the sum of its six charges, its Ecosystem score the same over its eight, and its Readiness score the same over its six; the cells in a matrix sum to the total.</p>
 </section>
 </section>
 <section id="mechanism-inventory-weights" class="level2" data-number="1.2">
@@ -1365,7 +1365,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Three scores, reported separately, and an unscored profile.</strong> The comparison reports Core coupling, Ecosystem coupling, and Engineering readiness as three separate numbers over the same capped-sum rule. They are reported separately and never summed: a language can be weakly coupled and hard to ship, or strongly coupled and easy to operate. Several mechanisms share one underlying fact across axes — a missing package registry affects both <code>Ec1</code> and the supply-chain mechanisms — so the three scores are correlated in practice even though they are scored apart. Alongside them, the per-language <strong>profile</strong> records three axes the score deliberately does not price — energy and cost, AI and agent readiness, and safety certification — as evidence-backed notes, not numbers.</p>
+<p><strong>Three scores, reported separately, and an unscored profile.</strong> The comparison reports Core coupling, Ecosystem coupling, and Engineering readiness as three separate numbers over the same saturating rule. They are reported separately and never summed: a language can be weakly coupled and hard to ship, or strongly coupled and easy to operate. Several mechanisms share one underlying fact across axes — a missing package registry affects both <code>Ec1</code> and the supply-chain mechanisms — so the three scores are correlated in practice even though they are scored apart. Alongside them, the per-language <strong>profile</strong> records three axes the score deliberately does not price — energy and cost, AI and agent readiness, and safety certification — as evidence-backed notes, not numbers.</p>
 </section>
 <section id="what-counts-as-present" class="level3" data-number="1.2.4">
 <h3 data-number="1.2.4" class="anchored" data-anchor-id="what-counts-as-present"><span class="header-section-number">1.2.4</span> What counts as present</h3>
@@ -1383,7 +1383,7 @@ div.csl-indent {
 </section>
 <section id="the-mechanism-that-is-recorded-not-priced" class="level3" data-number="1.2.6">
 <h3 data-number="1.2.6" class="anchored" data-anchor-id="the-mechanism-that-is-recorded-not-priced"><span class="header-section-number">1.2.6</span> The mechanism that is recorded, not priced</h3>
-<p><code>V5</code>, silent default drift, is in the inventory and carries no weight. A default that the source does not name changes between releases; nothing in the build reports it, so a deployment discovers the change when the behaviour of the running program moves. That is a real coupling — the agreement exists, and the code never wrote it down — but its <strong>direction is not fixed</strong>. The same change can help one workload and hurt another: G1 as the default everywhere helps a one-CPU container and moves the latency profile of a service that was measured under Serial, and a new default key encoding can be better interoperability and a break for an older peer. A price has to point one way, or the capped sum stops being arithmetic. So the model records the event, states its direction in the observation beside the mark, and prices nothing. The same rule keeps execution quality — footprint, throughput, energy — out of the score entirely.</p>
+<p><code>V5</code>, silent default drift, is in the inventory and carries no weight. A default that the source does not name changes between releases; nothing in the build reports it, so a deployment discovers the change when the behaviour of the running program moves. That is a real coupling — the agreement exists, and the code never wrote it down — but its <strong>direction is not fixed</strong>. The same change can help one workload and hurt another: G1 as the default everywhere helps a one-CPU container and moves the latency profile of a service that was measured under Serial, and a new default key encoding can be better interoperability and a break for an older peer. A price has to point one way, or the sum stops being arithmetic. So the model records the event, states its direction in the observation beside the mark, and prices nothing. The same rule keeps execution quality — footprint, throughput, energy — out of the score entirely.</p>
 <p><strong>The readiness axis is derived, not judged per language.</strong> Every readiness mechanism is a documented function of a fact about the language or its ecosystem — for example, “build not reproducible” is present when the language’s own build tool does not default to byte-reproducible output, and “no signed provenance” is present when the registry ships no default attestation. The tests are stated with each mechanism in <a href="../../../software/design/languages/scoring-criteria.html">the Criteria</a>, so a reader can check a mark and regenerate the score.</p>
 </section>
 </section>
@@ -1421,46 +1421,46 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Ecosystem coupling does not enter the ranking.</strong> It is a dependency context, not a quality: a near-monoculture ecosystem lowers risk <em>through</em> consistency, so its band can disagree with its number (a language can score 84 there and 38 on Core). It stays a lens, and the table sorts by it, but it does not decide the order.</p>
+<p><strong>Ecosystem coupling does not enter the ranking.</strong> It is a dependency context, not a quality: a near-monoculture ecosystem lowers risk <em>through</em> consistency, so its band can disagree with its number (JavaScript scores 80.5 there and 41.7 on Core). It stays a lens, and the table sorts by it, but it does not decide the order.</p>
 <p><strong>Coupling is primary; readiness is a modifier.</strong> Once the code is written, the code is what remains, and a maintainer faces it for most of a system’s life. A language that forces accidental coupling into every line has damaged that artifact permanently. Readiness surrounds the code rather than entering it, and it is remediable by process: a toolchain, a registry, and an observability stack can be fixed, while coupling in the code cannot. So readiness does not weigh against coupling as a peer.</p>
 </section>
 <section id="how-to-reproduce-a-score" class="level2" data-number="1.4">
 <h2 data-number="1.4" class="anchored" data-anchor-id="how-to-reproduce-a-score"><span class="header-section-number">1.4</span> How to reproduce a score</h2>
-<p>To reproduce any score: read the language’s present mechanisms for one axis, group by dimension, sum and clamp each dimension to −15, sum the clamped values, and subtract from 100. Repeat for each axis. The three axes are scored apart: no score is ever added to another, though several mechanisms share one underlying fact and the axes are correlated in practice.</p>
-<p><strong>Worked example — Java 26 (Core 46):</strong> present Core = <code>T7, T10, T12, T14, C2, M2, M3, M4, Er2, Er4, K3</code>.</p>
+<p>To reproduce any score: read the language’s present mechanisms for one axis, group by dimension, sum the weights in each dimension to a raw cost, convert each raw cost with <code>charge = 15 × (1 − e^(−raw/15))</code> and round to one decimal, sum the charges, and subtract from 100. Repeat for each axis. The three axes are scored apart: no score is ever added to another, though several mechanisms share one underlying fact and the axes are correlated in practice.</p>
+<p><strong>Worked example — Java 26 (Core 59.0):</strong> present Core = <code>T7, T10, T12, T14, C2, M2, M3, M4, Er2, Er4, K3</code>.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Present</th>
-<th>Clamped sum</th>
+<th>Charge</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>Type</td>
 <td>T7(−4) + T10(−8) + T12(−8) + T14(−4) = −24</td>
-<td>−15 (clamped)</td>
+<td>−12.0</td>
 </tr>
 <tr class="even">
 <td>Construction</td>
-<td>C2(−4)</td>
-<td>−4</td>
+<td>C2(−4) = −4</td>
+<td>−3.5</td>
 </tr>
 <tr class="odd">
 <td>Memory</td>
 <td>M2(−8) + M3(−4) + M4(−8) = −20</td>
-<td>−15 (clamped)</td>
+<td>−11.0</td>
 </tr>
 <tr class="even">
 <td>Error</td>
-<td>Er2(−8) + Er4(−4)</td>
-<td>−12</td>
+<td>Er2(−8) + Er4(−4) = −12</td>
+<td>−8.3</td>
 </tr>
 <tr class="odd">
 <td>Concurrency</td>
-<td>K3(−8)</td>
-<td>−8</td>
+<td>K3(−8) = −8</td>
+<td>−6.2</td>
 </tr>
 <tr class="even">
 <td>Platform</td>
@@ -1469,7 +1469,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p>Total clamped = 15+4+15+12+8 = 54. Core = 100 − 54 = <strong>46</strong>. ✓</p>
+<p>Total charge = 12.0+3.5+11.0+8.3+6.2 = 41.0. Core = 100 − 41.0 = <strong>59.0</strong>. ✓</p>
 </section>
 <section id="complete-per-language-data" class="level2" data-number="1.5">
 <h2 data-number="1.5" class="anchored" data-anchor-id="complete-per-language-data"><span class="header-section-number">1.5</span> Complete per-language data</h2>

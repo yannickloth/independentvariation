@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "frontMatter": {
     "title": "The Scoring Model: Arithmetic, Inventory, and Presence Rules",
-    "description": "How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the capped-sum rule, the tests that decide presence, and the unscored profile.",
+    "description": "How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile.",
     "tags": "[programming, languages, coupling, architecture, methodology]"
   },
   "frontMatterLines": [
-    "description: How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the capped-sum rule, the tests that decide presence, and the unscored profile."
+    "description: How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile."
   ],
   "blocks": [
     {
@@ -17,7 +17,7 @@
       "q": "**Companion to:** [The Great Language Smackdown](index.qmd) · [the Scoreboard](scoreboard.qmd) · [the Criteria](scoring-criteria.qmd)"
     },
     {
-      "p": "The main article ranks 89 languages by language-imposed coupling and by engineering readiness. This companion publishes the **mechanism inventories, the arithmetic, and the tests that decide presence**, so any reader can reproduce any number from first principles. The rules and the arithmetic are fixed; the weights and the clamp are authored judgments. The per-language data itself is on the [Scoreboard](scoreboard.qmd)."
+      "p": "The main article ranks 89 languages by language-imposed coupling and by engineering readiness. This companion publishes the **mechanism inventories, the arithmetic, and the tests that decide presence**, so any reader can reproduce any number from first principles. The rules and the arithmetic are fixed; the weights, the ceiling, and the curve are authored judgments. The per-language data itself is on the [Scoreboard](scoreboard.qmd)."
     },
     {
       "p": "What each mechanism means, what it forces to agree, and why it costs what it costs is explained in [the Criteria](scoring-criteria.qmd)."
@@ -33,44 +33,44 @@
       "text": "How a score is computed"
     },
     {
-      "p": "The model is a **capped-sum-per-dimension** inventory:"
+      "p": "The model is a **saturating-sum-per-dimension** inventory:"
     },
     {
       "ol": [
         "1. A fixed mechanism inventory. Each mechanism has a fixed weight, except the one recorded mechanism, which carries the fact and no weight.",
         "2. For each language, every mechanism is marked **present** or **absent** (a factual determination).",
-        "3. Within each dimension of one axis, the present weights are **summed and clamped to at most −15**.",
-        "4. **Score = 100 − Σ(capped per-dimension contributions)**, computed per axis."
+        "3. Within each dimension of one axis, the present weights are **summed to a raw cost**, and the raw cost is converted to a **charge** by a saturating curve: `charge = 15 × (1 − e^(−raw/15))`, rounded to one decimal. The charge approaches 15 and never reaches it.",
+        "4. **Score = 100 − Σ(charges)**, computed per axis."
       ]
     },
     {
-      "p": "The cap equals the High weight (−15), so a dimension never costs more than one severe mechanism. This keeps scores bounded (a six-dimension axis never falls below 10), monotone (adding a mechanism never helps), and discriminative (no collapse to zero)."
+      "p": "The curve is the instrument, and the ceiling is its asymptote. A hard cap would charge every dimension at or above 15 the same amount, so a language that removed a mechanism inside a saturated dimension would not move — Java 1.4 and Java 17 both paid the full Type ceiling, and the generics and module boundary that Java 17 adds were invisible to the score. The curve keeps the ceiling as an asymptote and the sum monotone: adding a mechanism never helps, removing one always moves the number, and no dimension ever charges the full 15. A six-dimension axis therefore never falls below 10, and the charge records every change in the raw cost on a one-decimal grid."
     },
     {
       "h": 3,
       "text": "Score bands"
     },
     {
-      "p": "Because the model is a fixed-inventory capped-sum-per-dimension model, the bands follow directly from the mechanism weights:"
+      "p": "Because the model is a fixed-inventory saturating-sum-per-dimension model, the bands follow from the mechanism weights and the curve:"
     },
     {
       "ul": [
-        "**90+**: No dimension contains a severe (High) mechanism, and at most one dimension reaches even −8. Near the irreducible floor.",
-        "**75–89**: No dimension reaches −15; a small number of moderate (−8) mechanisms spread across dimensions.",
-        "**60–74**: At least one dimension caps at −15 (a severe mechanism), or several dimensions carry moderate mechanisms.",
-        "**45–59**: Two or three dimensions cap at −15, or one severe mechanism plus several moderate across other dimensions.",
-        "**Below 45**: Three or more dimensions cap at −15 — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
+        "**85+**: One or two dimensions carry a priced mechanism, and at most one of them reaches 15 in raw weight. Near the irreducible floor.",
+        "**70–84**: Two to four dimensions carry a priced mechanism, and at most one reaches 15 in raw weight.",
+        "**55–69**: Three to six dimensions carry a priced mechanism, and at least one reaches 15 in raw weight.",
+        "**40–54**: Four to six dimensions carry a priced mechanism, and at least two reach 15 in raw weight.",
+        "**Below 40**: Five or six dimensions carry a priced mechanism, and at least four reach 15 in raw weight — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
       ]
     },
     {
-      "p": "The readiness score uses the same arithmetic, over its six dimensions. Its [bands](scoreboard.qmd) are stated over the total it can actually reach: readiness has no High mechanism, so only Reproducibility and Governance can reach the clamp, and a readiness dimension caps only when two Moderate mechanisms meet. A readiness band is not comparable to a coupling band, because the two axes price different kinds of cost; the profile is never scored at all."
+      "p": "The readiness score uses the same arithmetic, over its six dimensions. Its [bands](scoreboard.qmd) are stated over the total it can actually reach: readiness has no High mechanism, so its largest raw dimension cost is 16 — two Moderate mechanisms in one dimension — and its bands are 95+, 85–94, 75–84, 65–74, and below 65. A readiness band is not comparable to a coupling band, because the two axes price different kinds of cost; the profile is never scored at all."
     },
     {
       "h": 3,
       "text": "Dimension sub-scores"
     },
     {
-      "p": "The **comparison matrices show each dimension's cost**, not a percentage: `0` means no mechanism is charged, and a negative number is the cost. Each dimension is capped at −15 when it feeds the score, and where the cap bites the uncapped cost is shown in parentheses, so two languages at the cap stay distinguishable. A language's Core score is therefore 100 minus the sum of its six capped costs, its Ecosystem score the same over its eight, and its Readiness score the same over its six; the cells in a matrix do not sum to the total because each is capped independently."
+      "p": "The **comparison matrices show each dimension's cost**, not a percentage: `0` means no mechanism is charged, and a negative number is the charge the dimension carries. The charge is the saturating conversion of the raw weight sum, and the raw sum follows in parentheses, so the mechanism inventory stays checkable. A language's Core score is therefore 100 minus the sum of its six charges, its Ecosystem score the same over its eight, and its Readiness score the same over its six; the cells in a matrix sum to the total."
     },
     {
       "h": 2,
@@ -98,7 +98,7 @@
       "table": "inventory-readiness"
     },
     {
-      "p": "**Three scores, reported separately, and an unscored profile.** The comparison reports Core coupling, Ecosystem coupling, and Engineering readiness as three separate numbers over the same capped-sum rule. They are reported separately and never summed: a language can be weakly coupled and hard to ship, or strongly coupled and easy to operate. Several mechanisms share one underlying fact across axes — a missing package registry affects both `Ec1` and the supply-chain mechanisms — so the three scores are correlated in practice even though they are scored apart. Alongside them, the per-language **profile** records three axes the score deliberately does not price — energy and cost, AI and agent readiness, and safety certification — as evidence-backed notes, not numbers."
+      "p": "**Three scores, reported separately, and an unscored profile.** The comparison reports Core coupling, Ecosystem coupling, and Engineering readiness as three separate numbers over the same saturating rule. They are reported separately and never summed: a language can be weakly coupled and hard to ship, or strongly coupled and easy to operate. Several mechanisms share one underlying fact across axes — a missing package registry affects both `Ec1` and the supply-chain mechanisms — so the three scores are correlated in practice even though they are scored apart. Alongside them, the per-language **profile** records three axes the score deliberately does not price — energy and cost, AI and agent readiness, and safety certification — as evidence-backed notes, not numbers."
     },
     {
       "h": 3,
@@ -129,7 +129,7 @@
       "text": "The mechanism that is recorded, not priced"
     },
     {
-      "p": "`V5`, silent default drift, is in the inventory and carries no weight. A default that the source does not name changes between releases; nothing in the build reports it, so a deployment discovers the change when the behaviour of the running program moves. That is a real coupling — the agreement exists, and the code never wrote it down — but its **direction is not fixed**. The same change can help one workload and hurt another: G1 as the default everywhere helps a one-CPU container and moves the latency profile of a service that was measured under Serial, and a new default key encoding can be better interoperability and a break for an older peer. A price has to point one way, or the capped sum stops being arithmetic. So the model records the event, states its direction in the observation beside the mark, and prices nothing. The same rule keeps execution quality — footprint, throughput, energy — out of the score entirely."
+      "p": "`V5`, silent default drift, is in the inventory and carries no weight. A default that the source does not name changes between releases; nothing in the build reports it, so a deployment discovers the change when the behaviour of the running program moves. That is a real coupling — the agreement exists, and the code never wrote it down — but its **direction is not fixed**. The same change can help one workload and hurt another: G1 as the default everywhere helps a one-CPU container and moves the latency profile of a service that was measured under Serial, and a new default key encoding can be better interoperability and a break for an older peer. A price has to point one way, or the sum stops being arithmetic. So the model records the event, states its direction in the observation beside the mark, and prices nothing. The same rule keeps execution quality — footprint, throughput, energy — out of the score entirely."
     },
     {
       "p": "**The readiness axis is derived, not judged per language.** Every readiness mechanism is a documented function of a fact about the language or its ecosystem — for example, “build not reproducible” is present when the language's own build tool does not default to byte-reproducible output, and “no signed provenance” is present when the registry ships no default attestation. The tests are stated with each mechanism in [the Criteria](scoring-criteria.qmd), so a reader can check a mark and regenerate the score."
@@ -151,7 +151,7 @@
       ]
     },
     {
-      "p": "**Ecosystem coupling does not enter the ranking.** It is a dependency context, not a quality: a near-monoculture ecosystem lowers risk *through* consistency, so its band can disagree with its number (a language can score 84 there and 38 on Core). It stays a lens, and the table sorts by it, but it does not decide the order."
+      "p": "**Ecosystem coupling does not enter the ranking.** It is a dependency context, not a quality: a near-monoculture ecosystem lowers risk *through* consistency, so its band can disagree with its number (JavaScript scores 80.5 there and 41.7 on Core). It stays a lens, and the table sorts by it, but it does not decide the order."
     },
     {
       "p": "**Coupling is primary; readiness is a modifier.** Once the code is written, the code is what remains, and a maintainer faces it for most of a system's life. A language that forces accidental coupling into every line has damaged that artifact permanently. Readiness surrounds the code rather than entering it, and it is remediable by process: a toolchain, a registry, and an observability stack can be fixed, while coupling in the code cannot. So readiness does not weigh against coupling as a peer."
@@ -161,7 +161,7 @@
       "text": "How to reproduce a score"
     },
     {
-      "p": "To reproduce any score: read the language's present mechanisms for one axis, group by dimension, sum and clamp each dimension to −15, sum the clamped values, and subtract from 100. Repeat for each axis. The three axes are scored apart: no score is ever added to another, though several mechanisms share one underlying fact and the axes are correlated in practice."
+      "p": "To reproduce any score: read the language's present mechanisms for one axis, group by dimension, sum the weights in each dimension to a raw cost, convert each raw cost with `charge = 15 × (1 − e^(−raw/15))` and round to one decimal, sum the charges, and subtract from 100. Repeat for each axis. The three axes are scored apart: no score is ever added to another, though several mechanisms share one underlying fact and the axes are correlated in practice."
     },
     {
       "workedExample": true
