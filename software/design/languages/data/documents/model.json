@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "frontMatter": {
     "title": "The Scoring Model: Arithmetic, Inventory, and Presence Rules",
-    "description": "How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile.",
+    "description": "How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the severity-share rule, the tests that decide presence, and the unscored profile.",
     "tags": "[programming, languages, coupling, architecture, methodology]"
   },
   "frontMatterLines": [
-    "description: How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the saturating-sum rule, the tests that decide presence, and the unscored profile."
+    "description: How every score in the 89-language comparison is computed — the coupling and readiness mechanism inventories and weights, the severity-share rule, the tests that decide presence, and the unscored profile."
   ],
   "blocks": [
     {
@@ -17,7 +17,7 @@
       "q": "**Companion to:** [The Great Language Smackdown](index.qmd) · [the Scoreboard](scoreboard.qmd) · [the Criteria](scoring-criteria.qmd)"
     },
     {
-      "p": "The main article ranks 89 languages by language-imposed coupling and by engineering readiness. This companion publishes the **mechanism inventories, the arithmetic, and the tests that decide presence**, so any reader can reproduce any number from first principles. The rules and the arithmetic are fixed; the weights, the ceiling, and the curve are authored judgments. The per-language data itself is on the [Scoreboard](scoreboard.qmd)."
+      "p": "The main article ranks 89 languages by language-imposed coupling and by engineering readiness. This companion publishes the **mechanism inventories, the arithmetic, and the tests that decide presence**, so any reader can reproduce any number from first principles. The rules and the arithmetic are fixed; the weights and the band thresholds are authored judgments. The per-language data itself is on the [Scoreboard](scoreboard.qmd)."
     },
     {
       "p": "What each mechanism means, what it forces to agree, and why it costs what it costs is explained in [the Criteria](scoring-criteria.qmd)."
@@ -33,44 +33,44 @@
       "text": "How a score is computed"
     },
     {
-      "p": "The model is a **saturating-sum-per-dimension** inventory:"
+      "p": "The model is a **fixed inventory scored by severity share**:"
     },
     {
       "ol": [
         "1. A fixed mechanism inventory. Each mechanism has a fixed weight, except the one recorded mechanism, which carries the fact and no weight.",
         "2. For each language, every mechanism is marked **present** or **absent** (a factual determination).",
-        "3. Within each dimension of one axis, the present weights are **summed to a raw cost**, and the raw cost is converted to a **charge** by a saturating curve: `charge = 15 × (1 − e^(−raw/15))`, rounded to one decimal. The charge approaches 15 and never reaches it.",
-        "4. **Score = 100 − Σ(charges)**, computed per axis."
+        "3. Within each dimension of one axis the present weights are **summed**, and the axis is scored by the share of its own inventory those weights represent: `score = 100 × (1 − present weight ÷ inventory weight)`. The inventory weight is the sum of every weight the inventory names on that axis, so the denominator is the inventory itself, not a chosen ceiling.",
+        "4. **Score = 100 × (1 − present weight ÷ inventory weight)**, computed per axis."
       ]
     },
     {
-      "p": "The curve is the instrument, and the ceiling is its asymptote. A hard cap would charge every dimension at or above 15 the same amount, so a language that removed a mechanism inside a saturated dimension would not move — Java 1.4 and Java 17 both paid the full Type ceiling, and the generics and module boundary that Java 17 adds were invisible to the score. The curve keeps the ceiling as an asymptote and the sum monotone: adding a mechanism never helps, removing one always moves the number, and no dimension ever charges the full 15. A six-dimension axis therefore never falls below 10, and the charge records every change in the raw cost on a one-decimal grid."
+      "p": "The share is the instrument. Coupling is cumulative: a maintainer pays every forced coupling, so the costs add. The denominator is the inventory itself — 274 points on Core, 213 on Ecosystem, 80 on Readiness — so the scale carries no free constant: 100 means a language forces none of the named couplings, and 0 means it forces every one of them. Nothing is capped and nothing is curved. A cap would hide every mechanism above it: Java 1.4 and Java 17 would both pay a full Type ceiling, and the generics and the module boundary that Java 17 adds would vanish from the score. Here they do not: Java 1.4 scores 65.0 on Core and Java 17 scores 69.3. A curve would price the tenth mechanism of a dimension below the first, which the inventory does not claim. The share is monotone instead: each removed mechanism moves the score by `100 × w ÷ inventory weight`, and two languages that force the same severity share the same score exactly."
     },
     {
       "h": 3,
       "text": "Score bands"
     },
     {
-      "p": "Because the model is a fixed-inventory saturating-sum-per-dimension model, the bands follow from the mechanism weights and the curve:"
+      "p": "Because the model is a fixed inventory scored by severity share, the bands are thresholds over the score. The raw cutoffs below are stated for Core, whose inventory is 274 points; the score thresholds are the same on every axis:"
     },
     {
       "ul": [
-        "**85+**: One or two dimensions carry a priced mechanism, and at most one of them reaches 15 in raw weight. Near the irreducible floor.",
-        "**70–84**: Two to four dimensions carry a priced mechanism, and at most one reaches 15 in raw weight.",
-        "**55–69**: Three to six dimensions carry a priced mechanism, and at least one reaches 15 in raw weight.",
-        "**40–54**: Four to six dimensions carry a priced mechanism, and at least two reach 15 in raw weight.",
-        "**Below 40**: Five or six dimensions carry a priced mechanism, and at least four reach 15 in raw weight — the language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
+        "**90+**: under 10 points of cost — on Core, under 27 raw weight, usually in one dimension.",
+        "**75–89**: 10 to 25 points — on Core, 27 to 68 raw weight, across a few dimensions.",
+        "**60–74**: 25 to 40 points — on Core, 68 to 110 raw weight.",
+        "**45–59**: 40 to 55 points — on Core, 110 to 151 raw weight.",
+        "**Below 45**: over 55 points — on Core, over 151 raw weight. The language's design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access)."
       ]
     },
     {
-      "p": "The readiness score uses the same arithmetic, over its six dimensions. Its [bands](scoreboard.qmd) are stated over the total it can actually reach: readiness has no High mechanism, so its largest raw dimension cost is 16 — two Moderate mechanisms in one dimension — and its bands are 95+, 85–94, 75–84, 65–74, and below 65. A readiness band is not comparable to a coupling band, because the two axes price different kinds of cost; the profile is never scored at all."
+      "p": "All three axes use the same [bands](scoreboard.qmd): 90+, 75–89, 60–74, 45–59, and below 45. The thresholds are a presentation choice, not a measurement; they group the field at round numbers. A readiness band is not comparable to a coupling band, because the two axes price different kinds of cost; the profile is never scored at all."
     },
     {
       "h": 3,
       "text": "Dimension sub-scores"
     },
     {
-      "p": "The **comparison matrices show each dimension's cost**, not a percentage: `0` means no mechanism is charged, and a negative number is the charge the dimension carries. The charge is the saturating conversion of the raw weight sum, and the raw sum follows in parentheses, so the mechanism inventory stays checkable. A language's Core score is therefore 100 minus the sum of its six charges, its Ecosystem score the same over its eight, and its Readiness score the same over its six; the cells in a matrix sum to the total."
+      "p": "The **comparison matrices show each dimension's cost in score points**: `0` means the language forces no mechanism in that dimension, and a negative number is the dimension's share of the axis cost. The raw weight sum follows in parentheses, so the mechanism inventory stays checkable. A language's Core score is 100 minus the sum of its six costs, its Ecosystem score the same over its eight, and its Readiness score the same over its six. Each cell is rounded for display and the axis total is computed from the integer raw sums, so a column can differ from its total by a few tenths."
     },
     {
       "h": 2,
@@ -98,7 +98,7 @@
       "table": "inventory-readiness"
     },
     {
-      "p": "**Three scores, reported separately, and an unscored profile.** The comparison reports Core coupling, Ecosystem coupling, and Engineering readiness as three separate numbers over the same saturating rule. They are reported separately and never summed: a language can be weakly coupled and hard to ship, or strongly coupled and easy to operate. Several mechanisms share one underlying fact across axes — a missing package registry affects both `Ec1` and the supply-chain mechanisms — so the three scores are correlated in practice even though they are scored apart. Alongside them, the per-language **profile** records three axes the score deliberately does not price — energy and cost, AI and agent readiness, and safety certification — as evidence-backed notes, not numbers."
+      "p": "**Three scores, reported separately, and an unscored profile.** The comparison reports Core coupling, Ecosystem coupling, and Engineering readiness as three separate numbers over the same severity share. They are reported separately and never summed: a language can be weakly coupled and hard to ship, or strongly coupled and easy to operate. Several mechanisms share one underlying fact across axes — a missing package registry affects both `Ec1` and the supply-chain mechanisms — so the three scores are correlated in practice even though they are scored apart. Alongside them, the per-language **profile** records three axes the score deliberately does not price — energy and cost, AI and agent readiness, and safety certification — as evidence-backed notes, not numbers."
     },
     {
       "h": 3,
@@ -147,11 +147,11 @@
         "|------|------|-----|",
         "| **Core Coupling** | Primary | The coupling the language's own constructs force into the code. |",
         "| **Engineering Readiness** | Modifier, capped at 15 points | A toolchain, registry, and observability stack can be fixed by process; coupling written into the code cannot. |",
-        "| **Ranking score** | `core × (0.85 + 0.15 × readiness / 100)` | Readiness lifts the coupling score by at most 15%, so a full 0-to-100 readiness swing is worth 15 coupling points at the top — one High mechanism. Ties break on Core coupling, then readiness, then the name. |"
+        "| **Ranking score** | `core × (0.85 + 0.15 × readiness / 100)` | Readiness lifts the coupling score by at most 15%, so a full 0-to-100 readiness swing is worth 15 score points — about 2.7 High mechanisms on the Core scale. Rows that tie share a rank; the table lists them by Core coupling, then readiness, then the name. |"
       ]
     },
     {
-      "p": "**Ecosystem coupling does not enter the ranking.** It is a dependency context, not a quality: a near-monoculture ecosystem lowers risk *through* consistency, so its band can disagree with its number (JavaScript scores 80.5 there and 41.7 on Core). It stays a lens, and the table sorts by it, but it does not decide the order."
+      "p": "**Ecosystem coupling does not enter the ranking.** It is a dependency context, not a quality: a near-monoculture ecosystem lowers risk *through* consistency, so its band can disagree with its number (JavaScript scores 86.9 there and 47.1 on Core). It stays a lens, and the table sorts by it, but it does not decide the order."
     },
     {
       "p": "**Coupling is primary; readiness is a modifier.** Once the code is written, the code is what remains, and a maintainer faces it for most of a system's life. A language that forces accidental coupling into every line has damaged that artifact permanently. Readiness surrounds the code rather than entering it, and it is remediable by process: a toolchain, a registry, and an observability stack can be fixed, while coupling in the code cannot. So readiness does not weigh against coupling as a peer."
@@ -161,7 +161,7 @@
       "text": "How to reproduce a score"
     },
     {
-      "p": "To reproduce any score: read the language's present mechanisms for one axis, group by dimension, sum the weights in each dimension to a raw cost, convert each raw cost with `charge = 15 × (1 − e^(−raw/15))` and round to one decimal, sum the charges, and subtract from 100. Repeat for each axis. The three axes are scored apart: no score is ever added to another, though several mechanisms share one underlying fact and the axes are correlated in practice."
+      "p": "To reproduce any score: read the language's present mechanisms for one axis, sum their weights, and divide by the axis inventory weight — 274 on Core, 213 on Ecosystem, 80 on Readiness. The score is 100 × (1 − present weight ÷ inventory weight), rounded to one decimal. Repeat for each axis. The three axes are scored apart: no score is ever added to another, though several mechanisms share one underlying fact and the axes are correlated in practice."
     },
     {
       "workedExample": true

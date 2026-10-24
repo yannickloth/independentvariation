@@ -1506,23 +1506,23 @@ div.csl-indent {
 <ol type="1">
 <li>A <strong>closed mechanism inventory</strong> — each coupling mechanism has a <strong>fixed weight</strong>.</li>
 <li>A <strong>binary presence check</strong> — for each language, each mechanism is marked <em>present</em> or <em>absent</em> (a factual determination, not a severity judgment).</li>
-<li>An <strong>arithmetic rule</strong> — within each dimension the present weights are summed to a raw cost, the raw cost becomes a <strong>charge</strong> by <code>charge = 15 × (1 − e^(−raw/15))</code>, and the score is <strong>100 − Σ(charges)</strong>.</li>
+<li>An <strong>arithmetic rule</strong> — the present weights are summed, and the axis score is <strong>100 × (1 − present weight ÷ inventory weight)</strong>, the share of the axis inventory the language forces.</li>
 </ol>
 <p>Because the weights are fixed and the only per-language step is present/absent, any two analysts following these rules reach identical scores. The framework makes disagreement precise: to dispute a score, you must either contest a mechanism’s presence in a specific language, or propose changing a fixed weight and then recompute.</p>
-<p><strong>The full mechanism inventory</strong> (Core coupling: Type, Construction, Memory, Error, Concurrency, Platform; Ecosystem coupling: Performance, Ecosystem, Evolution, Domain, Learning, Syntax, Testing, Security; Engineering readiness: Reproducibility, Supply chain, Observability, Feedback, Interop, Governance), the detailed saturating-sum rule, and the tests that decide presence are on <a href="../../../software/design/languages/objective-coupling-scoring-model.html">The Scoring Model</a>. The ranked tables, the per-dimension sub-scores, and the <strong>complete per-language mechanism-presence data</strong> for all 89 languages — so any score can be reproduced from first principles — are on <a href="../../../software/design/languages/scoreboard.html">The Scoreboard</a>.</p>
+<p><strong>The full mechanism inventory</strong> (Core coupling: Type, Construction, Memory, Error, Concurrency, Platform; Ecosystem coupling: Performance, Ecosystem, Evolution, Domain, Learning, Syntax, Testing, Security; Engineering readiness: Reproducibility, Supply chain, Observability, Feedback, Interop, Governance), the detailed severity-share rule, and the tests that decide presence are on <a href="../../../software/design/languages/objective-coupling-scoring-model.html">The Scoring Model</a>. The ranked tables, the per-dimension sub-scores, and the <strong>complete per-language mechanism-presence data</strong> for all 89 languages — so any score can be reproduced from first principles — are on <a href="../../../software/design/languages/scoreboard.html">The Scoreboard</a>.</p>
 <p><strong>What each mechanism means</strong> — what it is, what it forces to agree, how harmful it is, and why it removes the points it removes — is explained mechanism by mechanism, with examples, in <a href="../../../software/design/languages/scoring-criteria.html">the Criteria</a>.</p>
 <p><strong>Three scores, not one.</strong> The comparison reports <strong>Core coupling</strong> (what the language’s own constructs force), <strong>Ecosystem coupling</strong> (what the surrounding platform, tooling, and community cost), and <strong>Engineering readiness</strong> (whether the artifact can be rebuilt, verified, observed, worked in quickly, connected to another language, and governed openly). The three scores are reported separately and are never summed. They are correlated in practice — a missing package registry affects both Ecosystem coupling and the supply chain — but each is scored on its own axis. Alongside them, an unscored <strong>profile</strong> records three axes a score cannot price — energy and cost, AI and agent readiness, and safety certification — language by language.</p>
 <section id="what-the-coupling-score-means" class="level3" data-number="4.1">
 <h3 data-number="4.1" class="anchored" data-anchor-id="what-the-coupling-score-means"><span class="header-section-number">4.1</span> What the coupling score means</h3>
-<p>Because the model is a fixed-inventory saturating-sum-per-dimension model, the bands follow from the mechanism weights and the curve:</p>
+<p>Because the model is a fixed inventory scored by severity share, the bands are thresholds over that share:</p>
 <ul>
-<li><strong>85+</strong>: One or two dimensions carry a priced mechanism, and at most one of them reaches 15 in raw weight. Near the irreducible floor.</li>
-<li><strong>70–84</strong>: Two to four dimensions carry a priced mechanism, and at most one reaches 15 in raw weight.</li>
-<li><strong>55–69</strong>: Three to six dimensions carry a priced mechanism, and at least one reaches 15 in raw weight.</li>
-<li><strong>40–54</strong>: Four to six dimensions carry a priced mechanism, and at least two reach 15 in raw weight.</li>
+<li><strong>90+</strong>: under 10 points of cost — on Core, under 27 raw weight, usually in one dimension.</li>
+<li><strong>75–89</strong>: 10 to 25 points — on Core, 27 to 68 raw weight, across a few dimensions.</li>
+<li><strong>60–74</strong>: 25 to 40 points — on Core, 68 to 110 raw weight.</li>
+<li><strong>45–59</strong>: 40 to 55 points — on Core, 110 to 151 raw weight.</li>
 <li><strong>Below 40</strong>: Five or six dimensions carry a priced mechanism, and at least four reach 15 in raw weight — the language’s design trades separation of concerns for other goals (simplicity, flexibility, ubiquity, or direct hardware access).</li>
 </ul>
-<p><strong>Five snapshots reach the 85+ band today</strong> — Rocq 90.5, Unison 88.2, Rust 88.0 in both releases, and Lean 4 87.0. None reaches 100: every language carries at least one priced mechanism, and the gap to 100 is the progression margin left to language design.</p>
+<p><strong>Seven snapshots reach the 90+ band today</strong> — Rocq 94.5, Unison 94.2, Lean 4 93.1, Gleam, Rust 1.96, and Rust 1.99 at 91.2, and SPARK at 90.1. None reaches 100: every language carries at least one priced mechanism, and the gap to 100 is the progression margin left to language design.</p>
 </section>
 <section id="what-the-readiness-score-means" class="level3" data-number="4.2">
 <h3 data-number="4.2" class="anchored" data-anchor-id="what-the-readiness-score-means"><span class="header-section-number">4.2</span> What the readiness score means</h3>
@@ -1549,26 +1549,26 @@ div.csl-indent {
 <p><strong>By Score (latest version, modern idioms):</strong></p>
 <p><strong>Coupling bands, over the Core score</strong></p>
 <ul>
-<li><strong>85+</strong> (5): Rocq, Unison, Rust 1.96, Rust 1.99, Lean 4</li>
-<li><strong>70–84</strong> (9): SPARK, Gleam, Swift, SQL, XSLT, PureScript, Haskell, Ada, Elixir</li>
-<li><strong>55–69</strong> (35): OCaml, Zig, Transact-SQL, SAS, Clojure, Racket, Scheme, D, COBOL, Erlang, Dart 3.12, Dart 3.13, Solidity, F#, Crystal, Kotlin, Tcl, Scala, Go 1.26, Go 1.27, Nim, R, Java 21, Java 25, Java 26, Java 27, C++, VBScript, Scratch, Eiffel, C#, ABAP, Delphi, Lua, PL/SQL</li>
-<li><strong>40–54</strong> (34): Visual FoxPro, Smalltalk, Java 11, Java 17, Visual Basic, MATLAB, PowerShell, C shell, Java 5, Java 6, Java 7, Java 8, Turbo Pascal, Visual Basic, Java 1.4, Bash, Ksh, Sh, Zsh, Objective-C, Awk, Groovy, Fish, Common Lisp, Prolog, X++, Julia, TypeScript 6.0, TypeScript 7.0, Python, CFML, PHP, Ruby, JavaScript</li>
-<li><strong>below 40</strong> (6): Fortran, Ladder Logic, Perl, C, GML, Assembly</li>
+<li><strong>90+</strong> (7): Rocq, Unison, Lean 4, Gleam, Rust 1.96, Rust 1.99, SPARK</li>
+<li><strong>75–89</strong> (28): Haskell, PureScript, Ada, Swift, SQL, OCaml, XSLT, D, Transact-SQL, Zig, SAS, COBOL, Solidity, Crystal, Dart 3.12, Dart 3.13, Elixir, F#, Nim, Scala, Eiffel, Go 1.26, Go 1.27, Java 21, Java 25, Java 26, Java 27, Kotlin</li>
+<li><strong>60–74</strong> (33): Erlang, PL/SQL, R, C#, ABAP, Clojure, Racket, Scheme, C++, MATLAB, Turbo Pascal, Delphi, Java 11, Java 17, Objective-C, Visual Basic, X++, VBScript, Java 5, Java 6, Java 7, Java 8, Groovy, PowerShell, Java 1.4, Julia, Visual Basic, Tcl, Scratch, Common Lisp, Lua, Ladder Logic, C shell</li>
+<li><strong>45–59</strong> (18): Prolog, Awk, Visual FoxPro, TypeScript 6.0, TypeScript 7.0, Bash, Fish, Ksh, Sh, Zsh, Smalltalk, Fortran, CFML, PHP, Ruby, Python, GML, JavaScript</li>
+<li><strong>below 45</strong> (3): C, Perl, Assembly</li>
 </ul>
 <p><strong>Readiness bands, over the readiness score</strong></p>
 <ul>
-<li><strong>95+</strong> (5): Go 1.26, Go 1.27, JavaScript, TypeScript 6.0, TypeScript 7.0</li>
-<li><strong>85–94</strong> (21): C#, F#, Ruby, Visual Basic, Java 1.4, Java 11, Java 17, Java 21, Java 25, Java 26, Java 27, Java 5, Java 6, Java 7, Java 8, Scala, Awk, PHP, XSLT, Groovy, Python</li>
-<li><strong>75–84</strong> (24): Kotlin, X++, SQL, Unison, CFML, Dart 3.12, Dart 3.13, Elixir, Erlang, Gleam, Nim, Zig, Swift, Bash, Fish, Rust 1.96, Rust 1.99, Clojure, Assembly, Crystal, Julia, C, D, Fortran</li>
-<li><strong>65–74</strong> (29): C++, Perl, C shell, Ksh, Lean 4, PureScript, Sh, Zsh, Lua, OCaml, R, COBOL, PowerShell, Transact-SQL, Ada, Common Lisp, Racket, Scheme, Smalltalk, Solidity, Eiffel, VBScript, GML, Scratch, Haskell, Prolog, Tcl, Objective-C, Rocq</li>
-<li><strong>below 65</strong> (10): ABAP, Ladder Logic, PL/SQL, Visual Basic, Visual FoxPro, MATLAB, SPARK, Turbo Pascal, Delphi, SAS</li>
+<li><strong>90+</strong> (5): Go 1.26, Go 1.27, JavaScript, TypeScript 6.0, TypeScript 7.0</li>
+<li><strong>75–89</strong> (21): C#, F#, Ruby, Visual Basic, Awk, Java 1.4, Java 11, Java 17, Java 21, Java 25, Java 26, Java 27, Java 5, Java 6, Java 7, Java 8, PHP, Scala, XSLT, Groovy, Python</li>
+<li><strong>60–74</strong> (21): CFML, Kotlin, SQL, Unison, X++, Dart 3.12, Dart 3.13, Elixir, Erlang, Gleam, Nim, Zig, Assembly, Bash, Clojure, Crystal, Fish, Julia, Rust 1.96, Rust 1.99, Swift</li>
+<li><strong>45–59</strong> (26): C, C shell, C++, D, Fortran, Ksh, Lean 4, Perl, PureScript, Sh, Zsh, COBOL, Lua, OCaml, PowerShell, R, Transact-SQL, Ada, Common Lisp, Eiffel, Racket, Scheme, Scratch, Smalltalk, Solidity, VBScript</li>
+<li><strong>below 45</strong> (16): GML, Haskell, Objective-C, Prolog, Tcl, Rocq, ABAP, Ladder Logic, PL/SQL, Visual Basic, Visual FoxPro, MATLAB, SPARK, Turbo Pascal, Delphi, SAS</li>
 </ul>
 <hr>
 </section>
 </section>
 <section id="the-verdict-coupling-edition" class="level2" data-number="7">
 <h2 data-number="7" class="anchored" data-anchor-id="the-verdict-coupling-edition"><span class="header-section-number">7</span> The Verdict: Coupling Edition</h2>
-<p><em>Ranked by Core coupling from the model (saturating-sum-per-dimension); the numbers behind every grouping below are on the <a href="../../../software/design/languages/scoreboard.html">Scoreboard</a>. Analysis date June 2026 — older versions of the same language can score significantly lower (e.g., C++98, Java 8).</em></p>
+<p><em>Ranked by Core coupling from the model (severity share per axis); the numbers behind every grouping below are on the <a href="../../../software/design/languages/scoreboard.html">Scoreboard</a>. Analysis date June 2026 — older versions of the same language can score significantly lower (e.g., C++98, Java 8).</em></p>
 <p><strong>If you need mathematical proof of correctness:</strong> Rocq, SPARK, Lean 4</p>
 <p><strong>If you want bulletproof low coupling by language design:</strong> Unison, Rocq, Rust, SQL</p>
 <p><strong>If you want low coupling with pragmatism:</strong> Haskell, PureScript, Zig, OCaml</p>
@@ -1626,7 +1626,7 @@ div.csl-indent {
 <p>Languages with <strong>manual separation</strong> (C, D, Zig, COBOL, Turbo Pascal) put the separation burden on the programmer: the same language supports a carefully separated design and a tangled one. Expertise required.</p>
 <p>Languages with <strong>runtime-only separation</strong> (JavaScript, TypeScript, Python, PHP, Ruby, shells, VBScript) defer most coupling detection to testing. TypeScript moves a share of that detection to compile time, but its runtime coupling is JavaScript’s. Python 3.14 (free-threaded), PHP 8.4 (property hooks, fibers), and Ruby 4.0 (YJIT, pattern matching) have all made meaningful coupling-separation progress in recent versions.</p>
 <p>Languages with <strong>domain-locked separation</strong> (Objective-C, PL/SQL, Transact-SQL, SAS, Solidity) are coupled to a single platform or domain — the platform is the unit boundary, and the language’s coupling quality only matters within it.</p>
-<p><strong>One result worth stating plainly:</strong> the type layer now moves the number. TypeScript scores above JavaScript, because the type layer removes <code>T1</code>, <code>T4</code>, <code>T5</code>, and <code>T10</code> and leaves <code>T7</code>: JavaScript carries <code>T1</code>, <code>T3</code>, <code>T4</code>, <code>T5</code>, <code>T10</code>, <code>T12</code>, <code>T13</code>, and <code>T14</code>; TypeScript carries <code>T3</code>, <code>T7</code>, <code>T12</code>, <code>T13</code>, and <code>T14</code>. Under a hard cap both languages paid the Type ceiling and scored the same; the saturating curve makes the difference visible. The presence lists still carry the detail.</p>
+<p><strong>One result worth stating plainly:</strong> the type layer now moves the number. TypeScript scores above JavaScript, because the type layer removes <code>T1</code>, <code>T4</code>, <code>T5</code>, and <code>T10</code> and leaves <code>T7</code>: JavaScript carries <code>T1</code>, <code>T3</code>, <code>T4</code>, <code>T5</code>, <code>T10</code>, <code>T12</code>, <code>T13</code>, and <code>T14</code>; TypeScript carries <code>T3</code>, <code>T7</code>, <code>T12</code>, <code>T13</code>, and <code>T14</code>. JavaScript carries 59 Type severity points against TypeScript’s 32, so the type layer is worth 9.8 Core points — the difference between 47.1 and 58.4 on Core. The presence lists still carry the detail.</p>
 <p><strong>The lesson:</strong> Match language coupling capabilities to your context AND your version. C++23 with modern idioms is a different beast from C++98. Java 26 with virtual threads, records, and sealed classes is not Java 8. Don’t pick a language based on its worst version. Building life-critical systems? Use SPARK or Lean 4. Building a 20-year system with changing requirements? Invest in Rust. Building mobile apps? Swift or Kotlin. Building a weekend project? JavaScript is fine. Maintaining legacy code? TypeScript adds compile-time detection incrementally, though its runtime coupling is JavaScript’s. Need shell automation? PowerShell adds objects, Fish adds interactive polish, and Bash stays the portable default.</p>
 <p>No language is best in every context. The scores show where a language matches your constraints and where it will charge you; design covers the rest.</p>
 <p>The evidence points away from a single winner: different contexts need different coupling trade-offs, and the scores price them.</p>

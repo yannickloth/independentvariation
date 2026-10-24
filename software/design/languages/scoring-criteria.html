@@ -1295,7 +1295,7 @@ div.csl-indent {
 <th>Tier</th>
 <th style="text-align: right;">Weight</th>
 <th>What the tier asserts</th>
-<th>Charge when it is alone in a dimension</th>
+<th>Cost on Core when it is alone</th>
 </tr>
 </thead>
 <tbody>
@@ -1303,19 +1303,19 @@ div.csl-indent {
 <td><strong>High</strong></td>
 <td style="text-align: right;">−15</td>
 <td>Agreement across the whole program, no local escape, and nothing in the language that records it</td>
-<td>−9.5</td>
+<td>−5.5</td>
 </tr>
 <tr class="even">
 <td><strong>Moderate</strong></td>
 <td style="text-align: right;">−8</td>
 <td>Agreement across ordinary code, escapable only by a whole-codebase convention</td>
-<td>−6.2</td>
+<td>−2.9</td>
 </tr>
 <tr class="odd">
 <td><strong>Minor</strong></td>
 <td style="text-align: right;">−4</td>
 <td>Agreement confined to a boundary, removable by a contained workaround</td>
-<td>−3.5</td>
+<td>−1.5</td>
 </tr>
 <tr class="even">
 <td><strong>Recorded</strong></td>
@@ -1326,7 +1326,7 @@ div.csl-indent {
 </tbody>
 </table>
 <p><strong>The fourth tier is not a weight.</strong> A price has one direction: the same presence must always mean the same cost. Where the direction is not fixed, no single number can state the cost. A mechanism whose sign varies cannot enter the sum without making that sum incomparable across languages and across releases — the same mark would have to mean a gain and a loss at once, so two scores would no longer be arithmetically comparable, and two analysts would no longer reach the same number. The model therefore <strong>records</strong> such a mechanism: the mark is present or absent, the observation beside it states what changed, why, and how a deployment reverses it, and the score is untouched. <code>V5</code> is the only mechanism in this tier.</p>
-<p>Within one dimension the present weights are added to a <strong>raw cost</strong>, and the raw cost is converted to a <strong>charge</strong> by a saturating curve: <code>charge = 15 × (1 − e^(−raw/15))</code>, rounded to one decimal. The charge approaches 15, the weight of one High mechanism, and never reaches it. The dimension score is 100 minus the charge. The curve is a rubric choice, not a measurement: the ceiling keeps the scores bounded (a dimension never costs a full severe mechanism), the monotone curve keeps adding a mechanism from ever improving the score, and every removed mechanism moves the number — which a hard cap cannot do inside a saturated dimension. It is deliberate, and it is arbitrary.</p>
+<p>Within one dimension the present weights are <strong>summed</strong>, and each mechanism contributes its share of the axis inventory: a mechanism of weight <code>w</code> costs <code>100 × w ÷ inventory weight</code> score points, and the dimension cost is the sum over its present mechanisms. There is no cap and no curve. The share is a rubric choice, not a measurement: it stays additive because a maintainer pays every forced coupling, it stays bounded because the numerator can never exceed the inventory, and it is monotone, so removing a mechanism always moves the number. The inventory weight states what the model knows about the axis, not a ceiling on what the axis can cost.</p>
 </section>
 <section id="how-to-read-an-entry" class="level2" data-number="1.3">
 <h2 data-number="1.3" class="anchored" data-anchor-id="how-to-read-an-entry"><span class="header-section-number">1.3</span> How to read an entry</h2>
@@ -1923,7 +1923,7 @@ div.csl-indent {
 </section>
 <section id="readiness-criteria" class="level2" data-number="1.6">
 <h2 data-number="1.6" class="anchored" data-anchor-id="readiness-criteria"><span class="header-section-number">1.6</span> Readiness criteria</h2>
-<p>The readiness axis uses the same three tiers and the same saturating-sum-per-dimension arithmetic as coupling. It asks a different question: not how much the language forces two parts of a program to agree, but whether the artifact can be rebuilt, verified, observed, worked in quickly, connected to another language, and governed openly. Breadth, escape, and silence decide the tier here too.</p>
+<p>The readiness axis uses the same three tiers and the same severity-share arithmetic as coupling. It asks a different question: not how much the language forces two parts of a program to agree, but whether the artifact can be rebuilt, verified, observed, worked in quickly, connected to another language, and governed openly. Breadth, escape, and silence decide the tier here too.</p>
 <p><strong>Readiness (12)</strong> <strong>Reproducibility (2)</strong> — <a href="#y1">Y1</a> · <a href="#y2">Y2</a> <strong>Supply chain (2)</strong> — <a href="#y3">Y3</a> · <a href="#y4">Y4</a> <strong>Observability (2)</strong> — <a href="#y5">Y5</a> · <a href="#y6">Y6</a> <strong>Feedback (2)</strong> — <a href="#y7">Y7</a> · <a href="#y8">Y8</a> <strong>Interop (2)</strong> — <a href="#y9">Y9</a> · <a href="#y10">Y10</a> <strong>Governance (2)</strong> — <a href="#y11">Y11</a> · <a href="#y12">Y12</a></p>
 <section id="reproducibility" class="level3" data-number="1.6.1">
 <h3 data-number="1.6.1" class="anchored" data-anchor-id="reproducibility"><span class="header-section-number">1.6.1</span> Reproducibility</h3>
@@ -2036,51 +2036,58 @@ div.csl-indent {
 </section>
 <section id="the-arithmetic-once-more" class="level2" data-number="1.7">
 <h2 data-number="1.7" class="anchored" data-anchor-id="the-arithmetic-once-more"><span class="header-section-number">1.7</span> The arithmetic, once more</h2>
-<p>Present weights are added within a dimension to a raw cost, the raw cost is converted by <code>charge = 15 × (1 − e^(−raw/15))</code>, and the score is 100 minus the sum of the charges. Here is Go’s Core score, from the criteria above:</p>
-<p><strong>Worked example — Go 1.26 (Core 59.9):</strong> present Core = <code>T4, T12, T14, M2, M3, M4, Er2, Er4, K2, K3, K4</code>.</p>
+<p>Present weights are summed, divided by the axis inventory weight (274 on Core), and the score is 100 minus that share. Here is Go’s Core score, from the criteria above:</p>
+<p><strong>Worked example — Go 1.26 (Core 75.2):</strong> present Core = <code>T4, T12, T14, M2, M3, M4, Er2, Er4, K2, K3, K4</code>.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Dimension</th>
 <th>Present</th>
-<th>Charge</th>
+<th>Raw weight</th>
+<th>Cost</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>Type</td>
 <td>T4(−4) + T12(−8) + T14(−4) = −16</td>
-<td>−9.8</td>
+<td>−16</td>
+<td>−5.8</td>
 </tr>
 <tr class="even">
 <td>Construction</td>
 <td>—</td>
 <td>0</td>
+<td>0</td>
 </tr>
 <tr class="odd">
 <td>Memory</td>
 <td>M2(−8) + M3(−4) + M4(−8) = −20</td>
-<td>−11.0</td>
+<td>−20</td>
+<td>−7.3</td>
 </tr>
 <tr class="even">
 <td>Error</td>
 <td>Er2(−8) + Er4(−4) = −12</td>
-<td>−8.3</td>
+<td>−12</td>
+<td>−4.4</td>
 </tr>
 <tr class="odd">
 <td>Concurrency</td>
 <td>K2(−8) + K3(−8) + K4(−4) = −20</td>
-<td>−11.0</td>
+<td>−20</td>
+<td>−7.3</td>
 </tr>
 <tr class="even">
 <td>Platform</td>
 <td>—</td>
 <td>0</td>
+<td>0</td>
 </tr>
 </tbody>
 </table>
-<p>Total charge = 9.8+11.0+8.3+11.0 = 40.1. Core = 100 − 40.1 = <strong>59.9</strong>. ✓</p>
-<p>The Memory and Concurrency dimensions exceed 15 in raw weight, so the curve compresses them: −20 raw becomes −11.0, and −15 raw would become −9.5. The <a href="../../../software/design/languages/scoreboard.html">Scoreboard</a> holds the same data for all 89 languages and reproduces every score the same way.</p>
+<p>Raw weight = −68 of 274. Cost = 100 × 68 ÷ 274 = 24.8. Core = 100 − 24.8 = <strong>75.2</strong>. ✓</p>
+<p>Memory and Concurrency each carry 20 raw points, so each costs 100 × 20 ÷ 274 = 7.3 of the 100. The <a href="../../../software/design/languages/scoreboard.html">Scoreboard</a> holds the same data for all 89 languages and reproduces every score the same way.</p>
 </section>
 <section id="what-the-criteria-do-not-measure" class="level2" data-number="1.8">
 <h2 data-number="1.8" class="anchored" data-anchor-id="what-the-criteria-do-not-measure"><span class="header-section-number">1.8</span> What the criteria do not measure</h2>
