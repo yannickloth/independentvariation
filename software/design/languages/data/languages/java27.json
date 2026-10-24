@@ -3,7 +3,7 @@
   "id": "java27",
   "name": "Java",
   "family": "java",
-  "assessedAs": "Java 27",
+  "assessedAs": "Java",
   "version": "27",
   "title": "Java (Java 27)",
   "indexLabel": "Java (Java 27)",
@@ -15,7 +15,7 @@
   "presenceOrder": 66,
   "matrixOrder": 66,
   "presenceList": {
-    "core": "T7, T10, T12, T14, C2, M2, M3, M4, Er2, K3",
+    "core": "T7, T10, T12, T14, C2, M2, M3, M4, Er2, Er4, K3",
     "meta": "R2, R3, Ec6, Ec7, V5, D3, L2",
     "readiness": "Y1, Y2"
   },
@@ -57,7 +57,7 @@
     "Er1": false,
     "Er2": true,
     "Er3": false,
-    "Er4": false,
+    "Er4": true,
     "K1": false,
     "K2": false,
     "K3": true,
@@ -82,7 +82,6 @@
     "V4": false,
     "V5": true,
     "D1": false,
-    "D2": false,
     "D3": true,
     "L1": false,
     "L2": true,
@@ -111,7 +110,8 @@
     "Y10": false,
     "Y11": false,
     "Y12": false,
-    "K6": false
+    "K6": false,
+    "P4": false
   },
   "observations": {
     "type": [
@@ -284,7 +284,7 @@
       {
         "kind": "cost",
         "text": "**Try-catch doesn't compose**: Can't map/flatMap over exceptions without wrapping",
-        "mechanism": null
+        "mechanism": "Er4"
       },
       {
         "kind": "caution",
@@ -302,6 +302,11 @@
         "kind": "enabling",
         "text": "**Structured concurrency (seventh preview, Java 27)**: `StructuredTaskScope` scopes subtask lifetimes to a lexical block; the seventh round adds a type parameter for the exception `join()` may throw and an `open` factory that applies a configuration to the default join policy (JEP 533). Preview API, so production code cannot rely on the shape it has today",
         "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A task scope is a block**: `ExecutorService` is `AutoCloseable`, and `close()` waits until every task submitted to it has completed, so a try-with-resources block joins the work it launched; the richer `StructuredTaskScope` is still a preview",
+        "mechanism": "K4"
       },
       {
         "kind": "enabling",
@@ -624,13 +629,13 @@
     ]
   },
   "tradeoffs": [
-    "**Checked Exceptions vs. Composition**: Explicit errors don't compose natively (no monadic operations), though sealed types + pattern matching provide exhaustive error handling",
-    "**Backward Compatibility vs. Modern Features**: 30 years of legacy — old codebases can lag behind modern idioms, and the removals now arrive: the JVM Compiler Interface, `ThreadPoolExecutor.finalize()`, and four launcher options all went in Java 27",
-    "**Null as Default vs. Safety**: Everything nullable by default couples all code to defensive checks — records and pattern matching help but don't solve the root issue",
-    "**Type Erasure vs. Runtime Types**: Generics erased at runtime couples generic code to raw types",
-    "**Inheritance vs. Composition**: Hierarchy coupling possible when teams choose extension over composition",
-    "**Preview Features vs. Availability**: Two of the best new constructs — primitive types in patterns, five previews old, and structured concurrency, seven — still need `--enable-preview`, so the language's own guidance is that production code waits. A feature that stays preview is a feature most codebases cannot use",
-    "**Default Changes vs. Predictability**: Java 27 changes what the JVM does with no code change: a different collector on small machines, a different header layout, a different default ML-KEM private-key encoding that older releases cannot read. A deployment that measured its way to the old defaults must now opt out of the new ones"
+    "**Checked exceptions vs. composition**: Explicit errors don't compose natively (no monadic operations), though sealed types + pattern matching provide exhaustive error handling",
+    "**Backward compatibility vs. modern features**: 30 years of legacy — old codebases can lag behind modern idioms, and the removals now arrive: the JVM Compiler Interface, `ThreadPoolExecutor.finalize()`, and four launcher options all went in Java 27",
+    "**Null as default vs. safety**: Everything nullable by default couples all code to defensive checks — records and pattern matching help but don't solve the root issue",
+    "**Type erasure vs. runtime types**: Generics erased at runtime couples generic code to raw types",
+    "**Inheritance vs. composition**: Hierarchy coupling possible when teams choose extension over composition",
+    "**Preview features vs. availability**: Two of the best new constructs — primitive types in patterns, five previews old, and the `StructuredTaskScope` API, seven — still need `--enable-preview`, so the language's own guidance is that production code waits for the richer form and joins tasks through a block-scoped `ExecutorService` instead. A feature that stays preview is a feature most codebases cannot use",
+    "**Default changes vs. predictability**: Java 27 changes what the JVM does with no code change: a different collector on small machines, a different header layout, a different default ML-KEM private-key encoding that older releases cannot read. A deployment that measured its way to the old defaults must now opt out of the new ones"
   ],
   "verdict": "Java 27 spends the release on the runtime, not the language, and the score says so: not one scored mechanism moves, because a default collector, a header width, and a cipher suite are not constructs the compiler accepts or rejects. What the language gives — records, sealed types, exhaustive pattern matching, virtual threads, modules — is Java 26's, and what it charges — null in every reference, erased generics, unchecked failures in practice, an unproven locking discipline, a Spring-shaped ecosystem — is Java 26's as well. The release earns its place on defaults that used to be advice: G1 is the collector everywhere, so one tuning story covers a laptop and a server (JEP 523); object headers are 64 bits, so the same object graph occupies less heap and less memory bandwidth (JEP 534); TLS 1.3 prefers a hybrid post-quantum key exchange, so harvest-now-decrypt-later stops being a migration project (JEP 527); Flight Recorder redacts secrets before a recording leaves the process (JEP 536). It also removes, and one removal matters: the JVM Compiler Interface and `-XX:+UseGraalJIT` are gone, so a stock JDK no longer accepts a substitute compiler, and the compiler a distribution ships is the compiler you have. Main strength: the platform's defaults now express its best practice, without a code change. Main weakness: unchanged — null, erasure, and a preview pipeline whose two flagship features are five and seven rounds old.",
   "verdictExtra": [

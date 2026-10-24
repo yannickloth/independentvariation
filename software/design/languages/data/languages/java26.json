@@ -3,7 +3,7 @@
   "id": "java26",
   "name": "Java",
   "family": "java",
-  "assessedAs": "Java 26",
+  "assessedAs": "Java",
   "version": "26",
   "title": "Java (Java 26)",
   "indexLabel": "Java (Java 26)",
@@ -15,7 +15,7 @@
   "displayOrder": 33,
   "presenceOrder": 33,
   "presenceList": {
-    "core": "T7, T10, T12, T14, C2, M2, M3, M4, Er2, K3",
+    "core": "T7, T10, T12, T14, C2, M2, M3, M4, Er2, Er4, K3",
     "meta": "R2, R3, Ec6, Ec7, D3, L2",
     "readiness": "Y1, Y2"
   },
@@ -25,7 +25,7 @@
   "preamble": [
     {
       "kind": "note",
-      "text": "Analysis against Java 26 (March 2026). Earlier Java releases carry more of the mechanisms below; modern Java (17+) dramatically improves the coupling profile."
+      "text": "Analysis against Java 26 (March 2026). Java 26 finalises no language feature: the release changes the runtime, the standard library, and the preview set, so every scored mechanism holds the value it held for Java 25 and the score is identical. What the release changes is recorded where it bears on a dimension."
     },
     {
       "kind": "methodology"
@@ -58,7 +58,7 @@
     "Er1": false,
     "Er2": true,
     "Er3": false,
-    "Er4": false,
+    "Er4": true,
     "K1": false,
     "K2": false,
     "K3": true,
@@ -83,7 +83,6 @@
     "V4": false,
     "V5": false,
     "D1": false,
-    "D2": false,
     "D3": true,
     "L1": false,
     "L2": true,
@@ -112,7 +111,8 @@
     "Y10": false,
     "Y11": false,
     "Y12": false,
-    "K6": false
+    "K6": false,
+    "P4": false
   },
   "observations": {
     "type": [
@@ -149,7 +149,7 @@
       {
         "kind": "caution",
         "text": "**Type erasure couples generics**: Runtime loses type information",
-        "mechanism": null
+        "mechanism": "T7"
       },
       {
         "kind": "caution",
@@ -159,7 +159,7 @@
       {
         "kind": "cost",
         "text": "**Null still exists**: `NullPointerException` possible (no non-nullable types in the language)",
-        "mechanism": null
+        "mechanism": "T10"
       },
       {
         "kind": "caution",
@@ -233,7 +233,7 @@
       {
         "kind": "caution",
         "text": "**GC pauses affect latency**: Minimized by modern GCs but not deterministic",
-        "mechanism": null
+        "mechanism": "M2"
       },
       {
         "kind": "cost",
@@ -260,12 +260,12 @@
       {
         "kind": "cost",
         "text": "**Try-catch doesn't compose**: Can't map/flatMap over exceptions without wrapping",
-        "mechanism": null
+        "mechanism": "Er4"
       },
       {
         "kind": "caution",
         "text": "**RuntimeException bypasses checks**: Unchecked exceptions defer error-coupling detection to runtime (sealed hierarchies with pattern matching help)",
-        "mechanism": null
+        "mechanism": "Er2"
       }
     ],
     "concurrency": [
@@ -281,6 +281,11 @@
       },
       {
         "kind": "enabling",
+        "text": "**A task scope is a block**: `ExecutorService` is `AutoCloseable`, and `close()` waits until every task submitted to it has completed, so a try-with-resources block joins the work it launched; the richer `StructuredTaskScope` is still a preview",
+        "mechanism": "K4"
+      },
+      {
+        "kind": "enabling",
         "text": "**Scoped values (final, Java 25+)**: Thread-local data with guaranteed cleanup, decoupling context from global state",
         "mechanism": null
       },
@@ -292,7 +297,7 @@
       {
         "kind": "caution",
         "text": "**Shared mutable state still possible**: `synchronized`, `volatile`, and manual lock patterns remain available",
-        "mechanism": null
+        "mechanism": "K3"
       }
     ],
     "platform": [
@@ -336,7 +341,7 @@
       {
         "kind": "caution",
         "text": "**Startup time**: JIT warmup (mitigated by AOT object caching (Java 26), GraalVM native image, CDS archives, and CRaC)",
-        "mechanism": null
+        "mechanism": "R3"
       },
       {
         "kind": "enabling",
@@ -454,7 +459,7 @@
       {
         "kind": "caution",
         "text": "**Modern Java is growing in surface**: Records, sealed types, pattern matching, virtual threads, modules — more to learn than Java 8",
-        "mechanism": null
+        "mechanism": "L2"
       },
       {
         "kind": "enabling",
@@ -540,15 +545,16 @@
     ]
   },
   "tradeoffs": [
-    "**Checked Exceptions vs. Composition**: Explicit errors don't compose natively (no monadic operations), though sealed types + pattern matching provide exhaustive error handling",
-    "**Backward Compatibility vs. Modern Features**: 30 years of legacy — old codebases can lag behind modern idioms",
-    "**Null as Default vs. Safety**: Everything nullable by default couples all code to defensive checks — records and pattern matching help but don't solve the root issue",
-    "**Type Erasure vs. Runtime Types**: Generics erased at runtime couples generic code to raw types",
-    "**Inheritance vs. Composition**: Hierarchy coupling possible when teams choose extension over composition"
+    "**Checked exceptions vs. composition**: Explicit errors do not compose natively, though a sealed hierarchy is checkable",
+    "**Backward compatibility vs. modern features**: Old codebases lag behind records, sealed types, and virtual threads, and the applet API leaves the platform while the older APIs beside it stay",
+    "**Null as default vs. safety**: Every reference can be null",
+    "**Type erasure vs. runtime types**: A generic type argument is gone at run time",
+    "**Preview features vs. availability**: The `StructuredTaskScope` API is still a preview, so production code waits, or joins through a block-scoped `ExecutorService` whose `close()` is final but blunt — it waits for every task and reports no subtask's failure",
+    "**A warning is not a guarantee**: Deep reflection that mutates a `final` field is reported and not blocked, so an ecosystem that depends on it has no deadline to move"
   ],
-  "verdict": "Modern Java (17+) significantly improves coupling over its reputation. Records provide immutability by default. Sealed classes enable controlled hierarchies. Virtual threads transform concurrency from callback soup to structured blocking. Pattern matching with sealed types enables exhaustive error handling. Module system restricts reflection. Main strength: interfaces + records + sealed types + virtual threads create a strong coupling toolkit. Main weakness: null still exists, type erasure persists, and legacy codebases may not adopt modern idioms.",
+  "verdict": "Java 26 is a runtime release, and no scored mechanism moves: the language the compiler accepts is Java 25's, so records, sealed types, exhaustive matching, virtual threads, and modules hold their values, and null in every reference, erased generics, failures that do not compose, and an unproven locking discipline hold theirs. What the release changes is what the platform does — ahead-of-time object caching moves startup work into an archive, the HTTP client speaks HTTP/3, G1 sheds synchronization overhead, the applet API is removed, and deep reflection that mutates a `final` field now reports a warning rather than passing silently. The preview set moves too: primitive types in patterns are re-previewed, so an exhaustive `switch` over a numeric domain still needs `--enable-preview`. Main strength: the modern toolkit of a long-lived line on a runtime that starts faster. Main weakness: null, erasure, and a failure that does not compose, beside a warning where the language still cannot refuse the mutation it reports.",
   "verdictExtra": [
-    "> **Note:** The score reflects modern Java idioms: records over POJOs, sealed types over open hierarchies, virtual threads over thread pools, pattern matching over `instanceof` chains."
+    "> **Note:** No scored mechanism differs from Java 25. Java 26 adds no language construct that the inventory prices; it changes startup, throughput, and the preview set, which the observations record and the score does not."
   ],
   "presenceListAuthored": true,
   "profile": {
