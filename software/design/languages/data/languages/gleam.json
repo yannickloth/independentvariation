@@ -1,0 +1,545 @@
+{
+  "schemaVersion": 1,
+  "id": "gleam",
+  "name": "Gleam",
+  "family": "gleam",
+  "assessedAs": "Gleam",
+  "version": "1.19",
+  "title": "Gleam (1.19)",
+  "indexLabel": "Gleam (1.19)",
+  "group": "application",
+  "released": "2026-10-05",
+  "lifecycle": "current",
+  "order": 40,
+  "displayOrder": 71,
+  "presenceOrder": 71,
+  "presenceList": {
+    "core": "T12, T14, M2, K4",
+    "meta": "R2, Ec3",
+    "readiness": "Y1, Y3, Y4, Y5"
+  },
+  "matrixOrder": 71,
+  "tagline": "Static Types on the BEAM",
+  "sbName": "Gleam",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "gleamDocs"
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": true,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": true,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": true,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "D1": false,
+    "D2": false,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false,
+    "Y1": true,
+    "Y2": false,
+    "Y3": true,
+    "Y4": true,
+    "Y5": true,
+    "Y6": false,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": false,
+    "Y11": false,
+    "Y12": false,
+    "K6": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static types with full inference**: A function's types are checked at compile time, and an annotation is optional almost everywhere",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A custom type is the only way to add a case**: A `case` over a custom type is checked for exhaustiveness, so a new variant breaks every site that must handle it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no null**: Absence is `Option(a)`, and the compiler rejects a use of the option as a plain value",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no inheritance and no class**: Data is a custom type and behaviour is a function, so there is no hierarchy to couple to",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An opaque type hides its representation**: A module can export a type without its constructor, so the invariant is enforced at the module boundary",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Generics are parametric and checked**: `Result(a, e)`, `List(a)`, and a user type take type parameters with no cast",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**There are no type classes or traits**: Reuse across types goes through a record of functions passed to a generic function, not through a shared interface",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A call's effects are not in its type**: A signature says what a function returns, not that it reads a process dictionary, sends a message, or panics",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**The foreign boundary is a promise**: An external function names its Erlang or JavaScript counterpart by hand, and nothing checks that the two agree",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A constructor is the only way to make a value**: A custom type's constructor checks every field, and a case cannot build one that the type does not declare",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A record updates by copy**: `Person(..person, name: \"Ada\")` returns a new value and leaves the original alone",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A module holds functions, not mutable state**: There is no global variable to read or write during construction",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Construction is explicit**: There are no default values and no implicit conversions, so every field is passed at the call site",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**The BEAM collects each process separately**: A process has its own heap, and the pause is the runtime's to schedule",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Data is immutable**: A value is never changed in place, so two holders cannot disagree about its contents",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A process owns its heap**: A value is copied between processes, so no reference is shared across a process boundary",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no manual deallocation**: The runtime frees memory, so a double free or a use after free cannot occur",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No destructor runs at scope exit**: A resource follows the process lifetime or an explicit close, not a block boundary",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**A failure is a value**: A fallible function returns `Result(a, e)`, and the type says so",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`use` threads the failure path**: `use x <- result.try(f())` returns a failure to the caller without a match at each step",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A panic is a process crash**: `panic` ends the process and is not a channel for a recoverable failure",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The error type is the module's choice**: Nothing in the language forces one error type across modules",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**A process is the unit of concurrency**: A Gleam process is an Erlang process with its own heap and mailbox",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A message replaces shared memory**: Two processes exchange a value by copy, so a data race between them cannot occur",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**OTP supervises the tree**: A supervisor restarts a failed child, so failure handling is a supervision tree rather than a `try` block",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no second function kind**: A function does not become `async`; the runtime schedules processes, so no colour spreads through the call graph",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The actor library is a package**: `gleam_otp` supplies the actor and supervisor abstractions, so their version is a dependency",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**One source compiles to two runtimes**: `gleam build --target erlang` emits for the BEAM and `--target javascript` emits for Node and the browser",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The Erlang back end emits abstract forms**: The compiler produces Erlang's intermediate representation and skips the Erlang front end, so a crash report names a Gleam line",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Interop on the BEAM is zero-cost**: A Gleam module and an Erlang or Elixir module call each other without a marshalling layer",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The two targets have different runtimes**: A program that runs on both meets the BEAM scheduler on one target and the JavaScript event loop on the other",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler is fast**: A full build of the published benchmark project completes in a fraction of a second, and a rebuild is incremental",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A collection pause is part of the timing**: The BEAM collects a process independently, and the pause is a latency budget's cost",
+        "mechanism": "R2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The BEAM compiles the hot path**: The runtime's JIT compiles a hot function, so a long-running service does not run interpreted",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The JavaScript target inherits the engine's limits**: Speed on that target is the JavaScript engine's, not the language's",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**`gleam add` and Hex are the whole dependency story**: A manifest, a lockfile, and a central registry are part of the toolchain",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One binary holds the toolchain**: `build`, `format`, `test`, `add`, and the language server ship together",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is small**: The package pool is younger and thinner than the mainstream registries, so more code is written than found",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The BEAM ecosystem is reachable**: A project can depend on Erlang and Elixir packages and call them directly",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language is young**: A library can change quickly, and a tutorial can lag a release",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Releases follow semantic versioning**: A 1.x release keeps the language compatible, and a package states the version it requires",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The cadence is short**: A release arrives every six to eight weeks, so a fix is not held for a year",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Mechanical migrations ship with the compiler**: A deprecation arrives with a fix in the compiler or the formatter",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A pre-1.0 package can break**: A dependency that has not reached 1.0 may change in a breaking release",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**A web service is the ordinary project**: Wisp and the OTP libraries make an HTTP service the default shape",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The browser is a supported target**: Lustre compiles a Gleam program to the front end through the JavaScript target",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A command-line tool is supported**: An escript packages a single-file program for the BEAM",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The centre is server-side**: Examples, packages, and hiring lean toward backend work on the BEAM",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The language is small**: The official tour covers the whole language in an afternoon",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**An error carries the fix**: The compiler names the mismatch and often prints the corrected code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language server is the compiler**: Completion, rename, and go-to-definition come from the same binary",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Inference hides a type at the boundary**: A reader sometimes has to ask the editor for an inferred type",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Every construct is an expression**: A `case`, a `let`, and a function body produce a value, so a value is defined where it is computed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The pipeline reads left to right**: `value |> f |> g` states the data flow without an intermediate name",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A label names the argument at the call site**: `request.new(method: Get, path: \"/\")` reads without the definition",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The braces and commas are load-bearing**: The syntax is small but strict, and a missing comma is a compile error",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**`gleam test` runs the suite**: The toolchain discovers and runs the test modules",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`gleeunit` is the standard harness**: A test is a function, and a failed assertion stops the module",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler checks the test**: A test is type-checked with the project, so a broken test does not compile",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The harness is a package**: `gleeunit` is a dependency, and its version must match the compiler's expectations",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Memory safety belongs to the runtime**: A program cannot read or write outside its data, and the language has no `unsafe`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Immutability removes a class of bugs**: A value cannot change under a holder",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**There is no `eval`**: The language has no construct that turns a string into code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The foreign boundary is unchecked**: An external function's signature is a promise, and the other runtime does not verify it",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "cost",
+        "text": "**The build does not check reproducibility**: `gleam build` writes BEAM or JavaScript output and never compares a rebuild against a published artifact, so a consumer cannot confirm the two match",
+        "mechanism": "Y1"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**A package carries no build attestation**: The registry signs its own index, but nothing in a release states who built it or from what source, so a compromised build is not distinguishable from a genuine one",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Hex names are global**: A package name is unique across the registry, so an owner is not separated by a namespace",
+        "mechanism": "Y4"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: A project chooses an OpenTelemetry package and its own conventions, and the standard library states none",
+        "mechanism": "Y5"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The compiler is the language server**: An error is reported in the editor as the file is saved, and a rebuild is incremental",
+        "mechanism": null
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**Interop is a language feature**: A module calls Erlang, Elixir, or JavaScript through a declared external function, so the boundary is written down",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**A small ecosystem is the price of a young language**: Fewer packages mean more code written locally; this is a community outcome, not a language mechanism",
+    "**Two targets, two runtimes**: A program that runs on the BEAM and in JavaScript meets two schedulers and two sets of libraries",
+    "**No OOP is a deliberate subtraction**: Reuse goes through functions and records, so a team accustomed to inheritance rewrites its habits",
+    "**The foreign boundary is untyped**: An external function is a hand-written promise on both the Erlang and the JavaScript side",
+    "**Immutability copies at the process boundary**: A message is copied between processes, which is safe and not free",
+    "**The cadence is fast and the language is young**: A short release cycle is a fix rate and a moving target"
+  ],
+  "verdict": "Gleam's design yields low language-imposed coupling. Static inference removes the dynamic-typing mechanisms, custom types and exhaustive matching remove the missing-sum-type mechanism, and `Option` and `Result` put absence and failure in the type. The BEAM gives it process isolation, so no shared-memory race is expressible, and it avoids function colouring because a process, not an `async` function, is the unit of concurrency. Main strength: a small language whose defaults — immutability, exhaustive matching, errors as values — leave few coupling mechanisms to price. Main weakness: the ecosystem is young and thin, the foreign boundary is unchecked, and the runtime's collector still schedules the heap.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs on the BEAM, above native code in the energy and time benchmarks [@pereira2017energy]; a causal re-analysis attributes most of the gap to execution time [@vankempen2025green]."
+    },
+    "ai-readiness": {
+      "kind": "cost",
+      "text": "Sparse training data: models write it less reliably than a mainstream language [@joel2025lowresource]."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:application",
+    "use:web-backend",
+    "paradigm:functional",
+    "paradigm:concurrent",
+    "platform:beam",
+    "lifecycle:current",
+    "memory:managed-gc",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:application": {
+      "source": "gleamDocs"
+    },
+    "use:web-backend": {
+      "source": "gleamDocs"
+    }
+  }
+}
