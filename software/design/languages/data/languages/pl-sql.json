@@ -141,11 +141,6 @@
         "kind": "enabling",
         "text": "**A `REF CURSOR` carries a row set without fixing its row type**: `SYS_REFCURSOR` passes a result between program units, so the producer and the consumer need not share a record type",
         "mechanism": null
-      },
-      {
-        "kind": "caution",
-        "text": "**Implicit conversion is allowed**: Oracle converts between numeric and character types on its own, so a mismatch can pass compilation and fail at run time",
-        "mechanism": null
       }
     ],
     "construction": [
@@ -257,7 +252,7 @@
       },
       {
         "kind": "caution",
-        "text": "**No language-level synchronisation and no race detection**: PL/SQL has no mutex or atomic primitive, so serialisation rests on Oracle's row locks and on the application's lock ordering",
+        "text": "**Serialisation across sessions is the application's to arrange**: Where row locks and `DBMS_LOCK` calls do not apply, the ordering between two sessions' work is nowhere declared",
         "mechanism": null
       },
       {
@@ -269,7 +264,7 @@
     "platform": [
       {
         "kind": "enabling",
-        "text": "**It implements the ISO SQL/PSM stored-module standard**: Persistent stored modules are specified in ISO/IEC 9075 Part 4, so the package and block model is standard in concept",
+        "text": "**The block and package model follows the SQL/PSM shape**: Persistent stored modules are specified in ISO/IEC 9075 Part 4, and the package and block model follows that concept, though the language itself has no public specification",
         "mechanism": null
       },
       {
@@ -478,11 +473,6 @@
       },
       {
         "kind": "caution",
-        "text": "**The base product ships no unit-test framework**: SQL Developer offers a unit-testing feature, but the language itself has no test construct",
-        "mechanism": null
-      },
-      {
-        "kind": "caution",
         "text": "**A suite depends on grants and deployment**: The framework is installed in the database it tests, so permissions and schema state are preconditions",
         "mechanism": null
       }
@@ -521,12 +511,10 @@
     ]
   },
   "tradeoffs": [
-    "**A session-scoped package variable is a deliberate cache**: Keeping a value for the session trades hidden shared state for a repeated read",
-    "**Implicit conversion is convenient in short blocks**: Letting numeric and character types mix keeps ad-hoc code short, at a cost that appears in code that must be reliable",
-    "**A trigger is a data-integrity mechanism**: A rule kept in the database is enforced for every writer, where the same rule in the application would be visible at each call site",
-    "**Logic beside the data is the purpose of the language**: A procedure that runs in the database avoids shipping rows to a client",
-    "**PL/SQL is not a general-purpose language**: The assumption of an Oracle database is a scope decision",
-    "**Dynamic SQL buys flexibility**: `EXECUTE IMMEDIATE` runs DDL and changes object names in a statement, which static SQL cannot do"
+    "**A session-scoped package variable is a deliberate cache**: Keeping a value for the session avoids a repeated read; the cost is staleness, since nothing invalidates the cached value when the underlying data changes",
+    "**A trigger is a data-integrity mechanism**: A rule kept in the database is enforced for every writer; the cost is that a reader of the application source cannot see the rule",
+    "**Logic beside the data is the purpose of the language**: A procedure that runs in the database avoids shipping rows to a client; the cost is that the rule sits outside the application's test suite and profilers",
+    "**Dynamic SQL buys flexibility**: `EXECUTE IMMEDIATE` runs DDL and changes object names in a statement, which static SQL cannot do; the cost is that the statement's shape is known only when it runs"
   ],
   "verdict": "PL/SQL's coupling is set by its host, not its syntax. The package separates a specification from its body, blocks and named exceptions give a structured failure path, and bind variables close the injection surface. Main strengths: interface and implementation are separable, error handling is structured, and server-side code runs beside its data. Main weaknesses: everything runs inside an Oracle database, a package variable is shared session state, every variable starts as NULL and NULL propagates, dynamic SQL turns concatenated text into code, and `WHEN OTHERS` is a standing invitation to swallow a failure.",
   "verdictExtra": [],
@@ -541,7 +529,7 @@
       "text": "Sparse training data: models write it unreliably [@joel2025lowresource]."
     },
     "safety": {
-      "kind": "caution",
+      "kind": "cost",
       "text": "No certified or standards-qualified path for safety-critical systems."
     }
   },

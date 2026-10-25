@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "id": "plpgsql",
+  "name": "PL/pgSQL",
+  "family": "plpgsql",
+  "assessedAs": "PL/pgSQL",
+  "version": "PostgreSQL 18",
+  "title": "PL/pgSQL (PostgreSQL 18)",
+  "indexLabel": "PL/pgSQL (PostgreSQL 18)",
+  "group": "data-science",
+  "released": "2025-09-25",
+  "lifecycle": "current",
+  "lifecycleNote": "PostgreSQL 18; PL/pgSQL ships with the engine, so the language release is the database release.",
+  "order": 12,
+  "displayOrder": 93,
+  "presenceOrder": 93,
+  "matrixOrder": 93,
+  "tagline": "PostgreSQL Procedural SQL",
+  "sbName": "PL/pgSQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "pgsqlDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": true,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": false,
+    "Y12": false,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing over SQL data types**: Every variable, parameter, and return value declares a type, and a body that violates its declarations fails when the function is compiled",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`%TYPE` and `%ROWTYPE` anchor a declaration to the schema**: `emp%ROWTYPE` follows the table's column list, so a column change does not require editing the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Polymorphic parameters keep one algorithm generic**: `anyelement` and `anyarray` let a single function run over many types, with the type fixed per call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Operators resolve by operand type (T8)**: `+`, `||`, and `&&` name different operations for different types, and `CREATE OPERATOR` lets an extension add meanings, so an expression's sense follows from the operand types",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `record` variable defers its row type to run time**: The row shape is known only when a value is assigned, so a mistyped field surfaces on the path that reaches it",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is the default value and it propagates (T10)**: A declared variable starts as NULL, three-valued logic applies, so `IF x = 5` is not true when `x` is NULL",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A signature says what a function returns, not what it does (T12)**: A function that mutates tables, reads a foreign table, or sends notifications looks like any other function",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A function is a closed unit**: Local variables are private to the call, and the signature is the whole interface, so a caller cannot reach inside",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`CREATE FUNCTION` and `CREATE PROCEDURE` compile at creation**: The body is checked once when it is deployed, and a caller binds to the name and the signature",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Anonymous `DO` blocks run ad-hoc logic without a deployment step**: A one-off migration or maintenance script is a block, not a schema object",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers fire implicitly**: A trigger function runs in response to a data change, so the writer of a statement cannot see from the statement which code will run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`SECURITY DEFINER` is decided in the definition, not at the call**: A caller sees only a function name; whether it runs with the owner's rights follows from the definition",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The PostgreSQL server owns process memory, and a block never names an address or frees a byte",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server sizes the work areas**: A sort or a hash inside a function's statements gets its memory from `work_mem`, which is a setting, not a statement property",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`RETURN QUERY` materialises its result before returning**: A set-returning function builds its whole output in a tuplestore, so the call's memory follows the result size",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `CREATE TEMP TABLE` inside a function outlives the call**: The table persists for the session, so a local act leaves a session-scoped resource behind",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**The block separates the normal path from the recovery path**: `BEGIN ... EXCEPTION WHEN unique_violation THEN ...` gives a named handler section, and conditions match by code or by name",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`RAISE EXCEPTION` carries a code and a detail**: `RAISE EXCEPTION 'msg' USING ERRCODE = '23505'` raises a failure a caller's handler can match on",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GET STACKED DIAGNOSTICS` reports the caught error**: A handler can read the error's code, message, constraint, context, and line",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A handler can swallow (Er3)**: An `EXCEPTION` block that catches and returns normally lets the caller see success, and `WHEN OTHERS` is the widest net",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure cannot travel as a value (Er4)**: The failure path is the exception path, so a fallible operation cannot be folded into an expression or returned as a result the caller inspects",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**A procedure can manage its own transaction**: A `CALL`ed procedure may `COMMIT` and `ROLLBACK` (since PostgreSQL 11), while a function always runs inside its caller's transaction",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`SELECT ... FOR UPDATE` names the rows to lock in the query text**: The lock is declared by the statement rather than by a separate call",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Advisory locks give an explicit lock service**: `pg_advisory_lock` serialises an application-level critical section across sessions under a declared key",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Session state is shared by default (K2)**: Custom session parameters set with `set_config`, session temp tables, and `current_setting` are visible to every function that runs in the session",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Transaction isolation and declared locks do not order independent work**: Two sessions' multi-step work is ordered only by the locks its statements name, so any ordering the source relies on is an agreement no declaration carries",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Cannot function outside one engine (P1)**: A PL/pgSQL program needs PostgreSQL or a compatible fork, so the unit of deployment is a database schema",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Portability is the engine's, not the artifact's (Y10)**: The program runs wherever its PostgreSQL release runs, and the language has no build target of its own",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Managed services track the engine's calendar**: A managed PostgreSQL carries the PL/pgSQL of its engine version, so the available surface follows the provider's upgrade",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Foreign languages load in-process (T14)**: `LANGUAGE C` and the untrusted PLs such as `plpython3u` run outside PL/pgSQL's checks, so a boundary no signature can see separates the two sides",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Client interfaces are standard**: libpq, ODBC, and JDBC reach the engine, so a client is not bound to one binary protocol",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Statements inside a function use cached plans**: A function's static SQL is planned once per session and reused, so a call does not re-parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based statements in the body do the heavy lifting**: One `INSERT ... SELECT` inside the function carries the optimiser's plan, so the procedural wrapper is not the hot path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Row-by-row loops pay per-row context switches**: A loop that fetches one row at a time runs far slower than its set-based equivalent",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A plan regression arrives hidden inside the call**: A caller cannot see the queries inside a function, so a changed plan surfaces as the function being slow",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**The extension ecosystem supplies the libraries**: `CREATE EXTENSION` loads packaged capabilities such as PostGIS, pg_trgm, and pgcrypto into the database",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**PGXN catalogs shareable extensions**: A public registry indexes community extensions with releases and metadata",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**PostgreSQL's popularity carries the market**: Documentation, books, courses, and hiring are abundant",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The stack is open and permissively licensed**: The engine, the client tools, and the documentation carry no per-seat licence",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tooling centres on the engine's own tools**: psql, pg_dump, and pgAdmin cover administration and query work, and the procedural language has no dedicated environment of its own",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Major releases keep the language**: A PL/pgSQL function written years ago compiles in the current release",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Deprecation is announced before removal**: The release notes and the documentation mark obsolescent features, so an upgrade is planned rather than discovered",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A feature arrives with the engine's major release**: Adoption follows the server a deployment can upgrade to, not a separate language release",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community's own decisions govern the change**: No independent standard bounds the syntax, so the release notes are the definition's change log",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for data-centric logic**: A function runs beside its tables with SQL directly in the body, so a rule executes where the data is",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A full procedural language inside SQL**: Loops, records, cursors, and subprograms live in the same unit as the queries",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The engine reaches beyond its own schema**: Foreign data wrappers and `dblink` read remote sources, and other PLs run beside PL/pgSQL in the same database",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain lock-in (D1)**: The language exists to run inside PostgreSQL, so the PostgreSQL data tier is the only domain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is not a runtime for arbitrary programs**: A user interface, a heavy text workload, or a long-running service belongs in another language beside PL/pgSQL",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Gentle for a SQL developer**: A block with `DECLARE`, `BEGIN`, and `END` reads like SQL with control flow added",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The documentation is complete and canonical**: The PL/pgSQL chapter of the PostgreSQL manual documents every construct with runnable examples",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`SELECT INTO` is silent on an empty result**: A plain `SELECT INTO` assigns NULL when the query returns no rows, and `STRICT` is the opt-in that makes it error",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Engine behaviour is a separate body of knowledge**: Locks, MVCC, and transaction semantics matter more than syntax for correct code",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Verbose (S1)**: Every unit needs `CREATE FUNCTION`, a dollar-quoted body, and `DECLARE`, `BEGIN`, and `END` sections before it does anything",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Keyword-led and readable**: Statements read as verbs, and the block boundaries are visible in the source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The body is one dollar-quoted string**: `$$ ... $$` hides the body from the outer statement's parser, so a function deploys as a single statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Function overloading hides the signature**: Two functions may share a name and differ by argument types, so a call's target follows from the argument list",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "caution",
+        "text": "**No test framework ships with the engine (G1)**: psql and the server tools provide no assertion or runner, so a suite depends on pgTAP or a hand-rolled harness",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**pgTAP is the established framework**: An open-source test framework runs database tests with xUnit-style assertion functions",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Transaction control isolates a test**: A test can run inside a transaction that rolls back, leaving the database unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The engine traces execution**: `RAISE` writes to the server log with line numbers, and `auto_explain` logs the plans of statements inside functions",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A suite needs a server**: Tests run inside the database they exercise, so the harness depends on a PostgreSQL instance and on deployment rights",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Static SQL in the body is parameterised automatically**: The function's variables become `$n` parameters of the planned statement, so values cannot change the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GRANT` and roles express least privilege**: `EXECUTE` on a function is granted per role, and the function signature is the grantable interface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`SECURITY DEFINER` states the effective identity in the definition**: `ALTER FUNCTION ... SECURITY DEFINER` plus a pinned `SET search_path` makes the rights and the environment explicit",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Known vulnerability/injection (Q3)**: `EXECUTE` with a built string turns concatenated input into code, and `format()` with `%I` and `%L` is the mitigation, not a guarantee",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Definer's-rights functions can escalate**: A `SECURITY DEFINER` function runs with its owner's rights, so it needs a pinned search path and an audit",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Logic beside the data is deliberate**: A rule that runs beside its tables is enforced for every writer; the cost is that the rule sits outside the application's test suite and profilers",
+    "**A session cache in custom parameters is deliberate**: `set_config` keeps a value for the session without a table; the cost is staleness, since nothing invalidates the value when the underlying data changes",
+    "**Dynamic SQL is deliberate for DDL and for a flexible filter**: `EXECUTE` with `format()` reaches names a static statement cannot; the cost is the plan, since a built string is parsed and planned on every execution",
+    "**`SECURITY DEFINER` is deliberate for gated access**: It exposes one narrow operation instead of table grants; the cost is an audit duty, since the function runs with its owner's rights"
+  ],
+  "verdict": "PL/pgSQL's coupling is set by its host engine and governed by its community. Functions are closed units with typed declarations, the `EXCEPTION ... WHEN` section gives a structured failure path, static SQL in the body is parameterised automatically, and the extension registry, the open licence, and community governance give this shelf's most open ecosystem. Main strengths: open source end to end, an independent steward, complete documentation, automatic parameterisation, and real modularity at function granularity. Main weaknesses: everything runs inside PostgreSQL, NULL starts in every declared variable and propagates, signatures carry no effects, dynamic SQL turns built strings into code, a handler can swallow a failure and return success, `RETURN QUERY` materialises its result, and the block structure adds boilerplate to every unit.",
+  "verdictExtra": [],
+  "presenceList": {
+    "core": "T8, T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "D1, S1, G1, Q3",
+    "readiness": "Y3, Y4, Y5, Y6, Y8, Y10, Y13, Y14, Y16"
+  },
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a database engine: energy and time are the engine's, not the program's."
+    },
+    "ai-readiness": {
+      "kind": "cost",
+      "text": "Procedural SQL is thin in model training data relative to mainstream languages, so generated PL/pgSQL mixes in other dialects' syntax [@joel2025lowresource]."
+    },
+    "safety": {
+      "kind": "cost",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:query": {
+      "source": "pgsqlDocs"
+    }
+  }
+}

@@ -1,0 +1,519 @@
+{
+  "schemaVersion": 1,
+  "id": "sap-ase",
+  "name": "SAP ASE",
+  "family": "sap-ase",
+  "assessedAs": "SAP ASE",
+  "version": "ASE 16.1",
+  "title": "SAP ASE (ASE 16.1)",
+  "indexLabel": "SAP ASE (ASE 16.1)",
+  "group": "data-science",
+  "released": "2025-02",
+  "lifecycle": "current",
+  "lifecycleNote": "SAP ASE 16.1 SP00; the current ASE release line, with the 16.0 SP04 stream still patched for existing deployments.",
+  "order": 14,
+  "displayOrder": 95,
+  "presenceOrder": 95,
+  "matrixOrder": 95,
+  "tagline": "SAP ASE Procedural SQL",
+  "sbName": "SAP ASE",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "sapAseDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing over SQL data types**: Every variable, parameter, and column has a declared type, and a batch that violates it fails at parse or bind time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A procedure parameter declares its type and direction**: `@p int output` fixes the type and the direction, so a caller binds to a signature",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`DECLARE @name` defaults to NULL (T10)**: A declared variable starts as NULL, so an unassigned variable is valid and propagates NULL into the expression",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**NULL comparison needs three-valued logic**: With `ansinull` on, `@x = NULL` is unknown, so a check needs `is null`, and the `ansinull` setting decides which semantics a batch gets",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A signature says what a procedure returns, not what it does (T12)**: A procedure that mutates tables, opens a remote connection, or changes session settings looks like any other procedure",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A stored procedure provides modularity with a declared interface**: `CREATE PROCEDURE` names the unit, its parameters, and its return status, and can return result sets and output parameters",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A view separates consumers from the query**: The exposed relation is stable while its defining query can change",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based statements compose without a cursor**: `INSERT ... SELECT`, `UPDATE ... FROM`, and `DELETE ... FROM` express a whole transformation in one statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers fire implicitly**: A trigger runs in response to a data change, so the writer of a statement cannot see from the statement which code will run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Session `set` options change the meaning of a statement**: `ansinull` and `quoted_identifier` alter how comparisons and identifiers parse, so the same text can behave differently elsewhere",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The ASE server owns its data caches and procedure caches, and a batch never names an address",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server sizes the work areas**: Sorts and hashes take their memory from the engine's configuration, not from the batch",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A cursor allocates per fetch**: A row-by-row cursor uses workspace per fetch, so the memory pattern follows the loop",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `#temp` table is session-scoped, not procedure-scoped**: It lives for the session and is dropped with it, not with the procedure that built it",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**Errors travel by global status (Er1)**: A statement's outcome lands in `@@error`, and the next statement must check it; the language has no construct that carries a failure from where it is detected to where it is handled",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A skipped check is silent (Er3)**: A batch that never tests `@@error` runs past the failure, and nothing marks the missing check",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure cannot travel as a value (Er4)**: The failure shape is `@@error`, a procedure return status, and `raiserror` — rebuilt at every boundary, and never composable in an expression",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Severity decides the effect**: A `raiserror` below severity 11 is informational, mid severities abort the statement, and the highest severities end the client session, so the same text behaves differently by number",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A failed statement can doom the transaction without ending the batch**: The code must test `@@trancount` and roll back explicitly, so recovery is written statement by statement",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions group statements atomically**: `BEGIN TRANSACTION`, `COMMIT`, and `ROLLBACK` make a unit of work commit or abort as one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Isolation levels are selectable in the statement**: `at isolation read uncommitted`, `read committed` (the default), `repeatable read`, and `serializable` name the level a query needs",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Session state is shared by default (K2)**: `set` options, the `@@` status globals, and session temp tables are visible to code the caller did not write",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Locking hints bind a query to the engine's concurrency model**: `holdlock`, `noholdlock`, and `shared` must agree with the application's lock ordering",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Chained mode moves the transaction boundary**: With `set chained on`, a transaction opens at the first statement, so the same batch commits differently by mode",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Cannot function outside one engine (P1)**: SAP ASE programs need SAP ASE, so the unit of deployment is an ASE database",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**One lineage, two vendor branches**: Microsoft SQL Server and SAP ASE share the 1980s Sybase core syntax, but the dialects diverged, and the vendors document them separately",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The server also parses SQLScript in SQLScript-mode databases**: A separate dialect with handlers of its own serves HANA compatibility, but a Transact-SQL database cannot use it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Extended stored procedures load native code (T14)**: An `xp_` routine is a native library inside the server, crossing a boundary no signature check reaches",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**CIS reaches remote servers through proxy tables**: Component Integration Services maps a remote table into the local catalog, so a query's real target is not visible in the query text",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Client interfaces are standard**: Open Client, ODBC, and JDBC reach the engine, so a client is not bound to one binary protocol",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Plans are cached**: A procedure's compiled plan is reused per call, so the caller does not choose an access path",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The optimiser serves the data path**: Plan selection and buffer caching are the engine's job, not the procedure's",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Row-by-row cursors pay per-fetch costs**: A loop that fetches one row at a time runs far slower than its set-based equivalent",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Statistics and plan choice can regress a query without a code change**: New data volumes or a changed configuration can select a worse plan",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is proprietary (Ec4)**: The engine, the tooling, and the support come from SAP under licence",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A small market beside the mainstream engines (Ec3)**: Hiring, community material, and third-party tooling concentrate on the larger engines, so more is written than found",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The SAP stack integrates**: ASE serves SAP Business Suite applications with first-party certification",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Documentation and fixes sit behind the SAP portal**: Notes, manuals, and downloads require SAP access",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tooling centres on the engine's own tools**: isql and the SAP ASE Cockpit carry the workflow, and the procedural language has no dedicated environment of its own",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Upgrades keep routines**: A procedure written for ASE 15 compiles in 16.1",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Releases are infrequent**: The ASE 16 line has carried for years through patch levels, so a new capability waits a long time",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A feature arrives with a patch level or a major release**: Adoption follows the server a deployment can upgrade to",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**SAP's own decisions govern the change**: The ASE reference manuals are the definition, and no independent standard bounds the dialect",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for SAP Business Suite data logic**: ASE is certified for the Suite's data tier, and a procedure runs beside its tables with SQL in the body",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A full procedural language inside SQL**: Procedures, triggers, cursors, and dynamic SQL live beside the queries",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain lock-in (D1)**: The language exists to run inside SAP ASE, so the ASE data tier is the only domain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is not a runtime for arbitrary programs**: A user interface, a heavy text workload, or a long-running service belongs in another language beside ASE's SQL",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Procedural row logic reads poorly beside its set-based equivalent**: A row-by-row algorithm in a cursor is verbose and slow",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Gentle for a developer who knows classic T-SQL**: Procedures, batches, and triggers read like the Sybase-line originals",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The dialect diverges from the Microsoft branch in details**: Error handling, catalog procedures, and built-in functions differ, so knowledge from SQL Server transfers only in part",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@@error` checking is a discipline**: Every statement that can fail needs the check written after it, and reviewing for it is part of learning the language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Engine behaviour is a separate body of knowledge**: Locks, isolation modes, and page structure matter more than syntax for correct code",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference manuals are complete**: The ASE manuals cover every statement with syntax and examples",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Keyword-based and readable**: `SELECT ... FROM ... WHERE` and `BEGIN ... END` read close to English",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A procedure is a readable unit**: The parameter list and the body are declared in one `CREATE PROCEDURE` statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`@@` sigils distinguish kinds of variable by convention**: A local, a parameter, and a global status share the sigil, so a reader distinguishes them by spelling",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`set` options prefix every script**: `set nocount on`, `ansinull`, and `quoted_identifier` are usually written at the top, so the boilerplate grows",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`go` marks a batch boundary in a script**: The client tool sends the batch, so the boundary is visible in the source but owned by the tool",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "caution",
+        "text": "**No test framework ships with the toolchain (G1)**: isql and the SAP tools provide no assertion or runner, so a suite is hand-rolled or borrowed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Transaction control isolates a test**: A test can run inside a transaction that rolls back, leaving the database unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Error status supports assertion-style checks**: `@@error` and `raiserror` inside a procedure can express an assertion and stop the test",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A suite needs a server**: Tests run inside the ASE instance they exercise, so the harness depends on the server and on deployment rights",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**`GRANT` and roles express least privilege**: Access is declared per object, per user, and per role",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Views plus grants scope what a role can see**: A view over a table, with execution and select grants, is the row-scoping mechanism",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dynamic SQL is string-built with no binding**: `execute ('...')` runs a built string, and the language supplies no parameter-binding form, so values travel inside the text",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Known vulnerability/injection (Q3)**: A statement assembled by concatenation turns input into code, and the mitigation is validation at the call site",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A procedure runs with its creator's permissions**: A caller gains the owner's access through the procedure, so the grant surface needs an audit",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Logic beside the data is deliberate**: A rule that runs beside its tables is enforced for every writer; the cost is that the rule sits outside the application's test suite and profilers",
+    "**A cursor is a deliberate trade for row-by-row work**: It makes a per-row algorithm expressible, at the cost of the set-based model",
+    "**Dynamic SQL is deliberate for DDL and for a flexible filter**: `execute ('...')` reaches names a static statement cannot; the cost is that the statement's access path is chosen when it runs",
+    "**Chained mode is a deliberate transaction default**: It gives every statement a transaction boundary; the cost is that a script written in one mode commits differently in the other"
+  ],
+  "verdict": "SAP ASE's coupling follows its host engine and its Sybase lineage. Stored procedures, views, and cached plans give real modularity, isolation is selectable in the statement, and the SAP stack integration is first-party. Main strengths: classic T-SQL readability, engine-owned memory and plans, standard client interfaces, and a current 16.1 line with long-standing compatibility. Main weaknesses: the language only runs on SAP ASE, the dialect has no structured failure path — every statement's outcome lands in `@@error` and the next statement must check it — dynamic SQL is string-built with no parameter binding, the market beside the mainstream engines is small, session state is shared by default, and no test framework ships with the toolchain.",
+  "verdictExtra": [],
+  "presenceList": {
+    "core": "T10, T12, T14, Er1, Er3, Er4, K2, P1, P4",
+    "meta": "Ec3, Ec4, D1, Q3, G1",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y11, Y12, Y13, Y14, Y16"
+  },
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a database engine: energy and time are the engine's, not the program's."
+    },
+    "ai-readiness": {
+      "kind": "cost",
+      "text": "Sparse training data: models write it unreliably [@joel2025lowresource]."
+    },
+    "safety": {
+      "kind": "cost",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:query": {
+      "source": "sapAseDocs"
+    }
+  }
+}

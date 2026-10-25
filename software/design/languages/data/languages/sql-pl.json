@@ -1,0 +1,490 @@
+{
+  "schemaVersion": 1,
+  "id": "sql-pl",
+  "name": "SQL PL",
+  "family": "sql-pl",
+  "assessedAs": "SQL PL",
+  "version": "Db2 12.1",
+  "title": "SQL PL (Db2 12.1)",
+  "indexLabel": "SQL PL (Db2 12.1)",
+  "group": "data-science",
+  "released": "2024-11-14",
+  "lifecycle": "current",
+  "lifecycleNote": "Db2 12.1 for Linux, UNIX, and Windows; the current release line, with modpack 12.1.5 shipped in June 2026 and monthly updates since September 2026.",
+  "order": 13,
+  "displayOrder": 94,
+  "presenceOrder": 94,
+  "matrixOrder": 94,
+  "tagline": "Db2 Procedural SQL",
+  "sbName": "SQL PL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "db2SqlplDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": true,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static typing over SQL data types**: Every variable, parameter, and return value declares a type, and a body that violates its declarations fails when the routine is created",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`LIKE` anchors a declaration to the schema**: `DECLARE v LIKE emp.salary` follows the column's type, so a column change does not require editing the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Array types carry their element type**: A `VARCHAR(20) ARRAY` or an associative array keeps a typed collection in one declared variable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Overloading resolves a call by argument type**: Two routines may share a name and differ by their signature, so the argument list decides the target",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is the default value and it propagates (T10)**: A declared variable starts as NULL, three-valued logic applies, so `IF x = 5` is not true when `x` is NULL",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A signature says what a routine returns, not what it does (T12)**: A procedure that mutates tables, commits a transaction, or reads a nickname looks like any other procedure",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**A routine is a closed unit**: Local variables, cursors, and conditions are private to the call, and the signature is the whole interface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Modules give a namespace and a boundary**: `CREATE MODULE` groups routines, types, and variables, and an unpublished member is invisible to callers outside the module",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Compound statements scope declarations**: An inner `BEGIN ... END` holds its own variables, conditions, handlers, and cursors",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers fire implicitly**: A trigger body runs in response to a data change, so the writer of a statement cannot see from the statement which code will run",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A module's variables live for the session**: A variable declared in a module keeps its value across calls, so one call can read state another call wrote",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No manual memory management**: The Db2 engine owns the memory of its agents, and a routine never names an address or frees a byte",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server sizes the work areas**: Sorts and hashes inside a routine's statements take their memory from the engine's heap configuration",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A built collection holds its memory for the call**: An `ARRAY` assembled with `ARRAY_AGG` or element by element materialises in the routine's memory, so the call's footprint follows the collection's size",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A declared global temporary table outlives the routine**: A `DECLARE GLOBAL TEMPORARY TABLE` persists for the session, so a local act leaves a session-scoped resource behind",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Conditions and handlers separate the failure path**: `DECLARE ... CONDITION` names a failure, and `EXIT`, `CONTINUE`, and `UNDO HANDLER` declare what happens when it is raised",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Handlers match by class or by name**: `sqlexception`, `sqlwarning`, and `not found` catch classes, and a declared condition catches its own",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GET DIAGNOSTICS` reads the failure's detail**: The handler can read the `SQLSTATE`, the message text, and the routine's own diagnostics",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A handler can swallow (Er3)**: A `CONTINUE HANDLER` that records nothing lets the routine proceed past the failure, and silence is indistinguishable from approval",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure cannot travel as a value (Er4)**: The failure path is the handler path, so a fallible operation cannot be folded into an expression or returned as a result the caller inspects",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**A procedure can manage its own transaction**: `COMMIT`, `ROLLBACK`, and `SAVEPOINT` are statements of the language, so a unit of work commits or aborts as one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Isolation and lock intent are declared in the query text**: An isolation clause with `USE AND KEEP UPDATE LOCKS` on a `SELECT ... FOR UPDATE` names the locking the statement needs",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Special registers are session state (K2)**: `CURRENT SCHEMA`, `CURRENT PATH`, and the other special registers are set per session and visible to every routine that runs there",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Transaction isolation and declared locks do not order independent work**: Two sessions' multi-step work is ordered only by the locks its statements name, so any ordering the source relies on is an agreement no declaration carries",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Cannot function outside one engine (P1)**: SQL PL runs on IBM Db2, so the unit of deployment is a Db2 database",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The Db2 family carries dialect differences**: A procedure written for Db2 on Linux, UNIX, and Windows is not guaranteed to compile unchanged on Db2 for i or Db2 for z/OS",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The engine also accepts PL/SQL through a compatibility mode**: A registry setting enables Oracle-syntax blocks, packages, and types, so one database can run two procedural dialects side by side",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**External routines run outside the SQL type system (T14)**: A `LANGUAGE C`, `LANGUAGE JAVA`, or CLR routine crosses a boundary no signature check reaches",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Client interfaces are standard**: ODBC, JDBC, and the CLP reach the engine, so a client is not bound to one binary protocol",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Routines compile into the catalog**: A procedure's body is compiled once at creation and the section is reused, so a call does not re-parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Set-based statements in the body do the heavy lifting**: One `INSERT ... SELECT` inside the procedure carries the optimiser's plan, so the procedural wrapper is not the hot path",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A plan regression arrives hidden inside the routine**: A caller cannot see the queries inside a procedure, so a changed plan surfaces as the routine being slow",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is proprietary (Ec4)**: The engine, the tooling, and the support come from IBM under licence",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A free community edition exists**: Development can run without a licence, while the supported tooling and the enterprise features remain licensed",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Decades of published practice**: The Db2 documentation set and the wider IBM knowledge base cover the language with syntax and examples",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tooling centres on the engine's own tools**: The CLP and the IBM documentation carry the workflow, and the procedural language has no dedicated environment of its own",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Upgrades keep routines**: A procedure written for an earlier Db2 release compiles in the current one",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Deprecation is announced in the documentation**: The knowledge centre marks deprecated and discontinued features before they go",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A feature arrives with a release or a modpack**: Adoption follows the server a deployment can upgrade to",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**IBM's own decisions govern the change**: The knowledge centre is the definition's change log, and the block model follows the SQL/PSM concept without conforming to a published specification of the dialect",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for data-centric logic**: A routine runs beside its tables with SQL directly in the body, so a rule executes where the data is",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A full procedural language inside SQL**: Compound statements, array types, cursors, and condition handlers live in the same unit as the queries",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Domain lock-in (D1)**: The language exists to run inside Db2, so the Db2 data tier is the only domain",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**It is not a runtime for arbitrary programs**: A user interface, a heavy text workload, or a long-running service belongs in another language beside SQL PL",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Gentle for a SQL developer**: A compound statement reads like SQL with control flow added",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The knowledge centre documents every construct**: The Db2 documentation covers the syntax with runnable examples",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The handler model takes practice**: `EXIT`, `CONTINUE`, and `UNDO` handlers, condition matching, and handler scope are semantics the syntax does not show",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Engine behaviour is a separate body of knowledge**: Isolation levels, locking, and routine registration matter more than syntax for correct code",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Verbose (S1)**: Every routine needs a `CREATE` statement and a compound-statement body with its `DECLARE` section before it does anything",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Keyword-led and readable**: Statements read as verbs, and the block boundaries are visible in the source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**`END` closes several constructs**: `END IF;`, `END LOOP;`, and a routine's labelled `END` must each be matched, so a long body is read against its terminators",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The deployment script carries a statement terminator**: A script must tell the CLP which character ends a routine body, usually `@`, so the source carries a convention of its own",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "caution",
+        "text": "**No test framework ships with the toolchain (G1)**: The CLP and the Db2 tools provide no assertion or runner, so a suite is assembled from third-party harnesses or hand-rolled procedures",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Third-party harnesses exist**: db2unit and similar frameworks run Db2 unit tests with assertions and reporting",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Transaction control isolates a test**: A test can run inside a transaction that rolls back, leaving the database unchanged",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A suite needs a server**: Tests run inside the database they exercise, so the harness depends on a Db2 instance and on deployment rights",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Static SQL in a routine is parameterised**: The routine's variables bind as host variables of the compiled section, so values cannot change the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**`GRANT EXECUTE` and roles express least privilege**: Access is declared per routine, per module, and per schema",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Row and column access control declares visibility in the schema**: A row permission or a column mask filters what a statement can see regardless of which routine issues it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Static and dynamic privileges differ inside a routine**: A routine's static statements run with the definer's rights while its dynamic statements check the invoker's, so the two paths carry different grants",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Known vulnerability/injection (Q3)**: `EXECUTE IMMEDIATE` with a built string turns concatenated input into code",
+        "mechanism": null
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Logic beside the data is deliberate**: A rule that runs beside its tables is enforced for every writer; the cost is that the rule sits outside the application's test suite and profilers",
+    "**An unpublished module member is deliberate encapsulation**: Hiding internals from callers trades discoverability for a boundary the catalog enforces; the cost is that every consumer must learn which members are public",
+    "**Dynamic SQL is deliberate for DDL and for a flexible filter**: `EXECUTE IMMEDIATE` reaches names a static statement cannot; the cost is that the statement's access path is chosen when it runs",
+    "**A session-scoped module variable is a deliberate cache**: Keeping a value across calls avoids a repeated read; the cost is staleness, since nothing invalidates the value when the underlying data changes"
+  ],
+  "verdict": "SQL PL's coupling is set by its host engine and by IBM's licence. Modules give a namespace with published and unpublished members, compound statements carry named conditions and handlers, static SQL in a routine is parameterised, and the knowledge centre documents the language in full. Main strengths: an explicit module boundary, a structured condition-and-handler error model, typed collections, and complete documentation. Main weaknesses: everything runs inside Db2, the proprietary licence owns the stack and the tooling, signatures carry no effects, a `CONTINUE HANDLER` can swallow a failure and let the routine proceed, dynamic SQL turns built strings into code, every variable starts as NULL and propagates, no test framework ships with the toolchain, and the block structure adds boilerplate to every routine.",
+  "verdictExtra": [],
+  "presenceList": {
+    "core": "T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "Ec4, D1, S1, Q3, G1",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y11, Y12, Y13, Y14, Y16"
+  },
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a database engine: energy and time are the engine's, not the program's."
+    },
+    "ai-readiness": {
+      "kind": "cost",
+      "text": "Procedural SQL is thin in model training data relative to mainstream languages, so generated SQL PL mixes in other dialects' syntax [@joel2025lowresource]."
+    },
+    "safety": {
+      "kind": "cost",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:query": {
+      "source": "db2SqlplDocs"
+    }
+  }
+}

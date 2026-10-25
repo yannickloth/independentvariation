@@ -16,7 +16,7 @@
   "presenceOrder": 16,
   "presenceList": {
     "core": "T10, T12, T14, Er3, K2, P1, P4",
-    "meta": "Ec4, D1, Q3",
+    "meta": "Ec4, D1, G1, Q3",
     "readiness": "Y3, Y5, Y6, Y10, Y11, Y12, Y13, Y16"
   },
   "matrixOrder": 58,
@@ -93,7 +93,7 @@
     "S1": false,
     "S2": false,
     "S3": false,
-    "G1": false,
+    "G1": true,
     "G2": false,
     "G3": false,
     "Q1": false,
@@ -150,7 +150,7 @@
       },
       {
         "kind": "caution",
-        "text": "**There is no type beyond a SQL data type**: No user-defined sum type or generic exists, so a variant is modelled with nullable columns or a discriminator",
+        "text": "**`sql_variant` is the one escape hatch**: A column or variable of `sql_variant` holds values of different base types, and every consumer must discover the stored base type at run time",
         "mechanism": null
       }
     ],
@@ -386,7 +386,7 @@
       },
       {
         "kind": "caution",
-        "text": "**A deprecated feature is warned and then removed**: The documentation lists deprecated features, and an upgrade can require edits",
+        "text": "**A deprecated feature is warned and then removed**: The documentation lists deprecated features, so a removal can require edits even though a compatibility level otherwise preserves older behaviour",
         "mechanism": null
       },
       {
@@ -514,7 +514,7 @@
       },
       {
         "kind": "caution",
-        "text": "**The base product ships no test framework**: `tSQLt` is a third-party install, so a suite depends on deployment and permissions",
+        "text": "**No test framework ships with the toolchain (G1)**: SSMS and sqlcmd provide no assertion or runner, so a suite depends on tSQLt or a hand-rolled harness",
         "mechanism": null
       },
       {
@@ -557,12 +557,10 @@
     ]
   },
   "tradeoffs": [
-    "**Logic beside the data is deliberate**: Keeping a rule in the database guarantees it for every writer",
+    "**Logic beside the data is deliberate**: Keeping a rule in the database guarantees it for every writer; the cost is that the rule now deploys and versions with the schema rather than with the application",
     "**A cursor is a deliberate trade for row-by-row work**: It makes a per-row algorithm expressible, at the cost of the set-based model",
-    "**Dynamic SQL is deliberate for DDL and for a flexible query**: `sp_executesql` and `EXEC` reach constructs a static statement cannot name",
-    "**`NOLOCK` trades consistency for concurrency**: A reader that accepts dirty reads avoids blocking",
-    "**The engine is proprietary by design**: The licence buys one integrated stack of engine, tooling, and support",
-    "**T-SQL is not a general-purpose language**: The assumption of a SQL Server database is a scope decision"
+    "**Dynamic SQL is deliberate for DDL and for a flexible query**: `sp_executesql` and `EXEC` reach constructs a static statement cannot name; the cost is that the statement's shape is known only when it runs",
+    "**`NOLOCK` trades consistency for concurrency**: A reader that accepts dirty reads avoids blocking"
   ],
   "verdict": "Transact-SQL's coupling follows its host engine. Stored procedures, views, and table-valued parameters give real modularity, `TRY ... CATCH` gives a structured failure path, and the optimiser, Query Store, columnstore, and in-memory OLTP carry performance work. Main strengths: a mature first-party toolchain, a regular release cadence, and standard client interfaces. Main weaknesses: the language only runs on SQL Server or SAP ASE, the useful surface is engine-specific, NULL starts in every declared variable, an unhandled `CATCH` continues the batch, cursor code paths are slow, and a string-built statement is a standing injection hazard.",
   "verdictExtra": [],
