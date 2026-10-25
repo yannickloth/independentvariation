@@ -1,0 +1,616 @@
+{
+  "schemaVersion": 1,
+  "id": "goose",
+  "name": "Goose",
+  "family": "goose",
+  "assessedAs": "Goose",
+  "version": "2026.3",
+  "title": "Goose (2026.3)",
+  "indexLabel": "Goose (2026.3)",
+  "group": "systems",
+  "released": "2026-10-21",
+  "lifecycle": "current",
+  "lifecycleNote": "no 1.0 designation; calendar releases v2026.0 to v2026.3, all dated October 2026",
+  "order": 8,
+  "displayOrder": 90,
+  "presenceOrder": 90,
+  "presenceList": {
+    "core": "T11, T12, T14, C2, Er3, Er4, K4, K6",
+    "meta": "Ec3, V1, L1",
+    "readiness": "Y1, Y3, Y5, Y6, Y10, Y13, Y14, Y15, Y16"
+  },
+  "matrixOrder": 90,
+  "tagline": "No Heap, Scoped Free",
+  "sbName": "Goose",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "gooseDocs"
+  ],
+  "resources": [
+    {
+      "kind": "spec",
+      "title": "Language specification at 2026.3",
+      "url": "https://github.com/aardappel/goose/blob/v2026.3/docs/goose_spec.md"
+    },
+    {
+      "kind": "release",
+      "title": "Goose v2026.3 release",
+      "url": "https://github.com/aardappel/goose/releases/tag/v2026.3"
+    },
+    {
+      "kind": "api",
+      "title": "Benchmark results at v2026.3 (16 October 2026 run)",
+      "url": "https://github.com/aardappel/goose/blob/v2026.3/bench/results.md"
+    }
+  ],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": true,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": true,
+    "K5": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "D1": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false,
+    "Y1": true,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": false,
+    "Y12": false,
+    "K6": true,
+    "P4": false,
+    "Y13": true,
+    "Y14": true,
+    "Y15": true,
+    "Y16": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Static and narrow-checked**: Arithmetic happens at the operands' own width, a literal adapts only to a type whose range holds it (`let x: u8 = 256;` is a compile error), and same-width signed and unsigned operands do not unify without a cast",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Sums and absence in the type**: `enum` is a tagged union in two sizes and `match` must cover it, `case functions` dispatch on the tag through a jump table the compiler checks for coverage, and `T?` is a nullable reference that must be narrowed by `if`, `while`, `guard`, `assert`, or a null test before it writes through",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Generics with nothing erased**: An untyped parameter is a generic one and every call is monomorphized, so the type argument travels with the code; function values are compile-time entities that cannot escape, so there is no closure object, no function pointer, and no reflection",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No inheritance anywhere**: The only dynamic-shape mechanism is the ADT tag, so a type is never placed under a base to be used through it, and `x.f(a)` is exactly `f(x, a)`",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Generics are checked at instantiation**: A generic body is typechecked only where every type is concrete, with no trait bounds, so an unconstrained parameter reports its failure at a call site, with the compile-time call chain attached",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Namespaces scope names, and stop there**: A `namespace` scopes a name and `import … from …` fetches a package, and that is the whole boundary mechanism: the reference states \"there is no privacy, no re-export and no nesting\", so every declaration of an imported package is reachable from every consumer, and namespace privacy is on the specification's open-items list",
+        "mechanism": "T11"
+      },
+      {
+        "kind": "cost",
+        "text": "**A signature says what returns, not what happens**: A call can print, grow a global, abort, or `return … from` an outer function, and every function in between keeps its plain signature — \"no error parameter, no `?` on each call, nothing to propagate\"",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**The C agreement is hand-written**: `extern fn` rejects a signature with no C shape at the declaration, and the C side's own prototype, padding, ownership, and lifetime stay outside any check — `pad 3` must be written where C pads, library-owned memory arrives as an opaque `u64`, and callbacks and variadic functions cannot be bound at all",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Built in place, guaranteed**: The copy-free construction guarantee builds a value at its final destination through any depth of calls, so `items.push(parse(line))` writes the parsed record straight into the array and a function returning a growable array by value writes into the caller's variable: construction is never tied to a reservation site",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No uninitialized value**: Every local must be initialized before it is read, on every path; fixed arrays must be fully initialized; and a `var` global given only a type starts as its type's declared default, so `var log: u8[>..];` at file scope is an empty array, not raw storage",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No global by default**: `let` binds a name that cannot be reassigned and `const` makes contents read-only, so a mutable global must be written as `var`; a `thread_fn` is compiled as its own program with its own copy of the globals it touches, so a worker's write to a global is not a write to main's",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Contents are writable by default**: A `let` stops the name being reassigned and says nothing about the value behind it — `let xs = [1, 2, 3]; xs[0] = 9;` is fine — and read-only contents require the type to say `const`, which is inferred per instantiation for parameters and views",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Constness is checked at the call**: A parameter written `u8[:]` takes a writable or a read-only argument and its body is checked with what it was given, so the write that fails is reported at the call site with the call chain, not at the definition",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**No heap at all**: Dynamic values live inline on a compile-time count of data stacks, each a reserved region with a bump pointer; growth is a pointer bump with no capacity check, and freeing a million-element structure at scope exit is one store to the stack top",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Release tied to scope, as the model's only rule**: Scope exit *is* the free — the construct `M3` prices by its absence is not an addition here but the whole reclamation mechanism — and a worker's return releases everything it owned",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Ownership, inferred**: Every reference and slice has a static root, the variable that owns its target, and the checker rejects a reference that would outlive its root, a store into a shorter-lived location, a view of a temporary, and a shrink that would strand a reference — with no lifetime syntax, no aliasing rules, and no `unsafe`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**References survive growth**: Nothing moves, so a reference into a grow-only array stays valid for as long as the array does, which `Vec<T>` and `std::vector<T>` cannot promise, and an array of strings is one contiguous block with no pointer in it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Lifetimes have to nest**: Where a value lives and how long its scope lasts become decisions the source records, because scratch ends at the scope that owns it and a recursive call cannot keep a growable local across the call",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A `reusable` pool frees nothing**: `free` records a slot for reuse, every element stays a live value of its type, and a stale slot reads a *different value of the correct type*, which the reference names \"the whole extent of the unsafety\"",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**A failure has a typed, checked path**: `return E from f` returns E as the result of the innermost active call of `f`, unwinding the frames in between, and the whole-program checker verifies that every call of a function containing it lies inside a call of `f`, so nothing is uncaught at run time; the `exception` module packages the same machinery as `try` and `throw`",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Absence and found-or-not are in the type**: `T?` costs nothing and must be narrowed before use, and a two-outcome call returns a trailing `bool` as an ordinary value",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Nothing forces the decision to be recorded**: `qput(v);` as a statement ignores the answer the reference says a full queue returns, a trailing `ok` from `from_bytes` can be dropped with the empty array it came with, and a `thread_wait` that does not ask for a contained worker's abort message loses it",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No result type to compose**: The reference states there is no exception mechanism and no `Result` type, so a success-and-failure pair is destructured by statement and cannot be mapped, chained, or threaded through an expression as one value",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "caution",
+        "text": "**The abort path is a bug trap, not a channel**: `assert`, `abort`, a bounds check that survives analysis, division by zero, capacity overflow, and data-stack exhaustion end the program, appear in no signature, and are not catchable; a contained worker sends its message to whoever waits for it",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Threads share nothing**: A `thread_fn` and everything it calls are compiled as a separate program with its own data stacks and its own copies of the globals, so the language has no locks, no atomics, and no memory orderings, and there is no race for a detector to find",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Coordination is in the language**: Typed queues, one per value type, carry flat values by `memcpy` — `qput`, `qget`, `qpoll`, `qlimit` — with `qlimit` bounding how much a queue may hold and a full queue refusing work at once",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No function colouring**: There is no second function kind; `qget` blocks, so a plain function calls a plain function and a chain never has to change kind",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No task scope**: `thread_spawn` returns an id and `thread_wait` joins it by hand, so nothing guarantees that a block ends with the work it started finished, and workers still running when `main` returns are killed",
+        "mechanism": "K4"
+      },
+      {
+        "kind": "cost",
+        "text": "**A worker is an operating-system thread**: Each worker carries its own data stacks, and `--stacks` reports the cap the count puts on `hardware_threads()`, so the number of tasks a program may run at once is set by its data-stack budget rather than by a construct",
+        "mechanism": "K6"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Plain C out**: The compiler emits one C file for the whole program, which the machine's own C compiler builds, so the artifact runs wherever a C compiler and the Goose runtime object reach: Windows x64, Linux x64, and macOS on Apple silicon and Intel, with the in-process TinyCC backend running a program with no build step at all. There is no target beyond native C, and the WebAssembly design is a proposal, not implemented",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Plain C in**: `extern fn` binds a Goose signature to a C symbol, `extern \"lib\" { … }` binds functions from a shared library by name at program start with no C to compile, and `export fn` makes a Goose function callable from C, so Goose sits inside a C host as easily as a C library sits inside Goose",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No vendor**: Language, compiler, specification, standard library, samples, and benchmarks are one Apache-2.0 repository with public issues, discussions, and CI, and the graphics, audio, physics, and UI packages are four packages in two repositories — graphics, audio, and UI share one — fetched at pinned tags",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Systems-shaped, general-purpose**: The constructs are built around data layout and lifetime discipline. The parts a poor domain fit (`P4`) charges for are present: nominal structs and enums, generics, namespaced modules, slices, a typed failure path, file access and the process environment in `os` (`read_file`, `write_file_atomic`, `list_dir`, `args`, `env`), and JSON, CSV, and regex parsers, so the samples run from a JSON parser to a spinning cube to a to-do list in windows of widgets. Subprocesses and networking are not in the v1 library and arrive through `extern fn`, the same boundary that reaches any C library. The subtractions the Learning section lists are deliberate. Three have stand-ins: a block for a closure, an untyped parameter for a function pointer, and the ADT tag with case functions for dynamic dispatch. An array of growable values and separate compilation have none, and the trade-offs below carry them. The artifact is C source that MSVC, clang, and gcc all build, so no single vendor's platform owns the deployment (`P1`), the emitted C and the emitted runtime are what a program falls back on if the compiler stops (`P2`), and the artifact has no platform of its own that could stop developing (`P3`)",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Ahead of time, with no collector and no warm-up**: The program is compiled to C and linked by the platform's compiler, and the in-process backend compiles and runs a program inside the compiler, so no tiering and no pause sits between the source and the measured time",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The cost is in the source**: Function values are compile-time entities, so `xs.filter() { it > 0 }` compiles to the loop it looks like and builds its result straight into its destination, and a variable-mode enum gives each value its own variant's size rather than the largest one's",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Bounds checks are reported, and can be contracted away**: Every index and index-type conversion is checked and the compiler removes what it can prove, `--bce-lines` lists what survives per line, and `checkfree fn` rejects a kernel if any check remains",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The margins are the project's own measurements**: The suite reports 1.24x and 1.26x the speed of hand-optimized C++ and 1.13x and 1.19x the best safe Rust row under MSVC and clang, on 1.32x and 1.25x less peak memory, as geometric means over sixteen benchmarks on one machine, whole-process, with the losing rows published beside them, and with speed and memory each selected from a different Goose implementation, so the pair is not the profile of one program [@gooseBench]",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A two-month ecosystem**: The repository's first commit is dated 28 August 2026, the standard library is sixteen modules written in Goose, the sample set is thirty-one programs, and the blessed package set is four packages in the two repositories the project chooses, so a team is likelier to write a library than to find one, and the hiring market does not exist yet",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Dependencies are declared and fetched**: `import name from \"owner/repo@v1\"` names a git repository at a tag or a commit, and the compiler fetches it and builds it once into the user's cache; the root-file rule and what a ref pins are in Reproducibility",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**One toolchain, not several**: The compiler, the language server, the package fetch, the benchmark suite, and the test runners ship together, and `goose toolchain` says which C compiler a build will use",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No registry, no third-party supply, no ecosystem around the tooling**: Packages arrive from git repositories, the community is a Discord channel and a GitHub discussion board, and editor support is a VS Code extension plus configuration notes for Neovim, Helix, and Emacs",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Nothing is settled**: The project states \"Goose is new\", keeps its open items in the specification's Appendix B, and lists five deliberate omissions — moves for resizable values, more than one resizable per struct, labeled `break`, namespace privacy, and more OS and library access — so a program follows the release rather than the other way round",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The runtime object is version-locked**: the runtime is compiled once per C compiler and a program built by another version of the compiler fails to link against it, so a toolchain upgrade is a coordinated rebuild — a cost of the whole-program model rather than a change in what the language means",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Four releases in one week**: v2026.0 to v2026.3, dated 14 to 21 October 2026, the releases are calendar-numbered, and there is no long-support line and no 1.0 designation to aim at",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No default drift is recorded for this release**: The analysis found no change from v2026.0 to v2026.3 that moves the behaviour of code which never named the value it relies on",
+        "mechanism": "V5"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**Systems work first, games and tools with it**: The design targets layout, speed, and bounded memory, and the graphics, audio, physics, and UI modules, the samples' spinning cube and raining boxes, and the author's own game-engine lineage make it a game and tools language as well",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Adoption is unproven**: No production deployment is named, so a team adopting Goose adopts a language whose use in anger is undocumented, and the benchmarks are microbenchmarks the project wrote",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**A new model, not a dialect**: A C or Rust practitioner must learn that every dynamic value lives on a compiler-assigned data stack, that the array kind (`T[>..]`, `T[>..<]`, `T[..k]`, `T[varint]`) decides what growth does to references, that a reference's root is its owner, and that `return … from` unwinds frames by name; the language's own cost section opens with \"You think about where data lives\"",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Documentation unusually complete for a new language**: a tutorial, a topic-by-topic reference with a compiling example for each feature, a specification with the exact rules, the sixteen standard-library modules, thirty-one samples, implementation and testing notes, and a benchmark report that publishes its losses",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The model is traceable to known designs**: The project's own survey ranks the nearest memory models — ML Kit region inference, GNU obstacks, ParaSail, Cyclone's LIFO arenas, OxCaml's stack allocation — and states that no prior language or paper combines the ingredients [@goosePriorArt]",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The limits are the language's, not a style guide's**: No escaping closure, no function pointer, no dynamic dispatch beyond ADT tags, no array of growable values, no separate compilation. A program that needs one of those does not get it in Goose",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**C and Rust familiar**: Braces, a conventional keyword set, and Rust's operator precedence, with postfix type syntax (`u8[>..]`, `Node&<u32>?`, `Shape..`) that reads outward from the base type",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Terse**: An un-annotated declaration takes its initializer's type, `x.f(a)` is exactly `f(x, a)`, a block stands in for a closure in a higher-order call, and `.=` binds a reference where `=` copies",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The notation carries the memory model**: `T[>..]` against `T[>..<]` against `T[..k]`, `.=` against `=`, and `T&<u32 in pool>` each state where a value lives and what happens to its references, so a reader who does not know the model cannot read the type",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**Assertion, typecheck-only, and a checking build**: `assert` aborts naming its source line and narrows an optional, `goose check` typechecks without generating code, `--debug` turns on the overflow, range, and tag checks, and `--bce-lines` reports the bounds checks that survived",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The project's own suite is broad**: CI runs a fixture suite on Windows, macOS, and Linux with a sanitizer job, and the fixtures include a typecheck-error section that checks 1,668 expected typecheck diagnostics",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Answers while typing**: `goose lsp` gives diagnostics, hover, go-to-definition, completion, rename, and symbols, shipped in the compiler and wired into a VS Code extension",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No test harness beyond the assertion**: the language ships `assert` and the toolchain a typecheck, which is the whole of the provision, so `G1` is not charged, and there is nothing more: no test annotation, no runner for a program, no coverage tool for a program, and the project's own suite is a Python script outside the language",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Memory safety with zero annotations**: References carry no pointer arithmetic, no casts, and no way to dangle; every index and index-type conversion is bounds-checked; the lifetime rules reject a reference that outlives its owner; and there is no `unsafe` to enter",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**A hostile file is a `false`**: `from_bytes` verifies the framing, every tag, every length, canonical varints, and every link landing on an element start before the bytes become a value, so a corrupt image yields `false` and an empty array rather than a wild reference",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**No text-to-code facility**: There is no `eval` in the language, `embed_file` reads bytes at compile time, and the C boundary takes typed values, not source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A reused pool slot is a type-safe information path**: A slot handed back to a `reusable` pool and still named reads whatever its next owner wrote there, which is a logic bug rather than memory corruption, and exactly the shape an information leak takes in a language that cannot corrupt memory",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The safety is a young implementation's**: The compiler is about thirty thousand lines of C++, public only since 28 August 2026 and tagged only since 14 October, and its safety properties are the specification's, enforced by a test suite the project wrote, not by an external proof or audit",
+        "mechanism": null
+      }
+    ],
+    "governance": [
+      {
+        "kind": "enabling",
+        "text": "**No vendor, and an open definition**: The language, compiler, specification, and standard library are one Apache-2.0 repository, the specification is the file the implementation is written against, and issues, discussions, and pull requests are public, so nothing about the program's future is negotiated with a commercial owner",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The specification is public and complete enough to implement from**: It states the size classes, the construction and lifetime rules, the shrink rules, and the representation, and the design notes state the reasoning, so a third party is not reduced to reverse-engineering one implementation's behaviour",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "caution",
+        "text": "**The exposure is a bus factor of one**: The authors section names one language designer and one implementer, and no foundation, steering body, committee, or second maintainer is recorded, so the openness of the artifacts is what continuity rests on today",
+        "mechanism": null
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**A C interface exists in process**: the language binds C functions by symbol, binds whole shared libraries by name at start-up, and exports Goose functions to a C host, so a C library is reached without a process boundary and without a binding generator (the mechanism is absent; Platform has the detail)",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "caution",
+        "text": "**No target beyond native C**: a browser, sandbox, or WebAssembly deployment is not available, because the data-stack model needs reserved address space and the WebAssembly design is a proposal, not implemented",
+        "mechanism": "Y10"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**Dependencies are declared in one place and held to a ref**: only the root file declares a package, a library's own import line is a requirement the root must satisfy, and a git source needs a ref, so a program's dependency graph is flat and one version of each package exists in a program; a tag can move, so the pin is only as good as the ref it names",
+        "mechanism": "Y2"
+      },
+      {
+        "kind": "caution",
+        "text": "**The toolchain is chosen per machine, not per project**: `~/.goose/config` names a C compiler for the user, and the repository carries no per-project toolchain file, so the dependency graph is fixed by the ref the root file names, and nothing in the project names the Goose compiler's own version, which the four-releases-in-one-week cadence in Evolution is still moving",
+        "mechanism": "Y14"
+      },
+      {
+        "kind": "cost",
+        "text": "**Two builds do not produce the same bytes**: the program's C is compiled by whatever the machine provides, the runtime object is built once per C compiler into a per-user cache, and packages are fetched at build time, so the artifact is tied to the machine that made it",
+        "mechanism": "Y1"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "enabling",
+        "text": "**There is no flat package name space to squat**: a package is named by its repository (`owner/repo@ref`), so no registry holds a first-come name a dependency can be redirected through",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "cost",
+        "text": "**A fetched package carries no statement of who built it**: git gives source and a ref, and the build happens locally, so nothing attests the artifact's origin, and a bare hash of a repository's tag is not provenance",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed joins a vulnerability to a version**: OSV and the GitHub Advisory Database cover npm, PyPI, Maven, NuGet, RubyGems, Packagist, Cargo, Go, Hex, Pub, and Swift, and none of them covers Goose packages, because the language has no registry — the package documentation says plainly, \"There is no registry to register with.\" — so each team tracks the graph it declares in its root file",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "caution",
+        "text": "**A failure leaves no trace**: the standard library states it plainly — \"There is no stack-trace facility\" — so an abort names its own source line and nothing above it, and a contained worker sends its message only to the first waiter that asks",
+        "mechanism": "Y15"
+      },
+      {
+        "kind": "cost",
+        "text": "**Diagnostics are free text**: `print` and `str` write bytes, and the standard library defines no structured log record, so a question about a running system is answered by parsing text",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "caution",
+        "text": "**No instrumentation contract**: with no OpenTelemetry implementation and no standard format, a Goose service built on a C networking library through `extern fn` agrees with its neighbours on a format the project invents",
+        "mechanism": "Y5"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The loop is short**: `goose file.goose` compiles and runs a program inside the compiler with no build step, `goose check` typechecks alone, the whole program is compiled in one invocation, so no per-file build can fall out of step, and `goose lsp` answers as the author types",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "caution",
+        "text": "**No debugger in the distribution**: the toolchain ships checks, a language server, and `--debug` builds with debug information for gdb and lldb, and no source-level debugger of its own, so the interactive stepping step is external",
+        "mechanism": "Y13"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The speed is bought with one storage model**: the data stacks are the only dynamic storage the language offers, and their count is a compile-time constant, so the layout gains arrive with the obligation to decide where a value lives and how long its scope lasts, and with a limit on how many growable values may be live at once",
+    "**Growable data never moves, at the price of recursion**: no growable local can be kept across a recursive call, so scratch ends before the call and what must outlive it is passed in as a pool, and that is what buys references that stay valid and a free that is one store",
+    "**An array of variable-size elements iterates and does not index**: Inline nesting is bought at the price of random access, and the workaround is a second array of references kept beside it as an index",
+    "**No escaping closures, no function pointers, no dynamic dispatch beyond ADT tags, whole-program compilation only**: the zero-overhead guarantee is paid for by removing the runtime's flexibility",
+    "**An enum's layout is chosen per container, and neither mode can change in place**: fixed mode is indexable and overwritable at the largest variant's size, variable mode costs each value only its own variant's size and cannot be rewritten"
+  ],
+  "verdict": "Goose takes the entire memory dimension of the systems comparison away at once: there is no heap, no allocator, no collector, and no manual free, so the Memory dimension carries no charge at all, and memory-unsafety (`Q1`) is absent with it, while `M3`'s release tied to scope is not something the language added but its only reclamation rule. Ownership is inferred — the root of every reference is the variable that owns its target — and a reference that would outlive its owner is a compile error with no lifetime syntax and no `unsafe`. Construction is never tied to a reservation site, because the in-place guarantee builds a value at its final destination. Main strengths: memory safety carries no annotations, the artifact is as portable as C on the platforms the runtime object is built for, and threads share no memory, so there is no locking discipline to keep and no race to detect. Main weaknesses: the module boundary has no privacy, so an imported package exposes every declaration it holds; failures travel as pairs that nothing forces a caller to inspect, and there is no result type to compose; a worker is an operating-system thread, and how many may run at once is set by the program's data-stack budget; and the ecosystem is two months old, with no registry, no provenance, no structured logging, and no long-support line.",
+  "verdictExtra": [
+    "*This page assesses Goose (v2026.3, released 21 October 2026), the family's only assessed snapshot: the repository's first public commit is dated 28 August 2026, and the release is the fourth calendar tag of October 2026. The numbers on this page are the model's arithmetic over the verdicts recorded above, assessed against the specification, reference, and benchmark documents at that release.*"
+  ],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "No independent measurement: the language energy and time benchmarks the model cites do not include Goose. The project's own suite (sixteen benchmarks, one machine, whole-process wall clock, losses published, speed and memory chosen from different implementations) reports 1.24–1.26x the speed of hand-optimized C++ and 1.13–1.19x the best safe Rust row, on 1.32x and 1.25x less peak memory [@gooseBench]."
+    },
+    "ai-readiness": {
+      "kind": "cost",
+      "text": "Minimal training data: the family is two months old at the analysis date, so a coding model's exposure is close to nothing and it writes the language from the reference and the samples. The README documents the project's own build route — the compiler was produced almost entirely by a coding model from the author's design, written in C++ — which is evidence about how the toolchain got made, not about a model writing Goose [@gooseRepo]."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems: a team would have to qualify the toolchain itself, and the compiler behind it has been public only since 28 August 2026, with tagged releases only since 14 October."
+    }
+  },
+  "tags": [
+    "use:systems",
+    "use:desktop",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:concurrent",
+    "platform:native",
+    "lifecycle:current",
+    "memory:ownership",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:systems": {
+      "source": "gooseDocs"
+    },
+    "use:desktop": {
+      "source": "gooseDocs"
+    }
+  }
+}

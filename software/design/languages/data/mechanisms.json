@@ -1970,8 +1970,8 @@
     {
       "id": "Y1",
       "dimension": "reproducibility",
-      "weight": 8,
-      "severity": "Moderate",
+      "weight": 15,
+      "severity": "High",
       "label": "build not reproducible",
       "title": "Build not reproducible",
       "anchor": "y1",
@@ -2030,8 +2030,8 @@
     {
       "id": "Y3",
       "dimension": "supplychain",
-      "weight": 8,
-      "severity": "Moderate",
+      "weight": 15,
+      "severity": "High",
       "label": "no signed provenance",
       "title": "No signed provenance for published packages",
       "anchor": "y3",
@@ -2142,8 +2142,8 @@
     {
       "id": "Y7",
       "dimension": "feedback",
-      "weight": 8,
-      "severity": "Moderate",
+      "weight": 15,
+      "severity": "High",
       "label": "slow build",
       "title": "Slow or non-incremental build",
       "anchor": "y7",
@@ -2250,8 +2250,8 @@
     {
       "id": "Y11",
       "dimension": "governance",
-      "weight": 8,
-      "severity": "Moderate",
+      "weight": 15,
+      "severity": "High",
       "label": "single-vendor governance",
       "title": "Single-vendor governance",
       "anchor": "y11",
@@ -2278,8 +2278,8 @@
     {
       "id": "Y12",
       "dimension": "governance",
-      "weight": 8,
-      "severity": "Moderate",
+      "weight": 15,
+      "severity": "High",
       "label": "closed specification",
       "title": "Closed specification",
       "anchor": "y12",
@@ -2300,6 +2300,134 @@
       "observation": {
         "kind": "caution",
         "text": "The specification is not public."
+      },
+      "origin": "context"
+    },
+    {
+      "id": "Y13",
+      "dimension": "feedback",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no bundled debugger",
+      "title": "No debugger in the standard toolchain",
+      "anchor": "y13",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language's official toolchain ships no source-level debugger, so a failing run is examined by reading the source and adding print statements. The procedure for inspecting a running program is a shared resource held outside the distribution, and each team assembles it for itself."
+        },
+        {
+          "kind": "coupling",
+          "text": "Diagnosis coupling: every failure must be reconstructed from the source and the logs, because the toolchain cannot stop the program and show its state. The team agrees with whichever external debugger it installs, and no file in the repository records that agreement."
+        },
+        {
+          "kind": "example",
+          "text": "Python ships `pdb`, Java ships `jdb`, and Ruby bundles `debug`; Go ships no debugger and points to delve, C and C++ leave it to `gdb` or `lldb`, and PHP leaves it to Xdebug."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence is the official distribution.** A commercial IDE with a debugger does not lift the charge: the criterion asks what the language itself installs, because that is what every new team starts from."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "The standard toolchain ships no debugger."
+      },
+      "origin": "context"
+    },
+    {
+      "id": "Y14",
+      "dimension": "reproducibility",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no toolchain version pin",
+      "title": "No toolchain version pin in the official distribution",
+      "anchor": "y14",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The official distribution offers no way to record the language's own version in the repository, so a repeatable environment needs a third-party version manager or a container image. The compiler version is a shared resource that no file in the project names."
+        },
+        {
+          "kind": "coupling",
+          "text": "Toolchain-version coupling: every machine and every build agent agree on a compiler version that the repository never states, so the agreement is rebuilt by memory or hidden inside a container image."
+        },
+        {
+          "kind": "example",
+          "text": "Rust records the toolchain in `rust-toolchain.toml` through rustup, Go records it in the `toolchain` directive of `go.mod`, .NET records it in `global.json`, and Lean records it in `lean-toolchain`; Python, Ruby, Node.js, and Java leave it to pyenv, rbenv, nvm, and SDKMAN."
+        },
+        {
+          "kind": "note",
+          "text": "**A container image is not a pin.** The dependency set may be pinned while the compiler that built it is not, and the repository still names no version that a reader can check."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "The distribution records no per-project toolchain version."
+      },
+      "origin": "context"
+    },
+    {
+      "id": "Y15",
+      "dimension": "observability",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no post-mortem diagnostics",
+      "title": "No crash or post-mortem diagnostics by default",
+      "anchor": "y15",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A failed run leaves no stack trace with source locations and no post-mortem artifact, so a failure in production cannot be reconstructed after the fact. The state at the moment of failure is a shared resource that the runtime discards."
+        },
+        {
+          "kind": "coupling",
+          "text": "Post-mortem coupling: the incident must be reproduced before it can be understood, because the runtime keeps no record of where the program stopped. Reproduction depends on an environment that has already changed."
+        },
+        {
+          "kind": "example",
+          "text": "Python, Java, Go, C#, JavaScript, and Ruby print a stack trace with source locations on an unhandled failure; C and C++ print nothing without a debugger and an enabled core dump; Rust prints a backtrace only when `RUST_BACKTRACE` is set, and OCaml only when `OCAMLRUNPARAM=b` is set."
+        },
+        {
+          "kind": "note",
+          "text": "**A trace that only a special build produces is not present.** The criterion asks what an ordinary build does when it fails, because that is the build that runs in production."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "A failure leaves no stack trace or post-mortem artifact."
+      },
+      "origin": "runtime"
+    },
+    {
+      "id": "Y16",
+      "dimension": "supplychain",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no advisory feed",
+      "title": "No vulnerability advisory feed for dependencies",
+      "anchor": "y16",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The ecosystem maintains no advisory database joined to package versions, so a known vulnerability in a dependency is found by reading release notes or by a scanner that guesses. The vulnerability state of the dependency set is a shared resource that no feed records."
+        },
+        {
+          "kind": "coupling",
+          "text": "Advisory coupling: every consumer must track the vulnerability state of its own dependency graph, because no shared feed joins an advisory to the versions it affects. Each team builds the same map, and the maps disagree."
+        },
+        {
+          "kind": "example",
+          "text": "OSV and the GitHub Advisory Database cover npm, PyPI, Maven, NuGet, RubyGems, Packagist, Cargo, Go, Hex, Pub, and Swift; CPAN, Hackage, CRAN, the Julia General registry, LuaRocks, and dub have no equivalent maintained feed."
+        },
+        {
+          "kind": "note",
+          "text": "**A scanner without an advisory database is not a feed.** A tool that reports what a registry's metadata implies does not record a vulnerability that a maintainer disclosed somewhere else."
+        }
+      ],
+      "observation": {
+        "kind": "caution",
+        "text": "No advisory feed joins vulnerabilities to package versions."
       },
       "origin": "context"
     }
