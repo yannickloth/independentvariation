@@ -1736,6 +1736,46 @@
       ]
     },
     {
+      "id": "V7",
+      "dimension": "evolution",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "build-variant state space",
+      "title": "The Shipped Binary Is a Configuration Nobody Tested",
+      "anchor": "v7",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The toolchain ships a documented source-level facility that selects which source reaches the compiled artifact: a preprocessor's #ifdef tree, a build constraint, a reader conditional, a compile-time when, a code-generating %IF. The flag set is a shared resource that every guarded part of the program must agree with, and no source fully names it. A program is no longer one program: it is a space of selections, and the binary a maintainer ships is one selection. The states nobody builds are nobody's problem until a change touches a guard — then the agreement has to be reconstructed for every combination, and tested for the one that ships."
+        },
+        {
+          "kind": "coupling",
+          "text": "Compile-time-configuration coupling: each guard is an agreement between the source and a flag set that lives in project files, command lines, and toolchain defaults, not in the source the reader sees. The agreement multiplies: n independent flags name 2^n programs, and the suite runs one of them. A change to shared code must respect every selection that ships, and the untested selections compile wrong in silence — the failure is a build that no one ran, not a test that no one passed."
+        },
+        {
+          "kind": "example",
+          "text": "The C preprocessor and its #ifdef tree; Go's //go:build constraints; Rust's cfg; Common Lisp's #+/#- reader conditionals; Racket's read-conditional barbs; Clojure's reader conditionals; Delphi's {$IFDEF}; Erlang's -ifdef; Oracle PL/SQL's $IF/$THEN; SAS's macro %IF; X++'s #if; GHC's -XCPP; Nim's when defined; Zig's build options feeding inline-if — the release build the consumer runs compiles a program the debug suite never saw."
+        },
+        {
+          "kind": "note",
+          "text": "**`V1` prices the language moving; this prices the flags multiplying.** `V1` charges a release changing under the code, so consumers revisit source when the language moves. This mechanism charges one release's source meaning different programs under different flags. Both agreements run along time; the first is against a release, this one against a configuration."
+        },
+        {
+          "kind": "note",
+          "text": "**`G1` prices the missing tooling; this prices the space the tooling faces.** `G1` charges the absence of a test framework, assertion, or runner. This mechanism charges the number of programs a suite must face. A strong suite against ten flag states still pays ten states; a weak suite pays them worse, and the two charges are separate facts."
+        },
+        {
+          "kind": "note",
+          "text": "**The charge is the state space, not the facility's usefulness.** Conditional compilation exists to solve portability problems, and the model prices no feature. What it prices is the agreement the facility forces: every guarded file must agree with every combination that ships, the flag set lives outside the source, and the untested selections fail as silent builds. A language with no source-level selection pays none of this — Java, Kotlin, Python, Ruby, PHP, JavaScript, and the rest of the family carry no such facility, and the absence earns the absence of the mechanism, nothing more."
+        },
+        {
+          "kind": "note",
+          "text": "**Context, not language: the toolchain ships it.** A preprocessor, a build constraint, a reader conditional, a compile-time evaluation hook — the facility is a toolchain fact, decided by the vendor, so the tag is context: the remedy is outside both code and language, in what the toolchain chooses to ship. Each charged page names the facility in the observation beside the mark."
+        }
+      ],
+      "origin": "context"
+    },
+    {
       "id": "D1",
       "dimension": "domain",
       "weight": 15,
