@@ -652,6 +652,82 @@
       "origin": "language"
     },
     {
+      "id": "C5",
+      "dimension": "construction",
+      "weight": 4,
+      "severity": "Minor",
+      "label": "unpinned collection order",
+      "title": "Iteration Order Is the Data Structure's, Not the Source's",
+      "anchor": "c5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The key-value container the source uses iterates in an order the source does not state: the specification leaves map iteration unspecified, and the default type in the shipped library is the unordered one. Code that assembles output, report text, a serialized payload, or a join order from an iteration is agreeing with a hash function. Go and Rust randomize the order between runs on purpose, Perl randomizes it to catch the agreement, Scala switches from insertion order to hashed order when the fifth entry arrives — documented, and silent."
+        },
+        {
+          "kind": "coupling",
+          "text": "Order coupling at iteration sites: the sequence of a traversal is a shared resource between the container's internals and every consumer of its order. The source cannot pin it, the type does not name it, and a change to a key set, a capacity, or a seed moves the output of a program nobody changed. The fix is a discipline — choose the ordered container, sort the keys, never rely on the order — and a discipline is what the model prices as present."
+        },
+        {
+          "kind": "example",
+          "text": "The Java specification states the iteration order of HashMap need not be constant; the Go specification states map iteration receives no order guarantee, and the runtime randomizes the seed each run; Rust's HashMap documents the per-process random seed; Perl's documentation states the hash order is the implementation's and varies; Lua's reference says pairs() walks in an order 'decided by the internal data structures'; the CLHS states hash iteration is unspecified; Swift documents Dictionary order as 'not specified'; Microsoft documents Dictionary order as not to be relied on."
+        },
+        {
+          "kind": "note",
+          "text": "**`V5` prices a default that drifts; this prices an order the source never owned.** `V5` charges a build-time default changing between releases; `C5` charges a run-time order not pinned in the source. The two combine in the story the model records for the Go gob: the order of a map the source serialized changes between runs, so an encoding built on iteration order is unstable by the language's design."
+        },
+        {
+          "kind": "note",
+          "text": "**`Y1` prices bytes, this prices sequence.** `Y1` charges a build that is not byte-reproducible. `C5` charges the run-time sequence a program cannot pin. An artifact built once from pinned inputs can still print its map in three orders on three runs."
+        },
+        {
+          "kind": "note",
+          "text": "**The exemption is a specified order, not a discipline.** Insertion-order-guaranteed defaults are exempt: Python's dict (specified since 3.7), Ruby's Hash, PHP's array, Kotlin's mapOf, Dart's Map, Elixir's and Erlang's maps (key term order), Haskell's Map (key order), Crystal's Hash, Tcl's dicts, JavaScript's object key order (ES specification) and Map (insertion order). Where the unordered container is the opt-in and the ordered type is the default, the page records no charge. Where the unordered type is the default and the ordered type the opt-in, the mechanism is present, as the mitigation rule prices it."
+        }
+      ],
+      "origin": "language"
+    },
+    {
+      "id": "C6",
+      "dimension": "construction",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "aliasing by default",
+      "title": "One Value, Many Names, No Declaration",
+      "anchor": "c6",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A value is reachable through more than one name, and the declaration names no alias set. A parameter, a field, a closure, and a return can all reach the same object, and the write that matters is the one through the name the reader was not watching. The code shows the names; it does not show the sharing. In the languages where every object moves by reference, sharing is the default condition of data, not a construct a programmer reaches for."
+        },
+        {
+          "kind": "coupling",
+          "text": "Alias coupling: every reader of a mutated value must agree on which of its names are aliases of one storage, and the type system records the names, not the edges. The agreement is per mutation site — invisible, uncounted, and reconstructed by reading the whole reachability set — so a change at one reader must assume the writer list the declaration never stated. Where the language names the borrow, the list is in the type; where it does not, the list is folklore."
+        },
+        {
+          "kind": "example",
+          "text": "In Java every object variable is a reference, and an array's buffer is shared by assignment (a defensive copy is a discipline, not a type). In C, pointers alias freely and restrict is an opt-in promise the compiler does not check. Fortran's argument association passes the caller's storage to the callee. COBOL CALL USING passes parameter addresses. VB6 parameters are ByRef by default. Go's slices and maps share backing structures — append to a slice can write a buffer another name reads. Against these: Rust's &mut names the exclusive path; Pascal's VAR names the alias; ABAP's BY VALUE and BY REFERENCE are written in the declaration; IEC 61131-3 names REF_TO; SPARK proves flow."
+        },
+        {
+          "kind": "note",
+          "text": "**`M4` prices the owner; this prices the visible write.** `M4` charges the missing record of who frees storage — a lifetime fact, removed by a collector. `C6` charges the missing record of which names reach one value — a mutation-visibility fact, which a collector does not remove: a garbage-collected Java program needs no owner story and keeps the alias story."
+        },
+        {
+          "kind": "note",
+          "text": "**`K2` prices the thread crossing; this prices the sequential pair.** `K2` charges concurrent sharing by default. `C6` charges that a write through one name is visible through another on one thread. A language can be `K2`-clean and `C6`-charged (Clojure's immutable data with explicit refs), and the two are charged on different facts."
+        },
+        {
+          "kind": "note",
+          "text": "**`C1` prices the global; this prices the pair.** `C1` charges mutable state any module can reach. `C6` charges the local graph: names in one program unit reaching one value with no declared alias set. Both are agreements over who writes what; the scopes differ."
+        },
+        {
+          "kind": "note",
+          "text": "**The exemption is named semantics, not immutability of style.** Immutable-by-default languages (Haskell, Erlang, Elixir, Clojure's persistent data, PureScript, Gleam, Unison, Rocq, Lean) reach no mutable sharing: the harm has no site. Value-semantics languages (PHP's arrays, R and MATLAB copy-on-modify, Tcl's value copies, ABAP's named BY VALUE/BY REFERENCE, Pascal's named VAR, Rust's borrows, IEC's REF_TO, SPARK's contracts) name the alias where the alias is allowed, and the naming settles the agreement. The mitigation rule prices the default code: Java's clone, C#'s readonly, Kotlin's val, a team's copy convention — all disciplines on a shared default. Assembly carries no charge here: it makes no binding declarations for the sharing to appear in — the same 'no typed promises' boundary that exempts it from `M6`."
+        }
+      ],
+      "origin": "language"
+    },
+    {
       "id": "M1",
       "dimension": "memory",
       "weight": 15,
@@ -954,6 +1030,42 @@
         }
       ],
       "origin": "language"
+    },
+    {
+      "id": "Er5",
+      "dimension": "error",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no isolation unit for a fault",
+      "title": "One Fault Ends the Program",
+      "anchor": "er5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "A fault has no declared survivable unit. The language raises and catches inside one frame chain; the runtime publishes no supervision unit whose failure the program survives. An uncaught fault in a thread takes the process with it (the .NET and C++ and OCaml documentation says so in plain terms), a Go panic unwinds every goroutine, a Swift trap aborts, a PLC task crash is the runtime's problem, an ABEND ends the program. The maintainer has no named recoverable boundary: the choices are a process restart set up by the deployment, or a catch in a frame that is already unwound."
+        },
+        {
+          "kind": "coupling",
+          "text": "Fault-boundary coupling: the agreement between a unit of work and its survivability is held nowhere in the program. Recovery discipline — wrap the worker loop, restart the service, keep the shared state recoverable — is an untyped convention across the codebase, and every failure mode the convention missed is a full restart. Where the runtime publishes a supervision unit the program declares, the agreement moves into a declared structure, and the charge lifts."
+        },
+        {
+          "kind": "example",
+          "text": "The .NET runtime documents that an unhandled exception terminates the process. C++ documents std::terminate for a thread with an uncaught exception. The Go specification: an unrecovered panic terminates the program. Swift traps abort. OCaml, Nim, Crystal, and D document the thread-wide end. Fortran STOPs; COBOL abends. Against these: the BEAM publishes the supervision tree — a process fault restarts the process under a declared strategy; the JVM documents thread death as the end of the thread; Python's threading documentation ends the thread, not the process; Ada's RM 11.1 terminates the task that raises and the partition survives; Common Lisp's restarts are first-class recovery points; JavaScript publishes Workers."
+        },
+        {
+          "kind": "note",
+          "text": "**`Er1` prices the missing structured path; this prices the missing boundary.** `Er1` charges a language with no structured failure mechanism at all. A language can ship exceptions (Er1 absent) and publish no survivable unit — C++, PHP, the .NET family — and a language can ship a unit with a blunt path. The two facts are separate: raising and surviving are different agreements."
+        },
+        {
+          "kind": "note",
+          "text": "**`K4` prices the concurrency scope; this prices fault containment.** `K4` charges the lack of structured concurrent scoping. `Er5` charges that a fault in a unit of work is not contained by a unit the runtime publishes. BEAM languages carry both answers (supervision is the published unit); a thread-isolated runtime (JVM, Python) answers containment without publishing supervision; a process-abort runtime (Go, Swift, .NET) carries the charge."
+        },
+        {
+          "kind": "note",
+          "text": "**Runtime, not language.** The tag says the executor decides: which unit survives a fault is the runtime's published contract, not the source text. The published exemptions the model honors: BEAM supervision trees (Erlang, Elixir, Gleam), JVM thread death (Java family), Python's threading contract, Ada task termination (RM 11.1), Julia's failed tasks, Common Lisp's restarts, JavaScript Workers, Lua coroutines, Tcl interpreters, SQL transactions, EVM transactions, PLC tasks, R's session, SAS's step, ABAP's internal session, Scratch's script, FoxPro's ON ERROR, VB6's On Error. The declaration-shaped exemption is the program naming the unit; a convention is not a unit."
+        }
+      ],
+      "origin": "runtime"
     },
     {
       "id": "K1",
@@ -2505,6 +2617,46 @@
         "kind": "caution",
         "text": "The specification is not public."
       },
+      "origin": "context"
+    },
+    {
+      "id": "Y17",
+      "dimension": "governance",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no conformance mechanism",
+      "title": "Correctness Is What the Dominant Implementation Does",
+      "anchor": "y17",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language's meaning lives in the behavior of the dominant implementation. The vendor's documentation describes what the shipped toolchain does; implementation-defined corners are not enumerated as a list; and no published conformance suite exists for an independent implementation to run. A program's correctness is then a toolchain property, not a language property: the only oracle of what the code means is the compiler everyone already ships."
+        },
+        {
+          "kind": "coupling",
+          "text": "Conformance coupling: every consumer of the language's semantics depends on one implementation's choices, documented after the fact. The agreement is between the program and a toolchain nobody can test independently, so a second implementation is a compatibility gamble, a bug in the dominant one becomes the language's behavior, and the code has no external standard to return to."
+        },
+        {
+          "kind": "example",
+          "text": "The C standard lists its implementation-defined behaviors (J.2) and the NCAR suite runs against independent compilers, so C is not charged. Java marks implementation-defined corners in the JLS, and the conformance kit runs against every licensed implementation. Haskell publishes a test suite that independent implementations run. Against these: Perl, Clojure, Erlang, and Elixir are documented as the behavior of their implementations, and no published conformance suite exists; C++ lists its implementation-defined behavior in the standard and the committee publishes no suite; MATLAB, R, Julia, SAS, ABAP, X++, Scratch, and GML document the semantics of the product the vendor ships."
+        },
+        {
+          "kind": "note",
+          "text": "**`Y12` prices the closed specification; this prices the open one with no checkable core.** `Y12` charges a specification that is not public. This mechanism charges a public document whose semantics rest on the dominant implementation, with no enumerated implementation-defined list and no published conformance suite for an independent implementation to run. Both are governance facts; the first closes the document, this one leaves the oracle a single toolchain."
+        },
+        {
+          "kind": "note",
+          "text": "**`V4` prices the standard moving glacially; this prices no standard testable at all.** A language can have a published standard with a slow committee (`V4`) and still ship a conformance suite — C does. A language can have no committee at all and a published suite — JavaScript ships Test262. The two facts are independent, and this mechanism charges only the second absence."
+        },
+        {
+          "kind": "note",
+          "text": "**A development suite is not a conformance suite.** A repository's tests validate the reference implementation's own behavior; they are run by maintainers, not by independent implementations, and they do not settle the unspecified corners. The mechanism charges when no published suite exists for an independent implementation to run against the language's semantics. The published suites that settle it: Test262 (JavaScript), the TCK (Java), ACVS (Ada), the NIST suites (C, COBOL, SQL, Fortran-77), the R6RS and ANSI-CL test suites, the Haskell Test Suite, the Go suite that gccgo runs, the CLI conformance suite behind C# and VB.NET."
+        },
+        {
+          "kind": "note",
+          "text": "**Context, not language.** The tag says where the remedy lives: the vendor's governance of its own specification, not the programmer's code. A language family inheriting a parent's conformance mechanism inherits this verdict from the parent: the JVM languages carry Java's answer, the .NET languages carry the CLI suite, the BEAM languages share the BEAM's status, and the shells follow POSIX's scope for sh-family shells and the absence of any standard for the rest."
+        }
+      ],
       "origin": "context"
     },
     {
