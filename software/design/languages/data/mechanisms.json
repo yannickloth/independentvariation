@@ -764,6 +764,46 @@
       "origin": "language"
     },
     {
+      "id": "M5",
+      "dimension": "memory",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "uninitialized reads",
+      "title": "A Read Can Return a Value Nobody Wrote",
+      "anchor": "m5",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Storage exists before the program fills it, and the language permits a read of the bytes nobody wrote. A local variable, a raw allocation, or an unfilled buffer arrives carrying whatever the previous user of that memory left, so the value a read returns is a property of the heap's and stack's history, which no reader of the code can see. The behavior is not a language error — it is undefined, which is the strongest way a language can decline to say."
+        },
+        {
+          "kind": "coupling",
+          "text": "Initialization coupling: every read must agree with a write that happened earlier on every path that reaches it, because the language keeps no record of the write. The agreement is invisible — no type, no signature, and no contract names it — so each reader reconstructs the history from the call graph, and one new path that skips the write silently reopens the question."
+        },
+        {
+          "kind": "example",
+          "text": "In C, reading an automatic object before initialization is undefined behaviour, and malloc returns bytes nobody wrote. Fortran locals without SAVE or an initializer are undefined at entry. COBOL data items without a VALUE clause hold undefined content at program start. Java gives every field a zero value and requires assignment before a local is read; C# has definite assignment; Zig zero-initializes and makes `undefined` an explicit opt-in."
+        },
+        {
+          "kind": "note",
+          "text": "**`Q1` prices the address, not the content.** `Q1` charges access outside an object's bounds and access to freed storage — both read memory the program never owned. This mechanism charges memory the program owns but has not written. The two are the classic pairing: an uninitialized length feeds an out-of-bounds write, and one violation causes the other, but each is a distinct fact and they are charged once each."
+        },
+        {
+          "kind": "note",
+          "text": "**`M1` prices the release, not the first write.** `M1` charges the decision about when storage is freed. This mechanism charges the state of the storage before the first assignment. A collector removes `M1` and leaves this one untouched: Java's collector never frees early and never leaves a read uninitialized."
+        },
+        {
+          "kind": "note",
+          "text": "**`M4` prices the owner, not the origin.** `M4` charges the missing record of who may free or mutate. This mechanism charges the missing write before the first read."
+        },
+        {
+          "kind": "note",
+          "text": "**The boundary is the written value, not the warning.** Managed runtimes that zero-initialize (the Java and .NET families, Go, Python, the dynamic languages) are not charged. Languages that initialize some types and leave others indeterminate (Delphi's managed strings against its plain records) are charged, and the page states the split. Languages that make `undefined` an explicit opt-in (Zig) are not charged, because the opt-out is named at every use site. A compiler warning is a mitigation and never an exemption."
+        }
+      ],
+      "origin": "language"
+    },
+    {
       "id": "Er1",
       "dimension": "error",
       "weight": 15,
@@ -1987,6 +2027,10 @@
         {
           "kind": "note",
           "text": "**`Q1` is the only criterion attached to a class of *vulnerability*.** The others price maintainability; this one prices an exploit, which is why it carries the top weight."
+        },
+        {
+          "kind": "note",
+          "text": "**The safe subset is the default, or the charge stands.** A language is charged when the violation is reachable in what a new project writes without a decision. Rust and Swift are not charged: the safe subset is the default, and the unsafe paths are explicit and delimited per site. C# is not charged: `unsafe` blocks are opt in. Zig is charged: the safety checks that hold in a debug build are removed in the release build the consumer runs, so the shipped binary is the unchecked one. A flag, a lint, or a coding standard is a mitigation and never an exemption."
         }
       ],
       "origin": "language"
