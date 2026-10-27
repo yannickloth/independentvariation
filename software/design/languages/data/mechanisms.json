@@ -804,6 +804,46 @@
       "origin": "language"
     },
     {
+      "id": "M6",
+      "dimension": "memory",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "unchecked reinterpretation",
+      "title": "Bytes Can Be Read as a Type They Never Were",
+      "anchor": "m6",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The language permits the same storage to be read and written through unrelated types. A union member, a pointer cast, a redefining data clause, or a reinterpret intrinsic takes the bytes of one type and hands them to another, and no check runs. The value does not satisfy the target type's constraints, and the language's own guarantee — that a value of a type is a valid value of that type — ends at the pun, unmarked, in ordinary code."
+        },
+        {
+          "kind": "coupling",
+          "text": "Representation coupling: every reader of the storage must agree on which type's rules govern it now, because the language records no switch. The agreement is invisible at the use site — the pun and the ordinary use of the type look identical — so each reader reconstructs which invariants still hold from the history of the bytes, and one new writer under the other type silently invalidates them all."
+        },
+        {
+          "kind": "example",
+          "text": "C unions and pointer casts; C++ `reinterpret_cast` and unchecked downcasts; COBOL REDEFINES; Fortran EQUIVALENCE and the TRANSFER intrinsic; Pascal and Delphi variant records and absolute declarations; D's cast between unrelated pointer types, which the specification hands to the programmer as undefined behaviour; Nim's cast, which the manual defines as type punning, like `reinterpret_cast`. Against these: Java and C# check every cast at run time; Rust confines it to the marked `transmute`; Go to `unsafe.Pointer`; Swift to `unsafeBitCast`; Ada names every conversion as an `Unchecked_Conversion` instantiation over one type pair."
+        },
+        {
+          "kind": "note",
+          "text": "**`Q1` prices the address, this prices the type.** `Q1` charges storage the program never owned — out of bounds, already freed. This mechanism charges storage the program owns, interpreted under rules it does not satisfy. The classic pairing runs one way into the other: pun the type, break the invariant, corrupt the memory. Each is a distinct fact and they are charged once each."
+        },
+        {
+          "kind": "note",
+          "text": "**`Q2` prices the trust boundary, this prices the program's own types.** `Q2` charges untyped data arriving from outside. This mechanism needs no untrusted input: the types lie to each other inside one program, under one programmer."
+        },
+        {
+          "kind": "note",
+          "text": "**`T7` prices the type parameter that is gone, this prices the type that is present and lied about.** `T7` charges erasure and reflection — types unreachable or alterable at run time. This mechanism charges concrete storage reinterpreted under an unrelated layout, with every type still present in the source."
+        },
+        {
+          "kind": "note",
+          "text": "**The boundary: a marked escape, a checked cast, or no invariant to break.** A checked cast prices nothing — the run time rejects the mismatch loudly (the Java and C# cast checks). A marked escape prices nothing — `transmute`, `unsafe.Pointer`, `unsafeBitCast`, and Ada's named `Unchecked_Conversion` instantiation put the crossing in the source, where review and proof can find it. Reinterpretation between plain-data types prices nothing — where every bit pattern is a valid value of the target type, no invariant can break, which is why Julia's size-checked `reinterpret` over bitstypes is not charged. And a language with no typed promises prices nothing — Assembly has no type system for the bytes to betray."
+        }
+      ],
+      "origin": "language"
+    },
+    {
       "id": "Er1",
       "dimension": "error",
       "weight": 15,
@@ -2026,7 +2066,7 @@
         },
         {
           "kind": "note",
-          "text": "**`Q1` is the only criterion attached to a class of *vulnerability*.** The others price maintainability; this one prices an exploit, which is why it carries the top weight."
+          "text": "**`Q1` prices a class of *vulnerability*, and carries the top weight for it.** The others price maintainability; `Q1` prices an exploit, and any pointer suffices. `M6` prices the sibling class — type confusion — at Moderate, because it needs a pun site and a type with invariants to break."
         },
         {
           "kind": "note",
