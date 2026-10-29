@@ -1,0 +1,524 @@
+{
+  "schemaVersion": 1,
+  "id": "datalog",
+  "name": "Datalog",
+  "family": "datalog",
+  "assessedAs": "Datalog",
+  "version": "Soufflé 2.4",
+  "title": "Datalog (Soufflé 2.4)",
+  "indexLabel": "Datalog (Soufflé 2.4)",
+  "group": "data-science",
+  "released": "2024-04",
+  "lifecycle": "current",
+  "order": 17,
+  "displayOrder": 103,
+  "presenceOrder": 103,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T11, T12, T14, M2, P4",
+    "meta": "R1, Ec1, Ec3, V4, D1, L1, G3, G4, Q2",
+    "readiness": "Y5, Y6, Y8, Y10, Y17, Y13, Y14, Y18, Y15, Y16"
+  },
+  "matrixOrder": 103,
+  "tagline": "Logic Rules",
+  "sbName": "Datalog",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "ceri1989datalog"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": true,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": true,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": true,
+    "R2": false,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": true,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": false,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": false,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": true,
+    "Y18": true,
+    "Y15": true,
+    "Y16": true,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Predicates are dynamically typed**: A term's type is its arity and position, known only at evaluation time, so an arity mismatch appears when the rule runs",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: An alternative is a separate predicate or a tagged term, and nothing checks that the cases are exhaustive",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: Every rule is polymorphic over any ground term by construction, so there is no declared type parameter",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Predicates live in one flat name space**: Two programs that define the same predicate name can collide unless the engine provides a module system",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**There is no module boundary**: Basic Datalog exposes every predicate to every query; module or component systems are implementation-specific",
+        "mechanism": "T11"
+      },
+      {
+        "kind": "cost",
+        "text": "**A rule's effects are not tracked**: A rule derives facts, but the program has no construct that states whether a predicate is read-only or mutating",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**User-defined functors cross into native code unchecked**: A functor declared by signature is implemented in the host language, and the engine does not verify it",
+        "mechanism": "T14"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Unification and recursion are the core mechanisms**: A few rules express transitive closure and fixed-point computation without loops",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Facts and rules share one form**: A fact is a rule with an empty body, so the program is a set of logical statements",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Rules compose without mutable state**: The result of one rule is used by another through shared predicates, not through assignment",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Negation requires stratification**: A program with unstratified negation has no clear semantics, so the engine rejects it or applies a fixed stratification policy",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**Memory reclamation is the engine's decision**: Derived facts and indices are released when the engine chooses, not when a rule finishes",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A rule never names an address or allocates explicitly**: The engine materialises relations and indices without manual memory management",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Large intermediate relations can exhaust memory**: A recursive rule that generates many tuples can exceed the engine's working set",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Syntax errors are caught at parse time**: Rule heads, bodies, and literals are checked for well-formedness before evaluation",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Type and arity errors surface at evaluation**: A predicate used with the wrong arity fails only when that rule is evaluated",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Evaluation is naturally set-based and read-only**: A Datalog program derives a fixed point from facts and rules without explicit locking",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Concurrency is not part of the language**: Parallel evaluation, transactions, and isolation are provided by the engine, not by the rules",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**The rule syntax is portable across systems**: A Datalog program of facts and Horn clauses can move between Soufflé, LogicBlox, and academic engines with small changes",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Extensions differ widely**: Aggregations, negation, arithmetic, and components have different syntax and semantics in each engine",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The language is a poor fit for general-purpose work**: File handling, text processing, and user interfaces belong in another language",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "cost",
+        "text": "**Evaluation is interpretation or compilation of rules**: A program is evaluated by a rule engine or translated to another target, so tight numeric loops trail a hand-written implementation",
+        "mechanism": "R1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Semi-naive evaluation avoids redundant work**: Recursive rules compute only the newly derived tuples per iteration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Indices are chosen automatically**: The engine selects B-trees or hash indices for predicates without hand-tuning",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**There is no standard package manager**: The language ships no distribution mechanism; each engine has its own way to include libraries",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem is small and academic**: Libraries, tooling, and practitioners are far fewer than for SQL or mainstream languages",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Several mature engines exist**: Soufflé, LogicBlox, Datomic, Cozo, and XSB cover different points in the performance and expressiveness space",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Standardisation moves slowly**: Datalog has no living standards committee, so new features arrive as engine extensions",
+        "mechanism": "V4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core rule language is stable**: Facts, rules, and stratified negation have been unchanged for decades",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting Datalog means adopting a rule engine**: The language is inseparable from the engine that evaluates the fixed point",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for program analysis and knowledge bases**: Reachability, points-to, and policy rules map directly to recursive rules",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Some domains need extensions beyond pure Datalog**: Arithmetic, aggregation, and updates require engine-specific constructs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Datalog is used to derive answers from facts and rules**: A query asks whether a predicate holds, and the engine computes the least fixed point",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Declarative rule thinking is a different model**: A developer must write what is true rather than how to compute it, and recursion must be understood to read a program",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core language is tiny**: Facts, rules, and queries are the only constructs beyond built-in predicates",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Negation and aggregation semantics must be learned**: Stratification, choice, and aggregate semantics differ between engines",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Rules read as logical statements**: `ancestor(X, Y) :- parent(X, Y).` is close to its intended meaning",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Comma has several roles**: It separates arguments in a literal, conjoins literals in a body, and separates facts, so context decides the meaning",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**Type and arity faults surface only at run time**: A wrong predicate name or arity is not rejected until the rule is evaluated",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No monotonic clock is published**: Timing a rule evaluation relies on the engine's wall clock or an external stopwatch",
+        "mechanism": "G4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A query is itself a test**: Asking whether a fact is derivable exercises the rules directly",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing weakens the trust boundary**: A term from an untrusted source is separated from a rule only by an explicit check",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**No pointer arithmetic or buffer access**: The language operates on relations and terms, so memory-safety vulnerabilities cannot be written in Datalog source",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**User-defined functors can execute arbitrary native code**: A functor is a hand-written extension that the engine runs with its own privileges",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "cost",
+        "text": "**There is no standard build manifest**: Reproducing a result depends on pinning the engine version and the input facts by hand",
+        "mechanism": "Y18"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "enabling",
+        "text": "**No package registry exists for Datalog modules**: There is therefore no registry namespace to confuse or hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed joins engine vulnerabilities to versions**: Known issues are tracked manually per engine",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: Observability is provided by the engine and its logs",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging is defined in the language**: Diagnostics are engine log entries with their own format",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "cost",
+        "text": "**A failed evaluation leaves no standard post-mortem artifact**: The engine may log the error, but the language does not mandate a stack trace",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The edit-test loop is submitting rules to the engine**: There is no separate compile step for small programs",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**No fast in-editor analysis is standard**: Type and arity errors are found when the engine evaluates the rules",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger ships with the language**: Debugging is done through logs, provenance, and engine tools",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**User-defined functors call native code**: Soufflé and other engines let a rule call a function implemented in C or another host language",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**A Datalog program runs only inside a rule engine**: There is no portable target outside that context",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "enabling",
+        "text": "**No single vendor controls Datalog**: Multiple academic and commercial engines coexist",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core rule syntax is documented in textbooks and papers**: The language surface is not a closed secret",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance suite exists**: Independent engines cannot run a shared test suite against the language semantics",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parser implementations are available**: Open-source engines publish their parsers, so third-party tools can read Datalog",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Recursion is the central feature**: Expressive fixed-point queries are concise, but the developer must think in recursive rules",
+    "**Dynamic typing keeps rules polymorphic**: A single rule works over any ground term, but arity and type errors move to evaluation",
+    "**Stratified negation is a semantics choice**: The language documents the restriction and leaves more flexible negation to engine extensions",
+    "**User-defined functors extend the language**: Native functors add expressiveness but add an unchecked foreign boundary",
+    "**Datalog is not a general-purpose runtime**: The assumption of a rule engine and a fixed-point workload is a scope decision"
+  ],
+  "verdict": "Datalog's design yields moderate coupling for rule-based querying. The pure rule form separates what is true from how it is derived, and recursion lets a small program express transitive closure and program-analysis queries. Main strengths: a tiny core, powerful recursion, and a strong fit for knowledge-base and program-analysis problems. Main weaknesses: dynamic typing, no module or namespace boundary in the core, no standard package manager, a small ecosystem, slow standardisation, and runtime-only detection of arity and type errors.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a rule engine or is compiled to another target: energy and time depend heavily on the chosen engine."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "Sparse training data and a smaller community: models write Datalog less reliably than SQL."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "paradigm:logic",
+    "lifecycle:current",
+    "memory:managed-gc",
+    "typing:dynamic"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "derive answers from facts and rules"
+    },
+    "use:query": {
+      "observation": "derive answers from facts and rules"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "The database engine stores and parses the query text; no compiled unit crosses a boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

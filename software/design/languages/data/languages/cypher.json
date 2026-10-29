@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "id": "cypher",
+  "name": "Cypher",
+  "family": "cypher",
+  "assessedAs": "Cypher",
+  "version": "Neo4j 5.x / openCypher",
+  "title": "Cypher (Neo4j 5.x / openCypher)",
+  "indexLabel": "Cypher (Neo4j 5.x)",
+  "group": "data-science",
+  "released": "2024-11",
+  "lifecycle": "current",
+  "order": 15,
+  "displayOrder": 101,
+  "presenceOrder": 101,
+  "presenceList": {
+    "core": "T4, T5, T10, T12, T14, P4",
+    "meta": "Ec2, V4, D1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y17, Y13, Y16"
+  },
+  "matrixOrder": 101,
+  "tagline": "Graph Pattern Matching",
+  "sbName": "Cypher",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "openCypher9"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": true,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": true,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Property types come from the graph schema**: Node and relationship properties are typed when a schema is declared, and the planner rejects type mismatches before execution",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: A property is a scalar, a list, or a map, and an alternative must be modelled with nullable properties or separate nodes",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A query cannot be parameterised over a type, so reusable logic is copied or wrapped in a procedure",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is a value in every property type**: Missing properties and optional matches produce NULL, and three-valued logic makes `NULL = NULL` unknown",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**A CALLed procedure may perform effects the signature does not state**: The query text shows the call, but it does not show whether the procedure writes, reads files, or invokes external systems",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**User-defined procedures cross into the host runtime unchecked**: A procedure is declared by signature, but the engine does not check its implementation against that signature",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Pattern matching is declarative**: `(a)-[:KNOWS]->(b)` states the shape of the result and leaves the traversal to the planner",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Subqueries compose without shared state**: `CALL { ... }` and `UNWIND` let a query build intermediate results without imperative sequencing",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers and transaction event handlers run implicitly**: A write can fire code that is not visible in the query text",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The graph engine owns allocation**: Buffers, index pages, and transaction state are managed by the database, not by the query",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Large pattern matches can exhaust engine memory**: An unbounded variable-length path or a dense cartesian product can still exhaust the configured heap",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Syntax and type errors are caught at prepare time**: Unknown labels, missing variables, and type mismatches are reported before the query runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Runtime failures depend on the data**: Division by zero, missing properties, and constraint violations surface only when the path is reached",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions group writes atomically**: `BEGIN`, `COMMIT`, and `ROLLBACK` make a set of updates commit or abort as one",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Isolation is engine-specific**: READ COMMITTED is common, and write skew is possible unless the engine supports a stronger level",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**openCypher provides a shared core**: Pattern matching, `MATCH`, `WHERE`, `CREATE`, and `RETURN` are portable across Neo4j, Memgraph, and Amazon Neptune",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Vendor extensions diverge**: Index hints, full-text search, and procedure libraries differ by engine",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The language is a poor fit outside property-graph workloads**: Arbitrary algorithms and general application logic are usually pushed to a host language or a procedure",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Cost-based planners choose traversal strategies**: The engine selects start nodes, index scans, and join orders without hand-tuning in the query",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan quality depends on the engine and the schema**: The same query can be fast on one graph database and slow on another",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments by vendor**: Visualisers, migration tools, and drivers commonly target one engine's dialect and procedure set",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Multiple engines share the openCypher core**: Neo4j, Memgraph, and Amazon Neptune keep the core portable",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The talent pool is narrower than SQL's**: Graph query expertise is common in graph-native teams but less so in general data teams",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The openCypher standard moves slowly**: New features often appear first as vendor extensions and wait for standardisation",
+        "mechanism": "V4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core pattern language is stable**: Queries written to the openCypher core continue to run across releases",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting Cypher means adopting a property-graph store**: The language is inseparable from the graph data model and the engine that runs it",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Excellent fit for connected data**: Nodes, relationships, and pattern matches map directly onto graph-shaped problems",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Recursive or path-centric algorithms can be awkward**: Some traversals read more naturally in a traversal language than in pattern-matching syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Cypher is used to query stored graph data**: `MATCH` retrieves nodes and relationships, and `CREATE` manipulates the graph",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**Basic pattern queries are intuitive**: `(a)-[:KNOWS]->(b)` is readable after a short introduction",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Variable scoping and OPTIONAL MATCH semantics take practice**: A newcomer must learn where a variable is bound and how NULL propagates",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**ASCII-art patterns are compact**: A relationship and its direction are visible at a glance",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Complex queries grow long**: Multiple patterns, subqueries, and aggregations can produce deeply indented text",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**EXPLAIN and PROFILE are standard practice**: Engines report the chosen plan and estimated or actual costs",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Constraints are executable invariants**: Uniqueness, existence, and type constraints reject bad data at write time",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No monotonic clock is published in the language**: `datetime()` reads the wall clock, so elapsed-time tests depend on the session clock",
+        "mechanism": "G4"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**String-built queries are an injection surface**: Concatenating untrusted input into a query text lets that input change the parse",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parameterised statements remove the injection surface**: Bound parameters carry data out of band, so a value cannot become syntax",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Role-based access control limits data visibility**: The engine grants or denies read and write access per label, type, and property",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A Cypher program is a query text**: The same text submitted to the same engine version and dataset produces the same result",
+        "mechanism": "Y1"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published drivers and extensions carry no signed provenance by default**: A consumer must trust the package they install",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**No package registry exists for Cypher modules**: There is therefore no registry namespace to confuse or hijack",
+        "mechanism": "Y4"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: Observability is provided by the engine and its drivers",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging is defined in the language**: Diagnostics are engine log entries with their own format",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Failed queries leave a query log and a stack trace**: The engine records the query text and the error location",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The edit-test loop is a text submission**: There is no compile step between editing a query and running it",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Editors and drivers provide fast syntax feedback**: The query is parsed before it is executed",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger ships with the language**: Debugging is done through query plans, logs, and engine tools",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**User-defined procedures call host-language code**: Java, Python, or other procedures extend the engine without leaving the process",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**The query runs only inside a graph database engine**: There is no portable target outside that context",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is effectively Neo4j-led**: openCypher provides a community specification, but the main implementation and roadmap follow Neo4j",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The openCypher specification is public**: The language surface is documented and can be implemented by others",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance suite exists**: Independent implementations cannot run a shared test suite against the specification",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parser implementations and the grammar are available**: Third-party tools can parse Cypher without reverse engineering",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Schema optional versus schema required**: A flexible graph model allows ad-hoc properties, but the lack of enforced schema moves type agreements into code",
+    "**NULL for missing values**: Using NULL to mean \"not present\" widens the value set and brings three-valued-logic costs",
+    "**Procedures extend the language**: Calling a procedure buys expressiveness at the cost of an unchecked foreign boundary",
+    "**Vendor-specific Cypher may be worth the portability cost**: Engine extensions buy performance and features; the loss of portability is a deliberate trade"
+  ],
+  "verdict": "Cypher's design yields low language-imposed coupling for property-graph queries. The declarative pattern-matching model separates what a result is from how it is traversed, and the graph schema separates data structure from the queries that consume it. Main strengths: compact pattern syntax, portable openCypher core, and mature cost-based planners. Main weaknesses: no sum types or generics, NULL is not type-safe, tooling fragments by vendor, the standard moves slowly, and string-built queries remain an injection hazard unless parameters are used.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a graph database engine: energy and time are the engine's, not the program's."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "A well-documented query language with many public examples: current models write common patterns reliably."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "query stored graph data"
+    },
+    "use:query": {
+      "observation": "query stored graph data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "The database engine stores and parses the query text; no compiled unit crosses a boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}
