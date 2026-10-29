@@ -10,11 +10,11 @@
   "group": "application",
   "released": "2025-10-07",
   "lifecycle": "current",
-  "order": 38,
+  "order": 39,
   "displayOrder": 57,
   "presenceOrder": 57,
   "presenceList": {
-    "core": "T1, T3, T4, T5, T10, T12, T13, T14, C1, C2, C6, M2, M3, M4, Er2, K1, K2, K3",
+    "core": "T1, T3, T4, T5, T10, T12, T13, T14, C1, C2, C6, M2, M3, M4, Er2, Er4, K1, K2, K3, C8",
     "meta": "R1, Ec8, Ec9, G3, Q2, Q3",
     "readiness": "Y1, Y2, Y4, Y14"
   },
@@ -78,7 +78,7 @@
     "Er1": false,
     "Er2": true,
     "Er3": false,
-    "Er4": false,
+    "Er4": true,
     "Er5": false,
     "K1": true,
     "K2": true,
@@ -141,7 +141,11 @@
     "Y14": true,
     "Y18": false,
     "Y15": false,
-    "Y16": false
+    "Y16": false,
+    "Q4": false,
+    "C8": true,
+    "M7": false,
+    "T15": false
   },
   "observations": {
     "type": [
@@ -226,6 +230,11 @@
         "kind": "cost",
         "text": "**One value, many names**: names bind objects, and a parameter, a closure, and an attribute can hold the same list — assignment copies the name, never the value",
         "mechanism": "C6"
+      },
+      {
+        "kind": "cost",
+        "text": "The import system executes a module once, at first import; a circular import hands the importer the half-initialized module",
+        "mechanism": "C8"
       }
     ],
     "memory": [
@@ -285,6 +294,11 @@
         "kind": "caution",
         "text": "**Result types possible**: Libraries exist but not idiomatic",
         "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure is not a value**: a `raise` cannot be folded into an expression, so each level rebuilds the `try`/`except` shape around the call",
+        "mechanism": "Er4"
       }
     ],
     "concurrency": [
@@ -294,8 +308,8 @@
         "mechanism": null
       },
       {
-        "kind": "enabling",
-        "text": "**Async/await separates**: Explicit async functions",
+        "kind": "caution",
+        "text": "**Async functions are explicit**: `async def` marks which functions may suspend, so the boundary is visible at the declaration",
         "mechanism": null
       },
       {
@@ -309,7 +323,7 @@
         "mechanism": null
       },
       {
-        "prose": "> **Note on concurrency:** The coupling analysis gives Python partial credit for free-threaded mode (3.14+, officially supported). The GIL is still the default, but it's no longer a permanent restriction. Teams deploying free-threaded Python 3.14 can eliminate GIL-based threading coupling entirely. The Concurrency dimension still counts the default GIL (`K1`); free-threaded by default would remove that mechanism."
+        "prose": "> **Note on concurrency:** Free-threaded mode (3.14+) is opt-in, so the default interpreter lock still charges `K1`: the analysis records the default a new project gets. A deployment that builds or installs the free-threaded variant removes that charge in deployment, and the score records the default."
       }
     ],
     "platform": [
@@ -549,12 +563,9 @@
     ]
   },
   "tradeoffs": [
-    "**Dynamic Typing vs. Maintainability**: All coupling invisible until runtime, couples correctness to testing — mitigated by `mypy`/`pyright` in CI",
     "**Free-threaded Mode vs. Ecosystem Readiness**: GIL removal is real but opt-in; many libraries haven't adapted",
-    "**Monkey Patching**: Can modify stdlib/libraries at runtime, couples code to load order",
-    "**Mutable Default Arguments**: `def f(x=[])` shares state across calls, couples invocations",
-    "**Import Side Effects**: Modules execute on import, couples import order to behavior",
-    "**Duck Typing vs. Protocols**: No interface enforcement couples to runtime type checking — statically checked by type checkers"
+    "**Monkey Patching vs. the wrapper**: a live object can be repaired in place, and the repair must be repeated in every process that imports it",
+    "**Comprehensions vs. the loop**: an expression that builds a list hides the accumulation in one line, and a reader who needs the loop's control flow rewrites it"
   ],
   "verdict": "Python's duck typing provides maximum runtime flexibility but zero compile-time low coupling by language design. Free-threaded mode (3.14) eliminates the historical GIL concurrency coupling, though it's still opt-in. Pattern matching (3.10+) and exception groups (3.11+) improve error handling composition. Type checkers (mypy/pyright) provide static coupling detection at build time but not at runtime. Main strength: simplicity, ecosystem, libraries. Main weakness: all coupling invisible until runtime; runtime type safety depends on test coverage.",
   "verdictExtra": [],
@@ -570,7 +581,7 @@
     },
     "safety": {
       "kind": "caution",
-      "text": "No certified or standards-qualified path for safety-critical systems."
+      "text": "No certified or standards-qualified path is published for the language itself; a safety-critical deployment rests on a platform vendor's qualified runtime, not on the language."
     }
   },
   "tags": [

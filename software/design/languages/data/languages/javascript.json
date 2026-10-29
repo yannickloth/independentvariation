@@ -11,12 +11,12 @@
   "released": "2025-06-25",
   "lifecycle": "superseded",
   "lifecycleNote": "ECMAScript 2026 (17th edition) approved 30 June 2026",
-  "order": 3,
+  "order": 5,
   "displayOrder": 60,
   "presenceOrder": 60,
   "presenceList": {
-    "core": "T1, T3, T4, T5, T10, T12, T13, T14, C1, C2, C6, M2, M3, M4, Er2, Er3, K1, K2, K3, K4",
-    "meta": "R2, Ec8, G3, Q2, Q3",
+    "core": "T1, T3, T4, T5, T10, T12, T13, T14, C1, C2, C6, M2, M3, M4, Er2, Er3, K1, K2, K3, K4, T15",
+    "meta": "R2, Ec8, G3, Q2, Q3, Q4",
     "readiness": "Y4, Y14"
   },
   "matrixOrder": 25,
@@ -133,7 +133,11 @@
     "Y14": true,
     "Y18": false,
     "Y15": false,
-    "Y16": false
+    "Y16": false,
+    "Q4": true,
+    "C8": false,
+    "M7": false,
+    "T15": true
   },
   "observations": {
     "type": [
@@ -154,13 +158,18 @@
       },
       {
         "kind": "cost",
-        "text": "**Type coercion couples**: Implicit conversions hide intent",
+        "text": "**Coercion follows the operand**: `+` concatenates or adds by the values it receives, so the reader resolves the operand types at the site",
         "mechanism": null
       },
       {
         "kind": "cost",
         "text": "**Undefined/null confusion**: Two absence types couple",
         "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "String length and indexing are UTF-16 code-unit operations (ECMA-262 6.1.6); charAt can split a surrogate pair",
+        "mechanism": "T15"
       }
     ],
     "construction": [
@@ -265,7 +274,7 @@
       },
       {
         "kind": "cost",
-        "text": "**Callbacks couple error/success**: `(err, result)` mixes concerns",
+        "text": "**A callback reports failure beside its value**: the `(err, result)` convention splits one result in two, and the promise path is the one that composes",
         "mechanism": null
       },
       {
@@ -281,8 +290,8 @@
         "mechanism": null
       },
       {
-        "kind": "enabling",
-        "text": "**Async/await separates**: Explicit async functions",
+        "kind": "caution",
+        "text": "**Async functions are explicit**: `async` marks which functions may suspend, so the boundary is visible at the declaration",
         "mechanism": null
       },
       {
@@ -460,11 +469,6 @@
         "mechanism": null
       },
       {
-        "kind": "caution",
-        "text": "**Inconsistent**: Many ways to do things",
-        "mechanism": null
-      },
-      {
         "kind": "cost",
         "text": "**Coercion surprises**: `[] + {} !== {} + []`",
         "mechanism": null
@@ -512,17 +516,18 @@
         "kind": "caution",
         "text": "**npm vulnerabilities**: Dependency attack surface",
         "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "Every number is an IEEE-754 double: integers above 2^53 change value in silence, and bitwise operators coerce to 32 bits",
+        "mechanism": "Q4"
       }
     ]
   },
   "tradeoffs": [
-    "**Dynamic Typing vs. Predictability**: All coupling deferred to runtime, no compile-time detection",
-    "**Flexibility vs. Correctness**: Can modify anything at runtime, couples correctness to discipline",
-    "**Type Coercion**: Implicit conversions couple values to contexts (`\"5\" + 3 === \"53\"`, `\"5\" - 3 === 2`)",
-    "**This Binding**: Function context couples to call site (`.call()`, `.apply()`, `.bind()` required)",
-    "**Callback Hell vs. Promises vs. Async/Await**: Three async paradigms couple code to era written",
-    "**Module Systems**: CommonJS vs. ES6 modules couples code to environment (Node vs. browser)",
-    "**Prototype Chain**: Inheritance couples objects to prototype chain modifications"
+    "**Dynamic `this` vs. the wrapper**: one function can serve several objects without a wrapper, and a method passed as a value needs the caller to bind its context",
+    "**Module syntax vs. the loader**: the language states the module form, and the loader that serves it is the platform's",
+    "**One language in two hosts**: the same source runs in the browser and on the server, so each host's API surface must be kept apart at the boundary"
   ],
   "verdict": "JavaScript's dynamic nature defers all coupling detection to runtime. Prototypes and object literals provide flexibility but no guarantees. Global scope and unchecked errors create pervasive coupling. Main strength: object literals and prototypes are simple. Main weakness: no type system means coupling invisible until runtime.",
   "verdictExtra": [],
@@ -568,7 +573,7 @@
   "roleNote": "ES5 (2009) was a browser scripting language; ES2025 (2025) is an application platform with a server runtime. The family's shelf follows its current role, not its origin: this is a role change, not a version change.",
   "delivery": [
     {
-      "target": "npm package \u2014 JavaScript source",
+      "target": "npm package — JavaScript source",
       "form": "source",
       "crosses": false,
       "promise": null,

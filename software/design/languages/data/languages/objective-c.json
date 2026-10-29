@@ -14,8 +14,8 @@
   "displayOrder": 52,
   "presenceOrder": 52,
   "presenceList": {
-    "core": "T3, T6, T7, T12, T14, C2, C6, M2, M3, M4, M5, M6, Er6, Er2, Er5, K3, K4, P2",
-    "meta": "Ec4, V2, V7, D1, L1, Q1",
+    "core": "T3, T6, T7, T12, T14, C2, C6, M2, M3, M4, M5, M6, Er6, Er2, Er5, K3, K4, P2, C8, M7, T15",
+    "meta": "Ec4, V2, V7, D1, L1, Q1, Q4",
     "readiness": "Y1, Y3, Y4, Y5, Y10, Y11, Y12, Y14, Y16"
   },
   "matrixOrder": 34,
@@ -126,7 +126,11 @@
     "Y14": true,
     "Y18": false,
     "Y15": false,
-    "Y16": true
+    "Y16": true,
+    "Q4": true,
+    "C8": true,
+    "M7": true,
+    "T15": true
   },
   "observations": {
     "type": [
@@ -159,6 +163,11 @@
         "kind": "caution",
         "text": "**Static type information is optional and partly erased**: Declared parameter and return types (`NSString *`, `instancetype`) are checked at compile time, but lightweight generics such as `NSArray<NSString *> *` and the nullability annotations `nonnull` and `nullable` are erased at run time",
         "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "NSString stores UTF-16 units; length counts units",
+        "mechanism": "T15"
       }
     ],
     "construction": [
@@ -196,6 +205,11 @@
         "kind": "cost",
         "text": "**One value, many names**: objects move by pointer; a property, a parameter, and an ivar reach the same instance (the C pointer aliasing rides with it)",
         "mechanism": "C6"
+      },
+      {
+        "kind": "cost",
+        "text": "C++/ObjC: the +load/initializer order across units follows the linker, not the source",
+        "mechanism": "C8"
       }
     ],
     "memory": [
@@ -241,8 +255,13 @@
       },
       {
         "kind": "cost",
-        "text": "**The undeclared class has no catch**: the C pointer traps run under ARC's typed surface, and no @catch reaches them",
+        "text": "**The undeclared class has no catch**: the C pointer traps run under ARC's typed surface, and no `@catch` reaches them",
         "mechanism": "Er6"
+      },
+      {
+        "kind": "cost",
+        "text": "ARC reference cycles leak; the back-pointer needs `__weak`",
+        "mechanism": "M7"
       }
     ],
     "error": [
@@ -580,6 +599,11 @@
         "kind": "cost",
         "text": "**C memory stays reachable in an ARC project**: ARC manages object references; the arrays, the `malloc`'d buffers, and the raw pointers underneath stay manual, so an out-of-bounds write and a use-after-free of a hand-managed allocation compile in ordinary code",
         "mechanism": "Q1"
+      },
+      {
+        "kind": "cost",
+        "text": "C arithmetic through the Objective-C runtime: signed overflow undefined, unsigned modulo",
+        "mechanism": "Q4"
       }
     ]
   },

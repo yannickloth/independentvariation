@@ -2986,6 +2986,118 @@
         "text": "No advisory feed joins vulnerabilities to package versions."
       },
       "origin": "context"
+    },
+    {
+      "id": "Q4",
+      "dimension": "security",
+      "weight": 15,
+      "severity": "High",
+      "label": "silent integer overflow",
+      "title": "Arithmetic Leaves the Range of the Type in Silence",
+      "anchor": "q4",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The type promises a range, and arithmetic leaves it with no defined failure. A counter, a length, an index, a price passes the maximum, and the program continues on the wrapped bit pattern. Size becomes a shared resource whose meaning is decided by an operation that records no bound, so the check written above the arithmetic agrees with a quantity that no longer measures what the check checks. Integer overflow is a standing member of the CWE Top 25, and the fuzzing literature calls integer arithmetic errors a major source of software vulnerabilities [@chen2020]."
+        },
+        {
+          "kind": "coupling",
+          "text": "Range coupling: every consumer of the value - a bounds check, an allocation size, a loop bound, a protocol field width - must agree that the arithmetic stayed inside the type, because the language records the bound nowhere. The agreement is invisible, so one input larger than the type turns the program's own guard into the attacker's entry point."
+        },
+        {
+          "kind": "example",
+          "text": "Java defines integer arithmetic as two's-complement wraparound (JLS 15.7.2), silent by specification; Kotlin, Scala, Groovy, Spark, and the JVM family carry Java's answer. C leaves signed overflow undefined, and the optimizer removes the checks that guard it; unsigned arithmetic is modulo 2^W by definition. The EVM runs arithmetic on raw 256-bit add and sub opcodes that wrap in silence, the rule the Solidity security documentation names as the overflow pitfall; a language compiles to it directly whenever it defines no guard [@solidity_docs]. JavaScript, TypeScript, PureScript, SAS, GML, Scratch, VBScript, and R carry every number as a double, so integers above 2^53 change value in silence. PHP and Perl promote an overflowing integer to float in place. PowerShell promotes a calculation that overflows Int64 to Double. MATLAB saturates to the type bounds without a word. The shells wrap 64-bit integers; Ladder logic wraps modulo the IEC 61131-3 type width; Ghostscript promotes to an inexact real. Go, Zig, Rust, Nim, Crystal, Julia, Lua, OCaml, Haskell's Int, D, Eiffel, Turbo Pascal, and Delphi (range checks off by default) all define the wrap. Against these: Swift traps on the default operators, and the wrapping `&+` is the opt-in; Ada raises `Constraint_Error` under the default checks; Solidity reverts on overflow by definition; ABAP raises `CX_ARITHMETIC_OVERFLOW`; the SQL family raises an arithmetic-overflow error; Python, Ruby, Erlang, Elixir, Clojure, Gleam, Common Lisp, Scheme, Racket, Tcl, Prolog, Smalltalk, and R carry exact integers, so the value never leaves its range; Visual Basic 6 raises a loud Overflow; Assembly has no numeric promise for arithmetic to betray, the `M6` boundary."
+        },
+        {
+          "kind": "note",
+          "text": "**The trap prices nothing; the wrap prices everything.** A defined, loud failure on the ordinary path - Swift's trapping operators, Ada's `Constraint_Error`, Solidity's revert, the SQL family's raised error, VB6's Overflow - records no charge, the boundary the `M5` note draws for zero-initialization. Debug-build panics are a mitigation, never an exemption (Rust, Zig, Nim, Crystal): the shipped build is the ordinary path, as the `M1` note states for manual freeing. Exact promotion is absence, not mitigation: Python, Ruby, Clojure, and the BEAM languages promote to arbitrary precision, so the harm never occurs. Lossy promotion is presence, not absence: PHP, Perl, PowerShell, JavaScript, and SAS convert the integer to a float or double and the value changes. A language with no fixed-width numeric promise prices nothing, the `M6` boundary."
+        }
+      ],
+      "origin": "language"
+    },
+    {
+      "id": "C8",
+      "dimension": "construction",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "no source-visible init order",
+      "title": "Who Initializes First Is Decided by the Loader",
+      "anchor": "c8",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Module state initializes when the loader reaches it, and the loader's order across modules appears in no line of source. A module-level value whose initializer reads another module's module-level value reads whatever state that module happened to hold when the loader came. The program's starting state is a property of link order and file order, so a rename, a new import, or a build-tool change flips a value that no code ever wrote. The C++ literature names the case the static initialization order fiasco [@sutter1999]."
+        },
+        {
+          "kind": "coupling",
+          "text": "Initialization coupling: every module that touches another module's state while it initializes must agree with the loader on who ran first, because the source names no order. The agreement lives in the build, so each reader reconstructs it from the loader's rules, and one added dependency silently changes the sequence."
+        },
+        {
+          "kind": "example",
+          "text": "C++ leaves the order of namespace-scope initialization across translation units implementation-defined: a global that reads a global from another unit is the fiasco [@sutter1999]. C leaves elaboration order across translation units unspecified; Objective-C and D inherit the rule. Java initializes a class at first active touch, and JLS 12.4.1 documents the circular case: a thread reaching a class under initialization proceeds, observes zero fields, and a cycle can deadlock; the JVM family carries Java's answer. C# defines static-constructor order as unpredictable (ECMA-335); Scala, Groovy, and the JVM family carry Java's class-init answer, and VB .NET carries the C# rule. Kotlin runs top-level initializers at file-module load, in loader order. Python executes each module once, in first-import order, and a circular import hands the importer the half-initialized module. Ruby, PHP, Perl, and Lua load code at require time, and a cyclic require re-enters a half-loaded file; Smalltalk freezes the sequence in the image; Visual Basic 6 runs module initialization by startup form; GameMaker runs scripts in room-load order. Against these: the Go specification initializes packages in dependency order, variables before `init()`, in source order within a package; Rust has no global constructors, and lazily-initialized statics decide order at first use; Swift runs top-level code once, in `main`, and global storage initializes on first use; OCaml links modules in dependency order; Racket's and Scheme's require graph defines the sequence; the ECMAScript module system defines evaluation order as a post-order walk of the import graph, so the JavaScript family records no charge; Delphi and Turbo Pascal units initialize in `uses` order, a name the source states; Erlang's loader enforces dependency order; F# module initialization follows the compile order the project file lists; Ada elaborates packages under the Reference Manual's rules, with `pragma Elaborate` as the source-visible control; Unison content-addressing removes module load order entirely; Fortran, COBOL, Assembly, Ladder logic, the shells, SAS, ABAP, the SQL family, and Solidity ship no cross-module global-initialization construct."
+        },
+        {
+          "kind": "note",
+          "text": "**Presence follows where the order lives, not how long the sequence is.** An order the source names prices nothing (the Delphi `uses` clause, OCaml's dependency link, the Go specification, the ECMAScript module graph, F#'s project order, Unison's content addressing); initialization tied to first use prices nothing (Scala, Rust, Swift); initialization with a defined, source-visible rule prices nothing (the Solidity constructor, Ada's elaboration pragma, Erlang's dependency-loading loader); an order recorded only in the loader's behavior is the charge. Where a language inherits a parent's rule (the JVM languages carry Java's answer, as the `Y17` note states for conformance), the family carries the verdict."
+        }
+      ],
+      "origin": "language"
+    },
+    {
+      "id": "M7",
+      "dimension": "memory",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "reference cycles leak",
+      "title": "A Counted Cycle Holds Its Memory Forever",
+      "anchor": "m7",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "Reference counting releases at the last reference, and a cycle has no last reference. A parent and its child, a closure and the environment that created it, keep each other's counts above zero for the life of the program. The leak is a property of the graph's shape, not of any path, so the release the counting promises is a release no path can reach. The reference-counting survey names the cycle problem the scheme's standing limit [@wilson1992]."
+        },
+        {
+          "kind": "coupling",
+          "text": "Retention coupling: every holder of a counted handle must agree that the reachability graph has no cycle, because the release fires only at zero, and a cycle never reaches zero. The agreement is a shape constraint no type states, so the leak is invisible at the site that creates it and surfaces, if at all, as process memory that never returns."
+        },
+        {
+          "kind": "example",
+          "text": "Swift documents strong reference cycles in the Automatic Reference Counting chapter and prescribes `weak` and `unowned` as the discipline. The Rust standard-library documentation states that `Rc<RefCell<T>>` cycles leak memory and that `Weak` breaks them. The C++ standard library requires `shared_ptr` cycles to be broken by hand; Objective-C ARC documents the same. Delphi documents interface reference cycles under ARC; Nim's manual carries the cycle-breaking obligation for its counting mode; Perl's internals document reference-count loops and the opt-in collectors; D counts class references by default, its cycle collector a runtime mode; Visual Basic 6 leaks COM circular references. Against these: the collecting runtimes - Java, C#, Kotlin, Scala, Groovy, Clojure, JavaScript, TypeScript, Dart, Go, Python, Ruby, PHP, Lua, Erlang, Elixir, OCaml, Haskell, Racket, Scheme, Common Lisp, R, MATLAB, Julia - reclaim the cycle by default, charging the schedule through `M2` and leaving this leak uncharged."
+        },
+        {
+          "kind": "note",
+          "text": "**`M2` excuses counting from the collector's schedule; this charges the schedule's limit.** The two mechanisms are the two halves of one design decision, and a language pays exactly the half it leaves exposed: a runtime charged the collector schedule pays that charge, and a counting runtime pays `M7`. `weak`, `Weak`, `__weak`, and hand-broken back-pointers are a mitigation, never an exemption: the ordinary path holds strong references. A default-on cycle collector removes the harm, in the `M5` zero-init style; Perl's opt-in collectors are mitigation-priced. Languages that ship no counted handles price nothing; the manual-memory class is `M1`'s decision."
+        }
+      ],
+      "origin": "runtime"
+    },
+    {
+      "id": "T15",
+      "dimension": "type",
+      "weight": 8,
+      "severity": "Moderate",
+      "label": "chars are encoding units",
+      "title": "Characters Are Encoding Units Named Characters",
+      "anchor": "t15",
+      "criteria": [
+        {
+          "kind": "body",
+          "text": "The string API counts text and moves it by position, and the values it hands are units of an encoding. A character above the Basic Multilingual Plane occupies two UTF-16 units, so a count that names a character counts a unit, an index that names a position can cut between the halves of a pair, and a boundary that names a character can split one. The representation is the unit, the promise is the character, and the API names the promise while it ships the unit. When Twitter moved its post limit from 140 to 280 characters in 2017, the new limit counted an emoji as two: the count, the API, and the user all named characters, and the type shipped units."
+        },
+        {
+          "kind": "coupling",
+          "text": "Character coupling: every API that counts text - a length, an index, a slice, a regex, a protocol field width, a posting limit - must agree on what one character is, because the type's name says character and the value says unit. The agreement lives in the name, so every count is a count of units wearing the word character, and the first value outside the plane splits in silence."
+        },
+        {
+          "kind": "example",
+          "text": "ECMA-262 defines a String as a sequence of UTF-16 code units, and `length`, `charAt`, and `substring` are unit operations; PureScript and TypeScript inherit the engine. Java's `char` is a UTF-16 code unit and `String.length` counts units, the split the code-point APIs document; Scala, Groovy, Clojure, Spark, and the JVM languages carry Java's answer. C# documents `Char` as a UTF-16 code unit, and the .NET family carries that answer. Kotlin documents `Char` as a 16-bit code unit. Dart documents `String` as UTF-16 code units and `length` as a unit count. Delphi's `Char` is a WideChar unit; Objective-C's `NSString` counts UTF-16 units. Against these: Go documents strings as UTF-8 byte slices and indexes bytes; Rust validates UTF-8 at construction and documents `len()` as bytes, so the named fact matches the shipped fact; Swift defines `Character` as an extended grapheme cluster and iterates `String` by graphemes; Python documents `str` as a sequence of Unicode code points; Ruby tags strings with an encoding and documents length in that encoding; Haskell, OCaml, Racket, Scheme, Common Lisp, Ada, Erlang, Elixir, Gleam, Julia, MATLAB, R, Tcl, and Smalltalk name the code point, char, byte, or grapheme they ship; Assembly and Ladder logic ship no text abstraction with a character promise."
+        },
+        {
+          "kind": "note",
+          "text": "**The mechanism charges the mismatch, not the encoding.** A language that names bytes and ships bytes (Go, C, C++, Lua, Perl, PHP, SAS, the shells) records no charge; a language that names code points and ships them (Python, Haskell, Ada, Racket, Julia, Ruby) records no charge; a language that names characters and ships units (JavaScript, Java, C#, Kotlin, Dart, Scala, Groovy, Clojure, Delphi, Objective-C) is charged, with the family answers inherited per the `Y17` pattern. Documenting the unit fact is a mitigation, never an exemption: the `M5` note prices compiler warnings, and this prices documentation."
+        }
+      ],
+      "origin": "language"
     }
   ],
   "profileAxes": [
