@@ -1,0 +1,527 @@
+{
+  "schemaVersion": 1,
+  "id": "n1ql",
+  "name": "N1QL",
+  "family": "n1ql",
+  "assessedAs": "N1QL",
+  "version": "Couchbase 7.6 / SQL++",
+  "title": "N1QL (Couchbase 7.6 / SQL++)",
+  "indexLabel": "N1QL (Couchbase 7.6)",
+  "group": "data-science",
+  "released": "2023-11",
+  "lifecycle": "current",
+  "order": 20,
+  "displayOrder": 106,
+  "presenceOrder": 106,
+  "presenceList": {
+    "core": "T4, T5, T10, T12, T14, P1, P4",
+    "meta": "Ec2, Ec3, Ec4, Ec7, V1, V4, D1, L3, S2, G1, G4, Q2, Q3",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y11, Y13, Y17"
+  },
+  "matrixOrder": 106,
+  "tagline": "SQL for JSON",
+  "sbName": "N1QL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "couchbaseN1qlDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": true,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": true,
+    "S1": false,
+    "S2": true,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": false,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**No sum types**: An alternative is encoded with `MISSING`, `NULL`, and discriminator fields, and expressions test the encoding by convention",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A query cannot be parameterised over a type, so reusable logic is copied, stored as a view, or wrapped in a JavaScript function",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**MISSING and NULL are distinct values**: An absent field and a null field compare unequal, and comparisons over them form a three-valued logic",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**A call's signature says what it returns, not what it does**: A JavaScript user-defined function runs in the query service, and the statement shows the call, not the body's effects",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**User-defined JavaScript crosses into the query service unchecked**: A function is declared by name, and the engine does not check its body against typed expectations",
+        "mechanism": "T14"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Type expressions are checked at prepare time**: SQL++ type expressions validate typed paths against the query's declared types before execution",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**`NEST` and `UNNEST` compose nested collections without shared state**: A query flattens and groups embedded arrays inside its own clauses",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Keyspace semantics reach past the query**: `USE KEYS`, `USE INDEX`, and covering-index clauses bind a statement to storage design",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Views store statements server-side**: A stored view is a dependency a reviewer must fetch from the cluster to read a query in full",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The cluster owns allocation**: Index entries, join buffers, and result streaming are managed by the services, not by the statement",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Large joins can exhaust service memory**: An unbounded nested-loop join over big keyspaces streams results only after the join completes",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Syntax and scope errors are caught at prepare time**: Unknown keyspaces, malformed clauses, and bad aliases are reported before the statement runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Runtime failures depend on the data**: Casts, arithmetic on strings, and array-index faults surface only when the matching document is reached",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions group writes atomically**: `BEGIN`, `COMMIT`, and `ROLLBACK` wrap N1QL writes in a distributed transaction",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Isolation is service-specific**: The transaction service's isolation levels decide what a concurrent statement observes",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**N1QL runs only inside a Couchbase cluster**: The query service, the index service, and the data services are one vendor's product, and no other engine implements the dialect",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**N1QL is a poor fit outside database work**: General application logic, loops beyond queries, and external I/O are pushed to a host language",
+        "mechanism": "P4"
+      },
+      {
+        "kind": "caution",
+        "text": "**SQL++ is the shared core, not the dialect**: The standard's scope covers the common language, while Couchbase's clauses remain vendor-defined",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The query service compiles statements to a distributed plan**: Index selection, join order, and partition pruning are planned before execution",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan quality depends on index design**: A statement is fast with a covering index and a full keyspace scan without one",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across editions and syntax generations**: The Query Workbench, the `cbq` CLI, and the drivers target Couchbase versions at different support levels",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**The N1QL ecosystem is niche**: The library pool, hiring market, and third-party tooling are thinner than for SQL and the major document stores",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The server, the tooling, and the documentation come from Couchbase under licence**: Enterprise features sit behind a commercial licence, and Community Edition ships under SSPL",
+        "mechanism": "Ec4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Pre-6.0 N1QL syntax is still accepted alongside SQL++**: Two generations coexist in the query service, so every new feature inherits the compatibility surface",
+        "mechanism": "Ec7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Official SDKs cover the mainstream languages**: Couchbase maintains SDKs for many ecosystems, installed through ordinary package managers",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Releases changed the language's surface**: The move from N1QL 5 syntax to SQL++-based 6.0, and deprecations across 7.x, put a version agreement under every statement",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The SQL++ standard moves on a committee cycle**: The GDMC working group publishes drafts slowly, and Couchbase ships clauses engine-first",
+        "mechanism": "V4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Release notes name each query feature's version**: The documentation states which Couchbase release introduced each clause",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting N1QL means adopting the Couchbase platform**: The language is tied to the document store, the query service, and the index service",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**N1QL is used to query stored document data**: `SELECT ... FROM keyspace` retrieves documents, and `INSERT`, `UPDATE`, and `MERGE` write them",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Nested-document joins are non-SQL**: `NEST`, `UNNEST`, and `USE KEYS` carry document semantics a relational reader must learn separately",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The SQL-shaped surface transfers**: `SELECT`, `FROM`, `WHERE`, and joins read as SQL to anyone with SQL experience",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Advanced material is thin**: Index design, planner behaviour, and join semantics are documented by example and by blog posts, not systematically",
+        "mechanism": "L3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Keyspace and index idioms take practice**: Covering indexes, partial indexes, and scan directives are storage decisions a newcomer must learn alongside the language",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Comparable things are written differently**: `NEST` and `UNNEST` pair where SQL uses subqueries, `USE KEYS` selects by key, and pre-6.0 statements used positional aliases",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "caution",
+        "text": "**Backtick-quoted keyspaces carry the names**: ``` `travel-sample` `` ``, quoting keyspace names, reads as a delimiter convention",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Statements read as SQL clauses in order**: A query's shape is visible without learning a new dataflow model",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test harness ships with the language**: Testing N1QL requires a running cluster and a harness each project builds for itself",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan review is standard practice**: `EXPLAIN` reports the chosen plan, and the Query Workbench shows it while the author edits",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No monotonic clock is published in the language**: `now()` and `local_now()` read the wall clock, so elapsed-time tests depend on cluster clocks",
+        "mechanism": "G4"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**String-built statements are an injection surface**: Concatenating untrusted input into a statement text lets that input change the parse",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Documents arrive untyped at write time**: Field types in a schemaless keyspace are data, so a query must re-check each type at every use",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parameterised statements remove the injection surface**: Bound parameters carry data out of band, so a value cannot become syntax",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A statement is a request text**: The same statement submitted to the same cluster version and dataset produces the same result, and there is no build artifact to reproduce",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Statements live beside the application that submits them**: A deployment stores no manifest naming the server version the statement was written against",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published SDKs carry no signed provenance by default**: A consumer must trust the package they install",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**SDKs publish in registries with an ownership model**: Package names on npm, PyPI, and Maven identify the publisher, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Couchbase publishes security advisories naming the affected product and version**: A consumer reads a published CVE record to learn a server release or SDK version is affected",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: Observability is provided by the server's own metrics services",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging is defined in the language**: Diagnostics are server log entries with their own format",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Failed queries are recorded by the server**: The query log and request status inspector name the statement, its duration, and its error",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The edit-test loop is a text submission**: There is no compile step between editing a statement and running it",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**No fast in-editor analysis ships for N1QL**: Syntax is checked when the statement is submitted; editors have no incremental analyser for the language",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger ships with the language**: Debugging is done through explain plans, the query log, and Workbench traces",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**User-defined functions call host-language code**: JavaScript functions extend the query service without leaving the process",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**The statement runs only inside a Couchbase cluster**: The plan spans the query, index, and data services of one product",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is Couchbase-led**: The dialect ships with the query service, and the roadmap follows the vendor",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The SQL++ core has a public draft specification**: The GDMC working group publishes the shared language for independent implementation",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance suite exists**: SQL++ implementations cannot run a shared test suite against the draft standard",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The N1QL parser is open source**: Couchbase publishes the parser on GitHub, so third-party tools can parse statements",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**SQL familiarity against document semantics**: The SQL-shaped surface carries readers in fast; `NEST`, `UNNEST`, and keyspace clauses are new material the familiarity does not cover",
+    "**MISSING and NULL keep absent fields honest**: The document model distinguishes absent from null, and three-valued comparisons become a cost every reader pays",
+    "**Vendor clauses buy performance**: `USE KEYS` and covering-index directives buy plan control at the cost of binding a statement to one product's storage",
+    "**JavaScript functions extend the language**: User-defined functions buy general computation at the cost of an unchecked boundary in the query service"
+  ],
+  "verdict": "N1QL's coupling is set by its host, not by its SQL-shaped surface. The clause structure transfers to anyone with SQL experience, prepare-time checks catch syntax and scope errors, and bound parameters close the injection surface a string-built statement opens. What the language charges: it runs only inside a Couchbase cluster, its vendor clauses sit beyond the SQL++ standard, two syntax generations coexist under the query service, and the ecosystem is niche behind a vendor licence. Main strengths: SQL-shaped access to nested JSON, distributed joins planned by the query service, and a public parser with a public draft standard for its core. Main weaknesses: single-vendor governance with no conformance suite, sparse advanced documentation on index and planner behaviour, and JavaScript user-defined functions that cross an unchecked boundary.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a Couchbase cluster: energy and time are the services', not the statement's."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "SQL-shaped statements with public examples: current models write common N1QL queries reliably, though keyspace and index clauses need review."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "query stored document data"
+    },
+    "use:query": {
+      "observation": "query stored document data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "The query service receives and parses the statement text; no compiled unit crosses a boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

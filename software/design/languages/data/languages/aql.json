@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 1,
+  "id": "aql",
+  "name": "AQL",
+  "family": "aql",
+  "assessedAs": "AQL",
+  "version": "ArangoDB 3.11",
+  "title": "AQL (ArangoDB 3.11)",
+  "indexLabel": "AQL (ArangoDB 3.11)",
+  "group": "data-science",
+  "released": "2023-10",
+  "lifecycle": "current",
+  "order": 19,
+  "displayOrder": 105,
+  "presenceOrder": 105,
+  "presenceList": {
+    "core": "T10, T12, T14, P1, P4",
+    "meta": "Ec2, Ec3, D1, G1, G3, G4, Q2, Q3",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y11, Y13, Y16, Y17"
+  },
+  "matrixOrder": 105,
+  "tagline": "Multi-Model Query",
+  "sbName": "AQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "arangoAqlDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": true,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**NULL and absent values are not type-safe**: A missing document, an absent edge, and a `NULL` property all reach an expression, and comparisons over them form a three-valued logic",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**A function's signature does not state its effects**: A user-defined function runs inside the server, and the query text shows the call, not what the body reads, mutates, or reaches out to",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**User-defined functions cross into JavaScript unchecked**: A JS function is declared by name, and the engine does not check its body against the query's expectations",
+        "mechanism": "T14"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The query is analysed before execution**: ArangoDB's query analysis rejects malformed expressions and constant-folded type mismatches at prepare time",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Data-driven blocks compose without shared state**: `FOR`, `LET`, sub-queries, and `COLLECT` build intermediate results inside the query",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Graph traversal is a first-class clause**: `OUTBOUND`, `INBOUND`, and depth ranges state a traversal in the query, not in host code",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Views store queries server-side**: A stored view is a dependency a reviewer must fetch from the deployment to read a query in full",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The engine owns allocation**: Query buffers, index pages, and traversal state are managed by the server, not by the query",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Deep traversals can exhaust engine memory**: An unbounded depth range over a dense graph can still fail the operation",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Syntax and analysis errors are caught at prepare time**: Unknown collections, malformed expressions, and unparsable queries are reported before the query runs",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Runtime failures depend on the data**: A type mismatch on an untyped JSON field, a division by zero, and a unique-constraint violation surface only on the documents reached",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions group writes atomically**: `BEGIN`, `COMMIT`, and `ROLLBACK` make a set of AQL writes commit or abort as one",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Isolation is engine-specific**: A write conflict raises an engine error the caller handles outside the query language",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**AQL runs only inside ArangoDB**: The language is defined for one product, and no other engine implements it",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**AQL is a poor fit outside database work**: General application logic, external I/O, and multi-pass algorithms are pushed to a host language",
+        "mechanism": "P4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Editions split features**: ArangoDB's Enterprise line adds security, caching, and graph features the community edition lacks",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The optimizer chooses index and traversal strategies**: `explain()` reports the plan, and optimizer hints steer it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan quality depends on the indexes and statistics**: The same query is fast on an indexed collection and a scan on a bare one",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments by edition and driver**: Drivers, the web console, and migration tools target ArangoDB's editions at different support levels",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**The AQL ecosystem is niche**: The library pool, hiring market, and third-party tooling are thinner than for SQL, Cypher, or Gremlin",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server is open source**: ArangoDB ships under a community licence, and its source and documentation are public",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "enabling",
+        "text": "**Releases are published with changelogs**: ArangoDB's release notes name each AQL change before it ships",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**AQL has no standards committee**: The language moves on the vendor's release schedule, and features arrive engine-first",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting AQL means adopting ArangoDB's multi-model store**: One language spans documents, graphs, and key-value collections, and its clauses assume that model",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**AQL is used to query stored document and graph data**: `FOR d IN users` retrieves documents, and graph traversal clauses walk edges and paths",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Graph semantics are new material for SQL readers**: Traversal direction, depth ranges, and path objects extend the SQL-shaped surface",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The SQL-shaped core transfers**: `FOR`, `FILTER`, `SORT`, and `COLLECT` read as SELECT-FROM-WHERE to anyone with SQL experience",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Sub-query scoping and LET semantics take practice**: A newcomer must learn where a variable is bound and how nested data flows through a query",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**JSON expressions sit inside SQL-style clauses**: `FOR`-`RETURN` reads like SQL until an expression nests JSON objects, arrays, and ternary operators",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Collection and field access lean on punctuation**: Backtick-quoted collections, `doc.field` paths, and arrow traversal operators carry the structure",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Queries read linearly**: A clause list in order states the data flow, and a short query is legible without a schema at hand",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test harness ships with the language**: Testing an AQL query requires a running ArangoDB deployment and a harness each project builds for itself",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Schemaless collections move type faults to execution**: An expression on untyped JSON fields fails only when a matching document is reached, so an untested path gives no evidence",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No monotonic clock is published in the language**: `DATE_NOW()` and `NOW()` read the wall clock, so elapsed-time tests depend on the server's clock",
+        "mechanism": "G4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`explain()` and profile report plans and timings**: Inspecting a query's plan and execution statistics is standard practice",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**String-built queries are an injection surface**: Concatenating untrusted input into a query text lets that input change the parse",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Untrusted documents enter queries untyped**: Field types in schemaless collections are data, so an expression must re-check each type at every use",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Parameterised statements remove the injection surface**: Bound parameters carry data out of band, so a value cannot become syntax",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is a request text**: The same query submitted to the same server version and dataset produces the same result, and there is no build artifact to reproduce",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Queries live beside the application that submits them**: A deployment stores no manifest naming the server version the query was written against",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published drivers carry no signed provenance by default**: A consumer must trust the package they install",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Drivers publish in registries with an ownership model**: The `arangojs` npm package names its publisher, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No vulnerability advisory feed joins published drivers to known vulnerabilities at the package-version level**: A consumer reads release notes to learn a driver is affected",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: Observability is provided by the server and its drivers",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging is defined in the language**: Diagnostics are server log entries with their own format",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Slow and failed queries are recorded by the server**: The slow-query log and query trace name the query and its timing",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The edit-test loop is a text submission**: There is no compile step between editing a query and running it",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**No fast in-editor analysis ships for AQL**: Query syntax is checked when the query is submitted; editors have no incremental analyser for the language",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger ships with the language**: Debugging is done through query plans, logs, and the web console",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**User-defined functions call host-language code**: JavaScript functions extend the engine without leaving the process",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**The query runs only inside ArangoDB**: There is no portable target outside that product",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is ArangoDB Inc.-led**: The language ships with the server, and the roadmap follows the vendor",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The AQL manual is public**: The language surface is documented and can be implemented by others",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance suite exists**: Independent implementations cannot run a shared test suite against the manual",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The parser is open source**: ArangoDB publishes its query parser in the server source, so third-party tools can parse AQL",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**One language over three models**: Documents, graphs, and key-value reads share AQL; the breadth is real, and each model's idioms coexist in one syntax",
+    "**NULL and missing keep optional data natural**: The document model needs no placeholder, and three-valued comparisons become a cost every reader pays",
+    "**User-defined functions extend the query**: JavaScript functions buy expressiveness at the cost of an unchecked foreign boundary",
+    "**Community edition versus Enterprise**: The language's core is open, and the features an enterprise query needs sit in the licensed edition"
+  ],
+  "verdict": "AQL's coupling is set by its host. The SQL-shaped surface transfers to anyone with SQL experience, query analysis catches malformed expressions before execution, and bound parameters close the injection surface a string-built query opens. What the language charges: NULL and absent values are not type-safe, user-defined JavaScript functions cross an unchecked boundary whose effects no signature states, the language runs only inside ArangoDB, and the ecosystem is niche. Main strengths: graph traversal as a first-class clause, one language across documents and graphs, and public plans through `explain()`. Main weaknesses: single-vendor governance with no conformance suite, thin test tooling around a language that needs a running server, and schemaless collections that move type faults to execution.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside the ArangoDB server: energy and time are the engine's, not the query's."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "The manual and tutorial are public with many examples: current models write common AQL queries reliably, though traversal semantics need review."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "query stored document and graph data"
+    },
+    "use:query": {
+      "observation": "query stored document and graph data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "The database server stores and parses the query text; no compiled unit crosses a boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

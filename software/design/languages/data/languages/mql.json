@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 1,
+  "id": "mql",
+  "name": "MongoDB Aggregation Pipeline",
+  "family": "mql",
+  "assessedAs": "the MongoDB Aggregation Pipeline",
+  "version": "MongoDB 8.0",
+  "title": "MongoDB Aggregation Pipeline (MongoDB 8.0)",
+  "indexLabel": "MongoDB Pipeline (8.0)",
+  "group": "data-science",
+  "released": "2024-10",
+  "lifecycle": "current",
+  "order": 18,
+  "displayOrder": 104,
+  "presenceOrder": 104,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T10, T12, T14, Er1, Er4, P4",
+    "meta": "Ec2, Ec4, Ec6, Ec7, V1, D1, L1, L2, S1, S2, S3, G1, G3, G4, Q2, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y12, Y13, Y16, Y17"
+  },
+  "matrixOrder": 104,
+  "tagline": "Document Dataflow",
+  "sbName": "MongoDB Pipeline",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "mongoAggDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": false,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": true,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": true,
+    "S2": true,
+    "S3": true,
+    "G1": true,
+    "G2": false,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": true,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**Pipeline expressions are untyped**: A field path resolves to a BSON value of any type, and an operator applies to whatever the document carries",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Operators dispatch on the operand's run-time type**: `$add` on numbers, strings, and dates runs three different code paths chosen from the value",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: An alternative is modelled with a discriminator field the expressions test by convention",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generics**: A stage cannot be parameterised over a type, so reusable logic is copied, stored as a view, or wrapped in a JavaScript function",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Missing and NULL are distinct values**: A field can be absent, present as `NULL`, or present as a value, and comparisons over the three form a three-valued logic",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**Expression names do not state their effects**: A pipeline shows the operators it runs, not the JavaScript effects an embedded function performs",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Embedded JavaScript crosses into the host runtime unchecked**: `$function` runs a JS body inside the server, and nothing checks it against the pipeline's expectations",
+        "mechanism": "T14"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pipeline variables are query-local**: `$let` and `$$ROOT` bind inside the pipeline, so no name is shared with another query",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Stages build new documents**: Each stage produces its output documents, so the pipeline does not mutate its input in place",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Sub-pipelines compose without shared state**: `$lookup`, `$graphLookup`, and `$facet` build intermediate results inside the query",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Views store pipelines server-side**: A stored view is a dependency a reviewer must fetch from the deployment to read a query in full",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The engine owns allocation**: Cursors, spool files, and intermediate results are managed by the server, not by the pipeline",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Unbounded stages can exhaust engine memory**: A `$group` over a large collection, a `$sort` with no `allowDiskUse`, or a dense `$lookup` can still fail the operation",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The pipeline has no construct that carries a failure**: A failing operator aborts the whole aggregation, and no language construct routes that failure to a handler",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure cannot travel as a value**: An expression has no result type that carries success-and-failure, so guarded evaluation is rebuilt with `$cond` and `$type` at every stage",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A failed aggregation writes nothing**: `$out` and `$merge` commit only when the pipeline completes, so an aborted pipeline leaves the target collection unchanged",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**The pipeline runs inside the engine's concurrency control**: The server schedules the operation, and its writes follow the storage engine's rules",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The language has no construct for concurrent work**: Parallelism is the engine's planner decision, not a pipeline author's choice",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**API-compatible servers exist**: Cosmos DB's Mongo API, FerretDB, and community ports run a growing share of the pipeline language",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Feature parity is chased, not promised**: A pipeline written to the latest server assumes stages, operators, and semantics that compatible servers reach at their own pace",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The pipeline is a poor fit outside document processing**: Multi-pass algorithms, external calls, and general application logic are pushed to the driver language or embedded JavaScript",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The server compiles the pipeline to a plan**: The optimizer selects indexes and pipeline rewrites before execution",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Plan quality depends on the schema and the indexes**: The same pipeline is fast on a well-indexed collection and a table scan on a bare one",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across compatible servers**: Drivers, consoles, and migration tools target MongoDB, Atlas, Cosmos DB, and FerretDB each with their own support level",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**The engine, the tooling, and the documentation come from one vendor under licence**: Server licences have moved from Apache-2.0 to SSPL, and Atlas is a commercial service",
+        "mechanism": "Ec4"
+      },
+      {
+        "kind": "cost",
+        "text": "**The ecosystem centres on one vendor's stack**: MongoDB Inc. ships the server, Atlas, Compass, and the official drivers, so its stack defines the idiomatic toolchain",
+        "mechanism": "Ec6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Two pipeline generations coexist**: v1 and v2 semantics and legacy stage forms must stay supported, so every new feature inherits the compatibility surface",
+        "mechanism": "Ec7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Official drivers cover the mainstream languages**: MongoDB maintains drivers for many ecosystems, and they are installed through ordinary package managers",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Server releases change pipeline semantics**: Operator behaviour, stage availability, and deprecated forms shift across major releases, so a pipeline is written against a version",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Release notes document each stage's availability**: Every stage and operator names the server version that introduced it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Feature availability is gated by deployment configuration**: `featureCompatibilityVersion` and cluster topology decide which pipeline features a deployment runs",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting the pipeline means adopting a document store**: Stages, field paths, and update operators assume the document data model and the collections that hold it",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The pipeline is used to query stored document data and write results back**: `$match` retrieves documents, and `$merge` writes computed output into a collection",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Relational joins over nested arrays are verbose**: `$unwind` and `$lookup` chains replace the set logic many practitioners already know from SQL",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Stage semantics are new material**: Field-path syntax, variable scope in `$lookup` and `$facet`, and missing-versus-NULL behaviour build on nothing a SQL practitioner carries",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The pipeline mixes three forms at once**: Dataflow stages, an expression language, and embedded JavaScript each offer their own way to write the same computation",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The manual documents every stage**: Per-stage reference pages with examples cover the common pipeline patterns",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Pipelines are verbose JSON**: Every stage is a wrapper object, every field path is a quoted string, and a small computation spans many nested braces",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Three quoting conventions share one tree**: Field paths are `$`-prefixed strings, operators are quoted names, and documents are JSON objects, so the mapping is not predictable",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "cost",
+        "text": "**The notation leans on the `$` sigil**: `\"$field\"`, `\"$$var\"`, and `\"$add\"` all put the same character in string position, so reading tracks the sigil to tell paths from operators",
+        "mechanism": "S3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A pipeline is data**: The stage array is a JSON document, so it round-trips through ordinary JSON tooling",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test harness ships with the language**: Testing a pipeline requires a running deployment and a harness each project builds for itself",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Type faults surface only on the documents reached**: An operator applied to the wrong BSON type fails when the aggregation processes a matching document, so an untested stage path gives no evidence",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No monotonic clock is published in the language**: `$$NOW` and `$$CLUSTER_TIME` read the wall clock, so elapsed-time behaviour depends on the deployment's clocks",
+        "mechanism": "G4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**`explain()` reports the chosen plan**: Stage-by-stage plan output is standard practice for reviewing a pipeline",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Untrusted documents enter the pipeline untyped**: A stored document's field types are data, so an expression must re-check each type to survive hostile input",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A pipeline can embed executable code**: `$function` takes a JavaScript body that runs in the server, so a code string assembled from input is an injection path",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The pipeline is submitted as data, not as concatenated text**: A stage array built with a driver builder keeps values out of band, so a value cannot become syntax the way string-built SQL does",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A pipeline is data submitted as a request**: The same pipeline against the same server version and dataset reads the same result, and there is no build artifact to reproduce",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "caution",
+        "text": "**Pipelines live beside the application that submits them**: A deployment stores no manifest naming the server version the pipeline was written against",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published drivers carry no signed provenance by default**: A consumer must trust the package they install",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Drivers publish in registries with an ownership model**: The npm `mongodb` scope and Maven coordinates name the publisher, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No vulnerability advisory feed joins published drivers to known vulnerabilities at the package-version level**: A consumer reads release notes to learn a driver is affected",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: Observability comes from the server profiler, Atlas, and driver-specific integrations",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging is defined in the language**: Diagnostics are server log entries with their own format",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Failed operations are recorded by the server**: The log and diagnostic captures name the pipeline and the failing stage",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The edit-test loop is a request submission**: There is no compile step between editing a pipeline and running it",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Drivers and consoles parse the pipeline before submission**: The JSON shape is checked while the author works",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger ships with the language**: Debugging is done through plan output, the server profiler, and log inspection",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**Embedded JavaScript calls host-language code**: `$function` and `$accumulator` run JS inside the engine without leaving the process",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**The pipeline runs only inside a MongoDB-compatible server**: There is no portable target outside that context",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**MongoDB Inc. governs the pipeline's direction**: Stages ship with server releases, and no independent body decides the language",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No published specification defines the aggregation language**: The manual describes the shipping server, and compatible ports reached parity by differential testing against it",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance suite exists**: Compatible servers cannot run a shared test suite against the pipeline language",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The pipeline is JSON, so any JSON parser reads the whole program**: The structure is available to tooling without reverse engineering",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Untyped expressions keep pipelines flexible**: A stage processes any document shape, and type agreements move into every expression that reads a field",
+    "**NULL and missing keep optional data natural**: The document model needs no placeholder, and three-valued comparisons become a cost every reader pays",
+    "**Embedded JavaScript extends the pipeline**: `$function` buys general computation at the cost of an unchecked, injectable boundary inside the server",
+    "**Vendor-gated features buy velocity**: Stages arrive with server releases; the portability cost across compatible servers is a deliberate trade"
+  ],
+  "verdict": "The pipeline's untyped dataflow carries real language-imposed coupling: expressions apply to values of any type, operators dispatch at run time, and a failure has no path to a handler — it aborts the operation. Missing and NULL split comparisons into three-valued logic, and embedded JavaScript opens an unchecked boundary that is also an injection path. Main strengths: a declarative stage model the engine compiles to a plan, pipelines carried as data so there is no string-concatenation surface, and a driver ecosystem installed through ordinary package managers. Main weaknesses: the MongoDB licence history and single-vendor governance, no specification and no conformance suite for the compatible ports, two pipeline generations in service, and the learning cost of stage semantics that build on no prior skill.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside a document database server: energy and time are the engine's, not the pipeline's."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "Pipeline JSON is heavily documented with public examples: current models write common stage sequences reliably, though multi-stage scoping bugs survive review."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:dynamic"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "query stored document data"
+    },
+    "use:query": {
+      "observation": "query stored document data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "The database server receives the pipeline as a JSON request and evaluates it; no compiled unit crosses a boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}
