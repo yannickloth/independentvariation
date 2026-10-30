@@ -275,7 +275,9 @@
   //
   // Two regexes, not one, because they need different case-sensitivity and one
   // regex cannot apply per-branch case flags in the target engines:
-  //   - `keyRe`: canonical keys, case-sensitive. Prevents 2-3 letter abbreviation
+  //   - `keyRe`: canonical keys, case-sensitive, plus any synonym that is an
+  //     exact-spelling alias of its own key (an acronym's uppercase form: key
+  //     `timtowtdi`, synonym `TIMTOWTDI`). Prevents 2-3 letter abbreviation
   //     keys from false-positive on everyday English prose words.
   //   - `synRe`: multi-word synonyms, case-insensitive, so title-case synonyms
   //     match lowercase prose.
@@ -322,12 +324,21 @@
       keyBranches.push(escReg(k));
     }
 
-    // Synonyms: case-insensitive; never overwrite a canonical key.
+    // Synonyms: case-insensitive; never overwrite a canonical key. One
+    // exception: a synonym that case-folds to its OWN key — the authored
+    // spelling of an acronym (key `timtowtdi`, synonym `TIMTOWTDI`). Putting it
+    // in the case-insensitive branches would also match casings the key's own
+    // branch rejects, so it joins the case-sensitive key branches instead: the
+    // exact authored spelling matches, exactly as the key itself does.
     for (const k of keys) {
       const syns = glossary[k]?.synonyms;
       if (!Array.isArray(syns)) continue;
       for (const s of syns) {
         if (typeof s !== 'string' || !s) continue;
+        if (s.toLowerCase() === k.toLowerCase()) {
+          keyBranches.push(escReg(s)); // exact-spelling alias; resolve owns the lowercase form already
+          continue;
+        }
         if (resolve.has(s.toLowerCase())) continue; // canonical key owns it
         const payload = register(s, k, true, false);
         if (payload) synBranches.push(payload);
