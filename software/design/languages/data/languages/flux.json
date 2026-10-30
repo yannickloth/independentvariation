@@ -1,0 +1,625 @@
+{
+  "schemaVersion": 1,
+  "id": "flux",
+  "name": "Flux",
+  "family": "flux",
+  "assessedAs": "Flux",
+  "version": "v0.200",
+  "title": "Flux (v0.200)",
+  "indexLabel": "Flux (v0.200)",
+  "group": "data-science",
+  "released": "2026-04",
+  "lifecycle": "current",
+  "lifecycleNote": "in maintenance mode; not supported in InfluxDB 3",
+  "order": 22,
+  "displayOrder": 108,
+  "presenceOrder": 108,
+  "presenceList": {
+    "core": "T2, T4, T5, T10, T12, T14, C4, M2, M3, M4, Er2, Er3, Er4, K4, K5, P1, P4",
+    "meta": "R2, Ec2, Ec3, V1, V2, D1, L1, L2, S1, S2, S3, G2, G3, G4, Q2, Q3",
+    "readiness": "Y3, Y5, Y6, Y9, Y10, Y11, Y17, Y13, Y14"
+  },
+  "matrixOrder": 108,
+  "tagline": "Dataflow Time-Series Scripting",
+  "sbName": "Flux",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "fluxDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": true,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": true,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": true,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": true,
+    "K5": true,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": true,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": true,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": true,
+    "S2": true,
+    "S3": true,
+    "G1": false,
+    "G2": true,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": true,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": true,
+    "Y18": false,
+    "Y15": false,
+    "Y16": false,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Types are inferred, not declared**: Flux is statically typed, and the data-types docs state that types are inferred from how a variable is used, so a pipeline's value shapes are checkable before the query runs",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Weak static typing with a dynamic escape hatch**: the `dynamic` type wraps data 'whose type is not known until runtime', and `dynamic.jsonParse` hands JSON's untyped values into expressions",
+        "mechanism": "T2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: a record carries one uniform column set, and an alternative must be encoded as a column whose meaning changes",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generic type parameter**: a function is typed to its concrete record shape, and reusable transforms are copied between queries",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**null is a declared basic type**: joins pad absent rows with null, and a reader must check every column a join can leave empty",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**A pipe shows the transform, not the effect**: `to()` writes a bucket, `http.post` sends, and the stream flowing through `|>` carries no effect annotation",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Foreign sources cross an unvalidated boundary**: `sql.from` reaches PostgreSQL, MySQL, BigQuery, Snowflake, Athena, and more engines, and their schemas arrive as table columns checked when the rows load",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Data flows through pipes**: `from() |> filter() |> window() |> aggregateWindow()` composes streams with no shared state to mutate",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor validates a record**: `array.from` builds tables from object literals with no declared schema, and a type-mismatched row surfaces at execution",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Group keys carry the order**: a table's records are grouped by declared keys, and consumers read the group structure, not the source's emission order",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tasks fire on schedule**: a task runs the script on the server's schedule, and the script that produced a write may not be the one in the editor",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**The engine allocates**: influxd materializes tables in its own memory, and a Flux script never frees",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The collector runs while queries do**: influxd hosts Flux in a garbage-collected Go process, and InfluxData's query-tuning guidance treats memory pressure on the shared process as the constraint a reader plans around",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Scope does not release**: the engine reclaims when its collector decides, and a script's scope binds nothing to release",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership is expressed**: streams move from operator to operator with no owner, and the engine's collector decides lifetime",
+        "mechanism": "M4"
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**The language names its failure tools**: `die()` raises, `experimental.catch` catches, and `testing.shouldError` asserts failure, so a script can state an error path",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Much of the path is engine-side**: a query that fails on a missing column aborts whole, and nothing in the language requires a script to handle the failure",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure can be ignored**: the task system re-runs a failed query, and a script that never checks the outcome reports nothing",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: streams, records, and the side-effecting `to()` writes do not compose into a checked success-or-failure value",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Errors carry codes**: the engine names an error code per fault, and `testing.shouldErrorWithCode` asserts a specific one",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No structured concurrency**: a script declares no tasks; `task.options` starts a scheduled query, and nothing scopes a running child",
+        "mechanism": "K4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No concurrency primitives**: Flux has no async construct, and concurrency across queries is influxd's, not expressible in the script",
+        "mechanism": "K5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The dataflow model parallelizes below the script**: the engine pushes filters, range limits, and aggregates into the storage layer, and the script states transforms, not threads",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**Flux runs only in InfluxData's engine**: influxd hosts the language, and the future-of-Flux page states Flux is not supported in InfluxDB 3",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Poor fit outside time-series dataflow**: the record-and-group-key model, windows, and the aggregate library assume time-series tables, and general application logic stays client code",
+        "mechanism": "P4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Flux rides the maintenance lines**: the v1 and v2 docs call InfluxDB 3 Core 'the latest stable version' while 1.x and 2.x keep shipping maintenance releases, and the docs' latest Docker tag moves to 3 Core in September 2026",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The community fork inherits a surface InfluxData is not developing**: the future-of-Flux page invites community development to continue outside the vendor's review process",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Pushdown is the default shape**: the planner folds `filter` and `range` into storage scans, and `experimental.preview` and the task system report the plan",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Memory pressure is the tuning problem**: InfluxData's guidance treats wide-window joins and unbounded ranges as memory events on the shared influxd process, visible to every client",
+        "mechanism": "R2"
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across surfaces**: Data UI, the `flux` CLI, the influx CLI, `flux-lsp`, and the Go, Python, Node, and Java client libraries target different Flux features at different levels",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A niche the vendor has stepped back from**: the language's largest surfaces (universe, experimental, contrib) sit in maintenance mode, and InfluxData's published plan directs new work to InfluxQL and SQL",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Apache-2 licensed and open source**: the language, compiler, and engine ship in `influxdata/flux`, and InfluxData publishes a community fork for forward development",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The SQL connectors are compiled Go, not the language's**: the engine's thirteen SQL sources are built into influxd, and a script selects them by name",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The v0 line broke in public**: the release notes carry breaking-change entries — removed `contrib` packages, reworked SQL functions, a reshaped join API — and a script can import a function the next release no longer names",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Frozen in maintenance**: InfluxData publishes 'Flux is in maintenance mode... not actively developing any new Flux features... security patches and critical defects'",
+        "mechanism": "V2"
+      },
+      {
+        "kind": "caution",
+        "text": "**The next engine does not run the language**: InfluxDB 3 Core is a ground-up Rust rewrite with SQL and InfluxQL, and InfluxData states the Flux path to v3 was attempted, performed poorly, and was left behind — a rewrite, not a port, is the published migration",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The v0 line still releases**: security fixes arrive on v0.197 through v0.200 across 2025 and 2026, and the docs table names the Flux version bundled with each shipping InfluxDB release",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting Flux means adopting InfluxDB 2.x**: the `influxdata/influxdb` package's `from()` and `to()` speak to buckets, and the series-and-key model is the language's home ground",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "Flux is used to query stored time-series data and write derived tables back: `from()` reads buckets, and `to()` writes the results",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The breadth is real and the center is narrow**: CSV, JSON, Prometheus, MQTT, Kafka, Slack, Discord, ClickHouse, and LogQL all ship in the standard library, and all return the same record-and-group-key table",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**A published adoption blocker**: InfluxData's own plan post states 'many users found Flux to be an adoption blocker' and names usability among the reasons the language lost ground, on top of a table, record, and group-key model that is new material for SQL readers",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Three library tiers at once**: universe, experimental, and contrib — plus spec sections on notation, options, attributes, side effects, and the data model — and a learner must know which tier names a function",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A published specification**: the docs carry a Flux specification (notation, lexical elements, variables, assignment and scope, types, blocks, side effects) and a function-signature reference",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Boilerplate frames the pipeline**: `import` statements, `option` declarations, and named-argument calls (`fn: (r) => r._value > 10.0`) add length outside the data flow",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Surfaces are uneven across packages**: `geo.ST_Contains` alongside `geo.stContains`, `array.from` alongside `experimental.array.from`, `join.inner` alongside the superseded `experimental.join`, and aggregates split between `aggregateWindow` and `experimental.aggregate.rate`",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Punctuation carries the structure**: `|>`, `=>`, `option`, string interpolation `${}`, and record access `r._value` are the syntax, and a newcomer reads operator soup",
+        "mechanism": "S3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Pipes read in dataflow order**: a pipeline's lines are the sequence the data takes, and a short pipeline is legible without a schema at hand",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**The language ships its own test harness**: `import \"testing\"` provides `assertEquals`, `assertEmpty`, `diff`, `shouldError`, `shouldErrorWithCode`, `load`, and `expect.planner`, so a query test is a Flux program",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Debugging is inspection, not stepping**: `debug.slurp`, `debug.pass`, `debug.opaque`, `profiler`, and preview plans are available, and the language has no source-level debugger",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Schema faults are runtime events**: a `from()` on a bucket without the queried measurement, a missing column in a `filter`, and a join on ungrouped tables report only when the data loads",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Only the wall clock**: `now()`, `system.time()`, and `today()` read wall time, and a window anchored on them shifts with execution time",
+        "mechanism": "G4"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic values cross the type boundary**: `dynamic.jsonParse` and `dynamic.asArray` hand runtime-typed data to expressions, and `types.isType` checks are opt-in per call site",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "cost",
+        "text": "**String-built scripts are an injection surface**: concatenating untrusted input into script text lets that input change the parse",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Query parameters are an API feature**: the query API passes parameter values out of band, so a value can stay out of the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Credentials live in the server's secret store**: `secrets.get()` reads a named secret at execution, so a token need not sit in the script text",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A task is script text**: the same script on the same influxd version and bucket data reproduces the same table, and there is no build artifact",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain version pin ships for scripts**: tasks, dashboards, and variables store script text in influxd's metadata store, and no file in the deployment names the Flux version they were written against",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published drivers carry no signed provenance by default**: `influxdb-client-go` on Go modules, `influxdb-client-py` on PyPI, and `@influxdata/influxdb-client` on npm name their publishers, and a consumer trusts the package they install",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Registries carry namespaces**: Go module paths, PyPI, and npm name each package's owner, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Advisories are published**: InfluxData ships GitHub security advisories with CVE entries for influxd, and the v2 release notes carry dependency security updates",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: server telemetry is exposed through the `system` package and `experimental.usage`, and traces are influxd's, not the script's",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Logging is a side effect, not a structure**: `monitor.log()` and `http.post` send messages the script composes, and the language defines no log format",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server's own telemetry is queryable in the language**: `experimental.usage` and the `influxdb/monitor` package read the system buckets influxd writes for query events, checks, and task outcomes",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**No compile step**: Data UI runs a saved script immediately, and the `flux` CLI evaluates a file directly",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A language server ships from the vendor**: `influxdata/flux-lsp` provides completion and diagnostics for Flux, and the docs publish an MCP server for the Flux documentation",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No debugger in the toolchain**: inspection goes through preview plans, profiler output, and the `debug.*` operators, and no stepping tool exists",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No foreign-function interface for user code**: the engine's SQL, Kafka, MQTT, Slack, and Discord connectors are compiled Go, and a script can only select them — extending the language with user functions has no published interface",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target**: influxd hosts Flux, and the only other runtime is InfluxData's own `flux` CLI binary",
+        "mechanism": "Y10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Foreign SQL databases are reachable in-language**: `sql.from` and `sql.to` connect PostgreSQL, MySQL, MariaDB, CockroachDB, BigQuery, Snowflake, Athena, Amazon RDS, SQL Server, SQLite, Vertica, SAP HANA, and Percona",
+        "mechanism": null
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is InfluxData's**: the language, engine, standard library, and maintenance-mode decision all sit with the vendor, and the community fork is a self-organization InfluxData describes, not a co-governed body",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The specification is published in open docs and Apache-2 source**: notation, lexical elements, assignment and scope, types, blocks, and side effects are documented",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Conformance is influxd**: InfluxData publishes no conformance suite, and forks inherit the language's definition by tracking the engine's behavior",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The parser is published**: libflux's parser and formatter live in the open repository, and `flux fmt` normalizes scripts",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Stability of the v0 line buys a rewrite obligation**: scripts written today run unchanged on v0.200, and moving to InfluxDB 3 Core is a rewrite, not a port — the migration duty lands on the reader, and no mechanism prices it",
+    "**`secrets.get()` keeps tokens out of script text, at the cost of server-side indirection**: the same script runs differently against deployments with different secret stores, and the script text names no value it will consume",
+    "**Tests are Flux programs, run against a live engine**: the in-language harness checks plans and results, and a test needs a deployment — no offline test mode ships",
+    "**A script can be a service** (tasks, checks, alerts, endpoints, HTTP writes): crossing the query boundary buys operational reach, and the run history, retry policy, and deadman checks that follow each task are the operator's standing duty"
+  ],
+  "verdict": "Flux is a dataflow scripting language with the coupling profile of a niche DSL in maintenance mode. Statically typed with inference, immutable pipes, a published specification, a vendor language server, and a test harness inside the language are its low-coupling facts. The costs are real and published: a dynamic escape hatch at the JSON and SQL boundaries, pipes that carry `to()` writes with no effect annotation, foreign SQL sources crossing an unvalidated boundary, Flux unsupported in InfluxDB 3 with the vendor directing forward work to SQL, v0.x breaking changes recorded in the release notes, a frozen definition, a three-tier standard library with uneven naming, a niche ecosystem, and a language server paired with no debugger. Main strengths: the in-language test harness, pushdown execution, and open-source licensing. Main weaknesses: the language runs only on the 1.x/2.x maintenance lines, the surface is frozen, and a reader of a v0 script must know which tier of a maintenance-mode library each function lives in.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs inside influxd: energy and time are the server's, and a memory-heavy window is paid by every client on the process."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "The public corpus is small and the docs are split across versions: models write common pipelines, and v0.x renames leave a generated script importing a function the release removed."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:functional",
+    "paradigm:declarative",
+    "paradigm:array",
+    "lifecycle:current",
+    "memory:managed-gc",
+    "typing:static-weak"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "query stored time-series data"
+    },
+    "use:query": {
+      "observation": "query stored time-series data and write derived tables"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored task",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "influxd stores tasks with their Flux text in its own metadata store; scripts compile to plans inside the engine, and no compiled unit ships to a consumer.",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "TSM engine files (InfluxDB 1.x → 2.x)",
+      "promise": true,
+      "break": false,
+      "reproduced": false,
+      "note": "The v2 docs publish `influxd upgrade`: the command 'copies all data in databases and retention policies (used in 1.x) over to buckets (used in 2.10)' — v1 engine data crosses into v2 by an official tool.",
+      "cite": [
+        "influxUpgradeV1V2"
+      ]
+    },
+    {
+      "target": "InfluxDB 2.x data (2.x → InfluxDB 3 Core)",
+      "promise": true,
+      "break": false,
+      "reproduced": false,
+      "note": "The v2 docs publish `influxd inspect export-lp` — exporting bucket data from the TSM engine as line protocol — and the InfluxDB 3 Core migration guide publishes v1/v2-compatible endpoints and guides that ingest the rewritten data.",
+      "cite": [
+        "influxMigrateOss",
+        "influxMigrateV3"
+      ]
+    },
+    {
+      "target": "InfluxDB 3 Core snapshots (Parquet object storage)",
+      "promise": null,
+      "break": false,
+      "reproduced": false,
+      "note": "The v3 snapshot format is the new engine's storage form; InfluxData publishes forward migration from v1/v2 and no reverse path a v2 engine opens.",
+      "cite": []
+    }
+  ]
+}

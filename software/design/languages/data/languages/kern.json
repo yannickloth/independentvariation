@@ -1,0 +1,547 @@
+{
+  "schemaVersion": 1,
+  "id": "kern",
+  "name": "Kern",
+  "family": "kern",
+  "assessedAs": "Kern",
+  "version": "1.1.2",
+  "title": "Kern (1.1.2)",
+  "indexLabel": "Kern (1.1.2)",
+  "group": "application",
+  "released": "2026-10-28",
+  "lifecycle": "current",
+  "lifecycleNote": "v1.1.2 (2026-10-28) is the newest published stable release; a v1.2.0 tag exists on the development line with its release pipeline still failing at assessment",
+  "order": 67,
+  "displayOrder": 67,
+  "presenceOrder": 67,
+  "matrixOrder": 67,
+  "presenceList": {
+    "core": "T7, T14, T15, C5, C6, C8, M2, M4, Er6, Er3, Er5, K4, P2",
+    "meta": "R2, Ec3, Ec8, V1, V5, L1",
+    "readiness": "Y4, Y10, Y11, Y13, Y15, Y16, Y17"
+  },
+  "tagline": "Capabilities in the Signature, Europe in the Supply",
+  "sbName": "Kern 1.1.2",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "kernLanding",
+    "kernReadme",
+    "kernSpec",
+    "kernChangelog",
+    "kernRelease",
+    "kernTypeSystem",
+    "kernAsync",
+    "kernErrors",
+    "kernSyntax",
+    "kernDeps",
+    "kernStdlibIndex",
+    "kernStrStdlib",
+    "kernStrRuntime",
+    "kernGovernance",
+    "kernFormalScope"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": true,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "T12": false,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": true,
+    "C6": true,
+    "C7": false,
+    "M1": false,
+    "M2": true,
+    "M3": false,
+    "M4": true,
+    "M5": false,
+    "M6": false,
+    "Er6": true,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": false,
+    "Er5": true,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": true,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": true,
+    "P3": false,
+    "P4": false,
+    "R1": false,
+    "R2": true,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": true,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": true,
+    "V7": false,
+    "D1": false,
+    "D3": false,
+    "L1": true,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": false,
+    "G2": false,
+    "G3": false,
+    "G4": false,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": false,
+    "Y4": true,
+    "Y5": false,
+    "Y6": false,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": true,
+    "Y16": true,
+    "Q4": false,
+    "C8": true,
+    "M7": false,
+    "T15": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**I/O authority is a parameter, and the compiler enforces it**: every authority-bearing call demands a `Cap<T>` argument in the signature, ambient authority is the compile error E0404 with no off switch, only `@cap_constructor` functions mint, and the entry module mints the roots — a function that cannot show a `Cap<Fs>` cannot read a file, which puts the effect where the caller reads it",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Nullability, exhaustiveness and boundaries are type facts**: `str` is never null and `str?` is the opt-in with flow-sensitive narrowing; unions carry payloads and `match` must cover every variant; `pub` and the enforced import list (E0327) are a real module boundary; conversions are named calls (`int()`, `float()`) with no implicit narrowing, and `bool` and `int` are distinct"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Functions are coloured by declaration, not by kind**: `await` composes inside a plain `fn` body — every example on the async page awaits tasks from a `fn main` — so the `async fn` marker does not spread through the call graph the way a second function kind does elsewhere",
+        "mechanism": "T13"
+      },
+      {
+        "kind": "cost",
+        "text": "**Generic type parameters are erased**: every generic parameter compiles to an opaque `i8*`, and integer and float values are boxed crossing generic code; there is no reflection API to reach structure at run time, so the charge is the erasure half — the artifact no longer carries the type argument, as on the TypeScript page",
+        "mechanism": "T7"
+      },
+      {
+        "kind": "cost",
+        "text": "**The systems profile crosses to raw memory and syscalls**: a `@nogc` function, or every function in a `@systems` file, may call the `__mem_*` and `__syscall` intrinsics, and `std.cap_unsafe` hands out `Cap<Unsafe>` raw addresses — layout, lifetime and the syscall ABI are hand-written agreements the type system does not check, and the memory-safe guarantee stops at that crossing",
+        "mechanism": "T14"
+      },
+      {
+        "kind": "cost",
+        "text": "**`length` is named characters and ships bytes**: the string module's docstring reads 'Returns the number of characters in the string', and the runtime source states `kern_str_length` returns 'the byte-length of a string (excluding NUL)'; the codepoint count ships under a different name (`str.char_count`, pure Kern, continuation bytes skipped), `reverse()` has been codepoint-aware since 1.0.0, and `char_at` and `slice` index positions whose unit the reference does not state",
+        "mechanism": "T15"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**State is local and immutable unless written down**: bindings are immutable without `mut`, structs are immutable without `type mut`, construction names every field with required fields enforced (E0207) and declared defaults, and every declaration carries its initialiser in the grammar — no value exists off a path that filled it"
+      },
+      {
+        "kind": "cost",
+        "text": "**The default map is a hash table with no order promise**: `Map<K, V>` is FNV-1a with chaining and resize at 75% load, `keys()` states no order, and the library ships no ordered sibling — code that assembles output, a payload or a report from an iteration agrees with a hash function",
+        "mechanism": "C5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Mutable heap values alias by default**: structs are heap-allocated and a `type mut` struct's fields mutate through every alias, with the alias set undeclared; `list_append` appends in place and returns the same list — the reference itself records that 'several stdlib modules that promise immutability silently mutated their caller's data' until the behaviour was written down",
+        "mechanism": "C6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Module-level initialisers run once at program start, in declaration order — within a module**: the specification states no order across modules for an initialiser that reads another module's module-level state, and no rule for a cycle; the create-once constant the race check steers toward (`const REQUESTS = atomic_new(0)`) stays inside one module, but the cross-module read is the loader's sequence",
+        "mechanism": "C8"
+      }
+    ],
+    "memory": [
+      {
+        "kind": "cost",
+        "text": "**A tracing mark-and-sweep collector owns the heap**: stop-the-world and ThreadSanitizer-checked, with per-request epoch GC on the HTTP path — memory returns when the collector decides, not when the last reference goes",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership model**: the collector owns every heap object and no type records who may free or mutate; the `mut` mark says the value can change, not who may change it",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "cost",
+        "text": "**The fatal classes sit outside the declared surface**: `panic`, `.unwrap()` on an `Err`, a failed `assert`, and overflow-checked arithmetic that 'aborts the program with a diagnostic' are faults no catch reaches — the declared failure path is the `Result` value, and these end the program by design",
+        "mechanism": "Er6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Release and reclamation have named forms**: `defer` schedules a call at scope exit, `weak_new` holds a reference the collector may clear, cycles are collected, and no `malloc`/`free` exists in Kern code"
+      },
+      {
+        "kind": "caution",
+        "text": "**The trusted base is C**: roughly 42,000 budget-capped lines with a written ledger, ThreadSanitizer on the synchronisation primitives, and a stated programme to shrink it — the memory-safe story stops at the runtime's own boundary"
+      }
+    ],
+    "error": [
+      {
+        "kind": "enabling",
+        "text": "**Failures are values end to end**: there are no exceptions; `Result<T, E>` carries any error type, `?` propagates only where the enclosing function declares the same `E`, `match` is exhaustive, and a `-> never` function ends a block for the return analysis"
+      },
+      {
+        "kind": "cost",
+        "text": "**A discarded failure is silence**: match is exhaustive where it is used and `?` propagates, but no diagnostic stops a `Result`-valued call from standing as a statement, the Go-shaped `content, err = fs.read(path)` pair leaves the `if err:` to the programmer, `.unwrap()` trades the check for a crash, and `str_to_int` returns 0 for input it cannot read",
+        "mechanism": "Er3"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Mutability is the mark the race check reads**: a `mut` module global written from concurrent code — a spawn target, an HTTP handler or middleware, a `service` impl method, or anything they call, including the body of a spawned lambda — is the compile error E0309, so the default is not unchecked sharing",
+        "mechanism": "K2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A race class is detected at compile time**: E0309 rejects the unsynchronised concurrent write; the scope is the checker's own — module globals and what concurrent code reaches — and container read-modify-write is a W0005 warning in the default edition, becoming E0309 only under edition 2027",
+        "mechanism": "K3"
+      },
+      {
+        "kind": "cost",
+        "text": "**A spawned task is joined by hand**: `spawn` returns a handle, `await all` joins an explicit list, and no construct scopes a task's lifetime to a block — a scope can end while work it started still runs",
+        "mechanism": "K4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The concurrency kit is first-class**: cooperative routines on a libuv loop with per-coroutine preemption, dedicated `spawn_thread` for CPU-bound and blocking work, channels with a required capacity (0 is a rendezvous), mutex, RWLock, semaphore, atomics, and `select` — a routine that awaits parks, never an OS thread"
+      },
+      {
+        "kind": "caution",
+        "text": "**The 1.1.x line shipped with concurrency defects its own changelog names**: a cooperative `Mutex<T>` that could freeze the scheduler thread when a holder was descheduled (fixed in 1.1.2), the same defect in `RwLock<T>` documented as unfixed at this release, and multi-worker `await` windows — 'avoid `KERN_WORKERS` > 0 in production until v1.1.3'"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**One implementation is the language**: a self-hosted compiler with no second front end, one vendor's release calendar, and no independent implementation to compare against — the working reality is one toolchain",
+        "mechanism": "P2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The artifact is a single static native binary**: LLVM to the named target triple, no runtime loaded at run time, and therefore no runtime/program version skew to manage — the upgrade is a rebuild"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "cost",
+        "text": "**Collector pauses are in the timing budget**: stop-the-world marking bounds the pause and does not remove it; per-request epoch GC keeps a request's collection local, and the schedule is still the runtime's",
+        "mechanism": "R2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Ahead-of-time native, no JIT tier**: LLVM emits the binary the machine runs, so cold starts carry no warm-up; the project's own 55-workload matrix against Go, Node, Python, Rust and C states its losses (file I/O, hashing) beside its wins, with per-cell ceilings — self-reported, not independent"
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The supply is one vendor's**: 309 standard-library modules and ten first-party packages against a third-party pool measured in single repositories — zero stars and two watchers on the forge at assessment — so more is written than found, and hiring follows the same curve",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "caution",
+        "text": "**The standard library is the platform by design**: HTTP, PostgreSQL, SQLite, Redis, JSON, crypto, containers and a microVM monitor ship in-tree, so the concentration the supply and implementation criteria price is a deliberate trade — the dependency tree that would diversify the supply is the thing the design avoids, and that choice is charged under `Ec3` and `P2`, not as a community framework monoculture"
+      },
+      {
+        "kind": "cost",
+        "text": "**The runtime bundle crosses as a binary with the promise set to nothing**: published so a build can skip roughly 36,000 lines of C, version-paired by convention, with the stability policy stating the C runtime's symbol names 'are NOT part of the stable surface' and can change between minor versions; the v1.1.1 bundle linked on an mbedTLS-2.28 host and SIGSEGVd at the first TLS use, and 1.1.2's answer — per-ABI bundles and a build-time soname gate (E0504) — is a check at link, not a promise",
+        "mechanism": "Ec8"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The stable line has already broken code, by its own documented exception**: 1.0.3 landed in a patch release with nine host-state functions retyped to take `Cap<Container>` — 'BREAKING for direct importers' — removed `std.ai`, and moved runtime internals behind E0408, under the stability policy's rule that closing a fail-open path is a fix even when a program depended on it; elsewhere the frozen corpus is compiled on every change, and edition 2027's three promotions wait for an opt-in",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "caution",
+        "text": "**What changed: two isolation defaults moved within the stable line.** 1.0.2 made the allowlist the default process-container seccomp profile, where the previous default allowed everything not on a denylist; 1.0.3 defaulted `KERN_VM_DATAPATH` to vhost and refuses to start a guest when it cannot be opened rather than falling back. Why: fail-closed isolation defaults. How a deployment reverses it: `InstanceSpec.seccomp` set to `denylist` per instance, and `KERN_VM_DATAPATH=user`; both are documented per release, and the stability policy reserves the right to move tuning-knob defaults",
+        "mechanism": "V5"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "enabling",
+        "text": "**The target is ordinary backend service work**: registered handlers are plain functions, a `service` block generates the RPC plumbing from a typed interface, and the deployment unit is one static binary — no host framework owns the program's shape"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The capability discipline is the language**: every I/O function threads a `Cap<T>`, only the entry module mints roots, taint tags decide which sinks accept which values, and failures arrive as values to match or propagate — a compile-time discipline with no mainstream analogue in the daily syntax, however Python-like the surface reads",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "caution",
+        "text": "**The official reference is strong, and has drifted**: a normative specification with the grammar embedded from a canonical file, a 72 KB diagnostics catalogue with one page per code, and per-module references are far above the pre-1.0 norm — and the async page's own summary table still shows `ch.send(...)` method forms its body says do not exist, while the spec's governance paragraph describes an elected technical committee the governing documents do not name"
+      }
+    ],
+    "testing": [
+      {
+        "kind": "enabling",
+        "text": "**The verification path ships with the compiler**: `kern test` is stable CLI, `assert`/`assert_eq`/`assert_ne` are builtins, `## kern-time:` declares a test's run-time budget, fuzz targets run in CI, DWARF is emitted for the standard debuggers, and the LSP answers from the real typechecker"
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**The exploit classes are named and closed in the type**: memory-safe managed runtime with no `eval`; injection sinks demand literals (`@sql_literal` E0300, `@shell_literal`, `@url_literal`, `@regex_literal`) or an `Untrusted<T>` discharge; a `Secret` compared with `==` is the compile error E0317; and overflow arithmetic aborts rather than wrapping"
+      },
+      {
+        "kind": "caution",
+        "text": "**The guarantee is young, and its holes are documented by the project**: the rc3 external scan found method arguments never type-checked, so every compile-time security rule was bypassable by ordinary idiomatic code; 1.0.3 closed capability bypasses that reached 203 gated builtins, a world-readable container state root carrying env values, and state-record field injection; and the formal proofs cover models — only the lexer's model is measured against the shipped code, the taint model has no heap, aliasing or concurrency, and the external audit was removed from the plan"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**Byte-reproducible by gate, not by aspiration**: the same source, toolchain version and seed give a byte-identical binary, asserted on every push by rebuilding a clean-room compiler from the minimal seed and comparing two full bootstraps (seed to gen1 to gen2), with diverse double-compilation alongside",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The resolution is a function of the manifests**: Minimal Version Selection pins the whole transitive graph in `kern.lock`, and `kern.sum` carries two content hashes per version, trust-on-first-use and then immutable; `.kern-version` beside the source makes the compiler warn when a different toolchain builds it",
+        "mechanism": "Y2"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "enabling",
+        "text": "**Packages are signed, checksummed and fail-closed**: `kern-pkg verify` refuses a missing hash line, a mismatch, or an unverifiable signature; publishing packs byte-reproducible tarballs; release tags and artefacts are signed with keys whose public halves are pinned in the repository",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The registry name space is flat**: names like `kern-postgres` resolve on the forge's generic package registry with the owner a publish credential rather than a namespace in the module path — substitution is answered by the hash-and-signature verification, not by the name space",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed joins vulnerabilities to package versions**: `kern audit` exists in the CLI and the dependency documentation names no database behind it; the 1.0.3 security release's own advisory was still 'to be published at coordinated disclosure' at this tag",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "enabling",
+        "text": "**The stdlib defines the contract**: structured logging, latency metrics, W3C tracing and health checks ship in-tree, with `kern_otel` as the OpenTelemetry package — no per-project instrumentation convention is required",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**A crash documents no post-mortem**: the reference and release notes document no default backtrace with source locations — the FATAL diagnostic line is the crash's printed record, and the forensic record-replay trace and the async wedge trace are env-gated opt-ins",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**Compile speed is a stated design goal with its own programme**: the compiler bootstraps from source in seconds and the project carries a go-parity matrix with per-cell ceilings — the project's own measurements, not an independent one",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**No debugger ships with the toolchain**: the CLI is build, check, fix, lint, test, new, explain, audit-caps, bootstrap, version — DWARF is emitted for the standard debuggers, which the distribution does not include",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**The foreign surface exists in-process**: the `@nogc` intrinsics, `std.cap_unsafe` raw addresses, and the C runtime the compiler links are reachable without leaving the language — the charge is the boundary being unchecked (T14), not its absence",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target ships at this release**: the normative spec's target table lists WebAssembly as 'Future' and the v1.1.2 README names none — the project website's wasm32-wasip1 row tracks the newer line, not the assessed release",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**PUA Group decides**: breaking, governance and licence changes are the company's decision after a public review period, releases are cut by a maintainer acting on its behalf — and the spec's own governance paragraph, 'no single corporate owner, decisions made by elected technical committee', describes a body the governing documents do not name",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The specification is public and normative**: a 72 KB document that defines the stable surface, embeds the grammar verbatim from a canonical file a CI gate keeps in sync, and states its stability policy as a contract with named tests beside each claim",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**The oracle is one toolchain**: the conformance and negative suites are the implementation's own, no published suite exists for an independent implementation to run, and the project states the limit itself — the capability and flow models are proved about models, with the 54-probe grid as the evidence the shipped checker implements them, and the external audit removed from the plan",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The compiler is the published parser**: the source is EUPL and the canonical grammar lives in the tree, with a CI gate failing on drift between grammar and specification",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The type system is the seccomp profile**: the compiler derives a seccomp-BPF deny set from the program's `Cap<T>` mint set and emits the kernel seal first in `@main`, inherited across `execve` — Linux only, no-op on macOS",
+    "**Forensic record-replay is opt-in and env-gated**: `KERN_RECORD`/`KERN_REPLAY` capture and re-feed the nondeterministic values the runtime hands the program under a SHA-256 chain that detects an edited trace — bought with per-record capture overhead and an operator's decision to run traced, which is why it is a deployment tool and not a default",
+    "**Closures are single-expression by rule**: multi-line request handlers are named functions registered on a route — the parser never guesses a body's extent inside an expression, and the multi-line logic lands in a named, testable function, paid in a line of ceremony per handler",
+    "**The manifest accepts unknown keys in silence**: a section or key the `kern.toml` parser does not know is read past with no warning — the lenient read keeps a manifest carrying newer keys building on an older toolchain, and costs a typo'd key that sits in the file looking effective and doing nothing, as the documentation itself warns for `[runtime]` and `authors`",
+    "**Reserved names carry the runtime**: the `kern_` prefix is refused for user functions (E0405) precisely so the C symbol set can move between minor versions",
+    "**Shadowing a builtin is module-scoped**: a function defined with a builtin's name wins in its own module and its importers, and reaches the builtin through its capability wrapper — one of the two naming rules the reference says 'trip newcomers'"
+  ],
+  "verdict": "Kern's Core coupling (76.0) lands above every managed mainstream neighbour assessed so far, because the inventory's rarest absences are its design facts: effects in the signature (`Cap<T>` under an unconditional E0404), nullability in the type, errors as exhaustive values, immutability by default, overflow trapped rather than wrapped, cycles collected, `defer` at scope exit, and a public normative specification. What it keeps is the managed-runtime invoice — the collector's schedule and pauses, erased generics, aliased mutable heap state, an unordered map, join-by-hand tasks — plus its own additions: a fatal class (panic, unwrap, overflow) outside the declared `Result` surface, and a length API that names characters and ships bytes. Its youth is priced where youth lives: a one-vendor supply and governance, a single implementation as the only oracle, a flat registry name space, no portable target at this release, no bundled debugger, no documented crash post-mortem, and no advisory feed. The page records what the project documents about itself, which is unusually much: the changelog names its own security holes and known memory-safety defects, the stability policy states which promises are not made, and the formal-scope page draws the line between proved models and shipped code. Main strengths: capability tracking the type carries, and a verification culture — reproducible, double-compiled, signed, specified — that outpaces the language's age. Main weaknesses: everything below the Core score is time — supply, independent governance, a second implementation, an advisory base — and those are not bought in a first year.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Compiles ahead of time to native code via LLVM, so the interpreter-tax class does not apply; the runtime pays stop-the-world collector pauses and drives a libuv event loop. The project's own benchmark matrix (55 backend workloads against Go, Node.js, Python, Rust and C, losses stated beside wins) reports its methodology and date; independent measurements do not yet exist."
+    },
+    "ai-readiness": {
+      "kind": "cost",
+      "text": "Sparse corpus: the first stable release (2026-10-03) postdates the training data of public coding models, and the project's own documentation records model-shaped inventions that do not exist — a `parse_int` builtin, `items.map`, `ch.send` — so models write plausible Kern that the compiler refuses. The per-code diagnostics catalogue and `kern explain E0xxx` are the compensation."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems. The systems profile (`@nogc`, a deterministic arena allocator, bounds-checked DMA windows, a locked systems surface) targets hypervisor-class software rather than a certification regime, and the formal proofs cover models — the lexer-to-compiler correspondence is measured, the capability and flow links rest on a probe grid."
+    }
+  },
+  "tags": [
+    "use:application",
+    "use:web-backend",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:concurrent",
+    "platform:native",
+    "lifecycle:current",
+    "memory:managed-gc",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:application": {
+      "source": "kernReadme"
+    },
+    "use:web-backend": {
+      "source": "kernReadme"
+    }
+  },
+  "delivery": [
+    {
+      "target": "C runtime bundle (cross-compilation archive)",
+      "form": "compiled",
+      "crosses": true,
+      "promise": false,
+      "note": "Published so a build can skip roughly 36,000 lines of C, version-paired by release convention; the stability policy states a 1.x program links the runtime shipped with 1.x and that the C runtime's symbol names are not part of the stable surface, so no cross-release pairing is promised. The v1.1.1 bundle linked on an mbedTLS-2.28 host and SIGSEGVd at the first TLS use; 1.1.2 answers with per-ABI bundles and a build-time soname gate (E0504) — a check at link, which the criteria do not treat as a promise",
+      "cite": [
+        "kernSpec",
+        "kernChangelog"
+      ]
+    },
+    {
+      "target": "source package (kern-pkg)",
+      "form": "source",
+      "crosses": false,
+      "promise": null,
+      "note": "Packages ship as source tarballs built inside the consumer's own build — nothing crosses, so no release promise is at stake; `kern.lock` and `kern.sum` pin the resolved graph by content hash and the Ed25519 `kern.trust` path verifies signatures fail-closed",
+      "cite": [
+        "kernDeps"
+      ]
+    },
+    {
+      "target": "static application binary",
+      "form": "compiled",
+      "crosses": false,
+      "promise": null,
+      "note": "The deployed artifact is a single static binary consumed whole — the stability policy states no Kern runtime is loaded at run time, and no plugin or shared-object surface ships, so nothing crosses",
+      "cite": [
+        "kernSpec"
+      ]
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "kern.lock + kern.sum",
+      "promise": true,
+      "break": false,
+      "note": "The lock and the content-hash database are documented formats enforced fail-closed on install and verify; `kern.sum` entries are trust-on-first-use and then immutable",
+      "cite": [
+        "kernDeps"
+      ],
+      "reproduced": false,
+      "repro": null
+    },
+    {
+      "target": "control-plane state store (state.json, command journal)",
+      "promise": true,
+      "break": false,
+      "note": "The store is versioned (v28, v29) and the changelog documents upgrade-ahead skew handling: counters read as -1 defaults when a newer plane reads an older host, and an unknown journal entry boots as a no-op with a warning",
+      "cite": [
+        "kernChangelog"
+      ],
+      "reproduced": false,
+      "repro": null
+    },
+    {
+      "target": "service IDL wire format",
+      "promise": true,
+      "break": false,
+      "note": "The stability policy publishes the wire format (JSON over gRPC) as stable within a major version: a 1.a client talks to a 1.b server",
+      "cite": [
+        "kernSpec"
+      ],
+      "reproduced": false,
+      "repro": null
+    }
+  ]
+}

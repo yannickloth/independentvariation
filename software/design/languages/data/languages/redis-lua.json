@@ -1,0 +1,660 @@
+{
+  "schemaVersion": 1,
+  "id": "redis-lua",
+  "name": "Redis Lua",
+  "family": "redis-lua",
+  "assessedAs": "Redis Lua",
+  "version": "Redis 8.0",
+  "title": "Redis Lua (Redis 8.0)",
+  "indexLabel": "Redis Lua (Redis 8.0)",
+  "group": "data-science",
+  "released": "2025-05",
+  "lifecycle": "current",
+  "order": 21,
+  "displayOrder": 107,
+  "presenceOrder": 107,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T6, T8, T10, T12, T14, C1, C2, C4, C5, C6, M2, M3, M4, Er1, Er2, Er3, Er4, K1, K4, P1, P4",
+    "meta": "R1, R2, Ec1, Ec2, Ec3, Ec9, V1, V2, D1, L2, S2, G1, G2, G3, G4, Q2, Q3, Q4",
+    "readiness": "Y2, Y3, Y5, Y6, Y8, Y9, Y10, Y11, Y17, Y14"
+  },
+  "matrixOrder": 107,
+  "tagline": "Server-Side Scripting",
+  "sbName": "Redis Lua",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "redisLuaDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": true,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": true,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "C5": true,
+    "C6": true,
+    "C7": false,
+    "M1": false,
+    "M2": true,
+    "M3": true,
+    "M4": true,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": true,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": true,
+    "K2": false,
+    "K3": false,
+    "K4": true,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": true,
+    "R2": true,
+    "R3": false,
+    "Ec1": true,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": true,
+    "V1": true,
+    "V2": true,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": true,
+    "S3": false,
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": true,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": true,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": false,
+    "Y14": true,
+    "Y18": false,
+    "Y15": false,
+    "Y16": false,
+    "Q4": true,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**The embedded dialect is documented command by command**: Redis ships one Lua 5.1 interpreter, and the Lua API reference names the libraries a script may use — `string`, `table`, `math`, `os.clock`, `struct`, `cjson`, `cmsgpack`, `bit`",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No static type check**: types are decided at run time, and a `nil` from a missing key becomes a fault only when the line that touches it executes",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Dispatch follows the run-time value**: `ipairs`, `table.insert`, and metatable `__index` chains resolve by what the value is when the call runs",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: a result carries one value, and a script signals an alternative with a `nil`, a boolean flag, or a table convention",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generic type parameter**: reusable script logic is copied between projects; a Functions library has no parameterised routine",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**One global name space**: Lua globals default to the shared global table, and Redis runs scripts and functions in one Lua state, so name collisions are a deployment fact",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Operators are metatable dispatch**: `+`, `..`, and `#` on a table mean what its metatable says, so the call site's meaning follows the data",
+        "mechanism": "T8"
+      },
+      {
+        "kind": "cost",
+        "text": "**nil is a value on every path**: a missing key's reply, an absent table field, and an unset global all reach expressions, and indexing nil raises mid-script",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**`redis.call` shows the command, not the effect**: the script text names the command, not which keys it mutates, expires, or replicates",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**The script-to-server boundary is unchecked**: `redis.call` enters the server's command dispatcher, and no check ties the command names, key arguments, and replies to the script's expectations",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Atomic execution is the contract**: Redis runs the script to completion before serving any other client, so all of the script's effects commit together",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Globals persist across calls**: scripts run in one shared Lua state, and a global written by a script stays visible to the next call — avoiding globals is a published Redis scripting practice",
+        "mechanism": "C1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Nothing is immutable by default**: tables, `KEYS`, and `ARGV` are mutated in place, and function libraries share the state they mutate",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor validates a shape**: a result table is assembled field by field, and a missing field surfaces as a `nil` on the reader's side",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Iteration order is the table's, not yours**: `pairs()` visits a hash-part table in an order the script cannot state",
+        "mechanism": "C5"
+      },
+      {
+        "kind": "cost",
+        "text": "**One value, many names**: a table handed to `redis.call` and kept in a global is the same table, and Lua 5.1 source shows no aliasing declaration",
+        "mechanism": "C6"
+      },
+      {
+        "kind": "caution",
+        "text": "**Key-space notifications react outside the script**: a script's writes fire subscribers and module consumers that the script text never mentions",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the interpreter's**: scripts create tables and strings, and Redis's bundled Lua collector reclaims them; no script frees memory",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The collector pauses the server**: Lua's collection work runs on the main thread during the script's run, so collecting a big table is a latency spike every client sees",
+        "mechanism": "M2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Scope does not release**: `__gc` runs when the collector decides, not at the end of a block, and a script cannot bind release to scope",
+        "mechanism": "M3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No ownership is expressed**: tables move through `redis.call` replies and globals with no owner, and the collector decides lifetime",
+        "mechanism": "M4"
+      },
+      {
+        "kind": "caution",
+        "text": "**A runaway script holds its memory to the end**: `SCRIPT KILL` stops only a script that has not written, so a script past its write budget runs to completion",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured error path**: `error()` raises any value, `pcall` returns it untyped, and a script reporting 'insufficient funds' invents its own convention",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Failures nobody is required to handle**: `redis.call` on a wrong-type key raises, and a script with no `pcall` wrapper commits nothing and hands the fault to the client",
+        "mechanism": "Er2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A failure can be ignored**: `pcall`'s false reply is discarded freely, and scripts commonly drop the flag",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: success values, nils, and raised strings share the return slot, so callers compose them by convention",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The fault boundary is one call**: a raised error aborts the script, the server keeps serving, and the blast radius is the current call",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**No parallel execution**: Redis runs one script at a time on its main thread, and every client waits for the script to finish",
+        "mechanism": "K1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Coroutines are unstructured**: Lua 5.1 `coroutine` transfers control by hand, and no construct scopes a running child",
+        "mechanism": "K4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Atomicity is total**: every effect commits before any other client runs, so a script needs no lock to compose a read-modify-write",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The budget is a wall**: `lua-time-limit` decides when a read-only script may be stopped, and a script that has written runs to the end",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The language runs only inside Redis**: Redis ships a single embedded scripting engine, the Lua 5.1 interpreter, and the Functions docs name it as the only engine present",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit for general application logic**: scripts exchange replies with clients; HTTP, file I/O (the sandbox exposes `os.clock` only), and multi-pass algorithms belong to the client",
+        "mechanism": "P4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Redis 8 makes Functions engine-agnostic by design, and Lua 5.1 is the engine that ships**: more engines are a plan, not a feature",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "cost",
+        "text": "**Bytecode interpretation, no JIT**: Redis bundles the Lua 5.1 interpreter, not LuaJIT, and a hot script loop pays per bytecode instruction",
+        "mechanism": "R1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Collector pauses are server latency**: Lua's GC steps run on the main thread, and a script's big tables appear as latency spikes in every client's timings",
+        "mechanism": "R2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Data locality is the point**: the script reads and writes inside the server, and the docs call scripting 'very efficient' because the data never leaves",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**No package manager for scripts**: a Functions library embeds its full source, the sandbox exposes only the libraries Redis pre-imports, and nothing installs into the server's Lua",
+        "mechanism": "Ec1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across clients**: `redis-cli --ldb`, the ZeroBrane Studio plugin, and the per-language client libraries cover scripting at different levels",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A niche within a niche**: Lua developers who write server-side Redis scripts are a small hiring pool",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**RDB snapshots do not cross a version boundary backward**: a snapshot written by a newer Redis cannot be loaded by an older one, and Redis's knowledge base states it as the rule for upgrades",
+        "mechanism": "Ec9"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server is open source (AGPLv3 since Redis 8), and the Lua API, Functions, and persistence docs are public",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Script behavior moved under scripts**: Redis 7.0 shifted the recommended path from `EVAL` to Functions — changing how code is loaded, named, and persisted — and Redis 7.4 added eviction from the `EVAL` script cache",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The embedded dialect is frozen**: Redis ships the same Lua 5.1 line it has used since 2012; upstream Lua 5.4's changes — an integer subtype, a bitwise library, GC options — never reach scripts",
+        "mechanism": "V2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Scripts from Redis 2.6 run on Redis 8**: `EVAL` with `KEYS` and `ARGV` has kept its contract across the whole line",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting Redis Lua means adopting Redis**: scripts call the Redis command API, and the language exists to compose key operations on Redis data structures",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "Redis Lua is used to script server-side read-modify-write logic over stored data: conditional updates across keys commit atomically inside the server",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Cluster rules travel with the script**: every key a script touches must be an input key argument, and generated key names break cross-slot operation",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "enabling",
+        "text": "**The language core is small**: `local`, `for`, function values, and tables fit a short manual, and Redis's own design notes call Lua 'simple and easy to learn'",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Two domains at once**: a scripter needs Lua's table idioms and metatables, the Redis command API, the atomicity budget, and the key-argument rules together",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "caution",
+        "text": "**The sandbox's shape is a page of rules**: which globals exist, which `os` functions are exposed, and what `SCRIPT KILL` will stop",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**Scripts read linearly**: a short Lua script is a statement list, and `redis.call` renders as a plain function call",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Lua 5.1's surface is uneven**: `table.insert(t, v)` against `table.concat(list, sep)`, methods as `('x'):rep(2)`, 1-based indexing, no `++`, no ternary — the idioms are conventions to learn one by one",
+        "mechanism": "S2"
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No test harness ships with the language**: testing a script needs a running Redis, and every project wires its own harness; the debugger's forked sessions are for authoring, not CI",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The debugger reaches scripts, not Functions**: LDB steps, breakpoints, and variable inspection attach to `EVAL`, and the Functions docs name the debugger as the one capability functions lack",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Type faults surface only at execution**: `tonumber` on a malformed `ARGV` value, indexing nil, and a wrong-type key all resolve when the line runs",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No monotonic clock in the sandbox**: the `os` library exposes `os.clock` only, so elapsed-time tests read wall time",
+        "mechanism": "G4"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Untrusted data enters untyped**: values read back from keys are data, and every arithmetic, concatenation, and pattern use re-checks its type at run time",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Embedding values in the script text is a documented abuse**: Redis's EVAL docs warn that value-embedded scripts generate a new script text on each call, and the parse follows the embedded value",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Arithmetic leaves the range in silence**: Lua 5.1 numbers are C doubles, integers past 2^53 lose precision quietly, and the `bit` library truncates to 32 bits by C cast",
+        "mechanism": "Q4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Passing data as `ARGV` keeps values out of the parse**, and Redis's docs make it the rule",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**ACL categories gate scripting**: the `@scripting` permission decides which clients may load and run scripts",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A script is source text**: the same text on the same Redis version and dataset reproduces the same result, and there is no build artifact",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Dependencies are not pinned**: applications ship scripts beside client code, and no manifest names the Redis version a script expects",
+        "mechanism": "Y2"
+      },
+      {
+        "kind": "cost",
+        "text": "**The distribution carries no toolchain pin for script code**: Redis bundles its Lua line inside the server, and a deployment has no machine-read pair of server version to script version",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published drivers carry no signed provenance by default**: `redis-py` on PyPI and `ioredis` on npm name their publishers, and a consumer must trust the package they install",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Registries carry namespaces**: PyPI and npm name each package's owner, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Advisories exist**: Redis publishes its CVE list for the server and stack components, and the GitHub advisory database covers the major Python and Node clients",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing and metrics standard is part of the language**: a script reports through `INFO` counters and the server's own telemetry",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the sandbox**: `redis.log` writes a message and level into the server's log format, and the debug console is debug-only",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server names a slow script**: `SLOWLOG` records script executions past the latency threshold with their duration, and `SCRIPT KILL` is the documented stop path",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The edit-test loop is a text submission**: `redis-cli --eval /tmp/script.lua` runs a file with no build step",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**Editors do not analyse Redis Lua**: `redis.call`'s command names and key semantics are checked by the server at execution, and no incremental analyser ships for the language",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "enabling",
+        "text": "**LDB is a real debugger for scripts**: step, breakpoints, backtrace, variable print, and Redis command tracing ship in `redis-cli`",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No foreign-function interface**: the sandbox exposes no C library, `os` is reduced to `os.clock`, and extending Redis in compiled code is a C module's job, outside the language",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target**: scripts run on Redis's embedded engine and nowhere else",
+        "mechanism": "Y10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The client boundary is the command API**: a script's reply converts to RESP, and every language's Redis client can call `EVAL`",
+        "mechanism": null
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is Redis-owned**: the embedded engine, the Functions design, and script-cache behavior all follow Redis's roadmap, and a second engine is stated as a plan",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The engine is published**: Redis bundles its Lua line as open source in the server repository, and the Functions docs describe the engine interface",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Conformance is what Redis's Lua fork does**: the `redis.call` API, the library set, and the atomicity rules exist only in the server's implementation, and no shared test suite runs an independent implementation",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The parser is published**: Redis's bundled Lua source is the parser, readable and reusable by tooling",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Code ownership: application-side (`EVAL`) versus server-side (Functions)**: scripts ship with the client code and reload after a restart, functions persist and replicate with the dataset — the server then carries application logic that the client no longer ships",
+    "**Script-cache economics**: `EVALSHA` keeps script text in the server, Redis's own docs warn that value-embedded scripts 'consume a large amount of memory over time', and Redis 7.4's LRU eviction means the cache budget now decides which scripts the next call must resend",
+    "**Cluster key discipline**: every key a script touches must arrive as an input argument, so scripts that derive key names from data are written out of clustered deployments",
+    "**One roundtrip buys atomic composition**: a conditional multi-key update ships as a single call with no lock and no client-side race, and the standing duty is reviewing every script for length, because Redis runs a writing script to completion"
+  ],
+  "verdict": "Redis Lua is coupling-heavy at the language level and cheap at the deployment level, and the two facts are the same fact. The language is a frozen Lua 5.1 line embedded in Redis's main thread: dynamic typing with no static check, one shared global state, an unchecked `redis.call` boundary, no parallel execution, no FFI, no package boundary, and silent numeric range exits in a language built on C doubles. What the embedding buys is real: atomic read-modify-write where the data lives, a published remote debugger for scripts, a documented CVE feed, and `EVAL` contracts that have held since Redis 2.6. Main strengths: atomic execution, data locality, LDB, tiny language core. Main weaknesses: the dialect is frozen, Functions run where no debugger reaches, RDB snapshots cross a release boundary unpromised backward, and the language runs only inside Redis.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs on the Redis main thread: a long script is a server-wide latency spike, and the energy and time are the server's, not the script's."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "Lua 5.1 is small and richly represented in public code, and the Redis Lua API is documented command by command: current models write common scripts reliably, with the key-argument and atomicity rules needing review."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified or standards-qualified path for safety-critical systems."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:scripting",
+    "use:query",
+    "paradigm:functional",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "lifecycle:current",
+    "memory:managed-gc",
+    "typing:dynamic"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "stored data"
+    },
+    "use:scripting": {
+      "observation": "script server-side"
+    },
+    "use:query": {
+      "observation": "read-modify-write logic over stored data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored function library",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "Redis persists Functions libraries with the dataset and caches EVAL scripts in the Lua state; no compiled unit crosses a producer boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "RDB snapshot file (dump.rdb)",
+      "promise": true,
+      "break": true,
+      "reproduced": false,
+      "note": "The Redis knowledge base publishes both directions: newer Redis loads older RDB files, and older Redis cannot load RDB files created by newer versions; the Redis 7.2 feature-set note calls its RDB format incompatible with older versions.",
+      "cite": [
+        "redisImportKb",
+        "redisFeatureSets"
+      ]
+    },
+    {
+      "target": "AOF persistence directory (appendonlydir)",
+      "promise": true,
+      "break": false,
+      "reproduced": false,
+      "note": "The persistence docs publish that current Redis loads AOF logs written by older servers — truncated tails are discarded under `aof-load-truncated` — and the 7.0 multi-part format is the storage form the docs treat as current.",
+      "cite": [
+        "redisPersist"
+      ]
+    }
+  ]
+}
