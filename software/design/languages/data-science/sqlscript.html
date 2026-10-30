@@ -1443,7 +1443,7 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses SQLScript (SAP HANA Platform 2.0 SPS 08) in five parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; <strong>engineering readiness</strong> — whether the artifact can be reproduced, verified, observed, worked in quickly, connected to other languages, and governed openly; the <strong>profile</strong> — the unscored facts a score cannot express; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind every score. A ✅ bullet marks a construct that helps. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 83.1/100</strong> · <strong>Ecosystem coupling 81.6/100</strong> · <strong>Engineering readiness 45.6/100</strong></p>
+<p><strong>Core coupling 83.1/100</strong> · <strong>Ecosystem coupling 81.6/100</strong> · <strong>Engineering readiness 40.9/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
@@ -1452,7 +1452,7 @@ div.csl-indent {
 <li>❌ <strong>NULL is a member of every domain</strong>: procedure parameters, locals, and table columns carry NULL unannounced, and no signature states whether a value may be absent (T10)</li>
 <li>⚠️ <strong>No sum types</strong>: an alternative is a nullable column or a table variable’s shape, and the consumer re-derives the encoding from the body</li>
 <li>❌ <strong>Statements state no effect</strong>: the reference defines the functional extension as side-effect free by intent, but the signature of a procedure states nothing about the writes, reads, or calls inside it (T12)</li>
-<li>❌ <strong>Foreign code rides in-process</strong>: procedures and functions can be defined in R or other languages inside the server, and the boundary between SQLScript values and the embedded runtime is checked by neither side’s compiler (T14)</li>
+<li>❌ <strong>R rides an external boundary</strong>: procedures can be written in RLANG, executed by an external R environment the server calls, and the crossing between SQLScript tables and R data frames is checked by neither side’s compiler (T14)</li>
 </ul>
 </section>
 <section id="construction" class="level4" data-number="1.1.2">
@@ -1620,6 +1620,7 @@ div.csl-indent {
 <li>❌ <strong>Governance is SAP</strong>: the release calendar, the roadmap, and the language’s direction are one company’s, and no independent body can change them (Y11)</li>
 <li>❌ <strong>No public specification exists</strong>: the SQLScript Reference documents the implemented behavior of one product line, and no independent implementation follows from it (Y12)</li>
 <li>❌ <strong>Correctness is what HANA does</strong>: no conformance suite exists for SQLScript, and the one implementation is the oracle (Y17)</li>
+<li>❌ <strong>The parser is closed</strong>: the grammar lives as prose in the SQLScript Reference and the parser inside the closed engine, so analysis tooling reads the manual and guesses (Y19)</li>
 </ul>
 </section>
 </section>
@@ -2657,8 +2658,8 @@ div.csl-indent {
 <td><code>Y19</code></td>
 <td>no published parser</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="odd">
 <td><strong>Governance cost</strong></td>
@@ -2666,11 +2667,11 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−22.2 (−38)</strong></td>
+<td style="text-align: right;"><strong>−26.9 (−46)</strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Engineering readiness score: 45.6/100</strong> — 93 of the 171 inventory points are present, so the axis cost is 100 × 93 ÷ 171 = 54.4 and the score is 100 − 54.4. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Engineering readiness score: 40.9/100</strong> — 101 of the 171 inventory points are present, so the axis cost is 100 × 101 ÷ 171 = 59.1 and the score is 100 − 59.1. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 <p><strong>Verdict:</strong> SQLScript is SAP HANA’s collection of SQL extensions — table types without tables, side-effect-free functions, and imperative procedure bodies — deployed through HDI into the engine’s containers. Its costs are the platform’s own: NULL in every domain, failures that travel only by exception, session-wide state, a proprietary stack end to end, and a reference that documents row-wise constructs as the thing the optimizer exists to avoid. Main strengths: a stated design goal of pushdown and parallelism, table variables the engine treats as sets, in-database R and Python for analytics, vendor IDE tooling with the SQL analyzer, and one-volume reference documentation. Main weaknesses: no debugger or user-procedure test harness, no structured logging or tracing in the language, string-built dynamic SQL, single-vendor governance with no specification or conformance suite, and logic whose reproducibility rides a commercial engine revision the artifact does not name.</p>
 <!-- formal-development -->
 <hr>
