@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "id": "promql",
+  "name": "PromQL",
+  "family": "promql",
+  "assessedAs": "PromQL (Prometheus 3.15)",
+  "version": "Prometheus 3.15",
+  "title": "PromQL (Prometheus 3.15)",
+  "indexLabel": "PromQL (Prometheus 3.15)",
+  "group": "data-science",
+  "released": "2026-10",
+  "lifecycle": "current",
+  "order": 25,
+  "displayOrder": 111,
+  "presenceOrder": 111,
+  "matrixOrder": 111,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T10, T11, T12, T14, C2, C4, C5, Er1, Er3, Er4, P4",
+    "meta": "R2, Ec2, Ec3, Ec7, Ec9, V1, V7, D1, L1, L2, S2, S3, G3, G4, Q2, Q3, Q4",
+    "readiness": "Y3, Y5, Y6, Y8, Y9, Y10, Y13, Y17"
+  },
+  "tagline": "Metric Vector Query",
+  "sbName": "PromQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "prometheusQueryBasics",
+    "prometheusMigration30",
+    "prometheus30ReleaseNotes"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "C5": true,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": true,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": true,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": true,
+    "D1": true,
+    "D3": false,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": true,
+    "S3": true,
+    "G1": false,
+    "G2": false,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": true,
+    "Y10": true,
+    "Y11": false,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": false,
+    "Q4": true,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**A typed value lattice**: instants, vectors, matrices, scalars, and (from 3.0) strings are distinct expression kinds with published per-operator type rules",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No static check against the data**: a query is typed against its own expression kinds, not against what the cluster stores — a selector that matches no series is legal, and the releases added warnings for exactly that pattern",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: a sample is a float64 (integer histogram samples arrive in the 3.x line behind documented type-coercion fixes), and histogram, string, scalar, and vector values coexist with conversions defined per operator, not a type the expression names",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No parameterization**: an expression is not a function, recording rules publish a series by name in a flat YAML, and reusable logic is copied rule file by rule file",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**One flat name space**: metric names are global to the TSDB, `__name__` carries the name as a label, and the 3.0 quoting syntax for UTF-8 names exists because dots and colons in names were once illegal",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Absence is not a value**: a selector matching no series yields an empty vector, a lookback with no sample yields no element, and the 3.0 migration guide shows a 1m subquery turning into No Data on aligned systems — absence has no type to name",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**No module boundary**: a `record` rule publishes a series by name, and nothing in the language imports definitions from a file, a server, or a namespace",
+        "mechanism": "T11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No effects, because the language writes nothing**: a query reads the TSDB, recording-rule files derive series the engine stores, and neither the expression nor the rule file states its effect",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**The ingest boundary renames labels**: the 3.14 notes add warnings and a counter for OTLP attribute names that collide into one Prometheus label after sanitization — series identity changes crossing the boundary, and no check in the language validates the result",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The query states the result**: `count by (job) (rate(http_requests_total[5m]))` declares the vector to produce, and the engine builds the plan",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Series mutate with arrivals**: samples append to the head, staleness markers rewrite a series' state, and the out-of-order and reset-detection features of the 3.x line exist because the store is mutable in place",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor validates label identity**: `sum by (l)`, label joins, and `label_replace` compose new label sets by regex, and the 3.0 migration guide shows the le/quantile normalization changing a series' identity when the engine, not the expression, decides",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "cost",
+        "text": "**A vector's order is not pinned**: vectors are label-set collections with no declared order, and the `sort()` and `sort_le()` functions exist because the default order is unspecified",
+        "mechanism": "C5"
+      },
+      {
+        "kind": "caution",
+        "text": "**Remote write and federation are config, not language**: a query writes nothing to the TSDB, the deployment moves series by YAML beside it, and the language does not scope that",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the server's**: head blocks, mmap'd block files, and query results live in the Prometheus process, and the query text allocates nothing",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**High-cardinality selectors materialize in RAM**: aggregations over unbounded label sets are operations whose cost the operator plans — the 3.15-line notes fix query panics during series eviction after WAL replay, and head-series gauges track native-histogram buckets",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured path in the language**: a query aborting on the sample-count and queue limits, a many-to-many match error, and a lookback that found no sample surface as API-level errors the expression cannot route around",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**NaN swallows silently**: an expression fed by a NaN sample propagates NaN, and the 3.14 notes fix two silent behaviors in one release — `mad_over_time` returning 0 where NaN is right, and case-insensitive regex matchers silently dropping matching values",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: scalar, vector, matrix, and string values share expression slots with per-operator promotion rules, strings arrived in 3.0 with restricted usability, and success and absence compose by spec rules, not by a type",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Warnings ride the response**: advisory warnings for unanchored regex selectors and saturation signals arrive in the API result, so a caller reads a defined advisory with the data",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Concurrency is the server's**: scrape pools, query-queue limits, and remote-write shards run in the engine, and the language names no threads, channels, or tasks",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A range query steps the expression**: each evaluation timestamp is an independent instant evaluation, and the 3.15-line notes fix a subquery `@`-modifier case — the scheduling the user faces is in the frontend, not the text",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside metrics**: series, labels, sample windows, and counter-reset semantics assume a monitoring store, application logic lives in the dashboard and alert-rule layer, and the language is the query surface of the TSDB class — Prometheus, Thanos, Mimir, VictoriaMetrics, and Cortex read it, and nothing runs standalone",
+        "mechanism": "P4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language ships with the stack**: the UI, promtool, the API, and every feature flag arrive in the same Apache-2.0 binary, and a new cluster speaks the full language with no install",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Selectors are indexed lookups**: the TSDB postings index serves label matchers, the 3.14 notes ship regex-set matching optimizations, and per-query statistics report the cost through the API",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Collector runtime is server latency**: 3.0 auto-sets GOMEMLIMIT and GOMAXPROCS to container limits, and the 3.14 notes fix a 100%-CPU shutdown spin that 'could delay graceful shutdown and trigger timeout-based kills' — the Go runtime appears in scrape and query timings",
+        "mechanism": "R2"
+      },
+      {
+        "kind": "caution",
+        "text": "**The tuning surface is engine limits**: max samples per query, lookback window size, and subquery resolution are yaml and CLI knobs, and crossing them is an abort, not a plan choice",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across the sub-ecosystem**: promtool, thanos tools, mimirtool, vmctl, and Grafana each carry rule checkers, explorers, and monitors for the same query text",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A niche market**: PromQL expertise concentrates in cloud-native observability, and the hiring pool is a fraction of SQL's",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Flags are a compatibility layer**: the 3.0 migration guide exists to retire seven-year-old feature flags, rename `holt_winters`, and repair regex semantics, and an `old-ui` flag keeps the prior UI alive — the language carries its own migration history",
+        "mechanism": "Ec7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The stack is open end to end**: Prometheus (Apache-2.0, CNCF), the client libraries, promtool, and the exposition formats are published, with checksummed downloads on prometheus.io",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**3.0 shipped published breaking changes**: the migration guide names them — range selectors turned left-open, so a subquery that returned two points returns one and 'No Data'; `.` now matches newlines; `le` and `quantile` labels normalize, so alerts referencing `le=\"1\"` stop working; strict Content-Type fails v2-compatible scrapes",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Surface rides on feature flags**: subqueries, the `@` modifier, negative offsets, `double_exponential_smoothing`, duration expressions, and extended-API functions sit behind `--enable-feature` switches that graduate, no-op, or gate per release — 3.14 made duration expressions default and promoted `first_over_time`",
+        "mechanism": "V7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A predictable release rhythm**: quarterly minor releases, named LTS lines (3.13, 3.5), a stability promise, and a published migration guide per major — the surface moves on months' clocks",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting PromQL means adopting the pull-model TSDB**: scrape intervals, label conventions, counter-reset semantics, and the default lookback window are the domain, and the language has no shape outside them",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**PromQL queries stored metric time-series data**: selectors, range windows, and aggregation produce the series that dashboards and alert rules consume",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Dashboards and rules travel with the language**: recording rules, alerting YAML, and Grafana expressions are companion surfaces, and a team maintaining the queries maintains all three",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Four semantics a SQL reader must rebuild**: vector matchers replace WHERE, range windows replace BETWEEN, counter resets drive rate() and increase() extrapolation, and label-set rules decide which joins the operators admit",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The surface is a lattice of clauses, functions, modifiers, and flags**: the docs split basics, functions, aggregation, subqueries, modifiers, matching, and statements across pages, and experimental functions hide behind CLI switches",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The basics page is readable in one sitting**: selectors, operators, and functions with worked examples, and a full published function list",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Operators share symbols with type-specific rules**: `+` adds vector-to-vector under label-matching rules and scalar-to-vector on others, `-` is unary only on some value kinds, strings (3.0) barely join binary operations, and the `bool` modifier changes a comparison's result type",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Punctuation carries meaning**: `{ }` for matchers, `=~` and `!~`, `:` for subqueries, `@` for time, `[5m]` with unit letters, `__name__`, quoted UTF-8 names in 3.x — and after the 3.0 regex change, a misread pattern still parses and matches more",
+        "mechanism": "S3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core selector is four tokens**: `{job=\"api\"}` and `rate(http_requests_total[5m])` state the common query in a line",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**Faults surface at evaluation**: many-to-many match errors, No Data from a short subquery after the 3.0 boundary change, and a regex selector that silently matches nothing report only when the query reaches the server",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Only the wall clock**: `timestamp()` and `time()` read sample and evaluation time, the new start-timestamp function reads ingestion time, and the language names no monotonic clock for elapsed-time tests",
+        "mechanism": "G4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A published test harness ships with the tool**: `promtool test rules` unit-tests alerting and recording rules against input series, an evaluation time, and expected outputs, and the 3.0 notes add debug printouts to it",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The UI explains the query**: the 3.0 interface carries a PromLens-style explain tree and an Explain tab, and the API reports per-query statistics",
+        "mechanism": null
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Values coerce at evaluation**: integer histogram bucket counts feed float64 arithmetic (the 3.14 notes fix sample-type conversions between float, integer-histogram, and float-histogram series), `label_replace` writes strings where a number was read, and histogram_quantile reads buckets the expression built by hand",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Counters ride IEEE-754**: samples are float64, the project's own guidance treats counters above 2^53 as losing integer precision, and the 3.14 notes track integer histogram values crossing float encodings in compaction fixes",
+        "mechanism": "Q4"
+      },
+      {
+        "kind": "cost",
+        "text": "**String-built expressions are the injection surface**: dashboards and rule generators interpolate values into expressions — the Grafana templating docs publish regex-escaping guidance precisely because a raw value can inject label matchers and operators into the query — and the language has no escape mechanism of its own",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Regex is RE2-linear**: label matchers compile to RE2 with a fast literal matcher (3.14 performance work), so the catastrophic backtracking a PCRE selector would invite is structurally absent — the remaining risk is cardinality, not injection",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is a request text**: the same expression on the same server version and TSDB reproduces the same samples, and there is no build artifact",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Servers and consumers pin by version**: the binary ships release versions (3.15.1 in late 2026) reported by the version API, and a Go consumer pins the module as an ordinary dependency",
+        "mechanism": "Y14"
+      },
+      {
+        "kind": "caution",
+        "text": "**The deployment is the dataset**: a result reproduces on a server with specific scrape config, retention, lookback, and out-of-order flags, not on the text alone",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published libraries carry no signed provenance by default**: binaries and Docker images ship with SHA256 checksums, exporters and client libraries sit on Maven Central, Go, and PyPI registries, and a consumer trusts the package installed",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Go module paths, Maven Central, PyPI, and quay.io namespace every artifact**, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Advisories are published**: the Prometheus repository maintains GitHub security advisories per release (the 3.15.1 notes bump dependency CVEs), and the Go advisory feed covers the module",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing standard is part of the language**: exemplars link samples to trace IDs and the 3.0 OTLP receiver ingests OpenTelemetry metrics, but trace correlation is a deployment feature, and the query text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: the server moved to Go's log/slog in 3.0, a published format change, and the expression defines no logging construct",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server reports its queries**: per-query statistics in the API, the TSDB status page, and the query log name the queries, their costs, and the head state behind a result",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The UI is submit-and-run**: the browser query page runs an expression instantly, and promtool check and exec subcommands validate rules and run queries with no build step",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**No analyzer the project maintains**: an in-editor PromQL extension ships linting in VS Code as an IDE plugin, and full checks land when the query reaches the server on every other editor",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger**: diagnosis goes through the explain tree, query statistics, and the server's logs",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No function interface inside the language**: the extended API is a feature-flagged integration point where a process exposes functions the engine calls, and that wiring is server code, not a function the language declares",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target**: a query evaluates on a TSDB-backed server, and nothing runs on a machine without a Prometheus-compatible engine",
+        "mechanism": "Y10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**HTTP and OTLP carry results out**: the query API answers JSON, the OTLP receiver takes OpenTelemetry metrics, and remote write moves series to any receiver implementing the published protocol",
+        "mechanism": null
+      }
+    ],
+    "governance": [
+      {
+        "kind": "enabling",
+        "text": "**Governance is a CNCF project**: the Prometheus maintainers and technical oversight committee run public design discussions on GitHub, and the feature-flag graduation process is documented",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The semantics are published**: the querying docs define the language per release, the migration guide states every 3.0 semantics change, and the source is Apache-2.0",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance mechanism tests the ecosystem**: Thanos, Mimir, VictoriaMetrics, and Cortex each assert PromQL compatibility with their own suites, and no published suite with implementation reports decides the claim",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Published parsers**: the promql package is Apache-2.0 Go source, the grammar lives in the parser, and remote-read proxies re-implement it from the published docs",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The lookback window is the language's load-bearing default**: staleness markers make a series vanish when its scrape stops, rate() extrapolates at window edges, and the semantics that make queries cheap are the semantics a migrated dashboard must re-check",
+    "**Feature flags graduate, no-op, and gate**: the @ modifier, negative offsets, subqueries, duration expressions, and extended-API functions crossed the flag boundary across 2.x and 3.x, so the same expression can be valid on one server and a parse error on the next deployment",
+    "**Many-to-one matching is a bargain per operator**: vector joins align on labels by operator rules, and the release notes show the edges — duplicate-series errors, dropped metric names, NaN propagating through mad_over_time — expressiveness bought one operator at a time",
+    "**A query is cheap; an evaluation is not**: the text carries no cost model, and the engine's sample limits, queue limits, and cardinality caps decide whether the one-liner lands"
+  ],
+  "verdict": "PromQL is the most compact language in this analysis: selector syntax over a pull-model TSDB, read by a multi-vendor engine family — Prometheus, Thanos, Mimir, VictoriaMetrics, and Cortex — governed by a CNCF project with quarterly releases, named LTS lines, and a published migration guide that lists every 3.0 semantics change: the newline regex rule, the left-open range boundary, le-label normalization, and UTF-8 names all carry documented fixes. Its costs are the metric model's own: absence is an empty vector, not a type; NaN propagates silently; label identity is composed by regex, rewritten at the OTLP ingest boundary, and paced by the Go runtime, with no constructor check; a vector has no pinned order; the surface rides on feature flags, so a valid parse depends on the deployment; and dashboards interpolate values into expressions the language cannot escape. Main strengths: promtool's published rule-test harness, the 3.0 explain tree, fully documented breaking changes, a warnings channel in the API response, and ecosystem-wide parser publication. Main weaknesses: a niche beyond observability, no cross-engine conformance suite, no user-function mechanism inside the language, and float64 counters documented as exact only below 2^53.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs on a Prometheus-class server: energy is the engine's — scrape cadence, retention, and the query guards are the knobs a reader tunes."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "A compact, heavily documented language: models write rate() and sum by queries reliably, and the published 3.0 migration notes are exactly what a generated 2.x-era query needs reviewed against."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; Prometheus feeds production alerting pipelines, and its safety record is operational — release-note fixes for CPU spin on shutdown and rule-leak series — not qualification."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:dynamic"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "queries stored metric time-series data"
+    },
+    "use:query": {
+      "observation": "queries stored metric time-series data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "query request",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "queries travel to the server as HTTP request text and rule files load as YAML at startup; nothing compiled crosses a producer boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "TSDB block directory (2.x → 3.x)",
+      "promise": true,
+      "break": true,
+      "reproduced": false,
+      "note": "the 3.0 migration guide publishes both directions: a v3 TSDB can be read by v2.55 and newer, so v3 opens the upgraded data, and a downgrade below v2.55 is stated to lose the TSDB persistent data — v3's format is published as unreadable by older servers.",
+      "cite": [
+        "prometheusMigration30"
+      ]
+    },
+    {
+      "target": "promtool tsdb dump export",
+      "promise": null,
+      "break": false,
+      "reproduced": false,
+      "note": "promtool ships a tsdb dump command that exports samples from a block directory (the 3.14 notes fix it dropping native-histogram samples); the tool publishes an export, not a cross-version open promise.",
+      "cite": []
+    }
+  ]
+}

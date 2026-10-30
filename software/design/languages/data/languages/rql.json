@@ -1,0 +1,602 @@
+{
+  "schemaVersion": 1,
+  "id": "rql",
+  "name": "RQL",
+  "family": "rql",
+  "assessedAs": "RQL (RavenDB 7.2)",
+  "version": "RavenDB 7.2",
+  "title": "RQL (RavenDB 7.2)",
+  "indexLabel": "RQL (RavenDB 7.2)",
+  "group": "data-science",
+  "released": "2026-02",
+  "lifecycle": "current",
+  "order": 26,
+  "displayOrder": 112,
+  "presenceOrder": 112,
+  "matrixOrder": 112,
+  "presenceList": {
+    "core": "T1, T3, T4, T5, T6, T10, T11, T12, T14, C2, C4, Er1, Er3, Er4, P1, P4",
+    "meta": "Ec2, Ec3, Ec4, Ec6, Ec7, Ec9, V1, D1, D3, L1, L2, S2, S3, G1, G3, G4, Q2, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y13, Y16, Y17"
+  },
+  "tagline": "Document-DB Query Pipeline",
+  "sbName": "RQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "ravendbRqlDocs",
+    "ravendbWhatsNew72"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": true,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": true,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": true,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": true,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": true,
+    "S3": true,
+    "G1": true,
+    "G2": false,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": true,
+    "Q4": false,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**The query states the result**: `from ... where ... select` declares the projection to produce, and the reference lays the clause order over the server's pipeline",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The server checks values at execution**: RQL carries no static check against the document shape — a document missing the filtered field 'may return unexpected results' in the docs' own words, and a `nulls first` clause against a Lucene index answers InvalidQueryException at runtime",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Dynamic fields drive the dispatch**: a query on an unindexed field creates an auto-index from the documents found, `in` and `all in` behave per array flattening, and a field's type follows the JSON document, not a schema",
+        "mechanism": "T3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: a field holds a string, number, array, or nested object from the document, and an alternative is modeled by collection naming and exists() guards, not by a type",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No parameterized query**: the declare block defines one JavaScript function per query, values arrive as $param markers, and reusable logic is copied query to query",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**One flat name space**: collections, indexes, and declared functions are named strings inside a database, and nothing in RQL imports definitions across databases",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Null and absent share the filter**: where on a missing field matches by index semantics, the 7.2 `nulls first/last` clauses exist to pin where missing-field documents land (Corax only), and exists() is the documented anchor for the distinction",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**No module boundary**: declare is query-local, static-index definitions live in the server's own map-reduce languages, and RQL text imports nothing",
+        "mechanism": "T11"
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: update runs a JavaScript patch over every matched document, load pulls related documents into the projection, and no signature records the write",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**JavaScript is the language's second surface**: declare functions and update patches execute server-side, and values cross between JSON documents and script objects with no typed boundary check",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The pipeline mirrors the syntax**: from, where, include, order by, limit, and select are the server's pipeline stages in the order the reference states them",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Documents mutate in place**: update patches stored documents with a script, counters increment, time series append, and patching is the language's own write surface",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No constructor validates a patched document**: a patch script can produce any JSON shape, the server ships JSON Schema validation as a feature beside the language (7.2), and the patched document's shape is checked by the deployment, not by the query",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "caution",
+        "text": "**Conditional patches race writers**: an update script runs server-side over a query's results, and RavenDB's per-document change vectors resolve what the language does not scope",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the server's**: Voron pages, index files, and query results live in the RavenDB process, and the query text allocates nothing",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A query is served by an index the server builds**: a dynamic query on an unindexed field creates and maintains an auto-index, and the 7.2.5 notes fix non-ASCII index terms truncated after a 2048-character value lands in the same field — storage-engine facts the language hides",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured path in the language**: a type-mismatched comparison is logged by the engine and the document drops from the result, a clause the index engine rejects raises InvalidQueryException as a server error, and the query text carries no path around either",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Non-matching filters are the error**: a document without the filtered field falls out of where results, NOT cannot start a clause so the docs prescribe an exists() anchor, and the anchors behave differently on scoring (exists() adds a constant score, where true adds none, 7.2.6)",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: documents, projections, included relateds, counters, time series, and explanations share one flat response envelope, and success and absence are read from the collection's emptiness",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The response can carry its own diagnostics**: include exposes query timings and explanations, published in the keyword list, so a caller reads a defined report about the query beside the data",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Concurrency is the server's**: indexing, ETL, subscriptions, cluster transactions, and replication run as server tasks, and the language names no threads, tasks, or channels",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**A patch-all races writers**: an update over a dynamic query's results runs per document, and per-document change vectors and cluster transactions resolve conflicts outside the language",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**One product speaks RQL**: the language is RavenDB's query surface — its index engines, its Studio, its client APIs — and nothing in the language runs against another database",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside document data**: the unit is the JSON document, every query runs through an index the reference states as universal, and relational and analytic workloads move to the server's ETL side",
+        "mechanism": "P4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A typed front end shares the surface**: LINQ and the high-level session methods translate to RQL before sending, per the reference, so application code plans queries through the same pipeline statically",
+        "mechanism": null
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The index serves the query**: every RQL query runs on an auto or static index, the 7.2.6 notes ship bitmap evaluation for large Corax result sets, and the projection stage reads stored fields, not documents",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Auto-indexes pay at write time**: a dynamic query on an unindexed field creates an auto-index the server then maintains, a cost the docs attribute to the server's decision, not the query's",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across the stack**: Studio and RavenCLI ship with the server, the monitoring integrations (SNMP, Telegraf, Grafana) are per-vendor plugins, and the client tooling is per-language SDK",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A niche market**: RavenDB expertise concentrates in .NET-lineage application shops, and the hiring pool is a fraction of SQL's",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Source-available under the vendor's license**: the server source is published on GitHub under RavenDB's source-available terms with usage caps, so a deployment reads the vendor's license before its code",
+        "mechanism": "Ec4"
+      },
+      {
+        "kind": "cost",
+        "text": "**A .NET monoculture**: the client APIs, Studio, the LINQ provider, and the deployment tooling center on .NET, and the 7.2 notes ride .NET 10 updates with a multiarch server image",
+        "mechanism": "Ec6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Two engines kept alive under one language**: the 7.2 `nulls` clauses are published as Corax-only, InvalidQueryException on a Lucene index, and the docs maintain a client-migration guide for the API surface the language rides on",
+        "mechanism": "Ec7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference layer is open**: docs.ravendb.net publishes every version 1.0 through 7.2, the Query view ships in every license, and the community channel is a click from every page",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The vendor renames, reparses, and ratchets**: RQL gains keywords per release (when() conditional filtering, nulls first/last, vector.search()), the client migration guide publishes breaking changes per major, and the 7.2.5 What's New page states the revisions storage schema update as a one-way door — after upgrading, downgrading to an earlier version is not possible",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A yearly line with LTS points**: 5.4, 6.2, and 7.2 are LTS releases with published support end dates, patches ship quarterly (7.2.7 in late 2026), and the What's New pages state each release's surface",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language moves on the product's clock**: RQL gains surface in quarterly patches, not committee drafts, so a feature arrives in release notes before it settles in the reference",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting RQL means adopting RavenDB's index model**: every query is served by an index, collections and fields are named strings inside a database, and counters, time series, spatial fields, and vectors are extensions the language reaches through its own keywords",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The index-first pipeline forces the architecture**: the reference states that all queries in RavenDB use an index as universal, an auto-index appears when a query needs one, and static indexes are map-reduce code in the server's language — the application's shape follows from what the query language can bind to",
+        "mechanism": "D3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**RQL queries stored document data**: from names the source, where filters the index, and select projects the matching documents",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Index semantics under SQL-shaped syntax**: a SQL reader meets auto-indexes, all in answering empty where in answers full, NOT needing an anchor, and where true scoring documents differently from exists() — the reference devotes sections to these traps",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Three syntaxes, one server**: RQL text, the LINQ provider, and the DocumentQuery methods all land on RQL, JavaScript rides inside declare and update, and Lucene full-text syntax embeds inside where via lucene()",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**One reference page covers the language**: the 7.2 RQL page lists every clause with worked examples, the pipeline order, and the keyword-method table",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**The surface is uneven**: = and == are interchangeable, NOT cannot start a clause, limit 5, 10 and limit 10 offset 5 and offset 5 coexist for the same paging, the nulls clauses are Corax-only, and declare function embeds JavaScript in a SQL-shaped text",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Punctuation carries meaning**: Lines[].ProductName for flattened arrays, @all_docs for the all-collection source, $param1 for parameters, quoted \"Collection/Name\" strings, // and /* */ comments — a misread token usually parses and changes the result",
+        "mechanism": "S3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The common query is one line**: from \"Employees\" where FirstName = \"Laura\" select FirstName states the projection in three clauses, and keywords are case-insensitive",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard query-test harness in the language**: the documented test story is a client-side base class over an embedded server for application code, the Query view is manual, and RQL text names no regression harness",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The language can report its own execution**: include carries query timings and explanations in the published keyword list, and Studio's Query view runs RQL against the live database with code assistance",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Type and field faults land on the data**: a comparison against a field typed as the other type is logged and the document skipped, and the docs' where true / exists() caveat — unexpected results when documents lack the field — is a data-shape fact found at execution",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Only the wall clock**: today() and now() compare against the current server date per the reference, when() evaluates its condition against query parameters at evaluation time, and elapsed-time tests read the server",
+        "mechanism": "G4"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Values coerce at evaluation**: order by ... as long casts at the sort stage, between requires matching border types, string-and-number comparisons ride on index collation, and the 7.2.5 notes fix control-character equality and hashing as a storage consistency bug, rejecting control characters in document ids for new databases",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "cost",
+        "text": "**String-built queries are the injection surface**: RQL is request text the RawQuery path sends as written, so concatenated user input can add clauses to a where expression, and the documented mitigation is binding values through $param markers out of band",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Stored script is the server's trust decision**: declare functions and patch scripts execute on the server, so write access to the language grants script execution, bounded per database by admin-level access",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is a request text**: the same RQL on the same server version and dataset reproduces the same documents, and there is no build artifact",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Drivers pin by NuGet version**: the client packages ship per release with the server's version (the 7.2 notes track .NET 10.0.9), and an application pins them as ordinary dependencies",
+        "mechanism": "Y14"
+      },
+      {
+        "kind": "caution",
+        "text": "**The deployment lives server-side**: results reproduce on a cluster's topology, index state, and version — the 7.2.5 storage-schema note makes even the version a one-way fact",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published libraries carry no signed provenance by default**: the client SDKs ship on NuGet named to their publishers, and a consumer trusts the package installed",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**NuGet namespaces every package**, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No maintained advisory feed names the product**: security fixes land in release notes and vendor communication, and no CVE-mapped public advisory database tracks RQL-era releases the way Apache and CNCF projects publish theirs",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No stable tracing standard is part of the language**: OpenTelemetry export is a server monitoring feature (the 7.2.5 notes add service-name configuration), SNMP and Grafana integrations are server-side, and the query text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: the server routes logs through NLog, keeps an audit log, and added a Studio admin logs view in 7.2.6, and the language defines no logging construct",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The server ships its own post-mortem**: the debug package for a (sharded) database named in the 7.2.5 notes, the audit log, and the cluster dashboard give an operator the artifacts around a failure",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**Studio is submit-and-run**: the Query view runs RQL against the open database with code assistance, and RavenCLI answers with no build step",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**A maintained analyzer ships with the product**: RQL code assistance in Studio's Query view is published as part of the server, so syntax and completion land in the vendor editor before the server sees the text",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger**: diagnosis goes through include-explanations, query timings, the server's logs, and Studio's views",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**JavaScript is the published extension point**: declare function defines server-side functions callable from a projection, update runs patch scripts over matched documents, and values cross as JSON — the function mechanism is in the language, if untyped",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target**: a query runs on a RavenDB server, and nothing in the language runs without one",
+        "mechanism": "Y10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**HTTP, ETL, and wire protocols move data across systems**: queries answer over HTTP, ETL sinks publish Parquet, SQL, Kafka, and queue paths, and the PostgreSQL-protocol integration answers BI tools",
+        "mechanism": null
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is the vendor**: RQL gains keywords when Hibernating Rhinos ships them — the What's New pages are release notes, not a standards process — the LTS schedule and license terms are the vendor's, and no external body owns the language",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference is published**: the clause list, keyword-method table, and per-feature guides are on the public docs site, and the server's source is readable on GitHub",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance mechanism exists**: RQL has one implementation, so conformance is the vendor's own test suite, and no published suite with implementation reports decides a third-party claim",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The parser is readable in the source**: the server repository is public and source-available, and RQL parses in published code the ecosystem can inspect",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Every query pays for an index**: the index-first pipeline publishes fast, sorted reads and auto-index convenience, and the price is write-time index maintenance every document write pays, queried or not",
+    "**Two engines, one language, not one language**: the reference states 7.2's nulls clauses as Corax-only and answers InvalidQueryException on Lucene indexes, so the same text carries two legalities inside one product line",
+    "**Embedded JavaScript buys projection power and server trust**: declare functions format results and update scripts rewrite documents inside the query, and the language's security surface becomes script execution bounded by admin access",
+    "**The upgrade is a ratchet**: the 7.2.5 revisions schema update publishes no downgrade path, so a deployment that adopts the newest RQL surface cannot roll its data back to the version it came from"
+  ],
+  "verdict": "RQL is a SQL-shaped surface over a document store that refuses to answer a query without an index: from, where, order by, and select read the index the server builds, an auto-index appears when a dynamic query needs one, and JavaScript rides inside the language for projection and patching. Its costs are RavenDB's own: values coerce at evaluation, a where over a missing field drops documents silently, two index engines publish two legality rules for the same 7.2 clauses, and governance, licensing, and the roadmap are one vendor's. Main strengths: a one-page reference with worked examples and a published trap list, query diagnostics inside the language itself (timings, explanations), Studio code assistance the vendor maintains, and LINQ as a static front end that shares the pipeline. Main weaknesses: single-vendor governance with no conformance mechanism, no portable target at all, a source-available license with usage caps, a .NET-centered ecosystem, and a published one-way storage schema on the newest line.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs on a RavenDB server: energy is the engine's, and the reader's levers are the index choice — auto versus static, Corax versus Lucene — that the language's from clause makes visible."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "A SQL-shaped language models write fluently, and 7.2 ships an AI Assistant in Studio that generates RQL — the index-first semantics and the all in, NOT, and exists() traps are exactly where generated queries need review."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; RavenDB ships ACID writes, optimistic concurrency, and cluster transactions, and its safety record is the vendor's, stated in release notes."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:dynamic"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "queries stored document data"
+    },
+    "use:query": {
+      "observation": "queries stored document data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "query text",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "the client translates high-level queries into RQL text and sends it to the server for execution; index definitions ship as source inside the database, and no compiled unit crosses a producer boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "Voron database files (revisions schema update, 7.2.5)",
+      "promise": true,
+      "break": true,
+      "reproduced": false,
+      "note": "the 7.2 What's New page publishes both directions: 7.2 opens databases written by earlier releases — upgrade is the documented path — and for the 7.2.5 revisions storage schema update it states that after upgrading, downgrading to an earlier version is not possible.",
+      "cite": [
+        "ravendbWhatsNew72"
+      ]
+    },
+    {
+      "target": "Periodic backup files",
+      "promise": null,
+      "break": false,
+      "reproduced": false,
+      "note": "periodic backups are the server's own export form; the docs publish the backup task and restore operation, not a cross-version open promise, so the reading direction stays undetermined.",
+      "cite": []
+    }
+  ]
+}

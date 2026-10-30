@@ -1,0 +1,586 @@
+{
+  "schemaVersion": 1,
+  "id": "cql",
+  "name": "CQL",
+  "family": "cql",
+  "assessedAs": "CQL (Apache Cassandra 5.0)",
+  "version": "Cassandra 5.0",
+  "title": "CQL (Apache Cassandra 5.0)",
+  "indexLabel": "CQL (Cassandra 5.0)",
+  "group": "data-science",
+  "released": "2024-09",
+  "lifecycle": "current",
+  "order": 24,
+  "displayOrder": 110,
+  "presenceOrder": 110,
+  "matrixOrder": 110,
+  "presenceList": {
+    "core": "T4, T5, T10, T11, T12, T14, C2, C4, C5, Er1, Er3, Er4, P4",
+    "meta": "Ec2, Ec3, Ec7, V1, V4, D1, D3, L1, L2, S1, S2, S3, G1, G2, G3, G4, Q3, Q4",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y13, Y17"
+  },
+  "tagline": "Wide-Column Store Query",
+  "sbName": "CQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "cassandraCql50",
+    "cassandraModeling50"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": true,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "C1": false,
+    "C2": true,
+    "C3": false,
+    "C4": true,
+    "C5": true,
+    "C6": false,
+    "C7": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+
+    "Ec1": false,
+    "Ec2": true,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": true,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": true,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": true,
+    "S2": true,
+    "S3": true,
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": false,
+    "Y12": false,
+    "Y17": true,
+    "Y19": false,
+    "Y13": true,
+    "Y14": false,
+    "Y18": false,
+    "Y15": false,
+    "Y16": false,
+    "Q4": true,
+    "C8": false,
+    "M7": false,
+    "T15": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Columns are typed at the DDL**: the types reference opens by stating CQL is a typed language, and native, collection, UDT, tuple, vector, and custom types bind to the declared table",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: a column is one type, and an alternative — a value that is text today and a number tomorrow — is modeled by two columns, not by a type",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No parameterized type**: CREATE TYPE hard-codes every field type, and a reusable shape is copied table by table",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Null is a plain value, not a type**: reads return null for absent columns, IS NULL is the only distinction the language names, and a query over an absent value behaves like a query over a stored null",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**No import mechanism**: USE switches the session's keyspace, a UDT is bound to the keyspace that created it, and nothing in CQL imports definitions across keyspaces",
+        "mechanism": "T11"
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: INSERT, UPDATE, DELETE, TRUNCATE, and USING TTL mutate rows, INSERT JSON replaces rows, and no signature records the write",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**A custom type is a Java class name**: the types reference defines custom_type as a string naming a server-side class on every node's CLASSPATH, and no CQL-side check bounds its values",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The schema declares the storage order**: CREATE TABLE names the partition key and clustering columns, and the row layout on disk follows the declaration",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Rows mutate in place**: UPDATE SET rewrites columns, counters increment through UPDATE, and there is no immutability option in the language",
+        "mechanism": "C2"
+      },
+      {
+        "kind": "cost",
+        "text": "**No validating constructor**: collection literals build maps, sets, and lists from bare terms, and a bad element — a missing list position, an unbindable marker — surfaces as a server-side error at execution",
+        "mechanism": "C4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Default order is the storage order**: a SELECT returns rows in clustering order, ORDER BY exists only over clustering columns, and no clause pins an order the partition layout does not already give",
+        "mechanism": "C5"
+      },
+      {
+        "kind": "caution",
+        "text": "**List appends read like values**: scores = scores + [14, 21] mutates a stored list, the docs mark append and prepend non-idempotent, and a timed-out retry may add the value twice",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Storage is the node's**: commitlog, memtables, and SSTable files live in the server's storage, and the statement text allocates nothing",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Some list operations read before they write**: setting or deleting a list element by position incurs an internal read-before-write the docs state runs slow, a storage-engine cost inherited from the schema choice",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured path in the language**: a read timeout, an unavailable coordinator, and a list position that does not exist are server-side faults reported through the driver, and the statement carries no path around them",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Conditional writes report applied, not failed**: UPDATE ... IF EXISTS answers an [applied] row carrying the current values when the condition fails, and no error the language can branch on is raised",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Counters fail without a result type**: the docs state a counter update that times out leaves the client unable to tell applied from lost, and re-incrementing after a delete is guaranteed to misbehave — success, failure, and unknown share one silent surface",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Clauses are checked before data is touched**: the grammar and the WHERE restrictions fail at prepare time, so a misspelled clause or an unbound partition key never reaches a scan",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Concurrency is the server's**: statements execute on the coordinator under its thread pools, and the language defines no threads, tasks, or channels",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Conditions serialize per partition**: LWT IF clauses order writes inside one partition, and multi-part transactions arrive only with the 6.0 Accord line, now in alpha",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "enabling",
+        "text": "**Two open implementations speak CQL**: Apache Cassandra (Apache-2.0) and ScyllaDB implement the language and the native protocol, and official drivers ship on Maven Central, PyPI, npm, and Go",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside partition-keyed data**: WHERE is bound to the PRIMARY KEY, joins do not exist, ad-hoc filters across the table need ALLOW FILTERING's full scan, and application logic stays in a host language",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**Prepared statements are cached plans**: the native protocol prepares a statement once and reuses the server-side plan per node, so repeated queries skip the parse",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Collections read whole**: the docs state an individual collection is not indexed internally, so reading one element reads the collection — a performance fact the data model must design around",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**Tooling fragments across the stack**: cqlsh and nodetool ship with Cassandra, ScyllaDB carries its own CLIs, DataStax ships its own workbench and drivers, and monitors are per-distribution",
+        "mechanism": "Ec2"
+      },
+      {
+        "kind": "cost",
+        "text": "**A niche market**: wide-column expertise concentrates in high-write operational stores, and the hiring pool is a fraction of SQL's",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Compatibility surface kept on life support**: the types reference labels custom types as existing mostly for backward compatibility and discourages their use, and list and counter non-idempotence is documented as inherent",
+        "mechanism": "Ec7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The core stack is open**: Cassandra's source, Java/Python/Node.js/Go/C#/Rust drivers, and the native protocol specification are published, and downloads ship PGP signatures and checksums",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Major releases cut script UDFs**: 4.0 removed Thrift and Python UDFs, 4.1 deprecated JavaScript UDFs with removal in progress for 5.0, and 5.0 documents Java as the function language of record — sandboxed, opt-in, off by default in shipped config",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The language moves with the engine's roadmap**: CQL changes ship as Cassandra design docs and CEPs tied to a release, with no independent language process — the CQL 3.0 surface of 2013 underlies the 5.0 grammar today",
+        "mechanism": "V4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**5.0 added real surface**: the vector type, Storage-Attached Indexes, and Dynamic Data Masking entered CQL with 5.0, and the 6.0 line designs in the open (quarterly alphas through late 2026, 5.0.x current GA)",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting CQL means adopting a wide-column store**: the unit is the partition-keyed table, replication is declared in the DDL, and the schema is built per query workload",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The language forces a partition-first architecture**: WHERE must bind the PRIMARY KEY, ORDER BY is clustering-only, and the docs open the data-modeling chapter with Hint: it's not relational and define application queries before the schema — the store's shape follows from what the language can express",
+        "mechanism": "D3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**CQL queries and mutates stored wide-column table data**: INSERT, SELECT, UPDATE, and DELETE read and write the tables the schema declares",
+        "mechanism": null
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**SQL-shaped syntax with non-relational rules**: a SQL reader must unlearn joins, re-derive the PRIMARY KEY as the query surface, learn that UPDATE SET writes rows, and read ALLOW FILTERING as a scan alarm rather than a flag",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The surface is long**: native, collection, UDT, tuple, vector, counter, date, time, duration, and custom types plus DDL, DML, indexing, materialized views, JSON, masking, triggers, and operators — the reference gathers them across a dozen pages and a single-file edition",
+        "mechanism": "L2"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The reference is readable**: the CQL chapter carries BNF grammar and worked examples per type, from quickstart inserts to compaction options",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Property bags on every DDL**: CREATE KEYSPACE ... WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3} and CREATE TABLE ... WITH compaction = {'class': 'SizeTieredCompactionStrategy'} — every declaration drags a map of engine knobs",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The surface is uneven**: UPDATE SET writes, counters increment through UPDATE, list appends ride on +, LWT adds IF [NOT] EXISTS and answers an [applied] row, DELETE demands the full PRIMARY KEY, and USING TTL prefixes a write",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Punctuation carries meaning**: { } for maps and sets, [ ] for lists, vector<int, 3>, frozen<list<text>>, quoted \"MixedCase\" identifiers, and the [applied] bracket in conditional results — a misread token usually parses and changes meaning",
+        "mechanism": "S3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Statements are short**: INSERT INTO t (id, k, v) VALUES (0, 0, 'val0') is one line, and cqlsh echoes the result as a table",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard query-test harness in the language**: Testcontainers and cassandra-unit wrap a test cluster for driver code, and CQL itself names no harness for query regression",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No plan tool in the language**: the 5.0 command list carries no EXPLAIN statement, and diagnosis goes through nodetool stats, system.log, and the JMX meters — the query author never sees the plan the coordinator builds",
+        "mechanism": "G2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Restriction and position faults land on the data**: scores[1] = 7 errors only when the list is shorter, ALLOW FILTERING pays only when the scan is wide, and a counter re-increment after a delete is documented as undefined behavior",
+        "mechanism": "G3"
+      },
+      {
+        "kind": "cost",
+        "text": "**Only the wall clock**: currentTimestamp(now()) and toTimestamp() read server time, and the language names no monotonic clock for elapsed-time tests",
+        "mechanism": "G4"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**String-built statements are the injection surface**: concatenating user input into a statement lets that input add clauses, and the drivers' prepared statements and named parameters exist precisely to keep values out of syntax",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Named and positional parameters are first-class**: every driver binds values out of band against a prepared statement, and bind_marker appears in the language grammar itself",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Overflow is documented as the aggregate's risk**: collection_sum and SUM return the same type as the input elements with the docs' own 'risk of overflowing the data type' warning, AVG truncates ([1, 2] answers 1, not 1.5), and CAST 'relies strictly on Java semantics' — a narrowing cast truncates silently",
+        "mechanism": "Q4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Width-typed native columns**: tinyint, smallint, int, and bigint carry declared bit widths, varint is arbitrary precision, and a constant outside the declared width is rejected when the write executes",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A statement is a request text**: the same statement on the same cluster, schema, and version reproduces the same rows, and there is no build artifact",
+        "mechanism": "Y1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Drivers are pinned by registry versions**: the Java driver ships on Maven Central with release versions (4.19.4 in late 2026), and a project pins it as an ordinary dependency",
+        "mechanism": "Y14"
+      },
+      {
+        "kind": "caution",
+        "text": "**The deployment is the result's home**: a read reproduces on the cluster's token ring, replication, and version, not on the statement text alone",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Published libraries carry no signed provenance by default**: drivers on Maven Central, PyPI, and npm name their publishers, and a consumer trusts the package installed",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Maven Central, PyPI, npm, and the Go module proxy namespace every package**, so there is no flat namespace to hijack",
+        "mechanism": "Y4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Advisories are published**: the Apache Security Base and the project's security page carry Cassandra CVEs against releases, and the GitHub advisory database covers the driver packages",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: latency and cache meters are the node's JMX beans and virtual tables, and the statement text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: system.log, audit logging, and full query logging are server configuration, and the statement defines no logging construct",
+        "mechanism": "Y6"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The node records running queries**: full query logging and audit logging are published operating features, and nodetool stats, netstats, and compactionstats report the work behind a result",
+        "mechanism": "Y15"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**cqlsh is submit-and-run**: paste a statement, get a result table, with no build step",
+        "mechanism": "Y7"
+      },
+      {
+        "kind": "cost",
+        "text": "**No maintained in-editor analyzer**: CQL syntax and restriction checks land when the statement reaches the server, and the vendor IDE plugins are per-tool toys, not a language server the ecosystem maintains",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger**: diagnosis goes through EXPLAIN output, nodetool stats, system.log, and the repair and compaction meters",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "enabling",
+        "text": "**Function definitions are published in the grammar**: CREATE FUNCTION carries LANGUAGE and AS clauses, CREATE AGGREGATE composes state and final functions, and the 5.0 functions reference documents Java as the language of record — sandboxed and disabled by default in shipped config (user_defined_functions_enabled)",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target**: a statement runs on a Cassandra-protocol engine, and nothing in the language runs without one",
+        "mechanism": "Y10"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The native protocol is a published spec**: Java, Python, Node.js, Go, C#, and Rust drivers interoperate with any conformant node because the wire protocol is documented, not implied",
+        "mechanism": null
+      }
+    ],
+    "governance": [
+      {
+        "kind": "enabling",
+        "text": "**Governance is an Apache project**: Cassandra is a top-level Apache project with a public PMC, design docs and CEPs on GitHub and the mailing lists, and the 6.0 feature line lands publicly",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The specification is published**: the CQL chapter carries the grammar, types, statements, and indexing rules, with a single-file edition of the whole language",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**No conformance suite decides cross-engine CQL**: Cassandra exercises its parser through dtests, ScyllaDB carries its own CQL test line, and no shared suite with published conformance reports tests the language across engines",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Published parsers**: Cassandra's CQL parser ships in the Apache-2.0 source, cqlsh's Python parser ships with it, and drivers carry their own grammars",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Partition-keyed design is the language's bargain**: WHERE bound to the PRIMARY KEY buys predictable reads at known cost, and the price is that ad-hoc analytics needs a second table — a materialized view — built and repaired through the same language",
+    "**LWT pays a consensus round per partition**: IF EXISTS conditions serialize updates and answer [applied], and the same mechanism keeps range-wide conditions out of CQL until Accord lands in 6.0",
+    "**Counters traded atomicity for convergence**: counter updates are non-idempotent last-writer merges, documented as un-retryable after a timeout, where a plain column write is idempotent by design",
+    "**5.0 extended the language while its function surface contracted**: the vector type, Storage-Attached Indexes, and Dynamic Data Masking arrived, the JavaScript UDF line reached removal, and Java UDFs ship sandboxed and switched off by default — what a 4.x-era query can express and what a 5.0-era query can express are not the same set"
+  ],
+  "verdict": "CQL is SQL-shaped syntax on a storage model that refuses the relational bargain: WHERE is bound to the PRIMARY KEY, joins do not exist, and ad-hoc filters are a documented full scan behind ALLOW FILTERING. The language's costs are that bargain's own surface — statements with no effects, null as a plain value, no module boundary, list and counter semantics documented as non-idempotent, aggregates documented as overflowing their input type, and a custom type that is a Java class name on the node's classpath. Its evolution is the engine's roadmap: 5.0 added the vector type, Storage-Attached Indexes, and Dynamic Data Masking, and ships its function surface sandboxed and switched off by default with the script languages of the 2.x era removed from the grammar's reach. Main strengths: a fully public grammar and types reference, Apache governance with two open implementations, named parameters in the grammar itself, and published drivers in six languages. Main weaknesses: no query-test harness in the language, no plan tool in the 5.0 command list, no conformance suite between engines, tooling split across Cassandra, ScyllaDB, and DataStax surfaces, and restrictions that make the data model a prerequisite for writing a correct query.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Runs on a JVM node: energy is the server's, and the language's own levers are the partition design, the compaction strategy in the DDL, and collection size."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "A well-documented SQL-shaped language: models write INSERT and SELECT reliably, and the partition-key restriction — WHERE bound to the PRIMARY KEY, ALLOW FILTERING — is where generated queries go wrong."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the reliability record is the store's replication and repair design, declared in the DDL and audited outside the language."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "queries and mutates stored wide-column table data"
+    },
+    "use:query": {
+      "observation": "queries and mutates stored wide-column table data"
+    }
+  },
+  "delivery": [
+    {
+      "target": "statement text",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "drivers ship the statement over the native protocol and the node parses it server-side; prepared statements cache plans inside the engine, and no compiled unit crosses a producer boundary.",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "SSTable files (na-*-big component sets)",
+      "promise": null,
+      "break": false,
+      "reproduced": false,
+      "note": "the backups reference states a snapshot is a hard-linked copy of the table's immutable SSTable files plus a schema.cql, restored with sstableloader or nodetool refresh; it publishes the files' components, not a cross-version open promise.",
+      "cite": []
+    },
+    {
+      "target": "Commitlog segments",
+      "promise": null,
+      "break": false,
+      "reproduced": false,
+      "note": "the commitlog is the node's recovery log, replayed by the same version's storage engine; the docs describe its archiving configuration, not a portable format.",
+      "cite": []
+    }
+  ]
+}
