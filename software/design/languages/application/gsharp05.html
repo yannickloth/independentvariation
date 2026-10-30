@@ -1337,7 +1337,7 @@ div.csl-indent {
 <p><strong>Snapshot</strong> G# 0.5.212 — released 22 October 2026 · <strong>lifecycle</strong> current (v0.5.212 (2026-10-22) is the current published release; the 0.5 line self-hosted from v0.5.3, and the ‘Next’ docs are development documentation, not a release)</p>
 <p><strong>Family</strong> G# — shelf: Application</p>
 <p><em>The language’s main business is building general application software, with a managed runtime or a rich standard library. A shelf groups; it does not classify — the tags below carry every use, paradigm, and platform of this snapshot.</em></p>
-<p><strong>Trajectory</strong> project start (22 May 2019 — repository created; design documents and a first implementation push run through 2019, then a long dormancy from 2023-05-19 to 2026-05-17) · 0.1 (29 May 2026 — v0.1.270, the first public alpha of the GSharp SDK) · 0.5.3 (14 October 2026 — first self-hosted release: compiler, language server, and tools written in G#) · <a href="../../../../software/design/languages/application/gsharp05.html">0.5.212 (22 October 2026 — assessed release; native slices, platform nullability, record-ABI data types, inferred suspension)</a></p>
+<p><strong>Trajectory</strong> project start (22 May 2019 — repository created; design documents and a first implementation push run through 2019, then a long dormancy from 2023-05-19 to 2026-05-17) · 0.1 (29 May 2026 — v0.1.270, the first public alpha of the GSharp SDK) · 0.5.3 (14 October 2026 — first self-hosted release: compiler, language server, and tools written in G#) · <a href="../../../../software/design/languages/application/gsharp05.html">0.5.212 (22 October 2026 — assessed release; native slices, platform nullability, the 0.5 line’s record-ABI data types, inferred suspension)</a></p>
 <p><strong>Tags</strong></p>
 <p><strong>Use</strong> — Application</p>
 <p><strong>Paradigm</strong> — Object-oriented, Imperative, Concurrent</p>
@@ -1445,8 +1445,8 @@ div.csl-indent {
 <li><strong>Pre-1.0 churn is managed by a written policy</strong>: diagnostic IDs are never reused, retired spellings ship replacement diagnostics, breaking changes require an ADR plus migration guidance, and production is told to pin exact versions</li>
 <li><strong>The language-defined library stays deliberately small</strong>, so BCL interop carries the everyday APIs; the guide’s rule is “use CLR interop instead of wrappers”</li>
 <li><strong>Concurrency inherits the Go shape — <code>go</code>, channels, <code>select</code> — onto CLR channel primitives</strong>: a language-level spawn with <code>chan[T]</code> identical to <code>System.Threading.Channels.Channel&lt;T&gt;</code> (adapters stay spare), paid in rendezvous and capacity decisions a plain <code>spawn</code> never asks</li>
-<li><strong>Data types adopted the C# record ABI in 0.5 (ADR-0199)</strong>: C# interop parity gained, the 0.4 synthesized text surface spent — a trade the author pays per program, not a mechanism the inventory prices</li>
-<li><strong>One compiler by design</strong>: a bespoke ECMA-335 emitter with no Roslyn in the compiler process buys independence from the platform’s compiler stack, paid in owning the metadata writer, the PDB writer, and the binder end to end</li>
+<li><strong><code>data class</code>/<code>data struct</code> compile to the C# record ABI (ADR-0199)</strong>: a G# data type and a C# <code>record</code> are shape-compatible for the BCL and for C# consumers that deconstruct or pattern-match them, at the cost of committing G# data types to C#’s record semantics rather than its own</li>
+<li><strong>The compiler owns its emit path end to end</strong>: the metadata writer, the PDB writer, and the binder are the project’s own code — independence from the platform’s compiler stack, paid in maintaining all three</li>
 </ul>
 </section>
 </section>
@@ -1505,7 +1505,7 @@ div.csl-indent {
 <li>❌ <strong>A lambda converts to <code>Expression[TDelegate]</code> when the target demands it</strong>, so a G# program can build and compile code at run time (unsupported shapes diagnose <code>GS0473</code>) (Q3)</li>
 <li>⚠️ <strong>Memory safety is the CLR’s</strong>: <code>unsafe</code>, <code>stackalloc</code>, and <code>cast[ptr](addr)</code> bypass it by design — an opt-in escape hatch</li>
 <li>✅ <strong>There is no <code>eval</code> facility and the evaluator backend was removed from the compiler</strong>: the only run-time code path is the typed expression tree the source writes, recorded by the <code>Q3</code> mark — G# builds no code from untyped text</li>
-<li>❌ PostScript integers promote to inexact reals in place on overflow, the language reference defines the change, silently (Q4)</li>
+<li>❌ <strong>.NET arithmetic wraps in silence by default</strong>: an operation whose result leaves the type’s range discards the overflow in unchecked context, the compiler’s default, and the checked context that raises System.OverflowException is the opt-in the program must ask for (Q4)</li>
 </ul>
 </section>
 <section id="delivery-targets" class="level4" data-number="1.2.9">
