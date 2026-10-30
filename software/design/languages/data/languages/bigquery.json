@@ -1,0 +1,407 @@
+{
+  "schemaVersion": 1,
+  "id": "bigquery",
+  "name": "BigQuery Standard SQL",
+  "family": "bigquery",
+  "assessedAs": "GoogleSQL (BigQuery, 2026-10 documentation state)",
+  "version": "BigQuery GoogleSQL (2026-10)",
+  "title": "BigQuery Standard SQL (2026)",
+  "indexLabel": "BigQuery Standard SQL (2026)",
+  "group": "data-science",
+  "released": "2026-10",
+  "lifecycle": "current",
+  "order": 27,
+  "displayOrder": 113,
+  "presenceOrder": 113,
+  "matrixOrder": 113,
+  "presenceList": {
+    "core": "T4, T5, T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "Ec4, Ec7, V1, D1, D3, L2, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Analytical SQL as a Service",
+  "sbName": "BigQuery SQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "bigqueryGoogleSql"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": true,
+    "L1": false,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**No sum types**: an alternative is a nullable column, a STRUCT field checked by convention, or a JSON half-type, and the consumer re-derives the encoding",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generic parameter**: queries are typed per statement, and a routine over \"any table\" needs dynamic SQL or a fixed signature",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: columns, parameters, and scripting variables carry NULL unannounced, three-valued logic decides comparisons, and no signature records the guard",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: an INSERT in a script, a CREATE in a loop, and an EXPORT look alike in the signature, and nothing tracks what a statement touches",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**JavaScript rides the boundary**: SQL UDFs can be defined in JavaScript inside the query, and values cross between GoogleSQL types and the JS runtime with no checked boundary",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The query is the program**: WITH, scripting blocks, and table functions compose declaratively, and the same text replays against any authorized dataset",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tables mutate in place**: DML rewrites in place with no immutability construct, and time travel is the engine's retention feature rather than a language construct",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the service's**: slots, spill, and shuffle live in Google's fleet, and the query text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The handler decides, or the script dies**: BEGIN ... EXCEPTION WHEN ERROR wraps a statement block, and without it the failed statement ends the script — no value carries the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception and results by tables, arrays, and scalar variables, and neither threads through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Session state is shared**: session variables and temporary tables are visible across every statement and routine the session runs",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The query runs only in BigQuery**: GoogleSQL's functions, scripting, and authorization model are the service's, and nothing in the language runs without it",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside analytical work**: the language has no general libraries or error values, and transactional application logic is explicitly the wrong shape for the engine",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The service states its own cost**: query execution details break a query into per-stage timings and row counts, and INFORMATION_SCHEMA publishes the job's plan",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The bytes are the bill**: on-demand pricing charges scanned bytes, so a SELECT's column list is a cost decision the syntax barely surfaces",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A proprietary service end to end**: the engine, storage, and authorization are Google Cloud products under commercial terms, with no self-hostable reference",
+        "mechanism": "Ec4"
+      },
+      {
+        "kind": "cost",
+        "text": "**Two dialects ride along**: legacy SQL remains documented beside Standard SQL for old jobs, and the migration between them is a burden new work still meets",
+        "mechanism": "Ec7"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The service moves under the queries**: release notes document deprecations and behavior changes on a continuous cadence, and SQL text that ran last quarter can shift under a scheduled job",
+        "mechanism": "V1"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting GoogleSQL means adopting BigQuery**: datasets, authorized views, slots, and the storage model define what a query can say, and the same vocabulary is the deployment",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The cost and partitioning model dictates the schema**: partitioned and clustered tables, denormalized nesting, and bytes-scanned pricing drive table design — the published guidance makes the data model follow what the engine bills",
+        "mechanism": "D3"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**SQL plus a scripting layer plus UDFs**: GoogleSQL carries statements, procedural blocks, SQL and JavaScript routines, and TVFs, and the surface exceeds the SQL a new reader already knows",
+        "mechanism": "L2"
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**Standard-shaped, Google-flavored**: the core reads like ANSI SQL, and arrays, STRUCTs, scripting, and the qualifier grammar are the dialect's own layer",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for queries**: the documented testing story is dbt and third-party frameworks against a billed project, and the language names no regression harness",
+        "mechanism": "G1"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic SQL is string-built**: EXECUTE IMMEDIATE runs text assembled at run time in scripts, so concatenated user input reaches the parser, and the documented mitigation is parameterized queries and query parameters",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is request text**: the same GoogleSQL on the same data and service state reproduces the same answer, and nothing is built",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The executing engine is unpinnable**: the repository names no engine build — the service's continuous releases decide semantics, and no file can record them",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published queries or routines**: shared datasets, saved queries, and routines move through the service under IAM terms, with no signature-checked distribution channel",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed names the query surface**: changes and fixes land in release notes, with no CVE-mapped advisory database for the engine's dependencies",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: Cloud Monitoring and audit logs are platform features, and the query text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: jobs log to the service, and no logging construct exists in GoogleSQL",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The vendor's IDE completes the query**: BigQuery Studio publishes SQL editing with autocompletion and run control as part of the service",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No debugger exists for scripts**: diagnosis goes through execution details, job information, and error messages",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the query runs on BigQuery, and nothing in the language runs without the service",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is Google**: the dialect's direction and cadence are one company's, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the GoogleSQL reference documents the implemented behavior of one service, and no independent implementation follows from it",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what the service does**: no conformance suite exists for GoogleSQL, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**The bill is part of the language**: bytes-scanned pricing makes column pruning and partitioning design decisions, and the price is a data model shaped by the meter",
+    "**Serverless scale without a server**: slots and shuffle absorb the workload, and the price is a runtime whose version, limits, and behavior are the service's, never the repository's",
+    "**Scripting turns SQL into a program**: variables, loops, transactions, and EXCEPTION blocks deploy real logic, and the price is logic with no debugger, no result type, and no test harness",
+    "**JavaScript UDFs buy portability of logic**: a function body moves to the query, and the price is an unchecked boundary between two type systems inside one statement"
+  ],
+  "verdict": "BigQuery Standard SQL is GoogleSQL — analytical SQL with arrays and STRUCTs, a scripting layer with procedures, transactions, and EXCEPTION blocks, SQL and JavaScript UDFs, and table functions — served by one proprietary engine. Its costs are the service's own: NULL in every domain, failures that travel only by exception, session-wide state, bytes-scanned pricing that shapes the data model, and continuous engine releases no repository can pin. Main strengths: per-stage execution details inside the service, vendor IDE tooling, a declarative core that composes cleanly, and one reference that states the whole surface. Main weaknesses: no specification or conformance mechanism, single-vendor governance, a proprietary stack with no self-hostable reference, no debugger or standard test harness, string-built dynamic SQL, and a legacy-SQL burden the docs still carry.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is Google's fleet and the project's bill: slots, storage, and scanned bytes pay, and the reader's levers are partitioning and column design the query text exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "BigQuery ships agent-facing data surfaces (data canvas, Gemini-assisted SQL), and SQL is the model-trained lingua franca — generated queries still meet the traps: three-valued logic, bytes-scanned cost, and scripting scope."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the service's durability, IAM, and audit guarantees are Google's, stated in its own documentation and terms."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "datasets, authorized views, slots, and the storage model define what a query can say"
+    },
+    "use:query": {
+      "observation": "the core reads like ANSI SQL"
+    }
+  },
+  "delivery": [
+    {
+      "target": "query and script text",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "queries travel as GoogleSQL text to the service, which parses and executes them; routines and scripts are stored by the service as source; no compiled unit crosses a boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

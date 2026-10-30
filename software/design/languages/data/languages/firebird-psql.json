@@ -1,0 +1,399 @@
+{
+  "schemaVersion": 1,
+  "id": "firebird-psql",
+  "name": "PSQL",
+  "family": "firebird-psql",
+  "assessedAs": "PSQL (Firebird 5.0.4)",
+  "version": "Firebird 5.0.4",
+  "title": "Firebird PSQL (5.0.4)",
+  "indexLabel": "Firebird PSQL (5.0)",
+  "group": "data-science",
+  "released": "2026-04-17",
+  "lifecycle": "current",
+  "order": 28,
+  "displayOrder": 114,
+  "presenceOrder": 114,
+  "matrixOrder": 114,
+  "presenceList": {
+    "core": "T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "Ec3, D1, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Procedural SQL in Firebird",
+  "sbName": "PSQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "firebirdLangRef50"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": false,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: parameters and locals carry NULL unannounced, the NULL guide is its own documentation chapter, and no signature states whether a value may be absent",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**No sum types**: an alternative is a nullable column, a domain, or an EXCEPTION raised by convention, and the consumer re-derives the encoding",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: a selectable procedure that writes tables, fires triggers, and reads context looks like any other in the catalog",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**The UDR boundary is hand-written**: EXTERNAL NAME declarations bind PSQL to compiled modules through the UDR engine, and the agreement on layout and error convention is checked by neither side",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**One block, one unit**: EXECUTE BLOCK and CREATE PROCEDURE gather DECLARE, flow, and SQL into one executable the server parses whole",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**SUSPEND is a hand-rolled yield**: a selectable procedure produces its rows where SUSPEND runs, and moving the statement moves the result set's shape",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the engine's**: pages, statement memory, and cursor state live in the firebird process, and the PSQL text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**WHEN ... DO decides, or the error propagates**: EXCEPTION handlers catch by name, SQLSTATE, or ANY, and without one the error leaves the block — no value carries the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception, results by output parameters and SUSPENDed rows, and neither composes through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Connection state is shared**: session context variables and global temporary tables are visible across every PSQL unit the connection runs",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The block runs only in Firebird**: the parser, the exceptions, and the catalog are the engine's, and nothing in the language runs without a Firebird server",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside set work**: the language has no libraries, no data abstraction beyond tables and domains, and no error values, so application logic builds every abstraction itself",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The engine ships its own profiler**: Firebird 5.0 introduces SQL query profiling as a documented server feature, so a block's statements can be timed inside the toolchain",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A niche ecosystem**: Firebird's tooling and hiring pool concentrate in its legacy application base, a fraction of the PostgreSQL or MySQL worlds",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "caution",
+        "text": "**Third-party tools carry the day**: FlameRobin, IBExpert, and DBeaver fill the tooling space, and no official editor analysis or IDE ships with the server",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "caution",
+        "text": "**Three lines maintained at once**: 5.0, 4.0, and 3.0 receive simultaneous sub-releases, so a block's available surface depends on which maintained line the deployment runs",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The language exists to serve the database**: procedures, triggers, and packages deploy into the catalog, and the security model and storage engine define what they can say",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "caution",
+        "text": "**The Language Reference is one volume**: the PSQL chapters cover statements, exceptions, and cursors with worked examples, and the wider engine documentation surrounds them",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**A dialect inside a dialect**: PSQL shares syntax with Firebird SQL but adds SUSPEND, block-scoped DECLARE, and EXCEPTION handling that plain SQL statements do not accept",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for user blocks**: the project's own QA is internal, and the documented testing story for PSQL is application-side tests against a live database",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Profiling is a server feature**: the 5.0 query profiler answers what a block's statements cost, so the instrument is part of the engine rather than a third-party tool",
+        "mechanism": "G2"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**EXECUTE STATEMENT is string-built**: dynamic SQL text assembled from parameters reaches the parser, and the mitigation is the statement-level privilege model plus bound inputs",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A block is stored source**: the same text on the same engine version and data reproduces the same result, and nothing is compiled ahead of the call",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain pin exists**: the repository names no engine version, and the executing release is a deployment fact a manager must supply",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published code**: UDRs and client drivers move through distribution channels without signature checks, and a deployment trusts what it installs",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed names the product's dependencies**: fixes land in release notes of three maintained lines at once, with no CVE-mapped advisory database",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: the trace and audit facilities are server configuration, and the PSQL text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: exceptions and the server's firebird.log are the whole output surface, and no logging construct exists in PSQL",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No editor analysis ships with the server**: isql is the official interface, and code assistance lives in third-party tools",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No debugger ships with the engine**: diagnosis goes through profiling output, exception messages, and logging tables the procedure itself must write",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the block compiles in one engine's parser, and nothing in the language runs without a Firebird server",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the Language Reference documents the implemented behavior in detail, and no independent implementation follows from a published standard document",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what the engine does**: no conformance suite exists for PSQL, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The source is public and readable**: the engine and the documentation build from public repositories under the IPL/IDPL, so the parser's ground truth is inspectable",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**A community engine with an enterprise surface**: packages, UDRs, profiling, and temporal tables arrive without a vendor's license meter, and the price is an ecosystem a fraction of the mainstream size",
+    "**Selectable procedures are the abstraction**: FOR SELECT ... DO with SUSPEND builds streaming result sets inside the engine, and the price is control flow whose meaning sits in where SUSPEND runs",
+    "**Exceptions are engine-wide**: named EXCEPTIONs with custom messages give structured recovery, and the price is that unhandled ones leave the block as the engine's error, with no value to catch",
+    "**The UDR engine opens the door**: EXTERNAL NAME declarations bind compiled modules into the database, and the price is an ABI agreement neither side's compiler checks"
+  ],
+  "verdict": "Firebird's PSQL is the procedural SQL of a community-owned engine: EXECUTE BLOCK, stored procedures, functions, triggers, and packages over DECLARE, FOR SELECT ... INTO ... DO, SUSPEND, named EXCEPTIONs with WHEN ... DO handlers, and EXECUTE STATEMENT for dynamic SQL, with the UDR engine binding compiled modules through EXTERNAL NAME declarations. Its costs are the engine family's own: NULL in every domain, failures that travel only by exception, connection-wide session state, and a niche ecosystem with no conformance suite. Main strengths: profiling built into 5.0, one-volume documentation with worked examples, public source under community licenses, community governance with no vendor meter, and a release line (5.0.4, with 4.0 and 3.0 maintained in parallel) the project states plainly. Main weaknesses: no official IDE analysis or debugger, no standard test harness for user blocks, string-built dynamic SQL as the standing injection surface, and no specification an independent implementation could follow.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is the firebird process's: page cache, sweep, and statement memory pay, and the reader's levers are index and statement design the block exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "Generated PSQL arrives in migration and admin tooling, and the traps are the procedural layer: SUSPEND placement, exception scope, and context variables that no generated snippet names."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the engine's transaction model (read consistency options in 5.0) and its security classes are the project's, stated in its own documentation."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "procedures, triggers, and packages deploy into the catalog"
+    },
+    "use:query": {
+      "observation": "PSQL shares syntax with Firebird SQL"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program source (procedures, functions, triggers, packages)",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "the database stores the source text and parses it at creation and use; no compiled unit crosses a boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

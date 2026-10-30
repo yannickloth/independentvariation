@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "id": "sqlscript",
+  "name": "SQLScript",
+  "family": "sqlscript",
+  "assessedAs": "SQLScript (SAP HANA Platform 2.0 SPS 08)",
+  "version": "SAP HANA 2.0 SPS 08",
+  "title": "SQLScript (SAP HANA 2.0 SPS 08)",
+  "indexLabel": "SQLScript (SAP HANA 2.0)",
+  "group": "data-science",
+  "released": "2024-11",
+  "lifecycle": "current",
+  "order": 29,
+  "displayOrder": 115,
+  "presenceOrder": 115,
+  "matrixOrder": 115,
+  "presenceList": {
+    "core": "T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "Ec4, D1, L2, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Set-Oriented Procedural SQL",
+  "sbName": "SQLScript",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "hanaSqlscriptRef"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: procedure parameters, locals, and table columns carry NULL unannounced, and no signature states whether a value may be absent",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**No sum types**: an alternative is a nullable column or a table variable's shape, and the consumer re-derives the encoding from the body",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: the reference defines the functional extension as side-effect free by intent, but the signature of a procedure states nothing about the writes, reads, or calls inside it",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Foreign code rides in-process**: procedures and functions can be defined in R or other languages inside the server, and the boundary between SQLScript values and the embedded runtime is checked by neither side's compiler",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Table variables are the unit**: the data extension defines table types without tables, and procedures pass and assign table variables the optimizer can treat as sets rather than rows",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The reference argues against its own imperative layer**: the motivation chapter sets one-tuple-at-a-time semantics against set-oriented SQL because loops are \"hard to optimize and parallelize\", so the procedural constructs carry a documented performance warning the declarative ones do not",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the engine's**: column store, delta merge, and statement memory live in the HANA process, and the SQLScript text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The EXIT HANDLER decides, or the procedure dies**: handlers catch declared conditions and SQL error codes, and without one the error leaves the procedure — no value carries the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception and results by output table variables and result sets, and neither threads through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Session state is shared**: session variables and temporary tables are visible across every procedure the connection calls, so two callers share what the session holds",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The procedure runs only in HANA**: the parser, the table-type system, and the deployment model (HDI containers) are the engine's, and nothing in the language runs elsewhere",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside the data tier**: the language has no general libraries or error values, so application logic beyond data flows builds every abstraction itself",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The optimizer is the point**: the reference's stated goal is pushdown with \"massive parallelization\", and declarative bodies (UNION ALL with implicit parallelism, MAP_MERGE-style operations) are the constructs the engine optimizes",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Imperative bodies carry a documented penalty**: the reference motivates SQLScript itself by the cost of row-wise logic, and the same warning applies to loops written inside the language",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A proprietary stack end to end**: the server, the deployment infrastructure, the IDE (Business Application Studio), and the support model are SAP products under commercial terms",
+        "mechanism": "Ec4"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "caution",
+        "text": "**The SPS calendar governs the surface**: HANA 2.0 moves in support-package stacks, and the reference's own version selector decides which constructs a deployment's procedures may use",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The language exists to serve SAP's data tier**: procedures deploy through HDI into containers, the calculation and SQL engines define what they can say, and the S/4HANA application world is the domain",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**Two styles, one language**: set-oriented SQL and imperative blocks share the surface, and the reference's own guidance on when each applies is required reading before a body will perform",
+        "mechanism": "L2"
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**Standard-shaped, SAP-flavored**: the statements read like ISO SQL, and the table-type system, handler syntax, and deployment annotations are HANA's own layer on top",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for user procedures**: SAP's own QA is internal, and the documented testing story is application-side tests and the SQL analyzer against a live system",
+        "mechanism": "G1"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic SQL is string-built**: EXEC runs SQL text assembled at run time, so concatenated user input reaches the parser, and the mitigation is the privilege model plus bound inputs",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A procedure is deployed source**: the same HDI artifact on the same server version and data reproduces the same result, and nothing is compiled ahead of the call outside the deployment",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain pin exists in the artifact**: the repository names no server revision — the executing release is a deployment fact the HDI container records elsewhere",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published procedures or add-ons**: deployment artifacts move through SAP's channels under commercial terms, with no signature-checked public channel",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed names the language surface**: security fixes land in SAP notes and support packages, with no public CVE-mapped advisory database for the engine's dependencies",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: PlanViz, the SQL analyzer, and the trace configuration are server features, and the procedure text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: messages leave through SIGNAL and the server log, and no logging construct exists in SQLScript",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The vendor's IDE completes the code**: SAP Business Application Studio publishes SQLScript tooling with code completion and the SQL analyzer beside it",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No procedure debugger ships in the standard toolchain**: diagnosis goes through the SQL analyzer, PlanViz, and handler instrumentation",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the body compiles in one vendor's engine, and nothing in the language runs without a HANA server",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is SAP**: the release calendar, the roadmap, and the language's direction are one company's, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the SQLScript Reference documents the implemented behavior of one product line, and no independent implementation follows from it",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what HANA does**: no conformance suite exists for SQLScript, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Pushdown is the design goal**: table types, set-oriented bodies, and in-engine parallelism exist to keep data from moving, and the price is that the imperative layer carries a documented optimization warning",
+    "**Deployment is the database**: HDI containers version procedures and table types as artifacts, and the price is that the application's logic lives inside a commercial engine's deployment model",
+    "**Handlers are optional**: EXIT HANDLER gives structured recovery against conditions and SQL error codes, and the price is that unhandled errors surface at the caller",
+    "**Embedded R and Python buy in-database analytics**: foreign-language procedures run beside SQLScript bodies, and the price is an unchecked boundary between two type systems"
+  ],
+  "verdict": "SQLScript is SAP HANA's collection of SQL extensions — table types without tables, side-effect-free functions, and imperative procedure bodies — deployed through HDI into the engine's containers. Its costs are the platform's own: NULL in every domain, failures that travel only by exception, session-wide state, a proprietary stack end to end, and a reference that documents row-wise constructs as the thing the optimizer exists to avoid. Main strengths: a stated design goal of pushdown and parallelism, table variables the engine treats as sets, in-database R and Python for analytics, vendor IDE tooling with the SQL analyzer, and one-volume reference documentation. Main weaknesses: no debugger or user-procedure test harness, no structured logging or tracing in the language, string-built dynamic SQL, single-vendor governance with no specification or conformance suite, and logic whose reproducibility rides a commercial engine revision the artifact does not name.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is the HANA process's: column store, delta merges, and the application's license bill pay, and the reader's levers are set-oriented body design the reference argues for."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "Generated procedures appear in SAP migration and extension work, and the traps are the layer the reference warns about: imperative bodies, handler scope, and dynamic SQL that no generated snippet prices."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the engine's transaction and recovery guarantees are SAP's, stated in its own documentation and support terms."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "procedures pass and assign table variables the optimizer can treat as sets"
+    },
+    "use:query": {
+      "observation": "set-oriented SQL and imperative blocks share the surface"
+    }
+  },
+  "delivery": [
+    {
+      "target": "deployed procedure and function source (HDI artifacts)",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "the database stores and parses the source at deployment and use; no compiled unit crosses a producer boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

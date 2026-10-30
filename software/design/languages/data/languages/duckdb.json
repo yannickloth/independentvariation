@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 1,
+  "id": "duckdb",
+  "name": "DuckDB SQL",
+  "family": "duckdb",
+  "assessedAs": "SQL (DuckDB 2.0.0 LTS \"Cinnamon Teal\")",
+  "version": "DuckDB 2.0.0 LTS",
+  "title": "DuckDB SQL (2.0.0 LTS)",
+  "indexLabel": "DuckDB SQL (2.0)",
+  "group": "data-science",
+  "released": "2026-10-21",
+  "lifecycle": "current",
+  "order": 29,
+  "displayOrder": 115,
+  "presenceOrder": 115,
+  "matrixOrder": 115,
+  "presenceList": {
+    "core": "T4, T5, T10, T12, T14, K2, P1, P4",
+    "meta": "Ec9, V1, D1, G1, G4",
+    "readiness": "Y4, Y5, Y6, Y10, Y11, Y12, Y13, Y14, Y17"
+  },
+  "tagline": "In-Process Analytical SQL",
+  "sbName": "DuckDB SQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "duckdbDocs",
+    "duckdb200Announce"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": false,
+    "Er4": false,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": true,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": false,
+    "Y4": true,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": false,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**No sum types**: an alternative is a nullable column, a UNION type by convention, or a VARIANT holding a shape, and the consumer re-derives the encoding",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generic parameter**: queries and macros are typed per definition, and a routine over \"any table\" does not exist in the language",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: columns and macro parameters carry NULL unannounced, and no signature records the guard",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: an INSERT in a data-modifying CTE and a SELECT in the same pipeline look alike, and nothing tracks what a statement touches",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Extensions ride the ABI**: LOAD pulls compiled C++ modules agreed on an unpromised ABI, and the signature check that fires at load is about provenance, not layout",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Friendly SQL is the interface**: FROM-first queries, data-modifying CTEs, and $variable shorthand let one pipeline read top to bottom without wrappers",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Triggers join the surface**: 2.0 adds CREATE TRIGGER with transition tables, and audit logic now mutates beside the statements it watches",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the engine's**: buffer manager and hash tables live in the embedding process, and the query text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "caution",
+        "text": "**Errors abort the statement with a message**: no handler, no error value, and no in-language recovery exist — the caller (shell, script, or client) decides what a failure means",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Session state is shared**: SET variables, temp tables, and ATTACHed databases are visible across every statement the session or process runs",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The query runs only in DuckDB**: the dialect, the extensions, and the file format are one engine's, and nothing in the language runs without it",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside analytical work**: the language has no stored procedures, no error values, and no concurrency story, and application logic beyond analytics builds every abstraction itself",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**EXPLAIN ANALYZE states the cost**: the published statements return the plan with real timings, and the docs treat it as the ordinary instrument",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**The process shares the application's fate**: in-process execution means the query's memory and threads compete with the host program, and the language carries no budget construct",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**The ecosystem moves on one engine**: CLI, client libraries, extensions, and the file format are published together, so tooling agrees with the engine by release rather than by convention",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "enabling",
+        "text": "**Extensions are signature-verified**: distribution is signed against repository public keys the engine pins with a printed fingerprint, so provenance is checked at install rather than trusted",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The flat extension registry is the supply line**: community extensions are centrally listed by name with no namespace, so a name's meaning is whatever the registry maps it to",
+        "mechanism": "Y4"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**2.0 moved under the queries**: the release publishes breaking changes — a new default file format, a new parser default, disabled lambda syntax — with a migration guide and a legacy escape hatch",
+        "mechanism": "V1"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting DuckDB SQL means adopting the engine**: extensions, file format, and the in-process model define what a query can say, and the same vocabulary is the deployment",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "caution",
+        "text": "**The friendly dialect is its own lesson**: FROM-first order and implicit grouping read fast, and the docs' \"friendly SQL\" page exists precisely because the surface diverges from what a SQL course taught",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**The friendly dialect bends SQL**: FROM-first order, implicit GROUP BY columns, and alias reuse read well and diverge from the standard the rest of the industry speaks",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for user queries**: the project's own sqllogic tests are internal, and the documented testing story is application-side tests against the library",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The plan is a statement away**: EXPLAIN and EXPLAIN ANALYZE are part of the published reference, so a query can be asked to show its cost before and during a run",
+        "mechanism": "G2"
+      }
+    ],
+    "security": [
+      {
+        "kind": "caution",
+        "text": "**Injection lives in the caller**: the language has no dynamic-SQL statement, and string-built queries are a host-language pattern, not a DuckDB construct",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is text against a file**: the same SQL on the same database file and engine version reproduces the same answer, and nothing is built",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain pin exists in the official distribution**: the repository names no engine version, and the CLI, library, and extension versions must agree from deployment memory",
+        "mechanism": "Y14"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: EXPLAIN output is the query's own report, and tracing lives in the host application or the client library",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: the engine logs to its host's streams, and no logging construct exists in the SQL surface",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No debugger exists**: diagnosis goes through EXPLAIN ANALYZE, error messages with source locations from the new parser, and the CLI",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the query runs on a DuckDB engine, and nothing in the language runs without one",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is one company**: DuckLabs sets the release calendar, the LTS lines, and the language's direction, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the documentation describes the implemented behavior of one engine, and no independent implementation follows from a published standard",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what the engine does**: no conformance suite exists for the dialect, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**In-process is the feature and the exposure**: queries run at memory speed inside the application, and the price is that the engine's memory, threads, and crashes are the host program's",
+    "**Extensions are the package system**: one INSTALL statement reaches signed, version-matched binaries, and the price is a compiled supply line whose ABI agreement is provenance-checked, not type-checked",
+    "**2.0 is a feature ratchet**: a new file format, parser, and triggers arrive with a migration guide and LTS support, and the price is that pre-2.0 engines cannot read what 2.0 writes",
+    "**Friendly SQL is a dialect**: FROM-first and implicit grouping read faster and port worse, and the price is paid at the next engine"
+  ],
+  "verdict": "DuckDB's SQL is an in-process analytical dialect — friendly FROM-first syntax, LIST/STRUCT/MAP and VARIANT types, data-modifying CTEs, and as of 2.0 LTS triggers, CONNECT to remote engines, and an extensible PEG parser — executed inside the embedding application. Its costs are the in-process model's own: NULL in every domain, no procedures or error values, session-wide state, an extension supply line of compiled version-matched binaries, and single-company governance with no specification or conformance suite. Main strengths: EXPLAIN ANALYZE as an ordinary published instrument, signature-verified extension repositories, precise parser diagnostics, MIT-licensed public source, and an LTS line with a stated support calendar. Main weaknesses: a published one-way file-format boundary (pre-2.0 engines cannot read 2.0 files), a flat extension namespace, no debugger or standard query-test harness, no structured logging or tracing in the language, and a dialect that bends SQL where it reads best.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is the host process's: the engine's threads and buffer pool draw from the application that embeds it, and the reader's levers are query shape and file layout the text exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "2.0 ships an agent mode for coding agents that drive the CLI, and SQL is the model-trained lingua franca — the agent surface exists because generated analytics are already the common case."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the engine's transaction and durability guarantees are the project's, stated in its own documentation, with the LTS calendar as the support contract."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "extensions, file format, and the in-process model define what a query can say"
+    },
+    "use:query": {
+      "observation": "FROM-first queries, data-modifying CTEs, and $variable shorthand"
+    }
+  },
+  "delivery": [
+    {
+      "target": "query text (.sql files, CLI, and client calls)",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "queries travel as text to the engine, which parses and executes them in place; macros and views are stored as source; no compiled unit is produced",
+      "cite": []
+    },
+    {
+      "target": "compiled extension binaries",
+      "form": "compiled",
+      "crosses": true,
+      "promise": null,
+      "note": "extensions are compiled modules the engine downloads and links at LOAD; distribution is signature-verified against repository public keys and built per engine release, but no document publishes a cross-release linking promise, so the boundary is recorded and priced nothing",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "DuckDB database file (.duckdb)",
+      "promise": true,
+      "break": true,
+      "reproduced": false,
+      "note": "the 2.0 announcement publishes both directions: \"DuckDB 2.0 can still read and write your existing database files, and these remain readable by older versions\", while \"DuckDB versions before 2.0 cannot read database files created by DuckDB 2.0\"",
+      "cite": [
+        "duckdb200Announce"
+      ]
+    }
+  ]
+}

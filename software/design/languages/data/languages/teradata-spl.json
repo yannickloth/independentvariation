@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "id": "teradata-spl",
+  "name": "Teradata SPL",
+  "family": "teradata-spl",
+  "assessedAs": "Teradata SPL (Database Engine 20)",
+  "version": "Teradata Database Engine 20",
+  "title": "Teradata SPL (Database Engine 20)",
+  "indexLabel": "Teradata SPL (Engine 20)",
+  "group": "data-science",
+  "released": "2025-06",
+  "lifecycle": "current",
+  "order": 31,
+  "displayOrder": 117,
+  "presenceOrder": 117,
+  "matrixOrder": 117,
+  "presenceList": {
+    "core": "T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "Ec3, Ec4, D1, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y11, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Warehouse Stored Procedures",
+  "sbName": "Teradata SPL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "teradataSplBook"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: procedure parameters, locals, and warehouse columns carry NULL unannounced, and no signature states whether a value may be absent",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**No sum types**: an alternative is a nullable column, a status value, or a separate procedure, and the caller learns the encoding by reading the body",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: a procedure that loads tables, calls macros, and logs looks like any other in the DBC catalog",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**C and Java ride the boundary**: external stored procedures bind compiled code through declared signatures, and the agreement on layout and error convention is checked by neither side's compiler",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The procedure is one block**: CREATE PROCEDURE gathers DECLARE, flow, and SQL into one unit the database compiles into the catalog",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Macros sit beside procedures**: an EXEC macro is a parameterized SQL batch with no flow at all, and the boundary between the two unit kinds is a design decision the language does not guide",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the engine's**: spool, AMP memory, and cursor state live in the database processes, and the procedure text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The handler decides, or the request aborts**: DECLARE ... HANDLER routes conditions and SQLSTATE codes, RESIGNAL re-raises, and without a handler the failure ends the request — no value carries it",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception, results by OUT parameters and DYNAMIC RESULT SETS cursors, and neither composes through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Session state is shared**: volatile tables and session-scoped cursor results are visible across every procedure the session calls, and the engine's workload management arbitrates the rest",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The procedure runs only in Teradata**: the parser, the DBC dictionary, and the AMP architecture are the engine's, and nothing in the language runs without a Vantage system",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside warehouse work**: the language has no libraries or data abstraction beyond tables, so application logic builds every abstraction itself inside the warehouse",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**EXPLAIN is the ordinary tool**: the engine publishes the plan of any request, procedure statements included, and the docs treat it as the baseline cost instrument",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A niche commercial ecosystem**: expertise and tooling concentrate in enterprise warehouse shops, and the license terms govern every deployment",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**A proprietary stack**: the engine, the tooling, and the support model are Teradata commercial products",
+        "mechanism": "Ec4"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "caution",
+        "text": "**The engine line turned over**: Database Engine 20 replaces the 17.20 line (end of life announced for 2027), and deployments plan around the parity-and-upgrade path the release notes describe",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The language exists to serve the warehouse**: procedures, macros, and external routines deploy into the DBC catalog, and the workload management and storage model define what they can say",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "caution",
+        "text": "**Warehouse concepts before syntax**: AMP distribution, spool, and workload management decide whether a procedure performs, and the SPL book assumes that layer",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**Standard-shaped, Teradata-flavored**: statements read like ISO SQL, and DYNAMIC RESULT SETS, volatile tables, and macro calls are the engine's own layer on top",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for user procedures**: the documented testing story is application-side tests against a live system, with EXPLAIN as the only published instrument",
+        "mechanism": "G1"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic SQL is string-built**: EXECUTE IMMEDIATE and PREPARE run text assembled at run time, so concatenated user input reaches the parser, and the mitigation is the privilege model plus USING inputs",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A procedure is stored source**: the same body on the same engine version and data reproduces the same result, and nothing is compiled ahead of the call",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain pin exists**: the repository names no engine version — the executing release is a deployment fact the system records elsewhere",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published procedures or external packages**: code moves through Teradata's commercial channels, with no signature-checked public distribution",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public advisory feed for the engine's dependencies**: fixes land in Teradata release notes and support channels, with no CVE-mapped public advisory database",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: DBQL logging, Viewpoint, and EXPLAIN are platform features, and the procedure text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: SIGNAL text and the database's own logs are the output surface, and no logging construct exists in SPL",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No maintained editor analysis ships with the engine**: Teradata Studio's editors are basic, and code assistance lives in third-party SQL tools",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No procedure debugger ships with the engine**: diagnosis goes through EXPLAIN, DBQL, handler instrumentation, and the error log",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the body compiles in one vendor's engine, and nothing in the language runs without a Teradata system",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is Teradata Corporation**: the release calendar, the EOL schedule, and the language's direction are one company's, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the SQL Stored Procedures book documents the implemented behavior of one product line, and no independent implementation follows from it",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what the engine does**: no conformance suite exists for SPL, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Logic inside the warehouse**: procedures remove client round trips and run under the engine's workload management, and the price is application logic whose deploy, version, and license story is the platform's",
+    "**Result sets by cursor contract**: DYNAMIC RESULT SETS returns cursors to callers through the standard CLI, and the price is that the result shape is a cursor convention, not a type",
+    "**Macros and procedures share the stage**: the same logic can live as a flowless macro or a procedural block, and the price is a design decision the language documents but does not settle",
+    "**The engine line is a ratchet**: 17.20's announced end of life funnels deployments to Engine 20's parity path, and the price is an upgrade calendar set by the vendor"
+  ],
+  "verdict": "Teradata's SPL is the warehouse stored-procedure language of a proprietary platform: CREATE PROCEDURE over DECLARE, cursors with DYNAMIC RESULT SETS, condition handlers with SIGNAL and RESIGNAL, LOOP/WHILE/FOR flow, EXECUTE IMMEDIATE for dynamic SQL, and external procedures binding compiled C and Java. Its costs are the platform's own: NULL in every domain, failures that travel only by exception, session-wide volatile state, a niche commercial ecosystem, and single-vendor governance with no specification or conformance suite. Main strengths: EXPLAIN as an ordinary published tool, stored source the catalog compiles, and a release line (Engine 20, mid-2025) with a stated parity path off 17.20. Main weaknesses: no debugger or user-procedure test harness, no structured logging or tracing in the language, string-built dynamic SQL, basic editor tooling, and logic whose lifecycle — including the announced 2027 end of the previous line — rides one vendor's calendar.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is the AMPs': spool, distribution, and the warehouse's license bill pay, and the reader's levers are distribution and statement design the procedure exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "Generated procedures appear in warehouse migration work, and the traps are the procedural layer: handler scope, result-set cursors, volatile state, and dynamic SQL no generated snippet prices."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the engine's transaction, fallback, and recovery guarantees are Teradata's, stated in its own documentation and support terms."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "procedures, macros, and external routines deploy into the DBC catalog"
+    },
+    "use:query": {
+      "observation": "results by OUT parameters and DYNAMIC RESULT SETS cursors"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored procedure source",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "the database stores the source text, compiles it into the catalog, and executes it in place; no compiled unit crosses a producer boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

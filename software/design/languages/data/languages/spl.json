@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "id": "spl",
+  "name": "SPL",
+  "family": "informix-spl",
+  "assessedAs": "SPL (IBM Informix 15.0)",
+  "version": "Informix 15.0",
+  "title": "Informix SPL (15.0)",
+  "indexLabel": "Informix SPL (15.0)",
+  "group": "data-science",
+  "released": "2024-11-14",
+  "lifecycle": "current",
+  "order": 30,
+  "displayOrder": 116,
+  "presenceOrder": 116,
+  "matrixOrder": 116,
+  "presenceList": {
+    "core": "T10, T12, T14, C1, Er3, Er4, K2, P1, P4",
+    "meta": "Ec3, Ec4, D1, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y8, Y10, Y11, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Informix Stored Procedure Language",
+  "sbName": "SPL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "ibmInformixDocs"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": true,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: procedure variables and columns carry NULL unannounced — the INTO clause takes indicator variables to say a value was NULL — and no signature states whether a value may be absent",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**No sum types**: an alternative is a nullable return, a status value, or separate routines, and the caller learns the encoding by reading the body",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: a procedure that updates tables, fires triggers, and writes files looks like any other in sysprocedures",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**C code rides the boundary**: EXTERNAL NAME declarations bind SPL to compiled shared objects through the C UDR interface, and the agreement on layout and error convention is checked by neither side's compiler",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The routine is one block**: CREATE PROCEDURE and CREATE FUNCTION gather DEFINE, flow, and SQL into one unit the server stores and parses",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**WITH RESUME is a hand-rolled iterator**: an SPL routine returns rows across calls where RETURN WITH RESUME runs, and the FROM TABLE(...) interface consumes the stream",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the server's**: buffers, cursors, and UDR memory live in the oninit process, and the SPL text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**ON EXCEPTION decides, or the error propagates**: handlers catch by SQL error code and ISAM code, can nest, and RAISE EXCEPTION re-raises — without a handler the error leaves the routine, and no value carries it",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception and results by RETURNING clauses and OUT parameters, and neither composes through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Session and global state is shared**: DEFINE GLOBAL variables persist for the session (or database with the WITH keyword), and temporary tables are visible across every routine the connection calls",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The routine runs only in Informix**: the parser, the sysprocedures catalog, and the Datablade extension model are the engine's, and nothing in the language runs without one",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside set work**: the language has no libraries, no data abstraction beyond tables and opaque types, and no error values",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The plan is a statement away**: SET EXPLAIN publishes the query plans the server chooses, and the docs treat it as the ordinary tool for reading cost",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A niche, shrinking ecosystem**: Informix's tooling and expertise concentrate in its installed base, and the 15.0 line's tooling follows the same narrow path",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**A proprietary stack**: the server, its tooling, and the support model are IBM/HCL commercial products under license terms",
+        "mechanism": "Ec4"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "caution",
+        "text": "**Parallel release lines carry the surface**: 12.10, 14.10, and 15.0 are maintained side by side, and a routine's available surface follows the line the deployment runs",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The language exists to serve the database**: routines, triggers, and opaque-type support functions deploy into the catalog, and the engine's security and storage model define what they can say",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "caution",
+        "text": "**The documentation predates the reader**: SPL's reference prose carries decades of releases in one voice, and the version selector decides which page a statement's truth lives on",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**ESQL/C conventions inside the server language**: INTO clauses, indicator variables, and colon-prefixed host markers shape SPL's syntax from its embedded-SQL lineage",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for user routines**: the documented testing story is application-side tests against a live server, with TRACE statements as the language's only instrumented aid",
+        "mechanism": "G1"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic SQL is string-built**: EXECUTE IMMEDIATE and PREPARE run text assembled at run time, so concatenated user input reaches the parser, and the mitigation is the privilege model plus bound inputs",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A routine is stored source**: the same body on the same server version and data reproduces the same result, and nothing is compiled ahead of the call",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain pin exists**: the repository names no server version, and the executing release is a deployment fact a manager must supply",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published routines or Datablade modules**: code moves through IBM Fix Central and commercial channels, with no signature-checked public distribution",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public advisory feed for the engine's dependencies**: security fixes arrive as IBM security bulletins per release, with no CVE-mapped public advisory database",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: onstat, the message log, and SET EXPLAIN are server tools, and the routine text carries no trace hook beyond its own TRACE statements",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: TRACE writes a debug file, and no structured logging construct exists in SPL",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No maintained editor analysis ships with the server**: IBM's Eclipse-era data tooling is discontinued, and code assistance lives in third-party and generic SQL editors",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No routine debugger ships with the server**: diagnosis goes through SET EXPLAIN, TRACE files, ON EXCEPTION instrumentation, and the message log",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the body compiles in one engine's parser, and nothing in the language runs without an Informix server",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is IBM and HCL**: the release calendar and the language's direction are two companies' agreement, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the Guide to SQL documents the implemented behavior of one product line, and no independent implementation follows from it",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what the server does**: no conformance suite exists for SPL, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Iterator routines are the abstraction**: RETURN ... WITH RESUME turns a procedure into a streaming source for FROM TABLE(...), and the price is control flow whose meaning sits in where the RETURN runs",
+    "**Global variables are built in**: DEFINE GLOBAL gives cross-routine session state by declaration, and the price is the widest shared state the language offers as a one-word feature",
+    "**Decades of installed base**: the same syntax runs across 12.10, 14.10, and 15.0 with parallel maintenance lines, and the price is documentation and tooling that carry every era at once",
+    "**C UDRs are the escape hatch**: opaque types, casts, and support functions bind compiled C into the engine, and the price is an ABI agreement neither side's compiler checks"
+  ],
+  "verdict": "Informix SPL is the stored procedure language of a long-lived proprietary engine: CREATE PROCEDURE and FUNCTION over DEFINE, FOREACH cursors, ON EXCEPTION handlers with RAISE EXCEPTION, RETURN ... WITH RESUME iterator routines, DEFINE GLOBAL session variables, TRACE, and EXECUTE IMMEDIATE for dynamic SQL, with C UDRs bound through EXTERNAL NAME declarations. Its costs are the engine's own: NULL in every domain with indicator-variable workarounds, failures that travel only by exception, built-in global session state, a niche proprietary ecosystem, and single-vendor governance with no specification or conformance suite. Main strengths: SET EXPLAIN query plans as an ordinary tool, one syntax across long-lived parallel release lines, and one-unit routines the catalog stores as source. Main weaknesses: no debugger, no maintained editor analysis, no standard test harness, no structured logging or tracing in the language, string-built dynamic SQL, and tooling whose continuity depends on two companies' commercial roadmap.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is oninit's: buffers, cursors, and the installed hardware pay, and the reader's levers are index and statement design the routine exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "Generated SPL appears in migration work off the installed base, and the traps are the procedural layer: WITH RESUME placement, exception scope, global state, and indicator variables no generated snippet names."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the engine's transaction and recovery guarantees are IBM's and HCL's, stated in their own documentation and support terms."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "routines, triggers, and opaque-type support functions deploy into the catalog"
+    },
+    "use:query": {
+      "observation": "RETURN WITH RESUME runs, and the FROM TABLE(...) interface consumes the stream"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored routine source (procedures, functions, triggers)",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "the database stores the source text and parses it at creation and use; no compiled unit crosses a boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

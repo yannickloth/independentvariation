@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "id": "sql-psm",
+  "name": "SQL/PSM",
+  "family": "sql-psm",
+  "assessedAs": "SQL/PSM stored programs (MySQL 9.7 LTS)",
+  "version": "MySQL 9.7 LTS",
+  "title": "SQL/PSM (MySQL 9.7)",
+  "indexLabel": "SQL/PSM (MySQL 9.7)",
+  "group": "data-science",
+  "released": "2026-04-21",
+  "lifecycle": "current",
+  "order": 27,
+  "displayOrder": 113,
+  "presenceOrder": 113,
+  "matrixOrder": 113,
+  "presenceList": {
+    "core": "T10, T12, T14, C1, Er3, Er4, K2, P1, P4",
+    "meta": "D1, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Stored Programs in SQL/PSM",
+  "sbName": "SQL/PSM",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "mysqlStoredPrograms",
+    "mysql97RelNotes"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": true,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": false,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": false,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: a routine parameter, local, or OUT value carries NULL without a declaration, three-valued logic decides every comparison, and no signature states whether NULL is legal",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**No sum types**: an alternative is modeled by nullable OUT parameters, a status column, or separate routines, and the caller learns the encoding by reading the body",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**No generic parameter**: routines are typed per definition, and a routine over \"any table\" must take dynamic SQL or return one fixed shape",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: a stored function that writes a table, calls a trigger, or reads the clock looks like any other in the catalog — only the DETERMINISTIC/NOT DETERMINISTIC declaration, which the docs state is trusted for replication rather than verified, says anything",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**C code rides the boundary**: the server loads native plugins and UDFs through its plugin interface, and the declaration the two sides agree on is checked by neither compiler",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The routine is one block**: BEGIN ... END gathers DECLARE, flow, and SQL into one deployable unit the catalog stores and parses",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tables mutate in place**: the routine body is ordinary DML, and every UPDATE is an in-place mutation with no immutability construct anywhere in the language",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the server's**: buffers, sort areas, and cursors live in mysqld, and the routine text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The handler decides, or the statement dies**: DECLARE ... HANDLER FOR SQLEXCEPTION routes a failure, and without a handler the routine aborts with an error to the caller — no value ever carries the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception or error code, results by OUT parameters and SELECT result sets, and neither can thread through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**One session, one shared state**: user variables, temporary tables, and session settings are visible across every routine the session calls, so two callers of the same routine share what it reads",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The routine runs only in MySQL-family servers**: CALL speaks the server's protocol, the body compiles in the server's parser, and nothing in the language runs without mysqld",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside set work**: the language has no data abstraction beyond tables, no libraries, and no error values, so application logic pays for every abstraction it builds",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The plan is inspectable**: EXPLAIN answers for the statements inside a routine through the ordinary session tools, and the optimizer answers per statement",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "enabling",
+        "text": "**The installed base is one of the largest**: drivers, ORMs, admin tooling, and managed offerings surround the server, and the community forums and docs answer the common questions",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "caution",
+        "text": "**The LTS calendar governs the surface**: 9.7 is the newest long-term-support line, the release model states that features change only in the first release of an LTS line, and maintenance arrives quarterly",
+        "mechanism": null
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**The routine exists to serve the database**: the catalog, the privilege model, and the trigger/event system define what a stored program is, and moving the logic moves the engine",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**SQL-92 roots with procedural grafts**: the docs interleave ISO statements with MySQL-specific variables, handlers, and delimiters, and the traps (implicit commits, cursor scoping) get their own chapters",
+        "mechanism": null
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**The tool changes the text**: DELIMITER is a client-side convention the server never sees, one of several places where the program's meaning depends on which tool reads it",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Case rules differ per layer**: table and column case follows the file system on some platforms while routine names follow the server, and the docs devote a page to identifier case sensitivity",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for user routines**: mysqltest serves the server's own suite, and the documented testing story for stored programs is application-side tests against a live server",
+        "mechanism": "G1"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic SQL is string-built**: PREPARE and EXECUTE run SQL text held in a variable, so concatenated user input reaches the parser, and the documented mitigation is SQL-level privileges plus bound parameters",
+        "mechanism": "Q3"
+      },
+      {
+        "kind": "caution",
+        "text": "**SQL SECURITY DEFINER runs as its owner**: a definer routine executes with the owner's privileges, so the catalog records a trust decision the body never states",
+        "mechanism": null
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A routine is stored source**: the same body on the same server version and data reproduces the same result, and nothing is compiled ahead of the call",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**No toolchain pin exists**: the repository names no server version — the executing release is a deployment fact a third-party manager must supply",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published routines or plugins**: routines move as SQL dumps the server executes, and plugins install from distribution channels without signature checks",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed names stored-program issues**: fixes land in quarterly LTS release notes, and no published advisory database tracks the language surface the way Apache and CNCF projects publish theirs",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: the performance_schema and the general log are server features, and the routine text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: SIGNAL text and the server log are all a routine can emit, and no logging construct exists in the language",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No routine debugger ships with the server**: diagnosis goes through SELECT scaffolding, handler instrumentation, and the error message",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the body compiles in one server family's parser, and SQL/PSM conformance is a manual claim no suite checks",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is Oracle**: the release model, the LTS calendar, and the language's direction are one company's, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the reference manual documents the implemented behavior of one server line, and no independent implementation follows from a published standard document",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what mysqld does**: no conformance suite exists for the stored-program language, and a second implementation would be a compatibility gamble",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Logic next to the data**: routines remove the network round trip per statement and run inside the server's transactions, and the price is application logic whose deploy, debug, and version story is the database's",
+    "**Handlers are optional by design**: BEGIN ... END with DECLARE ... HANDLER gives structured recovery, and the price is that a routine without one fails at the first unhandled error, discovered by the caller",
+    "**Session state is the shared resource**: user variables and temporary tables make cross-routine state cheap, and the price is that every caller of a routine shares whatever the session already holds",
+    "**The definer is a privilege decision**: SQL SECURITY DEFINER lets one routine guard a table behind its owner's rights, and the price is a trust edge the signature carries silently"
+  ],
+  "verdict": "MySQL's stored-program language is SQL/PSM-shaped procedural SQL: BEGIN ... END blocks over DECLARE, cursors, handlers, SIGNAL and dynamic PREPARE, deployed as procedures, functions, triggers, and events inside the server catalog. Its costs are the server family's own: NULL in every domain with no null-safety, failures that travel only by exception or error code, session-wide user variables and temporary tables as the default shared state, and single-vendor governance with no specification and no conformance suite. Main strengths: one deployable block per program, structured handler-based recovery, EXPLAIN through the ordinary session tools, GPL-public source, and a release model (9.7 LTS, quarterly maintenance) the docs state plainly. Main weaknesses: no debugger or user-routine test harness, no structured logging or tracing in the language, string-built dynamic SQL as the standing injection surface, and logic whose reproducibility depends on a server version no repository file names.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is mysqld's: buffer pool, sort areas, and the event scheduler pay, and the reader's levers are index and statement design the routine text exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "Generated stored programs are common in migrations and admin tooling, and the traps are exactly the procedural layer: handler scope, implicit commits, definer rights, and cursor state that no generated snippet names."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; InnoDB's ACID guarantees and the privilege model are the server's, stated in its own documentation."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:imperative",
+    "paradigm:procedural",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "the routine body is ordinary DML"
+    },
+    "use:query": {
+      "observation": "results by OUT parameters and SELECT result sets"
+    }
+  },
+  "delivery": [
+    {
+      "target": "stored program source (procedures, functions, triggers, events)",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "the database stores the source text and parses it at creation and use; no compiled unit crosses a boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

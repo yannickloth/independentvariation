@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "id": "snowflake",
+  "name": "Snowflake SQL",
+  "family": "snowflake",
+  "assessedAs": "Snowflake SQL (2026-10 documentation state)",
+  "version": "Snowflake SQL (2026-10)",
+  "title": "Snowflake SQL (2026)",
+  "indexLabel": "Snowflake SQL (2026)",
+  "group": "data-science",
+  "released": "2026-10",
+  "lifecycle": "current",
+  "order": 28,
+  "displayOrder": 114,
+  "presenceOrder": 114,
+  "matrixOrder": 114,
+  "presenceList": {
+    "core": "T4, T5, T10, T12, T14, Er3, Er4, K2, P1, P4",
+    "meta": "Ec4, V1, D1, L2, G1, G4, Q3",
+    "readiness": "Y3, Y5, Y10, Y11, Y12, Y13, Y14, Y16, Y17"
+  },
+  "tagline": "Cloud Warehouse SQL",
+  "sbName": "Snowflake SQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "snowflakeSqlRef",
+    "snowflakeScripting"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": false,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": true,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": false,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": false,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": false,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**No sum types**: an alternative is a nullable column or a VARIANT holding a shape by convention, and the consumer re-derives the encoding",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generic parameter**: queries and procedures are typed per definition, and a routine over \"any table\" needs dynamic SQL",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**NULL is a member of every domain**: columns, parameters, and scripting variables carry NULL unannounced, and no signature records the guard",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**Statements state no effect**: a procedure that loads tables, calls tasks, and sends emails carries nothing in its signature",
+        "mechanism": "T12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Three languages ride inside one function**: UDFs and procedures can be defined in SQL, JavaScript, Python, Java, or Scala inline, and values cross between the SQL type system and each runtime with no checked boundary",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The query composes declaratively**: WITH, lateral joins, and Snowflake Scripting blocks build on the same text, and the same statement replays against any role-authorized schema",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Tables mutate in place**: DML rewrites micro-partitions, and time travel and cloning are the engine's retention features rather than language constructs",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the warehouse's**: compute, spool, and cache live in the virtual warehouse, and the query text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**The handler decides, or the script dies**: Snowflake Scripting's EXCEPTION blocks route failures by condition, and without one the failed statement ends the script — no value carries the failure",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures travel by exception and results by tables and variables, and neither threads through an expression",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "cost",
+        "text": "**Session state is shared**: session variables and temporary tables are visible across every statement and procedure the session runs",
+        "mechanism": "K2"
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**The query runs only in Snowflake**: the dialect's functions, scripting, and role model are the service's, and nothing in the language runs without an account",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside analytical work**: the language has no general libraries or error values, and transactional application logic is the wrong shape for the warehouse",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The Query Profile states the plan**: per-node timings, spill, and pruning are published per query in the web UI and retrievable by API",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**A proprietary service end to end**: the engine, storage, and governance are Snowflake products under commercial terms, with no self-hostable reference",
+        "mechanism": "Ec4"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Weekly releases move under the queries**: behavior changes roll out on the vendor's cadence with change notifications, and scheduled SQL can shift under a release the repository never named",
+        "mechanism": "V1"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting Snowflake SQL means adopting the account model**: databases, roles, warehouses, and tasks define what a query can say, and the same vocabulary is the deployment and the bill",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**SQL plus scripting plus five UDF languages**: Snowflake Scripting adds blocks, cursors, and result sets, and UDF bodies may be JavaScript, Python, Java, or Scala — a surface well beyond the SQL a reader knows",
+        "mechanism": "L2"
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "caution",
+        "text": "**Standard-shaped, Snowflake-flavored**: the core reads like ANSI SQL, and VARIANT columns, scripting, and the IDENTIFIER grammar are the dialect's own layer",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness for queries**: the documented testing story is dbt and third-party frameworks against a billed account, and the language names no regression harness",
+        "mechanism": "G1"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic SQL is string-built**: EXECUTE IMMEDIATE runs text assembled at run time, and IDENTIFIER() interpolates names, so composed user input reaches the parser; the documented mitigation is binding and role-based access",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is request text**: the same SQL on the same data and warehouse reproduces the same answer, and nothing is built",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The executing engine is unpinnable**: the repository names no engine build — weekly releases decide semantics, and no file records them",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**No signed provenance for published queries or routines**: shared objects and application packages move through the service under role terms, with no signature-checked public channel",
+        "mechanism": "Y3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No advisory feed names the query surface**: changes and fixes land in release notes and client advisories, with no CVE-mapped advisory database for the engine's dependencies",
+        "mechanism": "Y16"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: the event table, history views, and account usage are platform features, and the query text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The scripting layer can log**: Snowflake Scripting publishes SYSTEM$LOG and SYSTEM$SET_LOG_LEVEL writing to event tables, so a procedure can emit recorded diagnostics by calling documented functions",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No debugger exists for scripts or procedures**: diagnosis goes through the Query Profile, history views, and error messages",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: the query runs on Snowflake, and nothing in the language runs without an account",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is one vendor**: the dialect's direction and weekly cadence are Snowflake's, and no independent body can change them",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the SQL reference documents the implemented behavior of one service, and no independent implementation follows from it",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what the service does**: no conformance suite exists for the dialect, and the one implementation is the oracle",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Separation of compute and storage is the bill**: warehouses scale per query and suspend per idle, and the price is a runtime whose size, credits, and release cadence are the vendor's",
+    "**Scripting turns SQL into a program**: variables, loops, cursors, and EXCEPTION blocks deploy real logic, and the price is logic with no debugger and no test harness",
+    "**Five UDF languages buy reach**: Python, Java, Scala, and JavaScript bodies run beside SQL, and the price is an unchecked boundary per language inside one function",
+    "**Structured logging exists where it matters**: SYSTEM$LOG writes to event tables, and the price is that the event table is platform configuration a query cannot see"
+  ],
+  "verdict": "Snowflake SQL is a cloud-warehouse SQL dialect — ANSI-shaped SQL over VARIANT semi-structured data, plus Snowflake Scripting's blocks, cursors, and EXCEPTION handling, plus UDFs whose bodies may be SQL, Python, Java, Scala, or JavaScript — served by one proprietary engine on weekly releases. Its costs are the service's own: NULL in every domain, failures that travel only by exception, session-wide state, an unpinnable engine, and single-vendor governance with no specification or conformance suite. Main strengths: the Query Profile published per query, SYSTEM$LOG structured logging in the scripting layer, a declarative core that composes, and reference documentation that states the whole surface. Main weaknesses: no debugger or standard test harness, string-built dynamic SQL, a proprietary stack with no self-hostable reference, and scheduled SQL whose semantics move with releases the repository never named.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is the virtual warehouse and the credits bill: compute size, auto-suspend, and storage pay, and the reader's levers are clustering and query shape the text exposes but does not control."
+    },
+    "ai-readiness": {
+      "kind": "enabling",
+      "text": "Cortex Analyst and document AI sit beside the dialect, and SQL is the model-trained lingua franca — generated queries still meet the traps: three-valued logic, VARIANT shape conventions, and scripting scope."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the service's durability, governance, and isolation guarantees are Snowflake's, stated in its own documentation and terms."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "databases, roles, warehouses, and tasks define what a query can say"
+    },
+    "use:query": {
+      "observation": "the core reads like ANSI SQL"
+    }
+  },
+  "delivery": [
+    {
+      "target": "query and script text",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "queries travel as SQL text to the service, which parses and executes them; procedures and UDFs are stored by the service as source; no compiled unit crosses a boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

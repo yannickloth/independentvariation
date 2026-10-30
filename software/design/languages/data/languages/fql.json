@@ -1,0 +1,429 @@
+{
+  "schemaVersion": 1,
+  "id": "fql",
+  "name": "FQL",
+  "family": "fql",
+  "assessedAs": "FQL v10 (Fauna; service shut down 2025-05-30)",
+  "version": "FQL v10",
+  "title": "FQL (Fauna v10)",
+  "indexLabel": "FQL (Fauna v10)",
+  "group": "data-science",
+  "released": "2023-08-22",
+  "lifecycle": "retired",
+  "order": 27,
+  "displayOrder": 113,
+  "presenceOrder": 113,
+  "matrixOrder": 113,
+  "presenceList": {
+    "core": "T12, Er1, Er4, P1, P4",
+    "meta": "Ec3, Ec4, V1, V3, D1, D3, L1, L2, G1, G2, G4",
+    "readiness": "Y3, Y5, Y6, Y8, Y9, Y10, Y11, Y12, Y13, Y14, Y16, Y17, Y19"
+  },
+  "tagline": "Typed Functional Query Language",
+  "sbName": "FQL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "faunaFqlDocs",
+    "faunaEolFaq"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": false,
+    "T2": false,
+    "T3": false,
+    "T4": false,
+    "T5": false,
+    "T6": false,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": false,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": false,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": false,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": true,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": true,
+    "Ec4": true,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": false,
+    "Ec8": false,
+    "Ec9": false,
+    "V1": true,
+    "V2": false,
+    "V3": true,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": true,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": false,
+    "S2": false,
+    "S3": false,
+    "G1": true,
+    "G2": true,
+    "G3": false,
+    "G4": true,
+    "Q1": false,
+    "Q2": false,
+    "Q3": false,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": true,
+    "Y9": true,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": true,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": true
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "enabling",
+        "text": "**Every expression is checked before it runs**: FQL is statically typed, and a mismatch rejects the query as invalid_query with the source location and a hint, before evaluation",
+        "mechanism": null
+      },
+      {
+        "kind": "enabling",
+        "text": "**Sum types exist**: field types and let-bindings take unions such as `status: \"cart\" | \"processing\"`, and the type docs state unions \"can be combined to emulate abstract data types found in other functional languages\"",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**Absence is in the type**: `byId()` returns a Document or a typed NullDoc, `?.` chains, `??` defaults, and `!` asserts non-null at run time, so \"may be absent\" is written where the compiler sees it",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "caution",
+        "text": "**The check is optional per database and per call**: type checking is a database setting (`typechecked: true`) and a driver option, and with it off the same query fails only when the NullDoc arrives",
+        "mechanism": null
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**Values bind, they do not sit**: `let` introduces a typed binding, queries compose as expressions, and the language has no assignment that mutates a binding",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Writes validate against the schema**: field definitions, wildcard constraints, and check constraints are enforced by the database on write, in schemaless, permissive, or strict modes the FSL schema chooses",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the service's**: documents, indexes, and query state live in the Fauna service, and the query text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No handling construct exists in the language**: a failed query returns an error response and aborts the transaction, and FQL defines no try, catch, or handler to route around a failure",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: failures cannot ride a value through an expression — only the NullDoc rides `??` — so every caller reads the error envelope out of band",
+        "mechanism": "Er4"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The error names its place**: the type checker reports `at *query*:3:4` with a source excerpt and a hint naming the operator to add",
+        "mechanism": null
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Transactions are the service's**: queries run in strictly serialized transactions across regions, and the language names no threads or tasks",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**One service spoke FQL**: queries ran only against the Fauna service over its HTTPS API, and the service shut down on 2025-05-30, so the deployment unit was a vendor account that no longer exists",
+        "mechanism": "P1"
+      },
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside operational documents**: the unit is the document, reads ride Fauna indexes, and analytics, reporting, and bulk export move to the snapshot exports the migration guide prescribes",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The read rides an index**: collection reads answer from Fauna indexes, and the docs describe index-driven sets as the query's answer shape",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Pricing follows the ops**: the serverless model bills reads, writes, and compute per operation, so a query's cost is a function of the index plan, visible only through the dashboard's query stats",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The ecosystem closed with the service**: drivers for JavaScript, Python, Go, C#, and Java remain open source, but the database they talk to shut down, and the promised open-source core engine has no released implementation",
+        "mechanism": "Ec3"
+      },
+      {
+        "kind": "cost",
+        "text": "**The engine was proprietary**: the service, its storage, and the query engine were never published under an open license — only the drivers and the CLI were — so no second implementation could exist",
+        "mechanism": "Ec4"
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**The language was replaced once already**: FQL v10 replaced the v4 language wholesale, with a migration guide rather than a compatibility path, before the service itself ended",
+        "mechanism": "V1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The platform is discontinued**: the Fauna service shut down on 2025-05-30, accounts and data were deleted on that date, and the end-of-life FAQ states no extensions were offered",
+        "mechanism": "V3"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting FQL meant adopting Fauna**: collections, indexes, keys, roles, and user-defined functions are Fauna resources, and the language's Set and document model has no meaning outside the service",
+        "mechanism": "D1"
+      },
+      {
+        "kind": "cost",
+        "text": "**The schema-first model dictates the data architecture**: FSL defines collections, fields, check constraints, and computed fields as deployable source, and the docs frame the database as a deployment target of the schema",
+        "mechanism": "D3"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**A SQL reader meets a functional language**: Sets, higher-order functions, projection syntax, NullDoc handling, and FSL schema deployment have no SQL analog, and the learning path starts at the type system",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Three surfaces at once**: FQL queries, the FSL schema language, and the dashboard shell all carry the data model, and the v10/v4 split adds a second dialect to every search result",
+        "mechanism": "L2"
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "enabling",
+        "text": "**The common query reads like TypeScript**: `Product.byId(id)?.update(data)` states the whole update, and the `?.`, `??`, and `!` operators arrive with widely known meanings",
+        "mechanism": null
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard test harness exists in the language**: the docs publish no query-test framework, and a team tests FQL through its host-language test suite against a live database",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No query-plan tool is published**: the dashboard shows per-query stats, and the docs publish no EXPLAIN or plan surface that states how a query will read",
+        "mechanism": "G2"
+      }
+    ],
+    "security": [
+      {
+        "kind": "enabling",
+        "text": "**Queries compose with bound values**: the query is a program, not a concatenated string, values arrive as arguments, and the docs prescribe attribute-based access control through roles rather than string hygiene",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is request text**: the same FQL on the same schema and data reproduces the same result, and nothing is built",
+        "mechanism": null
+      },
+      {
+        "kind": "cost",
+        "text": "**The executing version is the service's**: the repository names no language or engine version — a `schema_version` comes back in responses — and the one executor that defined semantics no longer runs",
+        "mechanism": "Y14"
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Drivers carry no signed provenance**: the client libraries publish to npm, PyPI, and the other registries under ordinary package terms, and a consumer trusts what the registry serves",
+        "mechanism": "Y3"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing or metrics standard is part of the language**: monitoring was the dashboard's and the status page's, and the query text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: the service kept its own logs, and FQL defines no logging construct a query could call",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "cost",
+        "text": "**No debugger exists**: diagnosis went through the dashboard's query logs and stats and the error envelope",
+        "mechanism": "Y13"
+      },
+      {
+        "kind": "cost",
+        "text": "**No maintained editor analysis**: the dashboard shell ran queries with a schema view, and the docs publish no code-assistance surface for FQL in an editor",
+        "mechanism": "Y8"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No foreign-function interface exists**: FQL defines no way to call another language's library in process — not a script embedding, not a native path — so every capability must be an FQL or FSL construct",
+        "mechanism": "Y9"
+      },
+      {
+        "kind": "cost",
+        "text": "**No portable target**: a query runs on the Fauna service, and nothing in the language runs without it",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance was one company**: Fauna, Inc. decided the language's direction, the service's terms, and its end — and no independent body could change any of it",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the reference documents the implemented behavior, and no document a second implementation could follow was ever published",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness was what the service did**: no conformance suite or independent implementation ever checked the semantics, so a program's meaning was a property of one closed engine",
+        "mechanism": "Y17"
+      },
+      {
+        "kind": "cost",
+        "text": "**The parser was never readable**: the server and its query engine stayed closed source, so the syntax's ground truth lived in a binary the ecosystem could not inspect",
+        "mechanism": "Y19"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**A type system above a document store**: static typing, unions, and NullDoc handling caught null and shape errors before evaluation — a guarantee no other assessed query DSL offers — and the price was a functional language no SQL reader already knew",
+    "**The platform, not the language, ended**: FQL v10's design survives in documentation and open drivers, but the only engine that executed it shut down on 2025-05-30, and the promised open-source core has no release",
+    "**Schema as deployed code**: FSL made collections, constraints, and functions source with versioned deploys, and the price was that the database's shape lived in the vendor's service rather than in any file a team owns",
+    "**A clean surface with no escape hatches**: no injection surface, no logging, no debugging, no FFI — every operational concern outside the query itself had to route through the vendor's dashboard, API, or support"
+  ],
+  "verdict": "FQL v10 was a TypeScript-inspired functional query language over a document-relational store, and the only one of the assessed query DSLs whose expressions are statically checked against a schema with unions, typed NullDocs, and explicit null operators before a query runs. Its costs were the platform's: one proprietary service defined, executed, priced, and then discontinued the language — the service shut down on 2025-05-30, accounts and data were deleted, no specification or conformance mechanism ever existed, and the engine's parser never published. Main strengths: static typing with `?.`/`??`/`!` null handling, FSL schema-as-code with enforced field definitions and check constraints, composable queries with no injection surface, and concise TypeScript-familiar syntax. Main weaknesses: a functional model with a real learning curve, no in-language error handling or result type, no debugging or query-plan tooling, single-vendor governance of a now-defunct proprietary engine, and a lifecycle that ended with the vendor's funding rather than with any technical failure.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "The engine's energy was the vendor's bill and then the vendor's shutdown; a reader choosing constructs today is reading a language nothing executes, and the levers the syntax exposes — index choice, projection shape — were priced per operation."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "A typed functional query language is unusually checkable ground for generated queries — the type checker rejects a generated null dereference before evaluation — but the platform's end means the check ran nowhere for the language's last year, and no model was trained on more than a sliver of v10 code."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; serialized transactions and attribute-based access control were the service's guarantees, stated in its own documentation and ended with the service."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:functional",
+    "paradigm:declarative",
+    "lifecycle:retired",
+    "memory:automatic",
+    "typing:static-strong"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "documents, indexes, and query state live in the Fauna service"
+    },
+    "use:query": {
+      "observation": "queries ran only against the Fauna service over its HTTPS API"
+    }
+  },
+  "delivery": [
+    {
+      "target": "FQL query text and stored FSL/UDF source",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "queries travel as request text over the service's HTTPS API, and collections, functions, and schema definitions are stored by the database as source; no compiled unit crosses a producer boundary",
+      "cite": []
+    }
+  ],
+  "data_formats": []
+}

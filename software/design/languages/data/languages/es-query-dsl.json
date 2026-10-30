@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "id": "es-query-dsl",
+  "name": "Elasticsearch Query DSL / EQL",
+  "family": "elasticsearch",
+  "assessedAs": "Query DSL and EQL (Elasticsearch 9.5)",
+  "version": "Elasticsearch 9.5",
+  "title": "Elasticsearch Query DSL / EQL (9.5)",
+  "indexLabel": "Elasticsearch Query DSL / EQL (9.5)",
+  "group": "data-science",
+  "released": "2026-08-04",
+  "lifecycle": "current",
+  "order": 28,
+  "displayOrder": 114,
+  "presenceOrder": 114,
+  "matrixOrder": 114,
+  "presenceList": {
+    "core": "T1, T4, T5, T6, T10, T12, T14, Er1, Er3, Er4, P4",
+    "meta": "Ec7, Ec9, V1, D1, L1, L2, S1, S2, S3, G1, G3, G4, Q2, Q3",
+    "readiness": "Y3, Y5, Y6, Y10, Y11, Y12, Y13, Y16, Y17"
+  },
+  "tagline": "JSON Query DSL and Event Sequences",
+  "sbName": "ES Query DSL",
+  "preamble": [
+    {
+      "kind": "methodology"
+    }
+  ],
+  "headerExtra": [],
+  "sources": [
+    "elasticQueryDsl",
+    "elasticEql",
+    "elasticUpgradePlan"
+  ],
+  "resources": [],
+  "verdicts": {
+    "T1": true,
+    "T2": false,
+    "T3": false,
+    "T4": true,
+    "T5": true,
+    "T6": true,
+    "T7": false,
+    "T8": false,
+    "T9": false,
+    "T10": true,
+    "T11": false,
+    "T12": true,
+    "T13": false,
+    "T14": true,
+    "T15": false,
+    "C1": false,
+    "C2": false,
+    "C3": false,
+    "C4": false,
+    "C5": false,
+    "C6": false,
+    "C7": false,
+    "C8": false,
+    "M1": false,
+    "M2": false,
+    "M3": false,
+    "M4": false,
+    "M5": false,
+    "M6": false,
+    "M7": false,
+    "Er6": false,
+    "Er1": true,
+    "Er2": false,
+    "Er3": true,
+    "Er4": true,
+    "Er5": false,
+    "K1": false,
+    "K2": false,
+    "K3": false,
+    "K4": false,
+    "K5": false,
+    "K6": false,
+    "P1": false,
+    "P2": false,
+    "P3": false,
+    "P4": true,
+    "R1": false,
+    "R2": false,
+    "R3": false,
+    "Ec1": false,
+    "Ec2": false,
+    "Ec3": false,
+    "Ec4": false,
+    "Ec5": false,
+    "Ec6": false,
+    "Ec7": true,
+    "Ec8": false,
+    "Ec9": true,
+    "V1": true,
+    "V2": false,
+    "V3": false,
+    "V4": false,
+    "V5": false,
+    "V7": false,
+    "D1": true,
+    "D3": false,
+    "L1": true,
+    "L2": true,
+    "L3": false,
+    "S1": true,
+    "S2": true,
+    "S3": true,
+    "G1": true,
+    "G2": false,
+    "G3": true,
+    "G4": true,
+    "Q1": false,
+    "Q2": true,
+    "Q3": true,
+    "Q4": false,
+    "Y1": false,
+    "Y2": false,
+    "Y3": true,
+    "Y4": false,
+    "Y5": true,
+    "Y6": true,
+    "Y7": false,
+    "Y8": false,
+    "Y9": false,
+    "Y10": true,
+    "Y11": true,
+    "Y12": true,
+    "Y13": true,
+    "Y14": false,
+    "Y15": false,
+    "Y16": true,
+    "Y17": true,
+    "Y18": false,
+    "Y19": false
+  },
+  "observations": {
+    "type": [
+      {
+        "kind": "cost",
+        "text": "**The mapping decides at first document**: dynamic mapping types a field from the first value that arrives, and the same query text answers differently against two indices whose fields were born differently",
+        "mechanism": "T1"
+      },
+      {
+        "kind": "cost",
+        "text": "**No sum types**: a query alternative is encoded by structure convention — `should`, `filter`, `bool` nesting — and the consumer re-derives what the producer meant",
+        "mechanism": "T4"
+      },
+      {
+        "kind": "cost",
+        "text": "**No generic parameter**: queries and aggregations take untyped JSON bodies, and nothing in a request names the type a field will answer with",
+        "mechanism": "T5"
+      },
+      {
+        "kind": "cost",
+        "text": "**Flat string name spaces**: indices, aliases, dot-path fields, and templates are strings in one cluster, and `foo.bar` may be an object path, a dotted field name, or both",
+        "mechanism": "T6"
+      },
+      {
+        "kind": "cost",
+        "text": "**Any field can be missing**: a query against an absent field matches nothing and reports nothing, and no signature records the guard",
+        "mechanism": "T10"
+      },
+      {
+        "kind": "cost",
+        "text": "**Painless is the second surface**: `script_score`, `script_query`, and runtime fields execute Painless inside the request, and values cross between JSON documents and script objects with no typed boundary",
+        "mechanism": "T14"
+      }
+    ],
+    "construction": [
+      {
+        "kind": "enabling",
+        "text": "**The query is the data**: a request body composes named JSON blocks — `bool`, `term`, `range`, `aggs` — and the same body replays, templated, and searched against any index",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Writes mutate through the same surface**: `_update`, `_update_by_query`, and ingest pipelines change documents in place, and a pipeline's processors run outside the query text",
+        "mechanism": null
+      }
+    ],
+    "memory": [
+      {
+        "kind": "enabling",
+        "text": "**Allocation is the engine's**: Lucene segments, fielddata, and query memory live in the Elasticsearch process, and the request text allocates nothing",
+        "mechanism": null
+      }
+    ],
+    "error": [
+      {
+        "kind": "cost",
+        "text": "**No structured path in the language**: a failed request returns an HTTP error envelope and a partial failure returns 200, and the query text carries no branch for either",
+        "mechanism": "Er1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Partial failures pass without a decision**: a shard timeout or failure rides home in the `_shards` metadata of an otherwise successful response, so a caller's silence is indistinguishable from its approval",
+        "mechanism": "Er3"
+      },
+      {
+        "kind": "cost",
+        "text": "**No composable result type**: hits, aggregations, and error envelopes share one flat response body, and success is read from HTTP status and field conventions",
+        "mechanism": "Er4"
+      }
+    ],
+    "concurrency": [
+      {
+        "kind": "enabling",
+        "text": "**Concurrency is the engine's**: shards search in parallel, refresh and merge run as background tasks, and the query language names none of it",
+        "mechanism": null
+      }
+    ],
+    "platform": [
+      {
+        "kind": "cost",
+        "text": "**A poor fit outside search and event data**: the unit is the inverted-indexed document, relevance scoring sits under every match, and relational or analytic workloads move to other stores",
+        "mechanism": "P4"
+      }
+    ],
+    "performance": [
+      {
+        "kind": "enabling",
+        "text": "**The engine states its own costs**: the Profile API breaks a query into per-shard component timings, and the Explain API answers why one document matched or did not",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Deep aggregation is the request's risk**: breadth-first aggregation over high-cardinality fields allocates in the data node, and the request text carries no budget",
+        "mechanism": null
+      }
+    ],
+    "ecosystem": [
+      {
+        "kind": "cost",
+        "text": "**The 7.x world rides along**: mapping types removed in 7 still shape migration guides, and legacy index and API behavior is documented per release as a burden new work must respect",
+        "mechanism": "Ec7"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The surrounding tooling is large and shared**: Kibana, Logstash, Beats, APM, and every language's client speak the same DSL over REST, and the docs publish each release's changes",
+        "mechanism": null
+      }
+    ],
+    "evolution": [
+      {
+        "kind": "cost",
+        "text": "**Majors move under the queries**: each major version publishes breaking changes — mapping, aggregation, and REST behavior — and the upgrade assistant exists to walk indices and settings across",
+        "mechanism": "V1"
+      }
+    ],
+    "domain": [
+      {
+        "kind": "cost",
+        "text": "**Adopting the DSL means adopting the search domain**: indices, shards, mappings, analyzers, and scoring define what a query can say, and the same vocabulary is the deployment's architecture",
+        "mechanism": "D1"
+      }
+    ],
+    "learning": [
+      {
+        "kind": "cost",
+        "text": "**The surface is famously steep**: a working query needs mapping awareness, analysis awareness, filter-versus-query context, and aggregation semantics, and the documentation spends chapters on each",
+        "mechanism": "L1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Several languages in one product**: Query DSL, EQL sequences, ES|QL, aggregations, and Painless scripts overlap in what they can ask, and the choice between them is a documented decision",
+        "mechanism": "L2"
+      }
+    ],
+    "syntax": [
+      {
+        "kind": "cost",
+        "text": "**Everything is JSON**: a two-clause query is a nested block of braces and quoted keys, and the verbosity is the interface's own",
+        "mechanism": "S1"
+      },
+      {
+        "kind": "cost",
+        "text": "**Same role, different name**: `match` scores while `term` filters, `should` means optional-or in query context and something else under `minimum_should_match`, and `must_not` lives beside `filter` with different scoring",
+        "mechanism": "S2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Punctuation carries the query**: braces, colons, arrays, and dotted field paths decide structure, and a mis-nested block usually parses and changes the result",
+        "mechanism": "S3"
+      }
+    ],
+    "testing": [
+      {
+        "kind": "cost",
+        "text": "**No standard query-test harness in the language**: the documented testing story is application-side clients and integration environments, and the DSL names no regression harness",
+        "mechanism": "G1"
+      },
+      {
+        "kind": "enabling",
+        "text": "**The query reports its own execution**: the Profile API and the Explain API are part of the published reference, so a query can be asked to show its cost and its matching decision",
+        "mechanism": "G2"
+      }
+    ],
+    "security": [
+      {
+        "kind": "cost",
+        "text": "**Dynamic typing is the security margin**: dynamic mapping plus runtime fields mean a field's type follows the data, and injection-shaped documents and queries meet coercion at evaluation",
+        "mechanism": "Q2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Scripts and query strings are the injection surface**: Painless scripts interpolate request values, and the `query_string` and `simple_query_string` parsers take operator syntax from user text — the documented mitigations are allow-lists and parameterized scripts",
+        "mechanism": "Q3"
+      }
+    ],
+    "reproducibility": [
+      {
+        "kind": "enabling",
+        "text": "**A query is request text**: the same body against the same cluster version, mappings, and data reproduces the same answer, and nothing is built",
+        "mechanism": null
+      },
+      {
+        "kind": "caution",
+        "text": "**Scoring can move under the text**: BM25 parameters, index settings, and shard counts are part of the answer, so reproduction is a property of the cluster, not of the query alone",
+        "mechanism": null
+      }
+    ],
+    "supplychain": [
+      {
+        "kind": "cost",
+        "text": "**Plugins install from URLs with optional checksums**: the plugin tool verifies what the publisher published, and there is no signed provenance channel for third-party plugins",
+        "mechanism": "Y3"
+      }
+    ],
+    "observability": [
+      {
+        "kind": "cost",
+        "text": "**No tracing standard is part of the language**: slow logs, index-level monitoring, and the OTel-based stack are platform features, and the query text carries no trace hook",
+        "mechanism": "Y5"
+      },
+      {
+        "kind": "cost",
+        "text": "**No structured logging in the language**: the server logs and the deprecation logs are the operator's, and the DSL defines no logging construct",
+        "mechanism": "Y6"
+      }
+    ],
+    "feedback": [
+      {
+        "kind": "enabling",
+        "text": "**The vendor's console completes the query**: Kibana Dev Tools autocompletes DSL and EQL against the connected cluster, published as part of the product",
+        "mechanism": "Y8"
+      },
+      {
+        "kind": "cost",
+        "text": "**No source-level debugger**: diagnosis goes through Profile, Explain, slow logs, and `_search` retries — no step-through exists for a script or a query",
+        "mechanism": "Y13"
+      }
+    ],
+    "interop": [
+      {
+        "kind": "cost",
+        "text": "**No portable target**: a query runs on an Elasticsearch-compatible cluster, and nothing in the language runs without one",
+        "mechanism": "Y10"
+      }
+    ],
+    "governance": [
+      {
+        "kind": "cost",
+        "text": "**Governance is one vendor**: Elastic NV decides the DSL's direction and cadence, and no independent body owns the language",
+        "mechanism": "Y11"
+      },
+      {
+        "kind": "cost",
+        "text": "**No public specification exists**: the reference documents the implemented behavior of one product line, and no document an independent implementation could follow is published",
+        "mechanism": "Y12"
+      },
+      {
+        "kind": "cost",
+        "text": "**Correctness is what Elasticsearch does**: no conformance suite exists for the DSL, and OpenSearch's fork is itself documented as a divergence, not tested against a shared standard",
+        "mechanism": "Y17"
+      }
+    ]
+  },
+  "tradeoffs": [
+    "**Every capability rides the index**: mappings, analyzers, and shard layout decide what a query can say and how fast it answers, and the price is that the schema is a shared agreement the language text never carries",
+    "**JSON verbosity buys composability**: the same request body replays across clients, templates, and indices, and the price is a query that reads as a bracket tree rather than a sentence",
+    "**Partial success is a protocol decision**: 200-with-`_shards.failed` keeps searches available during shard trouble, and the price is that every caller must decide to look",
+    "**The index boundary is published and hard**: 9.x reads 8.x indices, indices from 7.x or earlier must be reindexed, deleted, or archived before the nodes will start, and the upgrade assistant enforces the ratchet"
+  ],
+  "verdict": "The Elasticsearch Query DSL is a JSON-shaped declarative language over an inverted index, paired with EQL for event sequences and Painless for in-request scripting. Its costs are the search domain's own: mappings decide types at first document, flat string namespaces carry indices and field paths, partial shard failures ride home inside successful responses, and the surface is verbose, punctuation-heavy, and famous for its learning curve. Main strengths: a composable request body that replays across clients and indices, Profile and Explain APIs inside the product, vendor-maintained console autocompletion, a public source tree, and a published index-upgrade contract. Main weaknesses: no specification or conformance mechanism, single-vendor governance with a documented fork divergence, plugin supply without signed provenance, a legacy-mapping burden, and stored state whose reading rules ratchet one major version at a time.",
+  "verdictExtra": [],
+  "presenceListAuthored": true,
+  "profile": {
+    "energy": {
+      "kind": "caution",
+      "text": "Energy is the cluster's: shards, merges, and JVM heaps pay, and the reader's levers are mapping and index design the DSL text makes visible but does not control."
+    },
+    "ai-readiness": {
+      "kind": "caution",
+      "text": "The 9.5 release ships AI-driven alert triage and agent-facing surfaces, and models generate DSL and ES|QL fluently — but generated queries are exactly where mapping-aware semantics (filter context, dynamic mapping, partial failures) need review."
+    },
+    "safety": {
+      "kind": "caution",
+      "text": "No certified path; the cluster's replication, snapshots, and security model are the vendor's, stated in its own documentation and upgrade contracts."
+    }
+  },
+  "tags": [
+    "use:data",
+    "use:query",
+    "paradigm:declarative",
+    "lifecycle:current",
+    "memory:automatic",
+    "typing:dynamic"
+  ],
+  "tagEvidence": {
+    "use:data": {
+      "observation": "the unit is the inverted-indexed document"
+    },
+    "use:query": {
+      "observation": "a working query needs mapping awareness"
+    }
+  },
+  "delivery": [
+    {
+      "target": "query DSL and EQL request text",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "queries travel as JSON or EQL text over the REST API and are parsed by the cluster; nothing is compiled before it crosses",
+      "cite": []
+    },
+    {
+      "target": "stored Painless scripts and templates",
+      "form": "script",
+      "crosses": false,
+      "promise": null,
+      "note": "scripts, search templates, and index templates are stored by the cluster as source and compiled there at use",
+      "cite": []
+    }
+  ],
+  "data_formats": [
+    {
+      "target": "Elasticsearch indices (Lucene segments and metadata)",
+      "promise": true,
+      "break": true,
+      "reproduced": false,
+      "note": "the upgrade planner publishes both directions: 9.x provides \"full query and write support for indices created in the previous major version\", while \"indices created in 7.x or earlier must be reindexed, deleted, or archived before upgrading\" and \"nodes will fail to start if incompatible indices are present\"",
+      "cite": [
+        "elasticUpgradePlan"
+      ]
+    }
+  ]
+}
