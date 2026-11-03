@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="A list of short posts that read each pattern as a completeness check on domain knowledge.">
+
+<title>Concurrency Constructs as Knowledge-Gap Indicators – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-18c70c2b057c62275a91729d6345f36e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Concurrency Constructs as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta property="og:description" content="A list of short posts that read each pattern as a completeness check on domain knowledge.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Concurrency Constructs as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta name="twitter:description" content="A list of short posts that read each pattern as a completeness check on domain knowledge.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../knowledge-gap-indicators/index.html" aria-current="page"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/software-patterns/index.html">Software Patterns</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/concurrency/index.html">Concurrency</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/software-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software Patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/gof/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GoF Design Patterns</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/eip/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Enterprise Integration Patterns</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/fp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Functional Programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/concurrency/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Concurrency</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/ddd/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Domain-Driven Design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/analysis-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Analysis Patterns</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/workflow-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Workflow Patterns</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/architecture-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architecture Patterns</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/architecture-problems/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architecture Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/oop-principles/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OOP Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/platform-idioms/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Language &amp; Platform Idioms</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/substrate/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Substrate Facts</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/encoding/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Encoding Limits</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/dsa/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DSA</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/algorithms/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/data-structures/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/databases/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Databases</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/database/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Schema &amp; Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/orm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ORM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/sql/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/runtimes/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel &amp; Runtimes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/kernel-tuning/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel Tuning</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/jvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JVM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/dotnet/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">.NET</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/graalvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GraalVM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/frameworks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Frameworks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/spring/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spring</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/quarkus/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quarkus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/micronaut/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Micronaut</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/vertx/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vert.x</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/rust/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/java/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/csharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/fsharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/haskell/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/unison/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/software-patterns/index.html">Software Patterns</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/concurrency/index.html">Concurrency</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Concurrency Constructs as Knowledge-Gap Indicators</h1>
+</div>
+
+<div>
+  <div class="description">
+    A list of short posts that read each pattern as a completeness check on domain knowledge.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The concurrency constructs below encode facts about the workload: what may interleave, what must be ordered, how long a wait is acceptable, and how much may fail together.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<section id="case-study-actor-model" class="level2 kg-post" hidden="true" data-slug="actor-model-2026-10-12-concurrency" data-pattern="Actor Model" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-actor-model">Case study: Actor Model</h2>
+<blockquote class="blockquote">
+<p><strong>Hewitt et al.:</strong> The actor model represents concurrency as independent actors that communicate only by asynchronous messages. <span class="citation" data-cites="hewitt1973"><a href="#ref-hewitt1973" role="doc-biblioref">[1]</a></span></p>
+</blockquote>
+<p>An actor is an isolated unit that owns its state and processes arriving messages one at a time.</p>
+<section id="the-domain-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals">The domain knowledge gap it signals</h3>
+<p>The fact that a domain entity owns its state and reacts to the work that arrives to it is domain knowledge. If your domain model crystallises that “this entity processes its work one unit at a time, in isolation, and the only way to influence it is to hand it a new unit of work,” then the Actor Model embodies that knowledge. The heart of an actor is the behaviour: the entity’s own rule for each unit of work. However the code is dressed, this entity owns its state and changes it only in response to what it received.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain mandates that each entity is a self-contained unit that owns its state and changes it only in response to the work it is given. Actors close the gap: they stop outside code from reaching in and rewriting that state, which would scatter ownership across every caller. The queue of arriving work is the domain’s own “work is consumed as it arrives” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the domain treats the work as one immediate, ordered step with nothing to protect. The actor still looks technical, but it is a domain decision: someone chose to model this work as an isolated entity with a queue. It fits only when the domain names the state ownership and the queue as requirements. If not, the actor asserts a boundary nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Would a domain expert describe this entity as owning its state and responding to the work it is given — a thing that “handles what arrives, in isolation,” not a thing you reach into and change?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Actor Model is the code catching up to the knowledge.</li>
+<li><strong>If no</strong> → inapplicable. The construct asserts an ownership boundary the domain never drew. Decide it, or use a plain call that does not invent one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#ActorModel</code> <code>#Concurrency</code> <code>#MessagePassing</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-semaphore-bounded-resource" class="level2 kg-post" hidden="true" data-slug="semaphore-2026-10-13-concurrency" data-pattern="Semaphore / bounded resource" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-semaphore-bounded-resource">Case study: Semaphore / bounded resource</h2>
+<blockquote class="blockquote">
+<p><strong>Dijkstra:</strong> A semaphore is an integer with atomic wait and signal operations used to coordinate access to a shared resource. <span class="citation" data-cites="dijkstra1968"><a href="#ref-dijkstra1968" role="doc-biblioref">[2]</a></span></p>
+</blockquote>
+<p>A semaphore is a counter that limits how many tasks may use a shared resource at once.</p>
+<section id="the-domain-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-1">The domain knowledge gap it signals</h3>
+<p>The fact that only a fixed number of these things may be in use at once is domain knowledge. If your domain model already crystallises that “there are exactly eight loading docks,” “we hold at most fifty concurrent licences,” or “the lot has two hundred spaces,” then the bound is a fact about the world. A semaphore is that fact made executable. The count is the domain’s own “how many can exist at once” rule; the acquire/release discipline is the domain’s own “hold one only while the world lends it” rule.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain mandates a hard ceiling on concurrent use, and exceeding it is a domain error, not just a slowdown. A semaphore closes the gap: it stops the code from treating a limited resource as unlimited, which would let callers exceed a limit the world does not permit. The permit count is the domain’s own capacity; the wait is the domain’s own “queue until one frees” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the bound looks like a performance knob — a connection-pool size, a thread count, a rate limit. But even a capacity limit is a domain decision: someone chose the bound. A semaphore fits only when the domain names the resource as a bounded shared pool. If the number is an arbitrary, freely changeable knob, the domain has not named a bound, and the semaphore asserts a constraint nobody decided. That is the gap — the bound is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Would a domain expert name the limit — “eight docks, fifty licences, two hundred spaces” — as a fact of the business rather than a setting someone picked?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Semaphore is the code catching up to the knowledge; the count is the domain’s own capacity.</li>
+<li><strong>If no</strong> → inapplicable. The count asserts a bound the domain never set. Name the bound, or use a plain limiter that does not claim one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Semaphore</code> <code>#Concurrency</code> <code>#BoundedResource</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-read-write-lock" class="level2 kg-post" hidden="true" data-slug="read-write-lock-2026-10-14-concurrency" data-pattern="Read-Write Lock" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-read-write-lock">Case study: Read-Write Lock</h2>
+<blockquote class="blockquote">
+<p><strong>Courtois et al.:</strong> A readers-writer lock permits concurrent readers or a single writer. <span class="citation" data-cites="courtois1971"><a href="#ref-courtois1971" role="doc-biblioref">[3]</a></span></p>
+</blockquote>
+<section id="the-domain-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-2">The domain knowledge gap it signals</h3>
+<p>The fact that many parties may look at the same thing at once, but only one may change it, is domain knowledge. If your domain model crystallises that “a timetable may be read by every dispatcher while a single edit is in flight,” or “a catalogue may be browsed while one price is corrected,” then the read-write asymmetry is a fact about the world, not a performance guess. A read-write lock is that fact made executable: readers share, writers exclude.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain distinguishes observation from modification, and the two are asymmetrically compatible — many observers may coexist, but a change must be alone. A read-write lock closes the gap: it gives readers concurrent access while keeping the writer exclusive, which is the domain’s own “look freely, change carefully” rule. Using a plain mutual-exclusion lock instead would needlessly serialise observers the domain says may proceed together.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the “readers” and “writers” split may look purely technical. But it is still a domain decision: someone claimed these operations differ in kind. A read-write lock fits only when the domain names observation and modification as distinct activities. When everything is an update, the domain has not named that distinction, and the second lock state and writer-starvation risk assert a role nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain treat reading and changing this thing as genuinely different activities — many may look, one may alter — or is that distinction only about performance?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Read-Write Lock is the code catching up to the knowledge; observers and changers are domain roles.</li>
+<li><strong>If no</strong> → inapplicable. The split asserts an observer role the domain never named. Name the distinction, or use a plain mutex that does not invent one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#ReadWriteLock</code> <code>#Concurrency</code> <code>#SharedState</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-producerconsumer" class="level2 kg-post" hidden="true" data-slug="producer-consumer-2026-10-15-concurrency" data-pattern="Producer–Consumer" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-producerconsumer">Case study: Producer–Consumer</h2>
+<blockquote class="blockquote">
+<p><strong>Dijkstra:</strong> A producer–consumer system decouples production from consumption through a bounded buffer. <span class="citation" data-cites="dijkstra1968"><a href="#ref-dijkstra1968" role="doc-biblioref">[2]</a></span></p>
+</blockquote>
+<section id="the-domain-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-3">The domain knowledge gap it signals</h3>
+<p>Producer–Consumer is a pattern where one side adds work to a queue and the other takes it off. The fact that work arrives on one rhythm and is handled on another is domain knowledge. If your domain model crystallises that “orders arrive whenever customers click, but the kitchen cooks one ticket at a time,” then the queue is not an optimisation — it is the domain’s own buffer between two activities that run at different rates, with the bounded queue as the domain’s own “we can hold only so much waiting work” rule.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain contains two distinct activities — arrival and handling — that proceed at different rates, and the gap between them is real waiting work. Producer–Consumer closes the gap: it prevents the arrival side from being coupled directly to the handling side, which would force clicks to block on cooking and cooking to be paced by clicks. The queue decouples the rhythms the domain already treats as separate.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the domain sees one immediate, ordered step: the work arrives and is done in the same breath, with no waiting state. A queue still looks technical, but it is a domain decision: someone claimed arrival and handling are separate. Producer–Consumer fits only when the domain names a real waiting state. If not, the queue asserts a waiting room nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain have a real waiting state — work that has arrived but is not yet handled — or is arrival and handling one immediate act?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. Producer–Consumer is the code catching up to the knowledge; the queue is the domain’s own waiting room.</li>
+<li><strong>If no</strong> → inapplicable. The queue asserts a waiting state the domain never named. Name it, or use a direct call that does not invent one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#ProducerConsumer</code> <code>#Concurrency</code> <code>#BoundedQueue</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-barrier-phase-synchronization" class="level2 kg-post" hidden="true" data-slug="barrier-2026-10-16-concurrency" data-pattern="Barrier (phase synchronization)" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-barrier-phase-synchronization">Case study: Barrier (phase synchronization)</h2>
+<blockquote class="blockquote">
+<p><strong>Goetz et al.:</strong> A barrier makes a set of threads wait until all have reached a common point. <span class="citation" data-cites="goetz2006"><a href="#ref-goetz2006" role="doc-biblioref">[4]</a></span></p>
+</blockquote>
+<p>A barrier makes every participant wait until all have arrived, then releases them together.</p>
+<section id="the-domain-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-4">The domain knowledge gap it signals</h3>
+<p>The fact that a stage cannot begin until all participants have finished the prior stage is domain knowledge. If your domain model crystallises that “the meeting cannot start until every attendee has arrived,” or “the tally is only valid once every ward has reported,” then the barrier is the domain’s own rendezvous rule made executable.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain mandates a rendezvous: the next step is well-defined only when every participant has completed the current one, and a partial set is meaningless. A barrier closes the gap: it stops fast participants from racing ahead into a stage the domain says is not yet valid, which would let a premature actor act on an incomplete world. The barrier is the domain’s own “wait for all” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the “wait for everyone” looks like a technical staging device — a synchronisation point that exists because one task happens to depend on several results. But it is still a domain decision: someone claimed the participants form one collective. A barrier fits only when the domain names the group as a real unit and the moment as shared. If the domain has not named a collective, the all-must-arrive rule asserts one nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain treat the stage as meaningful only when all participants have completed the prior one — is the group itself a domain entity?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Barrier is the code catching up to the knowledge; the rendezvous is the domain’s own rule.</li>
+<li><strong>If no</strong> → inapplicable. The rendezvous asserts a collective the domain never named. Name it, or use a future or gather that does not invent one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Barrier</code> <code>#Concurrency</code> <code>#PhaseSynchronization</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-double-checked-locking-lazy-initialization" class="level2 kg-post" hidden="true" data-slug="double-checked-locking-2026-10-17-concurrency" data-pattern="Double-Checked Locking / lazy initialization" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-double-checked-locking-lazy-initialization">Case study: Double-Checked Locking / lazy initialization</h2>
+<blockquote class="blockquote">
+<p><strong>Goetz et al.:</strong> Double-checked locking tests a flag, then locks and tests again before creating an object, to avoid locking on the common path. <span class="citation" data-cites="goetz2006"><a href="#ref-goetz2006" role="doc-biblioref">[4]</a></span></p>
+</blockquote>
+<p>Double-checked locking tests a flag first, then locks and tests again before it creates the object.</p>
+<section id="the-domain-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-5">The domain knowledge gap it signals</h3>
+<p>The fact that this thing should not come into existence until it is first needed is domain knowledge. If your domain model crystallises that “a ledger is opened only when the first entry is posted,” or “the archive is materialised only when someone asks for it,” then laziness is the domain’s own “existence begins on demand” rule. Double-checked locking makes that rule executable safely. When the domain has not named <em>when</em> existence begins, that is unwritten knowledge.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain mandates that the object’s lifecycle begins on first use: its creation has a real cost or meaning, and eager creation would assert existence before the domain says it exists. Double-checked locking closes the gap: it keeps creation lazy while avoiding the cost of serialising every access. The laziness is the domain’s own “not until needed” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the laziness looks purely technical — a startup-cost optimisation. But it is still a domain decision: someone chose when the object exists. Double-checked locking fits only when the domain names that moment as meaningful. If creation timing is a free choice the domain never named, the volatile flag and null-check assert a lifecycle rule nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain care when this thing begins to exist — does it recognise a real “not yet” state — or is creation timing purely a performance question?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. Double-Checked Locking is the code catching up to the knowledge; laziness is the domain’s own lifecycle rule.</li>
+<li><strong>If no</strong> → inapplicable. The laziness asserts a lifecycle rule the domain never named. Name it, or create eagerly without the memory-model ceremony.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DoubleCheckedLocking</code> <code>#LazyInitialization</code> <code>#Concurrency</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-immutable-snapshot-copy-on-write" class="level2 kg-post" hidden="true" data-slug="immutable-snapshot-2026-10-18-concurrency" data-pattern="Immutable Snapshot / copy-on-write" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-immutable-snapshot-copy-on-write">Case study: Immutable Snapshot / copy-on-write</h2>
+<blockquote class="blockquote">
+<p><strong>Goetz et al.:</strong> An immutable snapshot exposes a consistent instance while writers replace it copy-on-write. <span class="citation" data-cites="goetz2006"><a href="#ref-goetz2006" role="doc-biblioref">[4]</a></span></p>
+</blockquote>
+<section id="the-domain-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-6">The domain knowledge gap it signals</h3>
+<p>The fact that an observation must reflect a single consistent instant is domain knowledge. If your domain model crystallises that “a quote is the price at the moment it was issued,” “a bank statement is the balance as of the closing date,” or “a submitted tax return is frozen,” then a snapshot is the domain’s own “this reading is a point in time” rule made executable. Copy-on-write is one encoding: the reader sees a stable version while a writer prepares a new one.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain requires point-in-time consistency: what an observer sees must be one coherent state, not a mixture of before and after. An immutable snapshot closes the gap: it prevents a concurrent reader from observing a half-applied change, which would show the domain a state that never legally existed. The snapshot is the domain’s own “freeze this reading” rule; the writer’s new version is the domain’s own “changes take effect as a new whole” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the snapshot is taken to avoid locks or allocations, so it looks purely technical. But it is still a domain decision: someone claimed a reader must see one consistent moment. Copy-on-write fits only when the domain names the instant of observation as meaningful. If the domain has not named it, copying the whole structure adds allocation and garbage pressure for a rule nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain treat this reading as a fact fixed at a moment — a quote, a statement, a frozen submission — rather than a casual glance at whatever is current?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. Immutable Snapshot is the code catching up to the knowledge; the frozen reading is the domain’s own fact.</li>
+<li><strong>If no</strong> → inapplicable. The snapshot asserts a frozen instant the domain never named. Name it, or read directly without inventing one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#CopyOnWrite</code> <code>#Snapshot</code> <code>#Immutability</code> <code>#Concurrency</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-saga-compensating-action" class="level2 kg-post" hidden="true" data-slug="saga-2026-10-19-concurrency" data-pattern="Saga / compensating action" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-saga-compensating-action">Case study: Saga / compensating action</h2>
+<blockquote class="blockquote">
+<p><strong>Garcia-Molina and Salem:</strong> A saga splits a long-lived transaction into steps, each with a compensating action to undo it. <span class="citation" data-cites="garciamolina1987"><a href="#ref-garciamolina1987" role="doc-biblioref">[5]</a></span></p>
+</blockquote>
+<p>A saga runs local steps in sequence and, on failure, compensates each completed one.</p>
+<section id="the-domain-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-7">The domain knowledge gap it signals</h3>
+<p>The fact that the domain knows how to reverse or offset each step is domain knowledge. If your domain model crystallises that “a booking can be cancelled,” “a shipment can be returned and restocked,” and “a charge can be refunded,” then a saga is the domain’s own set of reverse actions made executable. Each compensating step is a domain rule — the reverse of a domain act — not a technical rollback invented by the transaction machinery.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain comprises several long-running steps across boundaries that cannot be made atomic, and each step has a reversal the business already performs. A saga closes the gap: it prevents a distributed transaction from pretending that the whole process is atomic, which the domain does not permit. The compensations are the domain’s own “how we undo this” rules; the sequence is the domain’s own business process.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the “compensation” looks purely technical — a data cleanup to fix a failed write. But it is still a domain decision: someone claimed the steps are separately reversible. A saga fits only when the domain names a real reversal for each step. When the steps are atomic within one boundary, the domain has not named a reversal, and the undo path asserts one nobody decided. That is the finding: the knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain perform these reversals in the real world — a cancellation, a refund, a restock — or would the “compensation” be a cleanup only engineers understand?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Saga is the code catching up to the knowledge; compensations are the domain’s own reverse acts.</li>
+<li><strong>If no</strong> → inapplicable. The saga asserts reverse steps the domain never named. Name them, or keep one transaction that does not invent undo.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Saga</code> <code>#CompensatingTransaction</code> <code>#Concurrency</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-circuit-breaker" class="level2 kg-post" hidden="true" data-slug="circuit-breaker-2026-10-20-concurrency" data-pattern="Circuit Breaker" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-circuit-breaker">Case study: Circuit Breaker</h2>
+<blockquote class="blockquote">
+<p><strong>Nygard:</strong> A circuit breaker trips after repeated failures and short-circuits calls until the dependency recovers. <span class="citation" data-cites="nygard2007"><a href="#ref-nygard2007" role="doc-biblioref">[6]</a></span></p>
+</blockquote>
+<section id="the-domain-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-8">The domain knowledge gap it signals</h3>
+<p>The fact that the domain names a dependency as unavailable is domain knowledge. If your domain model crystallises that “when the card processor is down, we take the order on account,” or “when the address service is unavailable, we route to manual review,” then the domain has named the failure state: this dependency is down. A circuit breaker is that state made executable — after repeated failure it trips open and stops the calls. The trip threshold is a chosen bound; the down state it acts on is the domain’s rule.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain names the condition under which a dependency is unavailable, and it accepts that calls must stop while the dependency is down. A circuit breaker closes the gap: it prevents the code from hammering a failing dependency, and it records the domain’s own down state. The open state is the domain’s own “stop calling” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the domain treats every call as independently worth attempting, with no named state in which the dependency is down. The breaker still looks technical, but it is a domain decision: someone claimed this dependency has a failure state. A circuit breaker fits only when the domain names that state. If the domain has not named it, the trip threshold and open state assert a failure boundary nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain name a state in which this dependency is unavailable — a real down state — or is every call independently worth attempting?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Circuit Breaker is the code catching up to the knowledge; the open state is the domain’s own down state.</li>
+<li><strong>If no</strong> → inapplicable. The open state asserts a failure boundary the domain never named. Name it, or retry plainly without inventing one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#CircuitBreaker</code> <code>#Resilience</code> <code>#Concurrency</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-scheduler-time-triggered-job" class="level2 kg-post" hidden="true" data-slug="scheduler-2026-10-21-concurrency" data-pattern="Scheduler / time-triggered job" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-scheduler-time-triggered-job">Case study: Scheduler / time-triggered job</h2>
+<p>A scheduler runs a job at a set time or on a recurring timetable.</p>
+<section id="the-domain-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-9">The domain knowledge gap it signals</h3>
+<p>The fact that something happens at a particular time is domain knowledge. If your domain model crystallises that “the books close at end of business on the last working day,” “interest posts on the first of the month,” or “the report runs every Friday before the stand-up,” then the trigger is a domain rule and the cron expression is merely its encoding. The schedule is the domain’s own calendar made executable; the job is the domain’s own “this must happen then” rule.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain attaches meaning to the moment: a deadline, a settlement date, a statutory filing window. A scheduler closes the gap: it prevents the timing from being buried in an operator’s habit or a manual reminder, and it records the domain’s own calendar. The trigger time is the domain’s own fact; the recurring run is the domain’s own recurring obligation.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the “schedule” looks like an operational convenience — a nightly cache warm, a log rotation, a cleanup at 03:00. But it is still a domain decision: someone chose the time. A scheduler fits only when the domain names the moment as meaningful. If the time is a free choice the domain never named, the trigger asserts an obligation nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Would a domain expert say the business requires that this happens at that time — a deadline, a settlement, a statutory date — or is the time just when it is convenient to run?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. The Scheduler is the code catching up to the knowledge; the trigger is the domain’s own calendar.</li>
+<li><strong>If no</strong> → inapplicable. The trigger asserts a business date the domain never named. Name it, or run an interval that does not invent one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Scheduler</code> <code>#Concurrency</code> <code>#TimeTriggered</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-thread-confinement-thread-local-state" class="level2 kg-post" hidden="true" data-slug="thread-confinement-2026-10-22-concurrency" data-pattern="Thread Confinement / thread-local state" data-group="concurrency" data-group-label="Concurrency">
+<h2 class="anchored" data-anchor-id="case-study-thread-confinement-thread-local-state">Case study: Thread Confinement / thread-local state</h2>
+<blockquote class="blockquote">
+<p><strong>Goetz et al.:</strong> Thread confinement restricts an object to a single thread, removing the need for synchronization. <span class="citation" data-cites="goetz2006"><a href="#ref-goetz2006" role="doc-biblioref">[4]</a></span></p>
+</blockquote>
+<section id="the-domain-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-domain-knowledge-gap-it-signals-10">The domain knowledge gap it signals</h3>
+<p>The fact that one worker handles one case from start to finish is domain knowledge. If your domain model crystallises that “the assigned caseworker owns the case until it closes,” or “one clerk processes one application throughout,” then confinement of the working state to that worker is the domain’s own “this caretaker owns this case” rule made executable. Thread-local state is one encoding: the state belongs to the worker, not to the shared code.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it (cohesion-increasing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain assigns a case to a single owner for the duration of its handling, and no other party may touch the in-progress work. Thread confinement closes the gap: it prevents the in-progress state from being shared and mutated by unrelated workers, which would let a case be advanced by two clerks at once. The confined state is the domain’s own “one owner while in progress” rule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the domain doesn’t (cohesion-reducing)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here the confinement looks like an accident of the runtime — state stashed in a thread-local to avoid passing it explicitly. But it is still a domain decision: someone claimed a single worker owns this work. Thread confinement fits only when the domain names that owner. If ownership is whatever thread happened to pick the work up, the domain has not named an owner, and the thread-local asserts one nobody decided. That is the finding: the domain knowledge is unwritten.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain assign this work to a single owner for its whole duration — one clerk, one case — or is the “ownership” only whatever thread happened to pick the work up?</strong></p>
+<ul>
+<li><strong>If yes</strong> → applicable. Thread confinement is the code catching up to the knowledge; the confined state is the domain’s own case ownership.</li>
+<li><strong>If no</strong> → inapplicable. The confinement asserts an owner the domain never named. Name it, or pass the state explicitly.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong; you’ve found incomplete domain knowledge.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#ThreadConfinement</code> <code>#ThreadLocal</code> <code>#Concurrency</code> <code>#DesignPatterns</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code> <code>#Cohesion</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
+
+
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-hewitt1973" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">C. Hewitt, P. Bishop, and R. Steiger, <span>“A universal modular ACTOR formalism for artificial intelligence,”</span> in <em>Proceedings of the 3rd international joint conference on artificial intelligence (IJCAI)</em>, 1973, pp. 235–245.</div>
+</div>
+<div id="ref-dijkstra1968" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">E. W. Dijkstra, <span>“Cooperating sequential processes,”</span> in <em>Programming languages: NATO advanced study institute</em>, Academic Press, 1968.</div>
+</div>
+<div id="ref-courtois1971" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">P. J. Courtois, F. Heymans, and D. L. Parnas, <span>“Concurrent control with <span>‘readers’</span> and <span>‘writers’</span>,”</span> <em>Communications of the ACM</em>, vol. 14, no. 10, pp. 667–668, 1971.</div>
+</div>
+<div id="ref-goetz2006" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">B. Goetz, T. Peierls, J. Bloch, J. Bowbeer, D. Holmes, and D. Lea, <em>Java concurrency in practice</em>. Addison-Wesley, 2006.</div>
+</div>
+<div id="ref-garciamolina1987" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline">H. Garcia-Molina and K. Salem, <span>“Sagas,”</span> in <em>Proceedings of the 1987 ACM SIGMOD international conference on management of data</em>, 1987, pp. 249–259.</div>
+</div>
+<div id="ref-nygard2007" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline">M. T. Nygard, <em>Release it! Design and deploy production-ready software</em>. Pragmatic Bookshelf, 2007.</div>
+</div>
+</div></section></div></main> <!-- /main -->
+<script src="../../toc-references.js"></script>
+<script src="../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../nav-active.js"></script>
+<script src="../../nav-tree.js"></script>
+<script src="../../scoreboard-tables.js?v=9978d08ec511"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
