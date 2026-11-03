@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="A series of short posts that read data representation — widths, units, and byte encodings — as knowledge-gap indicators.">
+
+<title>Encoding Limits as Knowledge-Gap Indicators – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-18c70c2b057c62275a91729d6345f36e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Encoding Limits as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta property="og:description" content="A series of short posts that read data representation — widths, units, and byte encodings — as knowledge-gap indicators.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Encoding Limits as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta name="twitter:description" content="A series of short posts that read data representation — widths, units, and byte encodings — as knowledge-gap indicators.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../knowledge-gap-indicators/index.html" aria-current="page"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/encoding/index.html">Encoding Limits</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software Patterns</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/substrate/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Substrate Facts</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/encoding/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Encoding Limits</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/dsa/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DSA</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/algorithms/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/data-structures/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/databases/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Databases</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/database/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Schema &amp; Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/orm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ORM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/sql/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/runtimes/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel &amp; Runtimes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/kernel-tuning/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel Tuning</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/jvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JVM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/dotnet/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">.NET</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/graalvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GraalVM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/frameworks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Frameworks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/spring/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spring</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/quarkus/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quarkus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/micronaut/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Micronaut</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/vertx/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vert.x</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/rust/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/java/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/csharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/fsharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/haskell/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/unison/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Encoding Limits as Knowledge-Gap Indicators</h1>
+</div>
+
+<div>
+  <div class="description">
+    A series of short posts that read data representation — widths, units, and byte encodings — as knowledge-gap indicators.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Every structure below rests on a width. A bit count, a unit, a scale, a factor. Each post states the limit, gives its value, and asks whether the structure follows from it.</p>
+<p>The substrate list asks what the machine allows. This list asks a narrower question, and a more permanent one: what does the type hold? A width is chosen once, with the schema, and it outlives the hardware it was chosen on.</p>
+<p>Three things decide. The width must be named — a field in the protocol, a column in the schema, a factor in the codec. The value must be the one this system stores, not the one the documentation suggests. And an obligation must exist that the value breaches: the type measures, the obligation rules out.</p>
+<p>A width can still fail to bind. It is borrowed from another system, idle against the values actually stored, or enforced by a constraint that already holds it. Each post names the case where the limit does force the shape, and the case where it does not.</p>
+<p>For the same reading of design patterns over domain knowledge, see the first list. For the bounds the machine imposes, see the substrate list.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="numeric">
+<p>Numeric bounds answer how much a type can hold, and how exactly it holds it. The width is chosen with the schema; the values arrive later.</p>
+</div>
+<div class="kg-group-intro" hidden="true" data-group="text">
+<p>Text bounds answer how many bytes one character takes, and which characters are the same character. The encoding is a fact about the format, not about the language.</p>
+</div>
+<div class="kg-group-intro" hidden="true" data-group="identifier">
+<p>Identifier bounds answer how many things a field can name. Each is a field width, and the width sits in the protocol, not in the application.</p>
+</div>
+<div class="kg-group-intro" hidden="true" data-group="wire">
+<p>Wire bounds answer how many bytes the encoding adds before the payload is read. The overhead is paid on every message, and it is counted on the encoded form.</p>
+</div>
+<section id="case-study-double-precision-the-significand-is-53-bits" class="level2 kg-post" hidden="true" data-slug="double-mantissa-2027-03-09-encoding" data-pattern="Double Precision" data-group="numeric" data-group-label="Numeric">
+<h2 class="anchored" data-anchor-id="case-study-double-precision-the-significand-is-53-bits">Case study: Double precision (the significand is 53 bits)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> An IEEE 754 double carries a 53-bit significand — about 15 to 17 decimal digits — and it stores binary fractions. One tenth has no exact binary form, so 0.1 + 0.2 differs from 0.3, and past 2⁵³ consecutive integers are no longer all representable.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals">The encoding knowledge gap it signals</h3>
+<p>The precision the domain needs and the range of its values are two questions, and one type answers both badly. The first failure is representational and immediate: a value written with a tenth in it has no exact binary form, so it is already wrong at the moment it is stored. The second is arithmetical and far off: integer cents stay exact until the count passes 2⁵³, which is 90 trillion dollars of them.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the precision bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain compares or sums money, and the representation is binary floating point. Then store integer cents, or use a decimal type that carries its own scale — the comparison is then exact by construction.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the precision does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The values are measurements, and 15 digits far exceed what the instrument resolves. Rounding at the display is then honest, and the representation costs nothing.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the representation hold every value the domain must compare exactly?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the arithmetic is exact. Record the range, and recheck it.</li>
+<li><strong>If no</strong> → two values that differ compare equal, or a sum drifts. Move to integer cents.</li>
+<li><strong>If you can’t answer</strong> → unclear. Take the largest value and the smallest step, then test both.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#Money</code> <code>#DataModeling</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Architecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-float32-precision-24-bits-about-7-digits" class="level2 kg-post" hidden="true" data-slug="float32-precision-2027-03-10-encoding" data-pattern="Float32 Precision" data-group="numeric" data-group-label="Numeric">
+<h2 class="anchored" data-anchor-id="case-study-float32-precision-24-bits-about-7-digits">Case study: Float32 precision (24 bits, about 7 digits)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A single-precision float carries a 24-bit significand, which is about 7 decimal digits. Between 2²³ and 2²⁴ the neighbours sit 1 apart, so every integer in that range is exact. From 2²⁴ up they sit 2 apart, so 1.0 added to 16,777,216 leaves it where it was, and the next value above it is 16,777,218.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-1">The encoding knowledge gap it signals</h3>
+<p>What the domain must resolve is a step, and one step is all the type gives at the top of its range. Start a counter at 16,777,216 and add one a million times: it never moves, and the total is short by a million. The loss is silent, and the result still looks like a number.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the precision bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain sums many small values into a large total, and the type is single precision. Then accumulate in a wider type, or keep the parts and sum them at the end — the order of addition changes the answer.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the precision does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The values are measurements whose own precision is coarser than 7 digits, so the type is finer than the instrument. Or the totals stay far below 2²⁴.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the smallest step the domain resolves representable at the largest value it reaches?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the type resolves the domain. Test the largest value, not a small one.</li>
+<li><strong>If no</strong> → small additions vanish in the total. Widen the accumulator.</li>
+<li><strong>If you can’t answer</strong> → unclear. Take the largest total and the smallest increment, then add one.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataModeling</code> <code>#FloatingPoint</code> <code>#Correctness</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Databases</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-counter-width-the-time-to-the-top-of-the-range" class="level2 kg-post" hidden="true" data-slug="counter-overflow-2027-03-11-encoding" data-pattern="Counter Width" data-group="numeric" data-group-label="Numeric">
+<h2 class="anchored" data-anchor-id="case-study-counter-width-the-time-to-the-top-of-the-range">Case study: Counter width (the time to the top of the range)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A signed 32-bit integer reaches 2,147,483,647. At 1,000 increments a second, that is 2,147,483,647 ÷ 1,000 ÷ 86,400 = 24.9 days. What happens at the top depends on the engine: PostgreSQL and strict-mode MySQL reject the write, permissive MySQL clamps at the maximum, and a 32-bit counter in application code wraps to a negative value. Only the clamp and the wrap are silent.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-2">The encoding knowledge gap it signals</h3>
+<p>The increments per second and the width are set in different places and at different times. The width is fixed in a migration; the rate is whatever production turns out to send. A counter that wraps or clamps corrupts a total, a balance, or a sequence, and it does so on a date you can compute in advance.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the width bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The rate and the lifetime together exceed the range. Then widen the column now, or reset the counter on a documented period — and record the date the current width buys.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the width does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The counter is bounded by the domain — a fixed set of retries, a page index — so it never approaches the range. Or the rate is far below one a second, and the range is centuries away.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the increment rate times the counter’s lifetime stay below the type’s range?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the counter holds its life. Recheck when the rate grows.</li>
+<li><strong>If no</strong> → the counter stops or wraps on a computable date. Widen it, or reset it.</li>
+<li><strong>If you can’t answer</strong> → unclear. Measure the increments per second, then state the lifetime.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#SchemaDesign</code> <code>#CapacityPlanning</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Reliability</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-decimal-scale-digits-before-the-point" class="level2 kg-post" hidden="true" data-slug="decimal-scale-2027-03-12-encoding" data-pattern="Decimal Scale" data-group="numeric" data-group-label="Numeric">
+<h2 class="anchored" data-anchor-id="case-study-decimal-scale-digits-before-the-point">Case study: Decimal scale (digits before the point)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A DECIMAL(p,s) type holds p total digits, s of them after the point. DECIMAL(10,2) therefore holds 8 before it, and its largest value is 99,999,999.99. The scale is not decoration; it spends range.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-3">The encoding knowledge gap it signals</h3>
+<p>The value the domain stores has a ceiling, and the type sets it before the first row exists. A currency with a large unit, a total accumulated across records, or an inflation-adjusted figure moves that ceiling. Widening it later rewrites the table.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the scale bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The largest value approaches the digits before the point. Then widen the precision and keep the scale the currency needs; the room you have is p − s, not p.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the scale does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain bounds the value — a rating, a percentage, a tax rate — so the ceiling is never approached. Or the type is already wider than the currency’s largest unit.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the largest value the domain stores fit the digits the type leaves before the point?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the column holds the range. Recheck when a total is added to it.</li>
+<li><strong>If no</strong> → the write fails, or rounds. Widen the precision.</li>
+<li><strong>If you can’t answer</strong> → unclear. Take the largest value, then subtract 2 from the precision.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#SchemaDesign</code> <code>#Money</code> <code>#DataModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Correctness</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-utf-16-units-one-glyph-two-units" class="level2 kg-post" hidden="true" data-slug="utf16-surrogate-pairs-2027-03-13-encoding" data-pattern="UTF-16 Units" data-group="text" data-group-label="Text">
+<h2 class="anchored" data-anchor-id="case-study-utf-16-units-one-glyph-two-units">Case study: UTF-16 units (one glyph, two units)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> UTF-16 encodes a code point above U+FFFF as two 16-bit units, a surrogate pair. A length function that counts units reports 2 for one emoji, so a limit of 255 units holds 127 of them.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-4">The encoding knowledge gap it signals</h3>
+<p>A limit counts a unit, and the domain stores characters; above U+FFFF, the top of the basic plane, the two stop agreeing. A limit inherited from a column may count bytes, units, or code points, and all three give different answers there. The validation passes, and the index or the column fails downstream.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the encoding bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The limit counts UTF-16 units and the data holds characters above the basic plane. Then count code points, or size the limit at two units per character — 255 units hold 127.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the unit does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The data is confined to the basic plane by a constraint, so one unit is one character. Then the limit is exact, and the constraint is what holds it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the limit count the same unit the domain’s data is measured in?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the limit matches the data. Confirm the constraint holds it.</li>
+<li><strong>If no</strong> → the count and the limit disagree above the basic plane. Convert to code points.</li>
+<li><strong>If you can’t answer</strong> → unclear. Find the widest character the domain stores, then read the limit’s unit.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Unicode</code> <code>#Encoding</code> <code>#DataModeling</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#SchemaDesign</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-encoding-width-3-bytes-against-4" class="level2 kg-post" hidden="true" data-slug="utf8-3byte-2027-03-14-encoding" data-pattern="Encoding Width" data-group="text" data-group-label="Text">
+<h2 class="anchored" data-anchor-id="case-study-encoding-width-3-bytes-against-4">Case study: Encoding width (3 bytes against 4)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A character set fixes the most bytes one character may take. MySQL’s utf8 stops at 3, which covers only the first 65,536 characters; utf8mb4 takes 4. The index key has a byte ceiling too: 767 bytes under the older row format, so 767 ÷ 4 = 191 characters once the column is utf8mb4. The newer row format allows 3,072 bytes, which is 768.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-5">The encoding knowledge gap it signals</h3>
+<p>A column has a byte ceiling from its encoding and a second from its index, and neither is measured in characters. An emoji is four bytes, so a utf8 column rejects it or truncates it. The index ceiling is the second bound, in bytes, on the same column.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the encoding bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The data holds characters outside the first 65,536 and the column is a 3-byte set. Then convert the column and its indexes to the 4-byte set, and size the index prefix to the row format’s key ceiling, which is a separate ceiling from the character set.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the encoding does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The data is basic-plane by constraint, so 3 bytes cover every character. Or the index carries a prefix that already fits the key ceiling.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the widest character the domain stores fit the bytes the column’s encoding allows?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the column holds the data. Check the index key limit, which is separate.</li>
+<li><strong>If no</strong> → the write fails or truncates. Widen the encoding, then the index prefix.</li>
+<li><strong>If you can’t answer</strong> → unclear. Find the widest stored character, then read the column’s set.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#Unicode</code> <code>#Indexing</code> <code>#Migration</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#SchemaDesign</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-escaping-one-byte-becomes-two" class="level2 kg-post" hidden="true" data-slug="json-escaping-2027-03-15-encoding" data-pattern="Escaping" data-group="text" data-group-label="Text">
+<h2 class="anchored" data-anchor-id="case-study-escaping-one-byte-becomes-two">Case study: Escaping (one byte becomes two)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A JSON string escapes the quote and the backslash with a backslash, and control characters as a six-byte sequence. A field of 500,000 quotation marks therefore encodes to 1,000,000 bytes before any structure is added.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-6">The encoding knowledge gap it signals</h3>
+<p>What the ceiling counts is the parsed message, and what the domain holds is not that. The escaping factor is not fixed either: 2 for a quote, 6 for a control character written as 000. The worst case is six times the raw size, and the common case is two.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the escaping bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The payload holds text that escapes, and the ceiling counts encoded bytes. Then measure the encoded size, or move the text out of the message; the factor applies to the field that escapes, not to the payload’s average byte.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the escaping does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The payload is text with no character that escapes, so the factor is one. Or the ceiling has headroom a factor of 6 does not spend.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the encoded size of the largest payload fit the ceiling?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the payload fits. Measure it encoded, not raw.</li>
+<li><strong>If no</strong> → the escaping spends the ceiling. Move the text out, or send it in a form that does not escape it.</li>
+<li><strong>If you can’t answer</strong> → unclear. Encode the largest payload, then compare it with the ceiling.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Messaging</code> <code>#Encoding</code> <code>#PayloadSize</code> <code>#Integration</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DistributedSystems</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-normalisation-form-the-same-text-two-encodings" class="level2 kg-post" hidden="true" data-slug="normalisation-form-2027-03-16-encoding" data-pattern="Normalisation Form" data-group="text" data-group-label="Text">
+<h2 class="anchored" data-anchor-id="case-study-normalisation-form-the-same-text-two-encodings">Case study: Normalisation form (the same text, two encodings)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A character with an accent has a composed form, one code point, and a decomposed form, a base letter plus a combining mark. The two render alike. Under a binary collation they are unequal byte strings, so a unique index takes both; under an accent-insensitive Unicode collation they compare equal, so the index merges them — and merges any two words that differ only in accent. The collation decides, not the text.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-7">The encoding knowledge gap it signals</h3>
+<p>Equality here is decided in two layers: the form the text is stored in, and the collation it is compared under. A value typed on one system and pasted into another may arrive in either form. Equality, uniqueness, and search all inherit both choices.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the form bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain compares text for equality or uniqueness and accepts input from several sources. Then normalise on write to one form, and normalise the input of every lookup the same way — five bytes and six bytes are then the same word.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the form does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The text is ASCII by constraint, where the two forms coincide. Or comparison is by an identifier the domain assigns, not by the text.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain store text in one normalisation form, and compare it under a collation you chose?</strong></p>
+<ul>
+<li><strong>If yes</strong> → equality means what it appears to mean. Record the form with the schema.</li>
+<li><strong>If no</strong> → two identical-looking values are two rows. Normalise on write and on lookup.</li>
+<li><strong>If you can’t answer</strong> → unclear. Store the same accented word from two keyboards, then compare.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Unicode</code> <code>#DataModeling</code> <code>#Databases</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#SchemaDesign</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-identifier-width-the-birthday-bound" class="level2 kg-post" hidden="true" data-slug="uuid-birthday-2027-03-17-encoding" data-pattern="Identifier Width" data-group="identifier" data-group-label="Identifier">
+<h2 class="anchored" data-anchor-id="case-study-identifier-width-the-birthday-bound">Case study: Identifier width (the birthday bound)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A random identifier of b bits collides with probability near n² ÷ 2^(b+1) after n values. A version-4 UUID spends 122 bits on randomness, so a billion ids give 10¹⁸ ÷ 2¹²³ ≈ 10⁻¹⁹. A 63-bit id at the same count gives 5 percent.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-8">The encoding knowledge gap it signals</h3>
+<p>Two numbers decide the risk — the ids the domain will ever generate, and the bits that are random — and the first is a projection, not a measurement. The square in the formula is what hurts: ten times the ids is a hundred times the risk. Bits spent on a timestamp, a node, or a version do not count toward the randomness.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the width bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The projected id count and the random bits give a collision chance above the obligation. Then add bits, or take the uniqueness from a single writer; every extra bit buys √2 more ids at the same risk.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the width does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The ids stay far below the count where a collision becomes likely, so a 122-bit id is not the constraint. Or a single sequence assigns them, and randomness is not the source of uniqueness.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the projected id count, squared, stay far below two to the random bits plus one?</strong></p>
+<ul>
+<li><strong>If yes</strong> → collisions do not rule the scheme out. Record the count the estimate assumes.</li>
+<li><strong>If no</strong> → a collision is expected within the obligation. Add bits, or use a sequence.</li>
+<li><strong>If you can’t answer</strong> → unclear. Count the random bits in the format, then project the ids.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataModeling</code> <code>#DistributedSystems</code> <code>#Databases</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Identifiers</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-port-field-16-bits-in-the-protocol" class="level2 kg-post" hidden="true" data-slug="port-field-width-2027-03-18-encoding" data-pattern="Port Field" data-group="identifier" data-group-label="Identifier">
+<h2 class="anchored" data-anchor-id="case-study-port-field-16-bits-in-the-protocol">Case study: Port field (16 bits in the protocol)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> The TCP and UDP port field is 16 bits, so 65,536 values exist and 65,535 are usable. Ports below 1,024 are privileged on Unix, so a scheme that allocates one port per tenant has 64,511 to give.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-9">The encoding knowledge gap it signals</h3>
+<p>A port is a 16-bit key, and one tenant per port makes it a scarce resource. The key sits in the protocol, not in the application, so the tenant count and the port count are the same number. A bigger machine does not help; a second address does, because the space is per address, not per host.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the field bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The tenant count approaches the field. Then route by name instead: a header, a path, or the TLS server name, all of which ride one port, so the tenant count leaves the port space entirely.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the field does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The tenant count is small and bounded, or ports are reused across distinct addresses. Either way the port field never fills.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the tenant count fit the ports the scheme can allocate?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the scheme scales to that count. Recheck at ten times the tenants.</li>
+<li><strong>If no</strong> → the protocol field is the ceiling. Route by name, not by port.</li>
+<li><strong>If you can’t answer</strong> → unclear. Count the tenants, then subtract the privileged range.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Networking</code> <code>#Protocols</code> <code>#MultiTenancy</code> <code>#Scaling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Architecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-address-space-32-bits-exhausted" class="level2 kg-post" hidden="true" data-slug="ipv4-address-space-2027-03-19-encoding" data-pattern="Address Space" data-group="identifier" data-group-label="Identifier">
+<h2 class="anchored" data-anchor-id="case-study-address-space-32-bits-exhausted">Case study: Address space (32 bits, exhausted)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> IPv4 has a 32-bit address field: 4,294,967,296 values, less the reserved and multicast blocks. The free pool is gone — the last blocks went between 2011 and 2020 — so a new public address is a purchase or a translation.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-10">The encoding knowledge gap it signals</h3>
+<p>Addresses are a budget with two columns — what the design needs and what it can obtain — and the second is no longer a technical quantity. Translation adds a table with its own bound and its own failure. Private space is large but not public, and it ends at the network’s edge.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the field bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The design needs a routable address per unit and cannot obtain one. Then use a protocol with a larger field, or a translation layer whose table is sized and monitored — the table becomes the bound to watch.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the field does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The design lives inside one network, where a private block holds 16.7 million addresses. Or the units are far fewer than a block, and nothing runs out.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the address count the design needs fit the addresses that can be obtained?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the design fits the space. Count the translation entries it also needs.</li>
+<li><strong>If no</strong> → the space, not the code, is the limit. Widen the field, or translate.</li>
+<li><strong>If you can’t answer</strong> → unclear. Count the units that need a routable address.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Networking</code> <code>#IPv4</code> <code>#Cloud</code> <code>#Scaling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Architecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-mac-address-24-bits-of-vendor-space" class="level2 kg-post" hidden="true" data-slug="mac-oui-space-2027-03-20-encoding" data-pattern="MAC Address" data-group="identifier" data-group-label="Identifier">
+<h2 class="anchored" data-anchor-id="case-study-mac-address-24-bits-of-vendor-space">Case study: MAC address (24 bits of vendor space)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A MAC address is 48 bits. The first 24 are the vendor’s block, assigned by the standards body, and the last 24 identify the device, so one vendor has 2²⁴ = 16,777,216 addresses and the whole space holds 2⁴⁸. One bit can mark an address as locally assigned instead, belonging to no vendor.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-11">The encoding knowledge gap it signals</h3>
+<p>An identifier drawn from the hardware inherits someone else’s allocation. A design that derives one from the MAC address inherits the vendor’s 24 bits, and the block is not the design’s to grow. Virtual machines and containers make the count independent of the hardware.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the field bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The device count in one vendor’s block approaches 16.7 million, or the design assumes a fixed hardware address per unit. Then assign the identifier in software, where the width is yours.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the field does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The devices are far fewer than the block, and the hardware address is only a local label. Then the block never fills.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the device count fit the identifier space the design controls?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the identifiers fit. Confirm the control is in software, not in the hardware.</li>
+<li><strong>If no</strong> → the field is the ceiling. Assign the identifier yourself.</li>
+<li><strong>If you can’t answer</strong> → unclear. Count the devices, then find who allocates their addresses.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Networking</code> <code>#Hardware</code> <code>#Identifiers</code> <code>#Scaling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Architecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-base64-four-characters-per-three-bytes" class="level2 kg-post" hidden="true" data-slug="base64-inflation-2027-03-21-encoding" data-pattern="Base64" data-group="wire" data-group-label="Wire">
+<h2 class="anchored" data-anchor-id="case-study-base64-four-characters-per-three-bytes">Case study: Base64 (four characters per three bytes)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> Base64 encodes every three bytes as four ASCII characters, so the encoded payload is four thirds of the raw one. A ceiling of 1,048,576 bytes, counted on the encoded message, leaves 786,432 raw bytes.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-12">The encoding knowledge gap it signals</h3>
+<p>A binary payload and a text ceiling are two different sizes, and the gap between them is one byte in three. The ceiling counts what the transport carries, which is the encoded form; the design usually reasons about the file it stored. The difference is not a rounding.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the encoding bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The payload is binary and the ceiling counts encoded bytes. Then store the object and send a reference, or compress before encoding — the encoding is a transport cost, not a storage plan.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the encoding does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The transport is binary — a protocol that carries bytes without an alphabet — or the ceiling counts raw bytes. Then the factor is one, and the raw size is the right input.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the raw payload, times four thirds, fit the ceiling the transport counts?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the encoded form fits. Measure the file, not the string.</li>
+<li><strong>If no</strong> → the encoding spends a third of the ceiling. Store the object, or send a reference.</li>
+<li><strong>If you can’t answer</strong> → unclear. Encode the largest file, then compare the result with the ceiling.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Messaging</code> <code>#Encoding</code> <code>#PayloadSize</code> <code>#Integration</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DistributedSystems</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-compression-ratio-the-limit-is-on-the-output" class="level2 kg-post" hidden="true" data-slug="gzip-ratio-2027-03-22-encoding" data-pattern="Compression Ratio" data-group="wire" data-group-label="Wire">
+<h2 class="anchored" data-anchor-id="case-study-compression-ratio-the-limit-is-on-the-output">Case study: Compression ratio (the limit is on the output)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A compression format expands by a ratio it chooses, not one you choose. Deflate tops out near 1,032 to 1 — roughly a kilobyte to a megabyte — and it reaches that ceiling on a long run of one repeated byte. At 1,000 to 1, a 1 MB payload expands to 1 GB and a 10 MB payload to 10 GB.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-13">The encoding knowledge gap it signals</h3>
+<p>What the design checks and what it spends are two different sizes: the bytes received and the bytes produced. The request limit applies to the first, and the memory is spent on the second. The output is where the memory is spent, and the ratio is not under the design’s control.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the ratio bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The design accepts compressed input from a source it does not control. Then bound the output as it is produced, and stop at the limit — the input’s size says nothing about the memory it will cost.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the ratio does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The payload is uncompressed, so the received size is the produced size. Or the decompressed output is already capped by a bound the design enforces at the source’s stated ratio.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the decompressed size bounded as it is produced, at a limit the design states?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the expansion stops at the limit. State the limit with the endpoint.</li>
+<li><strong>If no</strong> → a small request spends memory sized by the ratio, not by the request. Bound the output, not the input.</li>
+<li><strong>If you can’t answer</strong> → unclear. Decompress the worst payload you accept and measure the output.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Security</code> <code>#Encoding</code> <code>#Reliability</code> <code>#Integration</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DistributedSystems</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-header-overhead-metadata-has-a-rate-too" class="level2 kg-post" hidden="true" data-slug="header-overhead-2027-03-23-encoding" data-pattern="Header Overhead" data-group="wire" data-group-label="Wire">
+<h2 class="anchored" data-anchor-id="case-study-header-overhead-metadata-has-a-rate-too">Case study: Header overhead (metadata has a rate too)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A request carries its method, its path, its cookies, and its tracing headers. At 8 KB of headers and 10,000 requests a second, the metadata alone moves 8,000 × 10,000 = 80,000,000 bytes a second, which is 640 Mbit/s. That is what HTTP/1.1 pays. Newer HTTP versions compress repeated header names, which shrinks a steady stream sharply — but a first request, or a cookie that keeps changing, still pays nearly in full.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-14" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-14">The encoding knowledge gap it signals</h3>
+<p>Metadata has a rate too, and nobody measures it. A cookie that grows, a tracing header, and an authorization token all add to the same figure, and they apply to every request, including the ones that return nothing.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the overhead bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The headers are large and the rate is high, so the metadata is a share of the link and of the parse time. Then shrink the cookie, let header compression carry the repeated names, or cache the response so the request never repeats.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the overhead does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The headers are small, the rate is modest, or the responses are large enough that the payload dominates. Then the metadata is noise.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the header size times the request rate fit the share of the link and the CPU the obligation allows?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the metadata fits. Recheck when a cookie or a token grows.</li>
+<li><strong>If no</strong> → the names cost more than the payload. Cut the headers, or cache the response.</li>
+<li><strong>If you can’t answer</strong> → unclear. Measure one request’s headers, then count the requests per second.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#HTTP</code> <code>#Performance</code> <code>#CapacityPlanning</code> <code>#Caching</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Architecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-checksum-width-the-false-negative-rate" class="level2 kg-post" hidden="true" data-slug="checksum-width-2027-03-24-encoding" data-pattern="Checksum Width" data-group="wire" data-group-label="Wire">
+<h2 class="anchored" data-anchor-id="case-study-checksum-width-the-false-negative-rate">Case study: Checksum width (the false-negative rate)</h2>
+<blockquote class="blockquote">
+<p><strong>Bound:</strong> A b-bit checksum passes a random, independent corruption with probability near 1 ÷ 2^b. Real checksums do better on the damage that actually happens — a short run of flipped bits is caught outright — so treat that figure as the worst case. For a 32-bit checksum it is one in 4,294,967,296, so the width covers that many messages before one miss is expected. At a million messages a day, 4.3 billion messages take 4,300 days, about 11.8 years. A mean of one miss in that span is a 63 percent chance of at least one.</p>
+</blockquote>
+<section id="the-encoding-knowledge-gap-it-signals-15" class="level3">
+<h3 class="anchored" data-anchor-id="the-encoding-knowledge-gap-it-signals-15">The encoding knowledge gap it signals</h3>
+<p>The messages the design will check and the probability the obligation allows are two numbers, and only one of them is measured. The width is fixed by the format. The rate is per message, so it scales with traffic, and a wider checksum costs bytes on every one.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the width bounds the shape
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The message count over the system’s life makes the expected false negative exceed the obligation. Then use a wider checksum, or a cryptographic hash — the width is a format choice, so changing it later changes every message.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the width does not force it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The count is far below the width’s reach, so a false negative is not expected within the system’s life. Or the transport already detects corruption, and the checksum guards something else.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the message count times two to the minus the checksum width stay inside the obligation?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the width covers the count. Record the count the estimate assumes.</li>
+<li><strong>If no</strong> → a false negative is expected. Widen the checksum.</li>
+<li><strong>If you can’t answer</strong> → unclear. Read the checksum width, then count the messages per year.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Reliability</code> <code>#Encoding</code> <code>#DistributedSystems</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Architecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
+
+
+
+</main> <!-- /main -->
+<script src="../../toc-references.js"></script>
+<script src="../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../nav-active.js"></script>
+<script src="../../nav-tree.js"></script>
+<script src="../../scoreboard-tables.js?v=9978d08ec511"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

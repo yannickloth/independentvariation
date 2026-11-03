@@ -1,4 +1,4 @@
-// Accordion browser for the Knowledge-Gap Indicators posts.
+// Master–detail browser for the Knowledge-Gap Indicators posts.
 // All post content lives on this page as .kg-post blocks. The script
 // builds the left-hand list from those blocks, grouped by pattern
 // family (families and the patterns inside them sorted
@@ -47,7 +47,6 @@
   let groups = [];
   let current = null;
   let defaultSlug = posts[0] ? posts[0].slug : null;
-  let filterSnapshot = null; // per-group open state saved before filtering
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -71,14 +70,7 @@
   intro.hidden = true;
   bar.after(intro);
 
-  // Collapse control, above the post list.
-  const collapseBtn = document.createElement("button");
-  collapseBtn.type = "button";
-  collapseBtn.className = "kg-collapse-btn";
-  collapseBtn.textContent = "Collapse all but current";
-  listEl.before(collapseBtn);
-
-  // Filter box, above the collapse control. Typing narrows the list to the
+  // Filter box, above the post list. Typing narrows the list to the
   // patterns whose name contains the text; a family with no match
   // disappears.
   const filterWrap = document.createElement("div");
@@ -95,7 +87,7 @@
   filterEmpty.hidden = true;
   filterEmpty.setAttribute("role", "status");
   filterWrap.append(filterInput, filterEmpty);
-  collapseBtn.before(filterWrap);
+  listEl.before(filterWrap);
 
   filterInput.addEventListener("input", function () {
     applyFilter(filterInput.value);
@@ -136,12 +128,6 @@
     );
   }
 
-  function setGroup(groupEl, open) {
-    groupEl.classList.toggle("kg-group-closed", !open);
-    const head = groupEl.querySelector(".kg-group-head");
-    if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
-  }
-
   function setCount(groupEl, n) {
     const count = groupEl.querySelector(".kg-group-count");
     if (count) count.textContent = String(n);
@@ -156,18 +142,11 @@
 
   // Narrow the list to the patterns that match `raw`. The order stays
   // alphabetical: the filter only hides entries, it never reorders them.
-  // Every family with a match opens, so the matches are visible.
   function applyFilter(raw) {
     const q = raw.trim().toLowerCase();
     if (!q) {
       clearFilter();
       return;
-    }
-    // Save the collapse state once, so clearing the filter restores it.
-    if (!filterSnapshot) {
-      filterSnapshot = groups.map(function (groupEl) {
-        return !groupEl.classList.contains("kg-group-closed");
-      });
     }
     let anyMatch = false;
     groups.forEach(function (groupEl) {
@@ -180,27 +159,20 @@
       });
       groupEl.hidden = shown === 0;
       setCount(groupEl, shown);
-      if (shown > 0) {
-        setGroup(groupEl, true);
-        anyMatch = true;
-      }
+      if (shown > 0) anyMatch = true;
     });
     filterEmpty.hidden = anyMatch;
-    collapseBtn.hidden = true;
   }
 
   function clearFilter() {
-    groups.forEach(function (groupEl, i) {
+    groups.forEach(function (groupEl) {
       groupEl.hidden = false;
       groupEl.querySelectorAll(".kg-item").forEach(function (el) {
         el.hidden = false;
       });
       setCount(groupEl, groupEl.querySelectorAll(".kg-item").length);
-      setGroup(groupEl, filterSnapshot ? filterSnapshot[i] : i === 0);
     });
-    filterSnapshot = null;
     filterEmpty.hidden = true;
-    collapseBtn.hidden = false;
   }
 
   function buildList() {
@@ -228,15 +200,14 @@
           '<section class="kg-group" data-group="' +
           esc(g.id) +
           '">' +
-          '<button type="button" class="kg-group-head" aria-expanded="true">' +
-          '<span class="kg-group-caret" aria-hidden="true"></span>' +
+          '<div class="kg-group-head">' +
           '<span class="kg-group-label">' +
           esc(g.label) +
           "</span>" +
           '<span class="kg-group-count">' +
           g.posts.length +
           "</span>" +
-          "</button>" +
+          "</div>" +
           '<div class="kg-group-body">' +
           g.posts.map(itemHtml).join("") +
           "</div></section>"
@@ -260,35 +231,6 @@
     });
 
     groups = Array.from(listEl.querySelectorAll(".kg-group"));
-    groups.forEach(function (groupEl) {
-      groupEl.querySelector(".kg-group-head").addEventListener("click", function () {
-        setGroup(groupEl, groupEl.classList.contains("kg-group-closed"));
-      });
-    });
-
-    // Default: only the first family is open.
-    groups.forEach(function (groupEl, i) {
-      setGroup(groupEl, i === 0);
-    });
-
-    collapseBtn.addEventListener("click", function () {
-      const keep = current ? bySlug.get(current).group : null;
-      const snapshot = groups.map(function (groupEl) {
-        return groupEl.dataset.group === keep;
-      });
-      groups.forEach(function (groupEl, i) {
-        setGroup(groupEl, snapshot[i]);
-      });
-      // This is now the state the filter must restore, so record it.
-      if (filterSnapshot) filterSnapshot = snapshot;
-    });
-  }
-
-  function expandGroupOf(slug) {
-    const p = bySlug.get(slug);
-    if (!p) return;
-    const groupEl = listEl.querySelector('.kg-group[data-group="' + p.group + '"]');
-    if (groupEl) setGroup(groupEl, true);
   }
 
   function setActive(slug) {
@@ -333,7 +275,6 @@
     });
     current = p.slug;
     setActive(p.slug);
-    expandGroupOf(p.slug);
     showIntro(p.group);
     bar.classList.add("kg-bar-on");
     barTitle.textContent = p.pattern;

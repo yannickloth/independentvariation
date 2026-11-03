@@ -315,6 +315,11 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-inline-end: 0.35rem;
+  /* The site justifies body copy, but in a ~200px list column justified text
+     stretches word gaps badly and hyphenates flag names ("-XX:+…" breaks
+     after the dash). Entries read start-aligned, un-hyphenated. */
+  text-align: start;
+  hyphens: none;
 }
 .kg-item {
   display: flex; flex-direction: column; gap: 0.15rem;
@@ -337,26 +342,19 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   background: color-mix(in srgb, var(--kg-ink) 11%, var(--bs-body-bg));
   border-inline-start-color: var(--kg-ink);
 }
-.kg-name { font-weight: 600; line-height: 1.25; }
-/* Family groups in the left pane: a collapsible header plus its posts. */
+.kg-name { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+/* Family headers in the left pane: a static label plus its posts. */
 .kg-group { display: flex; flex-direction: column; gap: 0.3rem; }
 .kg-group + .kg-group { margin-block-start: 0.5rem; }
 .kg-group-head {
   display: flex; align-items: center; gap: 0.45em;
-  width: 100%; text-align: left;
   padding: 0.35rem 0.5rem;
-  border: 0; border-radius: var(--bs-border-radius);
+  border-radius: var(--bs-border-radius);
   background: color-mix(in srgb, var(--kg-ink) 10%, var(--bs-body-bg));
   color: var(--kg-ink);
   font-size: 0.78rem; font-weight: 700;
   letter-spacing: 0.02em; text-transform: uppercase;
-  cursor: pointer;
 }
-.kg-group-head:hover {
-  background: color-mix(in srgb, var(--kg-ink) 17%, var(--bs-body-bg));
-}
-.kg-group-caret::before { content: "▾"; display: inline-block; }
-.kg-group-closed .kg-group-caret::before { content: "▸"; }
 .kg-group-label { flex: 1 1 auto; }
 .kg-group-count {
   flex: 0 0 auto;
@@ -371,13 +369,7 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   padding-inline-start: 0.45rem;
   border-inline-start: 2px solid color-mix(in srgb, var(--kg-ink) 22%, transparent);
 }
-.kg-group-closed .kg-group-body { display: none; }
-/* Collapse control, above the post list. Shares the button style below. */
-.kg-collapse-btn {
-  width: 100%;
-  flex: 0 0 auto;
-}
-/* Filter box, above the collapse control. */
+/* Filter box, above the post list. */
 .kg-filter { flex: 0 0 auto; }
 .kg-filter-input {
   width: 100%;
@@ -398,12 +390,11 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   font-size: 0.78rem;
   color: var(--bs-secondary-color);
 }
-/* The list items, the groups, and the collapse control set an author
+/* The list items, the groups, and the filter's empty message set an author
    `display`, so the plain [hidden] attribute does not hide them. Spell it
    out, so the filter can hide a non-matching entry or an empty family. */
 .kg-item[hidden],
 .kg-group[hidden],
-.kg-collapse-btn[hidden],
 .kg-filter-empty[hidden] { display: none; }
 /* Family framing shown above the open post. */
 .kg-intro {
@@ -457,6 +448,30 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   color: var(--bs-emphasis-color);
 }
 
+/* ── The section's argument (the landing page's story panel) ──
+   The landing page opens with the section's reason to exist: design as
+   derived knowledge, told as one scene. The panel gives the story the
+   page's most prominent spot, above the browser. Ink, outline, and tint
+   follow the kg variables, so dark mode needs no extra rules. */
+.kg-argument {
+  margin-block: 1.4rem 1.6rem;
+  padding: 1rem 1.3rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--kg-ink) 24%, transparent);
+  border-inline-start: 4px solid var(--kg-ink);
+  border-radius: var(--bs-border-radius-lg);
+  background: color-mix(in srgb, var(--kg-ink) 5%, var(--bs-body-bg));
+}
+.kg-argument > h3:first-child {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--kg-ink);
+}
+.kg-argument > p { font-size: 0.95rem; }
+.kg-argument > :last-child { margin-block-end: 0.6rem; }
+
 /* ── The two chrome controls: one button style ──
    "Collapse all but current" (above the list) and "Copy link" (post bar) are
    the same kind of control, so they share one definition: body-background
@@ -465,7 +480,6 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
    which made the collapse control #d1d1d1 on white and #0f0f0f on #121212,
    and the copy control #ffffff on white and #121212 on #121212 — invisible in
    light and dark alike. */
-.kg-collapse-btn,
 .kg-copy {
   display: inline-flex; align-items: center; justify-content: center;
   gap: 0.4em;
@@ -478,12 +492,10 @@ header.headroom--unpinned { transform: translateY(0%) !important; }
   cursor: pointer;
 }
 .kg-copy { flex: 0 0 auto; }
-.kg-collapse-btn:hover,
 .kg-copy:hover {
   background: color-mix(in srgb, var(--kg-ink) 9%, var(--bs-body-bg));
   border-color: var(--kg-ink-soft);
 }
-.kg-collapse-btn:focus-visible,
 .kg-copy:focus-visible {
   outline: 2px solid var(--kg-ink);
   outline-offset: 2px;

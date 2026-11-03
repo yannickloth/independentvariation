@@ -1,0 +1,2400 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="A series of short posts that read each data structure as a contract on order, cost, and the operations it refuses.">
+
+<title>Data Structures as Knowledge-Gap Indicators – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-18c70c2b057c62275a91729d6345f36e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Data Structures as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta property="og:description" content="A series of short posts that read each data structure as a contract on order, cost, and the operations it refuses.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Data Structures as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta name="twitter:description" content="A series of short posts that read each data structure as a contract on order, cost, and the operations it refuses.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../knowledge-gap-indicators/index.html" aria-current="page"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/dsa/index.html">DSA</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/data-structures/index.html">Data Structures</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software Patterns</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/substrate/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Substrate Facts</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/encoding/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Encoding Limits</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/dsa/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DSA</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/algorithms/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/data-structures/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Data Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/databases/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Databases</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/database/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Schema &amp; Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/orm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ORM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/sql/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/runtimes/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel &amp; Runtimes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/kernel-tuning/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel Tuning</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/jvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JVM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/dotnet/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">.NET</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/graalvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GraalVM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/frameworks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Frameworks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/spring/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spring</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/quarkus/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quarkus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/micronaut/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Micronaut</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/vertx/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vert.x</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/rust/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/java/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/csharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/fsharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/haskell/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/unison/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/dsa/index.html">DSA</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/data-structures/index.html">Data Structures</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Data Structures as Knowledge-Gap Indicators</h1>
+</div>
+
+<div>
+  <div class="description">
+    A series of short posts that read each data structure as a contract on order, cost, and the operations it refuses.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Where the algorithm list reads the order of operations, this list reads what holds the data: the order it keeps, the cost it promises, the operations it refuses. Each post names the structure, states the contract, and asks whether the domain supplied it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="structures">
+<p>Choosing an algorithm or a data structure? Ask “which facts does this choice encode — the operation mix, the scale, the ordering, the exactness the domain demands, among others?” If you can’t answer, you’ve found a knowledge gap: the structure pays for a prediction nobody wrote down. If you can name those facts, the structure is the knowledge embodied — the code catching up to what the domain decided.</p>
+</div>
+<section id="case-study-dynamic-array-the-doubling-vector" class="level2 kg-post" hidden="true" data-slug="dynamic-array-2027-04-16-data-structures" data-pattern="Dynamic array (the doubling vector)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-dynamic-array-the-doubling-vector">Case study: Dynamic array (the doubling vector)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> One contiguous block, a count, a capacity. Append is O(1) amortized: a resize copies n elements, and doubling spreads that copy over the next n appends. Positional access is O(1). Insert in the middle is O(n). The predictions: appends dominate writes, positional access dominates reads, an occasional pause is acceptable, insertion order is the order the domain means.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals">The data-structure knowledge gap it signals</h3>
+<p>The array bets on the operation mix, the scale, and the pause. All three are domain facts: a log is appended to, a price list is read by index, a nightly job absorbs a 24 MB copy; a 5 ms request does not, and that copy is about 2.4 ms at ten gigabytes a second.</p>
+<p>The gap question: which operation dominates, and is the resize pause acceptable at the size the domain reaches?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Collect-then-process workloads: buffer a query result, iterate all of it, discard it. Appends dominate, iteration dominates, and the order kept is the order received — the order the domain produced. Positional access is a need here, not a convenience.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Edits in the middle of a long-lived list. The call reads like O(1); each call shifts half the array — 100,000 moves per edit at 100,000 elements, behind one method name. Or the count reaches millions and nothing records that anyone compared the doubling pause to a latency budget.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Do appends or index reads dominate — and is the resize pause within the budget at peak size?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the pause fits the budget. Check the peak size the doubling reaches, then the copy cost there.</li>
+<li><strong>If no</strong> → say which half failed. Mix unmeasured: count the operations. Pause over budget: reserve capacity, or move the copy off the request path.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the array wrong — you’ve found incomplete domain knowledge. Count appends, middle inserts, and index reads for a week.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Arrays</code> <code>#Performance</code> <code>#CacheLocality</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-linked-list-the-splice-contract" class="level2 kg-post" hidden="true" data-slug="linked-list-2027-04-17-data-structures" data-pattern="Linked list (the splice contract)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-linked-list-the-splice-contract">Case study: Linked list (the splice contract)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> Node plus pointer, allocated one at a time. Given a reference to a node, insert and remove are O(1): rewire pointers, shift nothing. Search is O(n), positional access is O(n), and each traversal step is a dependent load from an address neither the compiler nor the prefetcher can predict. The predictions: splice at a held position dominates, random access never happens, the cost per element is acceptable.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-1">The data-structure knowledge gap it signals</h3>
+<p>The O(1) claim is conditional. The structure is fast only when the caller already holds the position. If the caller holds an index or a key, the structure finds the node first, and the find is O(n).</p>
+<p>The gap question: is the position already in hand when the write arrives?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Cursor-and-splice workloads. An LRU (least recently used) cache keeps an eviction chain: the hash map holds the node, so moving it to the front is O(1) pointer surgery that copies nothing. An allocator free list pops a block from the head. A kernel intrusive list embeds the node in the object, so one object sits on many lists.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Insertion is O(1), so the list beats the array.” The workload builds the list, then checks whether a key already exists — search, then insert. The search is O(n) with a cache miss per step, and a contiguous array scans the same data faster. Or the list is long and read hot: pointer chasing over 100,000 nodes turns a sub-millisecond scan into milliseconds.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Do you hold a position and splice — or search, then insert?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the O(1) claim holds. Check what the splice touches, and that no one else holds a stale pointer.</li>
+<li><strong>If no</strong> → the O(1) claim is false for you: the search dominates. Measure the search against a contiguous scan.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the list wrong — you’ve found incomplete domain knowledge. List the insert sites, and mark which ones arrive holding a node.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#LinkedLists</code> <code>#CacheLocality</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-stack-the-last-in-rule" class="level2 kg-post" hidden="true" data-slug="stack-2027-04-18-data-structures" data-pattern="Stack (the last-in rule)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-stack-the-last-in-rule">Case study: Stack (the last-in rule)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> One end is both readable and writable; the other is sealed. Push, pop, and peek are O(1), and nothing below the top is reachable without popping what sits above. The structure can serve only the most recent item, so it encodes the claim that of everything it received, the most recent matters now, and first.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-2">The data-structure knowledge gap it signals</h3>
+<p>The structure does not prefer recency; it makes recency the only rule. Reversal is a real domain relation where the last edit is the first to undo, or the innermost block the first to close.</p>
+<p>The gap question: is “most recent first” the domain’s own rule for what happens next, or a container default standing in for a rule nobody stated?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Undo history reverses in exact reverse order, because the edits were causally ordered and only the newest is safe to reverse. A parser tracks open brackets: the innermost is the only legal closer, and the grammar bounds the depth. Depth-first traversal keeps its frontier here, so backtracking resumes where it stopped.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A severity queue that happens to use a stack. Arrival order becomes priority without anyone deciding it: a low-severity ticket filed a minute ago outranks a payment outage filed an hour ago. The structure authored a policy the domain never agreed to, and the policy is invisible in the push and pop calls. Or a stack holds a history the domain wants to browse, and nobody can jump to a known revision or compare two.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is “most recent first” the domain’s own rule for what happens next?</strong></p>
+<ul>
+<li><strong>If yes</strong> → LIFO is the domain’s rule. Check the depth the domain permits, and what bounds it.</li>
+<li><strong>If no</strong> → the order is a container artifact. Name the rule the domain does have — priority, deadline, revision — and let it into the structure.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the stack wrong — you’ve found incomplete domain knowledge. Ask who decides which item is handled next.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Stacks</code> <code>#Undo</code> <code>#Parsing</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-queue-and-deque-the-arrival-order-contract" class="level2 kg-post" hidden="true" data-slug="queue-deque-2027-04-19-data-structures" data-pattern="Queue and deque (the arrival-order contract)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-queue-and-deque-the-arrival-order-contract">Case study: Queue and deque (the arrival-order contract)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A queue adds at the tail and removes at the head, both O(1) in a ring buffer. A deque frees both ends for O(1) reads and writes. The queue encodes one rule — service order is arrival order — and the deque encodes two: both ends carry meaning, neither is a leftover. That is a fairness claim before it is a data-structure claim.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-3">The data-structure knowledge gap it signals</h3>
+<p>The structure fixes the ordering rule and hides the backlog inside itself. An unbounded queue is also a latency store: when arrival outruns service, waiting time grows without limit and the container never objects.</p>
+<p>The gap question: is arrival order the rule the domain chose, or the one it inherited?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Fair service in arrival order, where the domain names the fairness: job queues, request lines, print spools, a connection pool’s wait queue. Each promises that no later arrival overtakes an earlier one. A deque earns its second end the same way: undo consumes one end, redo returns items to the other, and the two ends are two domain facts.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>FIFO as accidental policy. One queue carries nightly batch work and customer-facing work, and the batch fills it, so urgency is irrelevant by construction and no line of code decided that. The deque has its own version: one end is used, the other is a field no code path reads — the structure claims two domain facts and the domain supplied one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is first-come-first-served a rule the domain recognizes?</strong></p>
+<ul>
+<li><strong>If yes</strong> → FIFO is the domain’s fairness rule. Check what bounds the queue when service is slower than arrival.</li>
+<li><strong>If no</strong> → the order is accidental. Name the rule the domain has — priority, deadline, tenant quota — and put it in the structure or the scheduler above it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the queue wrong — you’ve found incomplete domain knowledge. Measure arrival rate against service rate at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Queues</code> <code>#Fairness</code> <code>#Backpressure</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-hash-map-the-exact-key-index" class="level2 kg-post" hidden="true" data-slug="hash-map-2027-04-20-data-structures" data-pattern="Hash map (the exact-key index)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-hash-map-the-exact-key-index">Case study: Hash map (the exact-key index)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A hash function maps a key to a bucket: lookup, insert, and delete are O(1) expected, O(n) worst case when every key collides. The buckets encode no order a reader may rely on; iteration follows the hash, the capacity, and the insertion history. It predicts that lookup by exact key dominates, key order carries no meaning, keys are unique, and the hash is a pure function of the key’s value.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-4">The data-structure knowledge gap it signals</h3>
+<p>Uniqueness and orderlessness are domain claims, not storage options. A map enforces the first — a second insert on the same key overwrites — and hides the second, so a display path built on iteration order turns nondeterministic the day the capacity changes.</p>
+<p>The gap question: does any downstream consumer read the order the entries came back in?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Identity lookup where the key is the identity: a user by id, a session by token, an order by number, a cache entry by URL. Counting occurrences, deduplicating a stream by key, joining two collections on a shared identifier. The domain asks what belongs to this exact key, and nothing about sequence or proximity.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Order taken from the map. A file records it and a test asserts it, so the next capacity change turns the diff into noise and the failure into an intermittent one.</p>
+<p>Range queries cost a full O(n) scan: a hash has no proximity to exploit, so “all users from A to M” reads every entry. Mutable keys rot in place: change a hashed field after insert, and the entry becomes unreachable and undeletable.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is lookup by exact key the only access pattern — and is “no meaningful order” a domain fact or an oversight?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the map is the domain’s index. Check that keys stay immutable while stored, and that the uniqueness it enforces is the domain’s rule.</li>
+<li><strong>If no</strong> → you need order or range, which a hash cannot answer. Use an ordered index, and keep the map only where exact lookup pays.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the map wrong — you’ve found incomplete domain knowledge. List the queries the domain asks, then the order it presents results in.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#HashMaps</code> <code>#Determinism</code> <code>#Indexing</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-hash-set-the-membership-contract" class="level2 kg-post" hidden="true" data-slug="hash-set-2027-04-21-data-structures" data-pattern="Hash set (the membership contract)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-hash-set-the-membership-contract">Case study: Hash set (the membership contract)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A hash set answers one question: is this value in the collection? Membership, insert, and delete are O(1) expected. There is no index, no position, no count per value, no second copy — inserting a value already present changes nothing and reports nothing. It predicts that membership is the only question, duplicates are not distinct facts, and order is not a fact.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-5">The data-structure knowledge gap it signals</h3>
+<p>The set stores one fact per value — presence — and drops multiplicity and sequence. Correct where the domain asks only whether something is present, and a silent rewrite where two identical arrivals are two events.</p>
+<p>The gap question: what does the domain do when the same thing arrives twice?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Membership as the whole question. Deduplicating event ids so a retried delivery is processed once. A permission check against granted roles. Tags on an entity, where a repeated tag is the same tag. Here the domain has no multiplicity and no order, and the type states that.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Duplicates the domain keeps apart. Two identical line items are two items: quantity, a unit price, a customer decision to buy twice. The set merges them, the total is half, and the bug looks like arithmetic rather than representation.</p>
+<p>A set standing in for a relation the domain enumerates in order. Grants are fine unordered; the audit log of when each was granted is not. Or two records share a key, the set calls them one member because equality is defined on that key, and a dedup rule nobody stated is now in force.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Did the domain decide that two identical submissions are one fact?</strong></p>
+<ul>
+<li><strong>If yes</strong> → they are one fact. Check that the equality the set uses is the domain’s identity rule.</li>
+<li><strong>If no</strong> → membership is the wrong question. You need multiplicity, or distinct entities with their own identity, and a set carries neither.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the set wrong — you’ve found incomplete domain knowledge. Ask what the domain does when the same thing arrives twice.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#HashSets</code> <code>#Dedup</code> <code>#DomainModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-sorted-array" class="level2 kg-post" hidden="true" data-slug="sorted-array-2027-04-22-data-structures" data-pattern="Sorted array" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-sorted-array">Case study: Sorted array</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A sorted array keeps keys in order in one contiguous block: binary search O(log n), range scan O(log n + k), random access O(1), and insertion or deletion O(n), because every later element shifts. The prediction is that order is a property of the data, and that writes are rare enough to pay for in bulk.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-6">The data-structure knowledge gap it signals</h3>
+<p>The choice assumes that reads dominate writes, that order is a domain fact rather than a display preference, and that the working set fits one block. The gap question is the measured write rate against the read rate, and who owns the order when a write does arrive. A sorted array with an unasked question behind it is a sort nobody consumes.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Reference data rebuilt in batch: price lists, tax brackets, ranking tables, leaderboards recomputed by a job. Writes happen inside the batch that owns them, reads hit a finished artifact, and the same array serves an ordered report without a second structure. The batch interval is the staleness the domain accepted when it scheduled the rebuild.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Interleaved inserts on a live stream: at 100,000 rows and a thousand writes a second, the shifts are 10⁸ element moves a second, spent preserving an order nothing asked for. The seductive version keeps the invariant by hand — two code paths inserting “in the right place”, a background re-sort, a flag asserting the array is sorted. Sortedness then becomes a distributed invariant with no owner, holding until one writer appends and forgets.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Measured, do reads dominate writes — and is one owner named for the sort?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the order is a domain property and one owner holds the writes. Check the rebuild interval against the staleness reads tolerate.</li>
+<li><strong>If no</strong> → say which half failed. No owner: name one. Writes outrun reads: the sort is decoration — a hash map or a tree pays less.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the array wrong — you’ve found incomplete domain knowledge. Count peak inserts per second, then count the code paths that write.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Algorithms</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code> <code>#Caching</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-binary-search-tree-unbalanced" class="level2 kg-post" hidden="true" data-slug="bst-2027-04-23-data-structures" data-pattern="Binary search tree (unbalanced)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-binary-search-tree-unbalanced">Case study: Binary search tree (unbalanced)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A binary search tree orders keys by construction, so search, insert, and delete cost O(h) in the height h, and a full traversal costs Θ(n). The O(log n) claim holds only while the height stays a small multiple of log₂ n, and the height is not a property of the algorithm. It is a property of the order the keys arrived in.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-7">The data-structure knowledge gap it signals</h3>
+<p>The domain must say what insertion order looks like: a sequence, a migration, a sorted export, a replay of an ordered log, or users typing. Uncorrelated input keeps the height a small multiple of log₂ n, in expectation; the bound is probabilistic, so the structure is knowledge. If the domain ever emits keys in order, the bound fails, and it fails silently. The gap question is the worst realistic insertion order, not the average.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Keys genuinely arrive uncorrelated with their order: random identifiers, hashes, names typed by people. Writes and reads interleave, ordered traversal is used, no single writer controls the sequence, and the tree delivers its bound with two pointers per node — cheaper to build and to restructure than a balancing variant.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Sorted or sequential input: auto-increment identifiers, timestamps, a sorted CSV import, a replay of an ordered log. Bulk-loading sorted data builds a spine instead of a tree: every operation degrades to O(n), and a recursive insert can exhaust the stack. It passes every test, because the fixtures are shuffled; production feeds it what the database returns, ordered by primary key. The complexity claim was never earned, only assumed from the name.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the insertion order under your control — no import, no migration, no sequential id that could arrive sorted?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the bound is earned. Trace each input path once for correlation, then leave the tree unbalanced.</li>
+<li><strong>If no</strong> → the bound is not delivered: the order arrives. Balancing is the repair, and it costs the pointers and rotations the unbalanced case was avoiding.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tree wrong — you’ve found incomplete domain knowledge. Instrument the depth in production, and sample the insertion sequence.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Algorithms</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Complexity</code> <code>#Correctness</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-self-balancing-binary-search-tree-avl-red-black" class="level2 kg-post" hidden="true" data-slug="balanced-bst-2027-04-24-data-structures" data-pattern="Self-balancing binary search tree (AVL, red-black)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-self-balancing-binary-search-tree-avl-red-black">Case study: Self-balancing binary search tree (AVL, red-black)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A self-balancing tree restores its own height after every write: AVL keeps child heights within one and rotates on violation, red-black keeps a colour and rotates less often for a looser bound. Both give O(log n) worst case for search, insert, and delete under any insertion order, paid for in per-node bookkeeping and rotation work on the write path.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-8">The data-structure knowledge gap it signals</h3>
+<p>The domain must say whether input order is outside its control — user-supplied keys, imports from unknown sources, an adversary choosing keys to degenerate the tree — or whether a latency bound is a requirement someone signed. The gap question is whether that input can occur, and whether the guarantee was ever stated rather than assumed.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ordered maps and sets whose contract requires any input to work: C++ <code>std::map</code>, Java <code>TreeMap</code>. Any input, guaranteed logarithmic bounds, ordered iteration available. Key spaces an untrusted party contributes to also qualify.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A red-black tree hand-rolled for a 5,000-key table whose insertion order the team could have declared, so the balance covers a risk nobody tested for. The policy covers a risk the domain excludes, and it is paid for in rotation logic that must be right.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can adversarial or sorted input actually occur here — or is the worst-case guarantee a requirement someone stated?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the balance is knowledge. Record the threat or the bound that demanded it, next to the structure.</li>
+<li><strong>If no</strong> → unrequested insurance. Compare a sorted array for read-mostly use, a hash map for unordered lookup, and a heap when only the extreme is read.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tree wrong — you’ve found incomplete domain knowledge. Find who required the bound, then measure the input order.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Algorithms</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Complexity</code> <code>#Latency</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-b-tree" class="level2 kg-post" hidden="true" data-slug="b-tree-2027-04-25-data-structures" data-pattern="B-tree" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-b-tree">Case study: B-tree</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A B-tree is a balanced multi-way search tree whose nodes hold many sorted keys, sized to the storage block. Height is log base b of n, so a billion keys at b = 500 sit three or four levels deep, and linked leaves make a range scan a sibling walk rather than a re-descent.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-9">The data-structure knowledge gap it signals</h3>
+<p>Two facts must exist for the width to be knowledge: the actual transfer unit of this medium, and a measured volume that made memory insufficient. Without them the node size is a copied constant. The gap question is what this medium transfers per read, and what measurement showed the working set no longer fits in RAM — a B-tree over data that does fit pays for an I/O it never performs.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>On-disk indexes and databases: SQLite, PostgreSQL, InnoDB, LMDB. Wide shallow trees matched to the block amortize one read across hundreds of keys.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>B-trees over in-memory data, justified by borrowed authority: databases use B-trees, so the service uses one for a 5,000-entry lookup table that fits in 400 KB of RAM. In memory the unit is a 64-byte cache line. A 4 KiB node spans 64 of them, so each comparison jumps to an address the CPU did not fetch. A sorted array reads one contiguous pass. The second trap is sizing carried across media: disk reasoning applied to flash, or a 16 KiB node inherited from a database default on a device that reads 4 KiB, so each node read is four transfers.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the node width matched to this medium’s measured transfer unit — and has a measurement shown the working set no longer fits in memory?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the width is knowledge. Size the node to the unit; the height then follows arithmetically.</li>
+<li><strong>If no</strong> → say which fact is missing. Width unmatched: size the node to the transfer unit. Working set fits: an in-memory array is cheaper than an I/O you never make.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the B-tree wrong — you’ve found incomplete domain knowledge. Measure the read transfer size, then the working set, then compare against RAM.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Databases</code> <code>#Storage</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-heap-priority-queue" class="level2 kg-post" hidden="true" data-slug="heap-2027-04-26-data-structures" data-pattern="Heap / priority queue" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-heap-priority-queue">Case study: Heap / priority queue</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A binary heap is a complete tree flattened into an array, each parent no greater than its children. Reading the extreme is O(1); inserting and extracting it are O(log n). That is the whole contract: arbitrary lookup is O(n), arbitrary removal is O(n) without a side index, and iteration has no meaningful order.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-10">The data-structure knowledge gap it signals</h3>
+<p>The heap claims what the domain does next, and urgency is a domain decision before it is a number. Someone must state the rule that produces the priority: deadline, severity, cost, distance. The gap question is whether extracting the most urgent is the actual access pattern, and who defines urgency, with what rule. A heap over an unowned priority function is a precise machine for ordering a decision nobody made.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Schedulers and timers taking the earliest deadline first. Shortest-path frontiers in Dijkstra and A*, where the next node is the closest unsettled one. A stream of unknown length with only some extractions, where the heap beats sorting it whole.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A heap where the domain also needs arbitrary lookup or removal: cancel job 4471, raise the priority of 812. The missing index costs a hash map from identifier to array position, kept in sync on every swap. The other trap is priority numbers invented without a stated rule: an integer some caller increments, faithfully ordered by a heap, producing a correct maximum of a meaningless quantity.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is “extract the most urgent” the actual access pattern — and who defines urgency, with what rule?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the heap is the service rule made executable. Confirm the priority function is documented and owned.</li>
+<li><strong>If no</strong> → the operations are not a priority queue. Ordered access wants a balanced tree; exact lookup wants a map.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the heap wrong — you’ve found incomplete domain knowledge. Ask for the rule that assigns the number, then measure how often a middle element is needed.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Algorithms</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Scheduling</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-trie-prefix-tree" class="level2 kg-post" hidden="true" data-slug="trie-2027-04-27-data-structures" data-pattern="Trie / prefix tree" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-trie-prefix-tree">Case study: Trie / prefix tree</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A trie consumes one symbol of the key per level, so the path from the root spells the key and every prefix is a node on that path. Lookup is O(m) in key length, independent of how many keys are stored, and a prefix query is a subtree walk rather than a scan.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-11">The data-structure knowledge gap it signals</h3>
+<p>Every other structure treats a key as an atom; the trie treats it as a sequence, which is worth paying for only if something asks about the sequence. The domain must have a feature whose semantics are prefix matching, and it must own what a prefix is. The gap question is whether the domain queries prefixes or only whole keys — and which feature does it.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Longest-prefix match in routing tables, where the answer is deliberately not an exact key. Search-as-you-type autocomplete, where each keystroke is a prefix query. Spell correction, where a trie prunes whole subtrees on a prefix mismatch. The caller asks for “everything starting with”, and the trie answers in O(m + k) — key length plus matches — instead of scanning.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A trie serving exact lookups only: a hash map answers in O(1) with one entry, not a node per character. The trie instead pays one node per character position: ten million forty-character keys is up to four hundred million nodes against ten million entries, each a separate allocation and a cache miss. It is seductive because it is the structure that sounds chosen deliberately.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does a named feature query by prefix rather than by whole key?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the trie is knowledge. Name the feature; fix the alphabet and the prefix semantics in one place.</li>
+<li><strong>If no</strong> → exact lookup wants a hash map; ordered access wants a sorted array or a balanced tree.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the trie wrong — you’ve found incomplete domain knowledge. List the operations the callers perform, and see whether any is a prefix query.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Networking</code> <code>#Search</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Algorithms</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-adjacency-list-vs-adjacency-matrix" class="level2 kg-post" hidden="true" data-slug="graph-representation-2027-04-28-data-structures" data-pattern="Adjacency list vs adjacency matrix" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-adjacency-list-vs-adjacency-matrix">Case study: Adjacency list vs adjacency matrix</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A matrix keeps one bit per ordered pair: an edge test is one array index, O(1), and enumeration is Θ(n) whatever the degree. A list keeps only the edges that exist: Θ(n + m) space, O(deg) enumeration, and O(deg) membership unless a hash set is added.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-12">The data-structure knowledge gap it signals</h3>
+<p>The domain must have decided whether the relation is sparse, and which query dominates.</p>
+<p>The gap question: how many edges per node, and is the hot query enumeration or membership?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The relation is local and sparse, counted: a follow graph, a dependency graph, a road network. Then Θ(n + m) space and O(deg) enumeration match the traversal the code performs. The matrix earns its n² when the relation is dense and small (a 200-node role matrix is 40,000 cells) or when every query is all-pairs.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The matrix arrives because it is the textbook first representation and “O(1) edge lookup” sounds strictly better. On a sparse graph it spends n² on a density claim nobody checked, while the enumeration the application actually runs gets slower. The mirror error is a list for a dense graph whose hot query is membership, where each test scans a neighbour set a matrix answers in one index.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the relation sparse, counted — and is the hot query enumeration rather than membership?</strong></p>
+<ul>
+<li><strong>If yes</strong> → both facts are known, and the choice follows. The matrix’s n² and the list’s n + m are now arithmetic, not preference.</li>
+<li><strong>If no</strong> → the matrix’s case applies: dense or all-pairs. Count the degree distribution, then read the query log.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the representation wrong — you’ve found incomplete domain knowledge. Measure average and maximum degree, then count each query type.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Graphs</code> <code>#Algorithms</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-union-find-disjoint-sets" class="level2 kg-post" hidden="true" data-slug="union-find-2027-04-29-data-structures" data-pattern="Union-find (disjoint sets)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-union-find-disjoint-sets">Case study: Union-find (disjoint sets)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> Union-find keeps one parent pointer per element and answers “same group?” by walking to a representative. Only the roots are representatives, and no roster per set is kept. Two tricks — join the shorter tree under the taller one, and point each walked path straight at the representative — make each operation effectively constant on average. It encodes three claims: connectivity is the only question, groups are compared and never listed, and merges only arrive.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-13">The data-structure knowledge gap it signals</h3>
+<p>The domain must have decided that a group is only ever compared, never named or listed.</p>
+<p>The gap question: is a group something the domain needs to enumerate, or to undo?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Connectivity questions where the group is only compared: are these two hosts in the same network segment, are these two records the same person, would this edge close a cycle in Kruskal’s forest. The representative is all the domain asked for, and storing nothing else is what keeps the operations cheap.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The structure is chosen for “sets” and then the sets are needed. Listing a group’s members means walking every element to find those sharing a root — linear per query, because the roster the domain wanted was never maintained. Splitting is worse: union-find has the merge and not its inverse, so a domain that later both merges and separates — account un-merges, cluster re-sharding — finds half its operations unimplemented.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is connectivity the only question — nobody listing members, nobody splitting a group?</strong></p>
+<ul>
+<li><strong>If yes</strong> → union-find is the knowledge. Record that merges are one-directional.</li>
+<li><strong>If no</strong> → it is the wrong contract. Use a structure that maintains membership, or one that supports splits.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found union-find wrong — you’ve found incomplete domain knowledge. List every operation the domain will ask for, including the inverse ones.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Algorithms</code> <code>#Graphs</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-bloom-filter" class="level2 kg-post" hidden="true" data-slug="bloom-filter-2027-04-30-data-structures" data-pattern="Bloom filter" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-bloom-filter">Case study: Bloom filter</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A Bloom filter is a bit array with k hash functions: an insert sets k bits, and a query answers “definitely absent” or “maybe present”. Space follows m = −n ln p ÷ (ln 2)², so 1% costs 9.6 bits per key. A false negative is impossible and a false positive is expected.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-14" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-14">The data-structure knowledge gap it signals</h3>
+<p>The domain must have decided that a wrong “maybe” is caught downstream by something authoritative, and the rate it can absorb — 1% costs 9.6 bits per key, 0.1% costs 14.4, half again the memory for ten times fewer false positives.</p>
+<p>The gap question: which error can the domain absorb, and does the correcting lookup exist?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Skipping an expensive lookup for the keys that are absent: a cache consults the filter before the disk read, a blocklist before the network call. At a 10% hit rate, nine calls in ten are saved by a bit test, and the store still holds the truth for every maybe-present case.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The filter is read as truth: “it says maybe-present, so we stored it” inverts a one-sided guarantee into a claim the structure never made. A workload that deletes has no operation to use, since clearing bits creates the false negative the structure guarantees. And m and k chosen by feel leave the error rate unknown, so the rate in the design note is a number nobody can reproduce.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can the domain absorb a bounded false-positive rate — and does an authoritative lookup correct a false positive?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the filter is knowledge: the error is bounded and corrected. Check the measured rate against the design false-positive rate p.</li>
+<li><strong>If no</strong> → say which half failed. No correction path: every maybe is a wrong answer. No accepted rate: state p, then check the lookup.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the filter wrong — you’ve found incomplete domain knowledge. Ask what one false positive costs, count the keys, then compute m.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#ProbabilisticStructures</code> <code>#Caching</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-skip-list" class="level2 kg-post" hidden="true" data-slug="skip-list-2027-05-01-data-structures" data-pattern="Skip list" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-skip-list">Case study: Skip list</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A skip list layers sorted linked lists, each level skipping more than the one below, so search, insert, and delete cost O(log n) expected and a node’s level is drawn at random when it is inserted. An update touches a bounded neighbourhood instead of rotating a subtree, which is what makes fine-grained and lock-free variants practical.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-15" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-15">The data-structure knowledge gap it signals</h3>
+<p>The randomized level is the price of a localized update, and it is only worth paying where concurrent writers contend. The tail is real: expected O(log n) still permits an unlucky run of levels.</p>
+<p>The gap question: is concurrent insertion the requirement, and does the budget accept a probabilistic worst case?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Concurrent ordered maps where lock granularity dominates. An in-memory database’s sorted set, a storage engine’s in-memory write buffer absorbing writes from many threads: there the short, local update is why randomization is accepted, and lock-free implementations exist because the structure permits them.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Single-threaded ordered access, where a balanced tree or a sorted array is simpler, deterministic, and has no probability to reason about — the trade has nothing on the other side. Or a hard latency bound: the SLO (service-level objective) is written as a maximum and the structure guarantees an average, so passing that SLO rests on luck nobody budgeted for. The trap is seductive because the average is excellent and every benchmark passes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is concurrent insertion the actual requirement — and does the latency budget accept a probabilistic worst case?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the skip list is knowledge. Keep the level probability and seed policy beside it.</li>
+<li><strong>If no</strong> → say which half failed. No concurrent writer: it is ornament. Hard maximum latency: keep one writer’s order and a deterministic bound.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the skip list wrong — you’ve found incomplete domain knowledge. Measure contention on the write path, then state the bound as a maximum or a percentile.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Concurrency</code> <code>#Performance</code> <code>#Algorithms</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-lru-cache" class="level2 kg-post" hidden="true" data-slug="lru-cache-2027-05-02-data-structures" data-pattern="LRU cache" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-lru-cache">Case study: LRU cache</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An LRU cache keeps a hash map beside a doubly linked list, so lookup, insert, and move-to-front cost O(1) and the least recently used entry leaves first. The eviction order is a belief about the domain made mechanical: every eviction spends the prediction “recency implies reuse”.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-16" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-16">The data-structure knowledge gap it signals</h3>
+<p>The domain must have decided that a record touched now is likelier to be touched again than one touched an hour ago, and that the working set fits. A proxy is knowledge only when a measured trace supports it — and this one fails silently.</p>
+<p>The gap question: is there a measured trace, or only a belief about recency?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Workloads with real temporal locality: a hot configuration read on every request, recently touched records within a session, a working set that fits and stays. There recency tracks reuse and the hit rate settles where capacity predicts.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A small set of keys used constantly, evicted behind a burst of one-off reads: the case LFU — evict the least frequently used — answers and recency does not. Or a hit rate nobody measures, so capacity is set by intuition dressed as tuning.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is there a measured access pattern showing recency predicts reuse — and is the hit rate watched?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the policy is knowledge: the trace supports it. Watch the hit rate for drift, and check the miss cost against the fetch it avoids.</li>
+<li><strong>If no</strong> → say which half failed. No trace: recency is a belief being paid for. Trace but no metric: watch the hit rate before judging the policy.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the cache wrong — you’ve found incomplete domain knowledge. Record the hit rate, then replay a trace to compare LRU with LFU and with no cache.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Caching</code> <code>#Performance</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-ring-buffer-circular-buffer" class="level2 kg-post" hidden="true" data-slug="ring-buffer-2027-05-03-data-structures" data-pattern="Ring buffer (circular buffer)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-ring-buffer-circular-buffer">Case study: Ring buffer (circular buffer)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A ring buffer allocates N slots once and advances a head and a tail, so push and overwrite cost O(1) and memory is bounded by construction. The write that arrives at a full buffer destroys the oldest slot without asking. It encodes one fact and one policy: only the last N matter, and anything older is disposable.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-17" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-17">The data-structure knowledge gap it signals</h3>
+<p>The domain must have decided how far back retention reaches, and who is allowed to lose data as a result. N is not a tuning constant — it is the answer to “how long is the history the domain uses”, written once and enforced silently.</p>
+<p>The gap question: what is the longest window any consumer of this buffer needs?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Telemetry windows where consumers read recent values and only the aggregate survives. Bounded hand-off queues where the producer must never block and dropping the oldest is the stated policy. There N comes from the sampling rate and the interval the domain asks about, so the loss is designed behaviour.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>N chosen by feel, and then the auditor arrives asking for event 4000 — retention was a domain question all along, answered by whatever constant was in the example. Or overwrite treated as a technical detail, when it is a data-destruction policy nobody stated. The queue then drops evidence exactly when the producer outruns the consumer — which is when evidence matters most.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can someone name the domain rule that set N — and does it say an event older than N loses its meaning?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the buffer is knowledge. Record the rule beside the size, then check N against the slowest consumer.</li>
+<li><strong>If no</strong> → it is a guess. Dropping data is a decision; name the decision or change the structure.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the buffer wrong — you’ve found incomplete domain knowledge. Measure the arrival rate, then find the longest window any consumer needs.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DataStructures</code> <code>#Streaming</code> <code>#Observability</code> <code>#Telemetry</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-persistent-immutable-structures" class="level2 kg-post" hidden="true" data-slug="persistent-structure-2027-05-04-data-structures" data-pattern="Persistent (immutable) structures" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-persistent-immutable-structures">Case study: Persistent (immutable) structures</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A persistent structure never mutates in place. An update returns a new version that shares the unchanged bulk with the old one, so the old version stays valid and every observation reads one version, from a single point in time. The contract it encodes: versions are first-class, and readers outnumber writers enough that the sharing pays.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-18" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-18">The data-structure knowledge gap it signals</h3>
+<p>The sharing pays on the read path and costs on the write path: every update allocates, and navigation gains a level of indirection. For the choice to be knowledge, the reader/writer ratio must be measured rather than assumed.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Domains where the version is a fact. A quote is a revision nobody may overprint. A payroll run must reproduce the state it paid. A document store serves many revision readers while few authors produce them. There the structure only stops the code from destroying a state the domain already keeps.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A write-heavy workload with no version requirement: counters, sessions, position updates, each update allocating and sharing state nobody will read. The sharper trap is confusing persistent with durable. Persistent means old versions stay reachable in memory; durable means bytes survive a crash. A persistent structure gives no durability, a durable store gives no version semantics — and reaching for one to get the other leaves the real promise unimplemented.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the domain ask for old versions — and is the reader/writer ratio measured rather than assumed?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the version is a domain fact and the structure is the code catching up. Check the write-path allocation budget next.</li>
+<li><strong>If no</strong> → say which half failed. No version reader: a mutable structure, with durability from the store. Ratio unmeasured: measure it before dropping the sharing.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the structure wrong — you’ve found incomplete domain knowledge. Name the feature that reads an old version, then count reads per write over a day.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Immutability</code> <code>#Versioning</code> <code>#DataStructures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#FunctionalProgramming</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-append-only-log-event-store" class="level2 kg-post" hidden="true" data-slug="append-only-log-2027-05-05-data-structures" data-pattern="Append-only log (event store)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-append-only-log-event-store">Case study: Append-only log (event store)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An append-only log records facts in order and derives the current state by replaying them in order. Writes are sequential appends; reads are replays or snapshots built from replays. The contract it encodes: history is a domain fact, the present is derived from it, and that derivation can be recomputed only while the replay is deterministic.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-19" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-19">The data-structure knowledge gap it signals</h3>
+<p>Derivation is only correct if the fold is deterministic, and it is only worth its cost if someone queries the past. The gap question is whether the past is asked about in domain terms — a dispute, a traceability requirement, a temporal query — rather than in debug terms.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ledger and audit domains. A payment ledger’s history is the asset and the balance is a view; dispute resolution asks exactly what the log keeps. Event sourcing fits where the business rule is temporal: what did we believe on 3 March, and on what record.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Log-first architecture where only the current state is ever queried. Rebuild jobs, snapshot tables, replay tooling and versioned event schemas are built, and no query ever reads the history back. Two symptoms follow. Unbounded growth with no retention rule, because nobody decided what the log is for, so nothing may be deleted. And replay time never measured at real scale, so an eleven-hour rebuild at today’s volume is discovered in the first incident.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does anyone ask about the past in domain terms — and are the retention and replay costs known at this size?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the past is asked about and the fold is deterministic. Record the retention rule and the measured rebuild time.</li>
+<li><strong>If no</strong> → measure before you choose. Nobody asks about the past: keep the latest row. Someone does: time a full replay and state the retention rule.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the log wrong — you’ve found incomplete domain knowledge. Name one product question that needs a past state, then time a full replay on a copy of production.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#EventSourcing</code> <code>#Audit</code> <code>#DataStructures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#EventDriven</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-bitmap-bitset" class="level2 kg-post" hidden="true" data-slug="bitmap-2027-05-06-data-structures" data-pattern="Bitmap (bitset)" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-bitmap-bitset">Case study: Bitmap (bitset)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A bitmap stores one membership flag per key, addressed by position. The key’s value is the array offset, so the structure encodes two claims: the universe of keys is small and dense, and the universe is closed. Set algebra then runs word-parallel, and intersection costs one AND per word.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-20" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-20">The data-structure knowledge gap it signals</h3>
+<p>For the bitmap to be knowledge, the domain must have fixed the id space as dense and bounded, and a rule someone can state must close it. Density is a measurement: distinct keys divided by universe size.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Dense id spaces with a bounded universe. Feature flags per tenant on sequential ids, presence per seat, permission bits per role, compressed bitmaps over analytics filters where the container adapts to local density. The arithmetic is then real: ten million seats is 1.25 MB, and a segment intersection is a handful of instructions.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A bitmap over a sparse id space, where ids are global snowflake values and the array is sized by the largest one. The seductive version is a universe that grows without bound, fed by an auto-incrementing sequence: the structure assumes it is closed, no rule closes it, and the array doubles forever. Compressed bitmaps soften the first case but not the second — the boundary is still a prediction.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the id space dense, counted — and is the universe closed by a rule someone can state?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the bitmap is the arithmetic of the domain. Check how fast the largest id grows next.</li>
+<li><strong>If no</strong> → a hash set stores the keys you have, at a few bytes each, and allocates nothing for keys you don’t.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the bitmap wrong — you’ve found incomplete domain knowledge. Count distinct ids against the maximum id over a week.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Bitmaps</code> <code>#Indexing</code> <code>#DataStructures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-inverted-index" class="level2 kg-post" hidden="true" data-slug="inverted-index-2027-05-07-data-structures" data-pattern="Inverted index" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-inverted-index">Case study: Inverted index</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An inverted index maps content to the records that contain it. It reverses the direction of the question: not what is in record X, but which records mention X. The contract it encodes: the domain looks up by content, not by identity, and that direction is the common one.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-21" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-21">The data-structure knowledge gap it signals</h3>
+<p>Every index is a bet on a query. Each indexed field pays write amplification — one insert becomes several index writes — and storage, and collects only if a query reads the posting list it wrote. So the domain must supply a list of named queries, one per indexed field.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Search is a product feature: term to documents, with the ranking and matching the product promises. Tag lookups where the reverse direction is the requirement, such as every open ticket tagged billing. Faceted filtering over a catalog, where the filter set is chosen by the user at query time and cannot be known in advance.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Indexing attributes nobody searches. A search box arrives, every text column is indexed, and no query ever reads those postings. The sharper trap is a single-key exact lookup dressed as search: one field, one value, no relevance, no analysis. A B-tree answers it in one read. The search engine adds a cluster, a tokenizer and a lag before a write is visible, none of which the lookup asked for.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does every indexed field answer an exact query named from real usage?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the index is the query’s shadow. Check the write cost it adds per inserted record next.</li>
+<li><strong>If no</strong> → the field is stored, not indexed. An exact single-key lookup belongs in a B-tree.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the index wrong — you’ve found incomplete domain knowledge. Collect the query log for a week before adding a field.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Search</code> <code>#Indexing</code> <code>#DataStructures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Databases</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-interval-tree" class="level2 kg-post" hidden="true" data-slug="interval-tree-2027-05-08-data-structures" data-pattern="Interval tree" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-interval-tree">Case study: Interval tree</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An interval tree indexes spans so that an overlap query returns the intersecting set without a scan. The contract it encodes: ranges are first-class queries — which bookings overlap this slot, which tariff applies at time T, what is the sum over this window.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-22" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-22">The data-structure knowledge gap it signals</h3>
+<p>Overlap machinery beats a scan only when the ranges genuinely overlap and the queried ranges are narrower than the collection. Both are measurable. The domain must also produce range queries from a real feature, not a boundary that a caller happens to pass.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Calendars and bookings, where conflict detection is the product requirement and the answer is a set, not a flag. Layered tariff windows — a promotional rate over a base rate — where one instant matches several rates at once. Range aggregates over numeric series, such as a dashboard summing a month of readings without reading the whole series.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two traps. The first is non-overlapping intervals: tariff windows sorted by start answer “which applies at T” with one binary search, yet the overlap structure is built, tested, and never consulted. The last is a range index queried only at startup, where the build cost is never amortized.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Do queries arrive as ranges from a named feature — and do the intervals genuinely overlap, counted?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the index matches the shape of the question. Measure the overlap fraction next.</li>
+<li><strong>If no</strong> → a sorted array and a binary search answer point and non-overlapping lookups with less machinery.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the interval tree wrong — you’ve found incomplete domain knowledge. Sample the query arguments and count how many pass distinct bounds.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#IntervalTrees</code> <code>#QueryPlanning</code> <code>#DataStructures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Databases</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-columnar-layout" class="level2 kg-post" hidden="true" data-slug="columnar-2027-05-09-data-structures" data-pattern="Columnar layout" data-group="structures" data-group-label="Data Structures">
+<h2 class="anchored" data-anchor-id="case-study-columnar-layout">Case study: Columnar layout</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A columnar layout stores the values of one column together. The contract it encodes: analytics reads a few columns over many rows, whole-row access by key is rare, and appends dominate updates. Compression follows from the layout, because a column holds one type and often similar values.</p>
+</blockquote>
+<section id="the-data-structure-knowledge-gap-it-signals-23" class="level3">
+<h3 class="anchored" data-anchor-id="the-data-structure-knowledge-gap-it-signals-23">The data-structure knowledge gap it signals</h3>
+<p>The access shape decides the physical layout, and that shape is measured from the query mix. The gap question is concrete: how many columns does the average query project, and how many rows does the average write touch?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>OLAP (analytical) scans and aggregations over few columns — a monthly revenue rollup reading four columns of a wide fact table. Per-column compression the layout makes possible: runs of equal values, codes for repeated strings, small deltas between numbers — each valid because the column is homogeneous. Append-heavy time series, where the row is written once and read in slices.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Transactional row-at-a-time access. A point update must find the row in every column fragment, and a row read reassembles scattered pieces, so the row stops being the unit of work. The seductive version is choosing columnar because analytics is in the future: the mix is a forecast, not a measurement, and the transactional path pays today for a report that may never be written.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Measured on real queries: few columns over many rows, whole-row reads rare, updates rare?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the layout matches the access. Record the average columns projected per query next.</li>
+<li><strong>If no</strong> → a row store serves the unit of work. Add a columnar replica for the analytical path.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the layout wrong — you’ve found incomplete domain knowledge. Log the statements for a week and count columns projected against rows touched.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#OLAP</code> <code>#StorageLayout</code> <code>#DataStructures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Analytics</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
+
+
+
+</main> <!-- /main -->
+<script src="../../toc-references.js"></script>
+<script src="../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../nav-active.js"></script>
+<script src="../../nav-tree.js"></script>
+<script src="../../scoreboard-tables.js?v=9978d08ec511"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

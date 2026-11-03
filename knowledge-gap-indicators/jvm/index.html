@@ -1,0 +1,2728 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="A series of short posts that read each JVM flag and practice as a trade between two measured numbers.">
+
+<title>JVM Tuning as Knowledge-Gap Indicators – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-18c70c2b057c62275a91729d6345f36e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="JVM Tuning as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta property="og:description" content="A series of short posts that read each JVM flag and practice as a trade between two measured numbers.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="JVM Tuning as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta name="twitter:description" content="A series of short posts that read each JVM flag and practice as a trade between two measured numbers.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../knowledge-gap-indicators/index.html" aria-current="page"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/runtimes/index.html">Kernel &amp; Runtimes</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/jvm/index.html">JVM</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software Patterns</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/substrate/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Substrate Facts</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/encoding/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Encoding Limits</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/dsa/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DSA</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/algorithms/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/data-structures/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/databases/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Databases</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/database/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Schema &amp; Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/orm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ORM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/sql/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/runtimes/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel &amp; Runtimes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/kernel-tuning/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel Tuning</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/jvm/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">JVM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/dotnet/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">.NET</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/graalvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GraalVM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/frameworks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Frameworks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/spring/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spring</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/quarkus/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quarkus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/micronaut/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Micronaut</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/vertx/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vert.x</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/rust/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/java/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/csharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/fsharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/haskell/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/unison/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/runtimes/index.html">Kernel &amp; Runtimes</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/jvm/index.html">JVM</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">JVM Tuning as Knowledge-Gap Indicators</h1>
+</div>
+
+<div>
+  <div class="description">
+    A series of short posts that read each JVM flag and practice as a trade between two measured numbers.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Every flag or practice below moves two numbers: the one it aims at, and one it did not. Each post names the flag, states the trade, and asks which measured fact of this workload answers it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="jvm">
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+</div>
+<section id="case-study-collector-choice-g1-zgc-parallel" class="level2 kg-post" hidden="true" data-slug="gc-choice-2027-07-05-jvm" data-pattern="Collector choice (G1, ZGC, Parallel)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-collector-choice-g1-zgc-parallel">Case study: Collector choice (G1, ZGC, Parallel)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> G1 is the default: it hides most collection work behind concurrent threads while keeping a young generation. Generational ZGC, default since Java 23, pushes pauses towards sub-millisecond with a barrier cost and larger headroom. Parallel GC stops everything and spends the cores on throughput.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals">The JVM knowledge gap it signals</h3>
+<p>A collector answers a pause budget the SLA states and a throughput number the peak hour carries. G1’s mixed collections land in the low hundreds of milliseconds by default, so a path with no written budget inherits that number by accident. The gap question: what is the measured pause budget you must meet, and what did throughput cost under the chosen collector at peak?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A payment path with a stated 50 ms p99.9 budget on a 6 GB live set: generational ZGC held stops under a millisecond, for a tenth of throughput against G1 in the same harness and a heap target raised from 8 GB to 12 GB. A nightly reconciliation nobody waits on stayed on Parallel, finished fastest, and counted its multi-second stops as nothing.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>ZGC everywhere, because low pauses read as strictly better. On the batch box it buys pauses nobody observes and pays the barrier tax plus headroom the limit must now cover. The mirror image is quieter: G1 at default on a user-facing path, mixed collections to 200 ms against a budget nobody wrote down, the incident blamed on the network.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured pause budget from the SLA — and what did throughput cost under the chosen collector, at peak?</strong></p>
+<ul>
+<li><strong>If yes</strong> → it answers a number you hold. Watch the pause distribution, not the mean, and re-measure after any heap change.</li>
+<li><strong>If no</strong> → you have a default, not a decision. Write the budget down, then run one harness under two collectors.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure pause distribution and work completed per collector at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#GarbageCollection</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-heap-sizing--xmx-maxrampercentage" class="level2 kg-post" hidden="true" data-slug="heap-sizing-2027-07-06-jvm" data-pattern="Heap sizing (-Xmx, MaxRAMPercentage)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-heap-sizing--xmx-maxrampercentage">Case study: Heap sizing (-Xmx, MaxRAMPercentage)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The heap flag caps the heap; the container limit caps everything the process touches. Between them sit metaspace, the code cache, GC native structures, thread stacks, and direct buffers — none of them inside -Xmx. Sizing sets that gap deliberately, or loses it to a kill.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-1">The JVM knowledge gap it signals</h3>
+<p>The live set at peak gives the heap floor; the distance from it to the limit gives headroom for bursts and the native reservation, which follows thread count, class loading, and direct buffer use. The gap question: what is the measured live set at peak, and how much of this container’s memory lives outside the heap?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A service measuring 900 MB live after a full collection at peak, bursting to 1.6 GB between collections, 40 threads in a 4 GB container: heap at 2 GB, leaving 2 GB for metaspace, code cache, stacks, and direct buffers, MaxRAMPercentage tuned against the limit rather than a bare-metal value. The load test held at 82% of the limit, no kill.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>-Xmx equal to the container limit, because the container is “the memory” and the heap is “the memory” — the arithmetic feels complete, and it passes in staging, where nothing else grows. In production the kill arrives before any collection can act. MaxRAMPercentage at 100 is the same choice in percent form. The opposite failure is quieter: native exhaustion with gigabytes of heap free, as metaspace, direct buffers, or threads grew into an unreserved gap.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured live set at peak — and how much of this container’s memory lives outside the heap?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the heap is derived from a number. Check native growth at peak and watch the headroom.</li>
+<li><strong>If no</strong> → you have a budget, not a heap size. Take the live set, add a growth factor, then subtract the native reservation.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure the live set after a forced full collection at peak, and read RSS against the limit.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Containers</code> <code>#MemoryManagement</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#CapacityPlanning</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-compact-object-headers" class="level2 kg-post" hidden="true" data-slug="compact-object-headers-2027-07-07-jvm" data-pattern="Compact object headers" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-compact-object-headers">Case study: Compact object headers</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> -XX:+UseCompactObjectHeaders, product-ready in Java 25, shrinks an object header from 16 bytes to 8. The saving lands on footprint, then on cache locality, then on collection frequency, which tracks the live set. The direct cost on a modern 64-bit JVM is negligible; the real work is measuring the migration, since some agents assume the old header layout, and vendor support still differs.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-2">The JVM knowledge gap it signals</h3>
+<p>The win is proportional to the object count in the live set, not to the heap total. A heap dominated by large primitive arrays — sample buffers, matrix rows, byte payloads — carries few headers, so the saving rounds away. The gap question: what share of the live set is object-dominated, measured, and did the heap and the collection frequency actually move?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A service holding 3.1 million live order objects with references: 2.4 GB before the flag, 2.05 GB after, in the same staging harness. Roughly 15% off the live set, young collections from 22 to 18 per minute, throughput unchanged, no tooling objection in a soak run.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Enabling it because the release notes call it free, on a service whose live set is a handful of large arrays. The flag works, the migration runs, the heap barely moves, and the team records a win it cannot reproduce under load. The cost is not the flag: it is the soak run, the agent audit, and the false confidence from quoting a benchmark built on small objects when yours holds arrays.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What share of the live set is object-dominated, measured — and did the heap and the collection frequency actually move?</strong></p>
+<ul>
+<li><strong>If yes</strong> → it answers an object-count fact you hold. Compare heap and collection rate before and after, at peak.</li>
+<li><strong>If no</strong> → the flag cannot help you, because there are too few headers to reclaim.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Take a heap histogram by class and instance count, then compare the live set with the flag on and off.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#MemoryFootprint</code> <code>#Java25</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-maxgcpausemillis-as-an-slo-knob" class="level2 kg-post" hidden="true" data-slug="maxgc-pause-millis-2027-07-08-jvm" data-pattern="MaxGCPauseMillis as an SLO knob" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-maxgcpausemillis-as-an-slo-knob">Case study: MaxGCPauseMillis as an SLO knob</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> On G1 the value is a goal, not a guarantee: the collector shrinks the young generation and collects fewer regions per mixed cycle to approach it. A smaller target means more collections, more concurrent marking, and more CPU for shorter stops. It cannot collect less than the live young generation demands.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-3">The JVM knowledge gap it signals</h3>
+<p>The number belongs to the SLA, and it must be defended against the measured distribution — the tail, not the mean. A target of 5 ms against a 100 ms budget buys nothing and costs CPU; the 200 ms default against a 50 ms budget fails silently while looking configured. The gap question: which SLA derived this target, and does the measured pause distribution meet it at what CPU cost?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A request path with a stated 100 ms p99.9 budget and a measured pause tail of 190 ms at default, given a target of 50 ms for headroom: the pause p99.9 settled at 55 ms, young collections rose from 12 to 30 per minute, and process CPU moved from 55% to 68%. The budget was met with room, the CPU rise recorded beside the win.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Setting 5 ms on G1 to obtain ZGC behavior. The reasoning holds as far as it goes — pauses are latency, latency is the complaint, so lower the pause target — and it fails on the mechanism: G1 buys shorter stops with more of them and more marking in between, so CPU rises while the tail stays where the live young generation puts it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which SLA derived this target — and does the measured pause distribution meet it, at what CPU cost?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the target encodes a number you hold. Re-read the distribution after every heap change.</li>
+<li><strong>If no</strong> → you have a wish, not a target. Derive the number from the budget, or drop the flag.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Log pause durations at peak and plot the tail before and after.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#GarbageCollection</code> <code>#SLO</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Latency</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-string-deduplication-on-g1" class="level2 kg-post" hidden="true" data-slug="string-dedup-2027-07-09-jvm" data-pattern="String deduplication on G1" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-string-deduplication-on-g1">Case study: String deduplication on G1</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> -XX:+UseStringDeduplication spends collection time hashing the backing arrays of surviving strings and pointing duplicates at one copy. It touches the character data behind each string, not the objects, and reaches only strings old enough to survive a collection. The trade is collector CPU against footprint, which moves only where duplicates exist.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-4">The JVM knowledge gap it signals</h3>
+<p>The saving equals the duplicated character bytes, a property of what the workload stores: key-heavy caches, parsed documents repeating field names, payloads carrying the same codes. A heap of numeric arrays holds little character data, so the pass finds nothing. The gap question: what share of the live set is character data in duplicated strings, measured, and could a design fix hold the dedup instead?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A parsed-document pipeline holding 200,000 records with repeated field names: character data at 1.1 GB of a 2.8 GB live set, roughly 38% duplicated. Dedup brought the live set to 2.0 GB, young collections fell with it, and collector CPU for the pass stayed under 3%.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Enabling it as a general memory optimization: it costs nothing to add and reads as strictly good. On a workload of numeric arrays it burns collector CPU scanning strings that are not there, and full collections grow longer — a small tax with no invoice. The subtler version uses it in place of a design fix: keys that should be interned, shared by construction, or replaced by enum constants stay duplicated, and the flag compresses the waste.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What share of the live set is character data in duplicated strings, measured — and could a design fix hold the dedup instead?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the pass answers a duplication fact you hold. Keep its CPU share under watch: it is paid on every collection.</li>
+<li><strong>If no</strong> → the flag cannot pay for itself. Fix the duplication where it is created, then re-measure.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Break the live set down by content type.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#StringDeduplication</code> <code>#MemoryFootprint</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-virtual-threads-waiting-made-cheap-and-only-waiting" class="level2 kg-post" hidden="true" data-slug="virtual-threads-2027-07-10-jvm" data-pattern="Virtual threads (waiting made cheap, and only waiting)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-virtual-threads-waiting-made-cheap-and-only-waiting">Case study: Virtual threads (waiting made cheap, and only waiting)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A virtual thread is a continuation the JVM mounts on carrier threads, one per CPU. Blocked on IO it unmounts and frees the carrier, so a parked request costs a heap object, not an OS thread. Final since Java 21; since Java 24 <code>synchronized</code> no longer pins the carrier it blocks on. The trade: waiting becomes cheap, computing does not, and the pool stops limiting concurrency.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-5">The JVM knowledge gap it signals</h3>
+<p>You must know the waiting-to-computing ratio here, and where its threads stop being virtual — a native call holds its carrier until it returns. You must also know what replaces the pool as the gate. The gap question: is the measured waiting of this workload IO-blocking rather than CPU — and does anything still pin a carrier thread?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An API gateway measured 92 percent of request time in downstream waits: 200 platform threads, 1,800 req/s, p99 240 ms, saturated at 210 concurrent. On virtual threads the same heap held 4,000 in-flight requests on 8 carriers — p99 90 ms, kilobytes of stack per parked request. A semaphore held 500 concurrent database calls, the number the pool could serve.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The seductive version: read “threads are cheap” and parallelize a CPU-bound job over 10,000 tasks. Nothing waits, nothing unmounts, every task holds a carrier to the end — throughput equals the carrier count. The pool then reappears as a virtual-thread “pool” capped at 500: it controls nothing, since creating one costs nothing and the semaphore was always the control.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the measured waiting of this workload IO-blocking rather than CPU — and does anything still pin a carrier thread?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the win is the waiting, and the gate is a semaphore sized from the connection pool.</li>
+<li><strong>If no</strong> → you bought heap-resident stacks for a workload that computes, and you still need the pool.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the practice wrong — you’ve found incomplete workload knowledge. Sample thread states at peak, pinning event on.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#VirtualThreads</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-thread-pool-sizing-a-number-that-states-a-claim" class="level2 kg-post" hidden="true" data-slug="thread-pool-sizing-2027-07-11-jvm" data-pattern="Thread-pool sizing (a number that states a claim)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-thread-pool-sizing-a-number-that-states-a-claim">Case study: Thread-pool sizing (a number that states a claim)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A platform thread pool carries one number, and that number asserts a task profile: on N cores, CPU-bound tasks want N threads, IO-bound tasks want N × (1 + waiting ÷ computing). The trade: the pool turns the claim into a ceiling and a queue — correct, the queue drains; wrong either way, the queue is where the damage shows.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-6">The JVM knowledge gap it signals</h3>
+<p>The formula needs two measurements of your workload, CPU time per task and waiting time per task, taken at peak hour, not the average day. It also needs the consequence of a full queue. The gap question: what is the measured CPU-to-waiting ratio of these tasks — and who sized the pool from that number?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An image service measured 12 ms of CPU and 60 ms waiting on object storage per task — a ratio of six — on 8 cores: 48 threads, a queue bounded at 200, a rejection handler returning 429. At 400 tasks/s it held p99 at 180 ms. The 32-thread pool before it ran the queue 40,000 deep at p99 9 s: same ceiling, latency in a queue no dump shows.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two shapes, both respectable. A cached pool under IO load: threads are created until the load stops, so 3,000 threads at a megabyte of stack each, and a heap that dies before the queue fills. Or 4 × cores “for IO”, applied to tasks that block on a lock: the wait ratio is real, the conclusion is not, and the queue never drains.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured CPU-to-waiting ratio of these tasks — and who sized the pool from that number?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the pool is a priced claim. Re-measure when the dependency changes, and read queue depth first.</li>
+<li><strong>If no</strong> → the number is a guess with a queue attached, which absorbs the error as latency.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the sizing wrong — you’ve found incomplete workload knowledge. Measure CPU time and wall time per task at peak, then divide.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Concurrency</code> <code>#ThreadPools</code> <code>#CapacityPlanning</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-parallel-streams-a-shared-pool-you-never-sized" class="level2 kg-post" hidden="true" data-slug="parallel-streams-2027-07-12-jvm" data-pattern="Parallel streams (a shared pool you never sized)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-parallel-streams-a-shared-pool-you-never-sized">Case study: Parallel streams (a shared pool you never sized)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> parallel() splits a stream across the JVM-wide common ForkJoinPool — seven workers on an eight-core box — and joins the results. The trade: one line buys data parallelism, spent from an account every parallel stream shares, a pool whose size and failure behaviour nobody in your code chose.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-7">The JVM knowledge gap it signals</h3>
+<p>The pool’s size is a default, its tenants are someone else’s code, and its work-stealing assumes tasks that finish on their own. You must know whether the operations are pure computation, whether the data amortizes the forking, and who else draws on the pool. The gap question: are the operations strictly CPU-bound and the data large enough to amortize forking — measured how, and who else shares this pool?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A nightly report aggregates 10 million rows through a 12 µs arithmetic transform: 120 s serial, 18 s measured across seven workers, against a 17 s ideal. Nothing else in that JVM uses parallel streams then, and the transform allocates too little to make the collector a bottleneck.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The line reads fine. Then a downstream call goes inside the stream — 80 ms against a service that is usually fast — and it parks one of seven workers. Six concurrent requests saturate the common pool, and the unrelated report sharing it measured 4 s instead of 200 ms, its stack trace saying it waited. As common and cheaper: parallel() on a hundred elements, where splitting and joining outweigh the work.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Are the operations strictly CPU-bound and the data large enough to amortize forking — measured how, and who else shares this pool?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the common pool is adequate, while nothing blocking enters the stream.</li>
+<li><strong>If no</strong> → you are spending a shared resource on work that does not repay it. Use a sequential stream, or a pool you own.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found parallel streams wrong — you’ve found incomplete workload knowledge. Time the serial loop, then the parallel one, at your real element count.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#ParallelStreams</code> <code>#ForkJoinPool</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-scopedvalue-context-with-a-visible-lifetime" class="level2 kg-post" hidden="true" data-slug="scoped-values-2027-07-13-jvm" data-pattern="ScopedValue (context with a visible lifetime)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-scopedvalue-context-with-a-visible-lifetime">Case study: ScopedValue (context with a visible lifetime)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A ScopedValue binds a value for the dynamic extent of a block — <code>ScopedValue.where(TENANT, t).run(...)</code> — readable inside, gone on return. Final in Java 25. The trade: you give up a mutable per-thread slot that survives until someone removes it, for cleanup that cannot be forgotten and inheritance from a task scope, still a preview in 25.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-8">The JVM knowledge gap it signals</h3>
+<p>The question is not which API is newer; it is whether the context is immutable for the request’s life — mutate it downstream and the scoped version cannot express that. You must also know who owns the boundary: a value bound in the wrong scope is invisible where needed. The gap question: which context values are effectively immutable — and who guarantees the cleanup that ScopedValue makes structural?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A service carries tenant, actor, and trace id four levels down into a data layer that reads them without an argument in any signature. On virtual threads at 4,000 concurrent requests it binds once at the edge and reads everywhere inside, with no remove() on nine exit paths. It measured no faster: the win is that handlers nobody wrote a cleanup for are correct.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>ThreadLocal keeps working, which is the trap. A forgotten remove() lands on a reused platform thread, and the next task inherits the tenant — a defect that shows in logs, not in tests, which start fresh threads. Then the invisible-parameter variant: a method needing the user id takes no argument for it, so the dependency hides in every signature.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which context values are effectively immutable — and who guarantees the cleanup that ScopedValue makes structural?</strong></p>
+<ul>
+<li><strong>If yes</strong> → bind them at the boundary of the work, and delete the remove() calls that guarded them.</li>
+<li><strong>If no</strong> → the context is mutable by design, and no scoping API fixes that; find the mutation.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found ThreadLocal wrong — you’ve found incomplete workload knowledge. List every thread-local the path sets, and where each is cleared.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#ScopedValue</code> <code>#ThreadLocal</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-container-cpu-detection-one-number-many-consumers" class="level2 kg-post" hidden="true" data-slug="container-cpu-2027-07-14-jvm" data-pattern="Container CPU detection (one number, many consumers)" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-container-cpu-detection-one-number-many-consumers">Case study: Container CPU detection (one number, many consumers)</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The JVM reads the container’s CPU allowance at startup and publishes it through Runtime.availableProcessors(). GC threads, concurrent marking threads, the common ForkJoinPool, and the JIT compiler threads all size from that number. The trade: right-sizing when detection is right, correlated over-allocation when it is wrong.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-9">The JVM knowledge gap it signals</h3>
+<p>You must know which number the runtime sees, which number the quota grants, and which of your settings came from it. Detection reads quotas and shares by rules that vary across cgroup versions: confirm it, do not trust it. The gap question: how many CPUs does the runtime actually see — and do the GC and ForkJoin thread counts agree with the quota rather than the host?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A worker under a two-CPU quota reported availableProcessors 2: two parallel GC threads, common-pool parallelism 1, heap 1 GB, p99 collection pause 40 ms. Where detection returned 64 — shares set, no quota — the same worker ran 42 parallel GC threads inside two CPUs and spent 30 percent of its quota collecting. Setting ActiveProcessorCount=2 took that to 4 percent.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Latency rises, so heap is raised — the lever everyone trusts. Sixteen GC threads then share two CPUs, the collection has more heap to walk, and the pause grows, so the fix makes the symptom a memory problem for a quarter. The quieter variant: a ForkJoin pool of sixteen on the same two CPUs, matched to the host it was born on — sixteen workers for a quota that schedules two.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How many CPUs does the runtime actually see — and do the GC and ForkJoin thread counts agree with the quota rather than the host?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the sizing chain is consistent, while quota and detection agree.</li>
+<li><strong>If no</strong> → every derived count is wrong at once. Set the count deliberately, then re-measure the collection share.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Print the flag values at startup, then compare them with the quota.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Containers</code> <code>#Kubernetes</code> <code>#GarbageCollection</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-aot-cache-and-ahead-of-time-compilation" class="level2 kg-post" hidden="true" data-slug="aot-startup-2027-07-15-jvm" data-pattern="AOT cache and ahead-of-time compilation" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-aot-cache-and-ahead-of-time-compilation">Case study: AOT cache and ahead-of-time compilation</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An AOT cache and ahead-of-time method compilation (Java 24–25, the Leyden work) move class loading, linking, and some code generation into the build: run the application once, record what it touched, ship what was learned. The trade is a training run and a cache artifact as build inputs, against code that never gets as hot as C2 would make it.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-10">The JVM knowledge gap it signals</h3>
+<p>Two facts decide this, and teams rarely hold either: how long the process lives, as a distribution not a mean, and where the steady-state cost surfaces — p50 means every request pays it, p99 means only the saturated tail does. The gap question: what share of this process’s life is measured as startup-to-useful-work — and where does AOT’s steady-state cost land, p50 or only p99?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Serverless handlers, command-line tools, short batch jobs: anywhere startup was measured at most of the process’s life. One team shipped a trained cache for a webhook handler and cut startup to first request from 1.4 s to 240 ms, because the linking that request needed had happened at build time.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The same cache shipped to a service that runs for weeks. Startup improves by a figure nobody disputes, and the regression surfaces as a fatter right tail on the busiest nodes, months later, blamed on the release after. The training run is the seductive part: a real measurement, taken once, against an artifact changed twice since — profiling a program that no longer exists.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What share of this process’s life is measured as startup-to-useful-work — and where does AOT’s steady-state cost land: p50, or only p99?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the trade is cheap. Rebuild the training run in CI on every release.</li>
+<li><strong>If no</strong> → throughput was traded for noise. Measure sustained throughput with and without the cache.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Measure the lifetime distribution, then p50 and p99 at steady load.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#AOT</code> <code>#Startup</code> <code>#Leyden</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-jmh-and-the-discipline-of-measurement" class="level2 kg-post" hidden="true" data-slug="jmh-2027-07-16-jvm" data-pattern="JMH and the discipline of measurement" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-jmh-and-the-discipline-of-measurement">Case study: JMH and the discipline of measurement</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> JMH runs warmup iterations, then measurement iterations, in forked JVMs, consumes every result through a black hole so the compiler cannot delete the work, and reports a confidence interval instead of a number. The trade is time and care — minutes per benchmark, code written for the harness rather than the product — against an answer that survives production.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-11">The JVM knowledge gap it signals</h3>
+<p>Three facts about the measurement, not the code: whether steady state was reached before counting began, whether the timed work still existed after optimization, and whether variance between runs is smaller than the effect claimed. Without warmup you measure the interpreter’s first steps; with one fork you measure that fork’s luck. The gap question: was this “faster” claim measured with warmup, several forks, and dead-code control — or did it feel faster?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Any decision that changes a hot path, or that will be argued in a design review. One team kept a serialization library only after measuring both: warmup discarded, five forks, a GC profiler attached, a 12% throughput gain whose confidence interval did not cross zero.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The plain main() with nanoTime around it, seductive because it looks honest: a real JVM, real input, real elapsed time. Three things vanish. Dead code — the result is never read, so the computation goes. Warmup — early iterations are interpreted, so two programs’ opening steps are compared. Fork isolation — one run in one JVM becomes the number in the ticket, carried into a migration nobody benchmarked.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Was this “faster” claim measured with warmup, several forks, and dead-code control — or did it feel faster?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the number is an estimate with a range. Compare it to the effect size.</li>
+<li><strong>If no</strong> → it is not a measurement, it is an anecdote with units. Re-run it under a harness before it hardens into code.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Rewrite the benchmark in JMH with warmup, three forks, and a profiler.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#JMH</code> <code>#Benchmarking</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-java-flight-recorder-left-on" class="level2 kg-post" hidden="true" data-slug="jfr-2027-07-17-jvm" data-pattern="Java Flight Recorder, left on" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-java-flight-recorder-left-on">Case study: Java Flight Recorder, left on</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> JFR records runtime events — allocation, GC pauses, lock contention, code cache occupancy — into a bounded ring buffer, and it can stay enabled in production. The trade is a measured cost near one percent, plus storage discipline, against no evidence at the moment the anomaly arrives.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-12">The JVM knowledge gap it signals</h3>
+<p>Whether the question you will ask at 3 a.m. is answerable from events the runtime already emits, and what always-on costs on this workload. One percent is a measurement, not a law: allocation-heavy services pay more. The gap question: can tonight’s anomaly be answered from recordings — and what does always-on cost, measured on this workload?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A payments service kept a continuous recording at the default profile and measured 1.1% of CPU with no shift in p99. A nightly batch degraded three weeks later and the recording answered it from one file: allocation pressure in a single code path, a wrapper object built per row, inside the exact forty seconds everyone had argued about.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two failures that look like opposites. “Enabled for emergencies only” sounds prudent, but the emergency is when no data exists, so the incident is argued from theory and the postmortem concludes “likely GC” without one allocation event. The other wears a lab coat: every event at maximum detail on the busiest nodes, until the observer effect is real and the team blames the release for the slowdown the configuration caused. Both are one gap: nobody measured observability’s cost on the workload carrying it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can tonight’s anomaly be answered from recordings — and what does always-on cost, measured on this workload?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the evidence exists before the question does. Check retention and that files survive the node.</li>
+<li><strong>If no</strong> → the incident will be reconstructed from memory. Enable a bounded recording now.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Measure p99 and CPU with the recording on and off at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#JFR</code> <code>#Observability</code> <code>#Production</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-code-cache-and-its-eviction" class="level2 kg-post" hidden="true" data-slug="code-cache-2027-07-18-jvm" data-pattern="The code cache and its eviction" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-the-code-cache-and-its-eviction">Case study: The code cache and its eviction</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The JVM reserves a bounded region for JIT-compiled code, sized by ReservedCodeCacheSize. When it fills, the runtime sweeps and frees compiled methods; if nothing can be freed, compilation stops and the affected methods run interpreted — an order of magnitude slower, no exception. The trade is memory reserved for compiled code against a silent ceiling.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-13">The JVM knowledge gap it signals</h3>
+<p>Two facts: how fast this workload’s compiled-code footprint grows, and whether growth is bounded or continuous. A steady application plateaus; one that generates classes at runtime — proxies, lambda forms, script engines — climbs until it hits the ceiling. The gap question: what is the measured fill trend of the code cache — and when it fills, does an alert fire or does silence fall?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A long-running application where the footprint was charted before the flag was touched: occupancy over a week, a slow rise at peak hours, a plateau under the default. The size was raised deliberately, fill curve in hand, kept as a dashboard so the next rise is a signal, not a surprise.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The value copied from a tuning guide, doubled to be safe. It removes the symptom and keeps the cause: if occupancy climbed because a library generates a class per request, a bigger ceiling buys weeks and arrives at the same cliff, further from the change that caused it. The quieter failure: hot methods fall back to the interpreter on a hot deployment, latency doubles, and the only symptom is a slow afternoon until someone reads occupancy. Nothing alerts — nobody decided a full cache was worth watching.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured fill trend of the code cache — and when it fills, does an alert fire or does silence fall?</strong></p>
+<ul>
+<li><strong>If yes</strong> → you know the slope and the ceiling. Watch the slope; a change in it is the finding.</li>
+<li><strong>If no</strong> → a latency cliff with no instrument. Chart occupancy, find what generates classes.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete workload knowledge. Sample occupancy across a week, including a redeploy.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#JIT</code> <code>#CodeCache</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-records-and-sealed-hierarchies" class="level2 kg-post" hidden="true" data-slug="records-sealed-2027-07-19-jvm" data-pattern="Records and sealed hierarchies" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-records-and-sealed-hierarchies">Case study: Records and sealed hierarchies</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A record states the type is a transparent carrier of its components: final fields, accessors, equals and hashCode from them. A sealed hierarchy states its implementations are a closed set, and an exhaustive switch turns a missing case into a compile error. The trade is two claims — value and closure — checked at compile time, against the flexibility classes grant.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-14" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-14">The JVM knowledge gap it signals</h3>
+<p>Whether the domain makes those claims. A record is wrong when identity or mutation is part of the meaning; a sealed type when someone outside the module legitimately adds a case. Each is a statement about the domain, enforced by the compiler in every consumer. The gap question: is this set genuinely closed by the domain — and does the next variant break compilation everywhere, or break production somewhere?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A payment state machine as a sealed interface with one record per state. Adding a state was a compile error in every consumer: eleven files, named in one build. The switch turned a production incident into a failing branch before anything shipped.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Sealing a set the domain left open: a plugin interface, an extension point, a hierarchy the test suite stubs. It compiles beautifully, then a case arrives the author never imagined, and the closed-set claim is exposed as a convenience — with an escape hatch worse than the interface it replaced. Records fail from the inside: a record holding a List is only as immutable as the list, so a caller mutates the component and the hashCode the map keyed on shifts.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this set genuinely closed by the domain — and does the next variant break compilation everywhere, or break production somewhere?</strong></p>
+<ul>
+<li><strong>If yes</strong> → seal it and let the exhaustive switch carry it. The compiler finds the missing case.</li>
+<li><strong>If no</strong> → the set is open. Keep the interface open and test the default path.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete domain knowledge. List who may add a case, then whether the value is ever mutated.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Records</code> <code>#SealedTypes</code> <code>#PatternMatching</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-foreign-function-memory-final-since-java-22" class="level2 kg-post" hidden="true" data-slug="ffi-2027-07-20-jvm" data-pattern="Foreign Function &amp; Memory, final since Java 22" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-foreign-function-memory-final-since-java-22">Case study: Foreign Function &amp; Memory, final since Java 22</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The Foreign Function &amp; Memory API calls native code through a method handle bound to a linker and manages native memory as segments whose lifetimes follow an Arena. The trade is managed safety — a segment cannot outlive its arena, no hand-written glue to get wrong — against a per-crossing cost JNI does not pay the same way and no API removes.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-15" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-15">The JVM knowledge gap it signals</h3>
+<p>The deciding fact is a frequency: how often control leaves the JVM per unit of work. A thousand crossings of a 200 ns function are dominated by the boundary; one crossing per 10 MB buffer is not. Safety is priced per crossing too. The gap question: how often does control cross this boundary, measured — and does each crossing pay for the safety it buys?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An image pipeline crossing once per tile: a segment over an arena-confined buffer, one downcall per 4,000-element block, results read back through the same segment. Crossing frequency was counted before the rewrite, about 250 per second, so the boundary budget was under a millisecond per second of work.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>JNI kept because it was always there, around a library that blocks inside a native call — and that call pins its carrier thread for the duration, invisible until the service moves to virtual threads and the scheduler runs out of carriers. The seductive opposite: FFM adopted, then called once per element in a tight loop, where crossing cost dominates what the native code saves. The fix is batching, which nobody measured for.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How often does control cross this boundary, measured — and does each crossing pay for the safety it buys?</strong></p>
+<ul>
+<li><strong>If yes</strong> → batch it and keep the managed boundary. Count crossings again after the rewrite.</li>
+<li><strong>If no</strong> → the boundary is the cost centre. Move the loop into native code, or amortize it over a buffer.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Count crossings per request and per second at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#FFM</code> <code>#JNI</code> <code>#VirtualThreads</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-compressed-oops-and-the-32-gb-boundary" class="level2 kg-post" hidden="true" data-slug="compressed-oops-2027-07-21-jvm" data-pattern="Compressed oops and the 32 GB boundary" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-compressed-oops-and-the-32-gb-boundary">Case study: Compressed oops and the 32 GB boundary</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Below roughly 32 GB of heap, HotSpot stores a reference in 4 bytes instead of 8, scaling by object alignment so the short form still spans the heap — compressed oops, default since Java 6u23. At or above the boundary the scaling fails, references widen, and every object holding one grows. The trade is pointer width against reach: more addressable memory, less of it usable.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-16" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-16">The JVM knowledge gap it signals</h3>
+<p>What matters is objects reachable per gigabyte, a ratio set by how many references each live object carries. Small nodes with many fields pay nearly double to cross; large byte arrays barely notice, since their bytes are not references. The gap question: which side of the boundary is this heap on — and did capacity per GB move the day it crossed?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A cache team counted entries against heap used: 4.2 million fit at 28 GB, so it held there and ran three smaller JVMs instead of one large one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Memory pressure — add heap.” The 31 GB box becomes 40 GB, the flag stays default, and the work is declared done because the alert stopped. Underneath, references widened, pointer-heavy objects inflated, promotion rose, and the collector does more work per gigabyte while holding a smaller live set. Pressure returns; someone proposes more heap. The seductive part is that the change did help — a heap near its ceiling always does — so the story writes itself backwards.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which side of the boundary is this heap on — and did capacity per GB move the day it crossed?</strong></p>
+<ul>
+<li><strong>If yes</strong> → you can size deliberately: stay under it and scale out, or accept the widening for the reach.</li>
+<li><strong>If no</strong> → the resize was arithmetic on a number you never measured. Compare entries per gigabyte before and after.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure objects reachable per GB, then read the effective oop mode on a live process.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#HeapSizing</code> <code>#GarbageCollection</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-g1-humongous-objects" class="level2 kg-post" hidden="true" data-slug="g1-humongous-2027-07-22-jvm" data-pattern="G1 humongous objects" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-g1-humongous-objects">Case study: G1 humongous objects</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> G1 splits the heap into fixed power-of-two regions, derived from the heap, between 1 MB and 32 MB. An allocation at or above half the region size is humongous: it lands in contiguous regions and skips the young generation’s copying path. The trade is speed through the young path against contiguity.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-17" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-17">The JVM knowledge gap it signals</h3>
+<p>The allocation-size distribution is the fact; the flag is not. You must know your largest allocations, how they die, and what region size your heap implies — the same 2 MB buffer is ordinary on a 64 MB region and humongous on a 2 MB one. The gap question: what is the measured allocation-size distribution against the region size — and who owns the giant arrays?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A document service profiled its allocations: 99.9 percent under 4 KB, plus a 3 MB paging buffer. Raising the region size to 8 MB would stop it being humongous; splitting it into 64 KB pages removed it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A request handler allocates a 2 MB byte array per call on a 4 GB heap — 2 MB regions, so every array is humongous. Hundreds arrive each second and die at once, but their regions wait for a cycle a mostly-young workload rarely triggers. The old generation fills with dead giants, the next large allocation finds no contiguous run, and the failure reads as heap exhaustion. The team adds heap, the symptom eases, and they credit the memory — but region size derives from the heap, so the regions grew and the objects stopped being humongous.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured allocation-size distribution against the region size — and who owns the giant arrays?</strong></p>
+<ul>
+<li><strong>If yes</strong> → you can choose knowingly: larger regions, fewer giants, or a paged design that removes them.</li>
+<li><strong>If no</strong> → every large allocation is a lottery ticket on fragmentation. Profile the sizes, then decide who changes.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found G1 wrong — you’ve found incomplete workload knowledge. Histogram allocation sizes, then compute the region size your heap implies.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#G1</code> <code>#GarbageCollection</code> <code>#Allocation</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-direct-buffers-and--xxmaxdirectmemorysize" class="level2 kg-post" hidden="true" data-slug="maxdirect-memory-2027-07-23-jvm" data-pattern="Direct buffers and -XX:MaxDirectMemorySize" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-direct-buffers-and--xxmaxdirectmemorysize">Case study: Direct buffers and -XX:MaxDirectMemorySize</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> ByteBuffer.allocateDirect returns a buffer whose bytes live outside the heap, in memory the collector does not trace. It exists for one reason: to hand an address to the operating system — socket, file, TLS — without a copy. -XX:MaxDirectMemorySize caps the total, defaulting to roughly the maximum heap. The trade is a copy saved against memory the collector learns about only through a Cleaner.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-18" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-18">The JVM knowledge gap it signals</h3>
+<p>The deciding facts are how many bytes per second must reach native code, and how long each buffer lives. A buffer allocated per message pays malloc and a Cleaner registration per message; a pooled buffer pays neither while traffic lasts. And because the default cap derives from -Xmx, raising the heap silently raises the off-heap ceiling too. The gap question: how many off-heap bytes per second does this workload allocate, measured — and what frees them?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A gateway writes every response to a socket. Buffers are pooled and sized once at startup, direct memory is capped explicitly, and allocation profiling shows the count flat after warm-up. Bytes per second never fell; allocations per second went to zero.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Off-heap is faster, so move the cache off-heap.” A 4 GB cache in direct buffers, allocated on demand, no cap set — and the collector can release a buffer only when it runs, so the memory moved out of the heap is still reclaimed by the heap collector. When the process dies, the dump is nearly empty and the alert names a heap that is not the problem.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How many off-heap bytes per second does this workload allocate, measured — and what frees them?</strong></p>
+<ul>
+<li><strong>If yes</strong> → pool the buffers, cap direct memory explicitly, and keep the copy you saved.</li>
+<li><strong>If no</strong> → direct memory buys what the heap was not paying for. Measure allocation rate off-heap, not heap occupancy.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Read native memory tracking against the container limit at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#DirectMemory</code> <code>#OffHeap</code> <code>#ByteBuffer</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-system.gc-and--xxdisableexplicitgc" class="level2 kg-post" hidden="true" data-slug="disable-explicit-gc-2027-07-24-jvm" data-pattern="System.gc() and -XX:+DisableExplicitGC" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-system.gc-and--xxdisableexplicitgc">Case study: System.gc() and -XX:+DisableExplicitGC</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> System.gc() is a suggestion, not an instruction. HotSpot answers it with a stop-the-world full collection by default; -XX:+ExplicitGCInvokesConcurrent makes that collection concurrent, and -XX:+DisableExplicitGC makes the call a no-op. The trade is timing: the collector schedules from occupancy and a pause budget, while an explicit call overrides that judgement with a caller’s guess about when memory should be returned.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-19" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-19">The JVM knowledge gap it signals</h3>
+<p>The fact to establish is what the call releases. Some resources free themselves only when a collection runs: direct buffers behind their Cleaner, the distributed garbage collector of RMI, some unmapped-file releases. So disabling explicit collection removes a release path together with the pause. The gap question: name what this call releases, measured — and what breaks if it never happens?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A nightly import calls it once, between phases, where no request is in flight. Measured before adoption: the pause is 1.2 seconds, each phase runs 40 seconds, and the intent is to keep the previous phase’s garbage out of the next phase’s budget. One call, at a boundary someone chose.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A library calls System.gc() after closing a mapped file, and the call is copied into a service that maps nothing. The team then disables explicit collection to remove a 400 ms pause — and silences the call the library depended on, so a resource that was released by force now waits for whatever collection happens next, or for none if the heap never fills. A global no-op is not a fix for one bad call site.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What does this call release, measured — and what breaks if it never happens?</strong></p>
+<ul>
+<li><strong>If yes</strong> → keep it, at a chosen boundary, and log when it fires.</li>
+<li><strong>If no</strong> → remove the call site, not the mechanism, and let the collector schedule.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete resource knowledge. Track allocation and free rates for direct buffers and file mappings before touching the flag.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#GarbageCollection</code> <code>#SystemGC</code> <code>#ResourceManagement</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study--xxheapdumponoutofmemoryerror-and-heapdumppath" class="level2 kg-post" hidden="true" data-slug="heap-dump-on-oome-2027-07-25-jvm" data-pattern="-XX:+HeapDumpOnOutOfMemoryError and HeapDumpPath" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study--xxheapdumponoutofmemoryerror-and-heapdumppath">Case study: -XX:+HeapDumpOnOutOfMemoryError and HeapDumpPath</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> When a memory pool is exhausted the JVM can write the live object graph to an HPROF file before it dies: -XX:+HeapDumpOnOutOfMemoryError enables the write, -XX:HeapDumpPath names the file or directory, and the process dumps then exits. The trade is a file the size of the heap, written at the worst possible moment, against the only snapshot of the state that failed.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-20" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-20">The JVM knowledge gap it signals</h3>
+<p>The flag is a few characters; the obligation is a reader, a volume, and a retention rule. A 30 GB heap writes up to 30 GB in tens of seconds to minutes, into whatever filesystem the path names — often the ephemeral layer of a container, which then fills. The file also holds every string that was in memory, credentials included. The gap question: who opens this dump, and is there room to write it where it lands?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A 4 GB heap, the path on a mounted volume with a retention rule, and a triage step that opens the newest dump in an analyser. Three OOMs produced three dumps, and one of them named the leak. The flag cost nothing because the reader and the disk existed first.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Flag on, path left at the default inside a pod with a 10 GB ephemeral disk. The dump fills it, the kubelet evicts the pod, and the dump is deleted with the pod — while the team concludes the flag does not work. The seductive part: it did work. It wrote the file, and the file was thrown away by the platform.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Who opens this dump, and is there room to write it where it lands?</strong></p>
+<ul>
+<li><strong>If yes</strong> → keep it on, keep the path on durable storage, and set a retention rule.</li>
+<li><strong>If no</strong> → the dump is a file nobody reads. Fix the path and the reader first, then enable.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete operational knowledge. Check free space at the mount, and whether the kill is even a heap OOM.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#HeapDump</code> <code>#OutOfMemoryError</code> <code>#Observability</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study--xxalwayspretouch" class="level2 kg-post" hidden="true" data-slug="always-pretouch-2027-07-26-jvm" data-pattern="-XX:+AlwaysPreTouch" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study--xxalwayspretouch">Case study: -XX:+AlwaysPreTouch</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The JVM reserves the heap as virtual address space and commits pages only as objects touch them, so a 40 GB heap is cheap until it is used. -XX:+AlwaysPreTouch walks the whole heap at startup and writes to every page, forcing the kernel to map frames now. The trade is paid before the first request: a longer startup and a resident set equal to the heap, against page faults and kernel zeroing spread across live traffic.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-21" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-21">The JVM knowledge gap it signals</h3>
+<p>The fact that decides it is how long the ramp lasts. A service that reaches steady state in seconds amortizes a one-time cost; one that grows for an hour pays faults while serving. Pre-touch also makes commitment visible: a heap larger than the container limit fails at startup instead of being killed at peak. The gap question: how long until this heap reaches steady state, measured — and does the container limit allow the whole heap to be committed up front?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A batch aggregator with a 40 GB heap and a load phase that fills it at once. Pre-touch adds 40 seconds before the job, resident memory equals -Xmx from the first second, and the load phase runs without a page fault. The cost is outside the measured phase and the benefit is inside it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>-Xmx64g inside a 32 GB container. Pre-touch commits all of it at startup, the kernel sees the limit, and the process is killed before it logs anything. The lazy version would have died later, so nothing was lost — except the diagnosis, which is now a startup crash nobody can explain.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How long until this heap reaches steady state, measured — and does the container limit allow the whole heap to be committed up front?</strong></p>
+<ul>
+<li><strong>If yes</strong> → enable it, and keep the ramp inside a phase you already budget for.</li>
+<li><strong>If no</strong> → the walk is a tax on a heap that never grows. Leave the pages lazy.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete workload knowledge. Plot resident memory against time after startup, and compare it with the container limit.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Startup</code> <code>#MemoryManagement</code> <code>#AlwaysPreTouch</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-escape-analysis-and-scalar-replacement" class="level2 kg-post" hidden="true" data-slug="escape-analysis-2027-07-27-jvm" data-pattern="Escape analysis and scalar replacement" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-escape-analysis-and-scalar-replacement">Case study: Escape analysis and scalar replacement</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> HotSpot asks whether an object can be reached outside the method or thread that allocated it. Where it proves the object local, the compiler dissolves it into registers and stack slots — scalar replacement — and the allocation disappears. The trade: objects proven local become free; everything else keeps a real allocation plus the analysis spent on it.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-22" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-22">The JVM knowledge gap it signals</h3>
+<p>The analysis gives up on what real code makes: objects stored in a field, returned, or captured by a lambda that outlives the call. So the team must know which of its references escape by construction. The gap question: which allocations actually escape — checked how — and is there a pool maintaining objects the JIT would have erased?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A pricing step builds a small value object per line item, 300,000 per batch, with a collection every 30 seconds. Nothing stores a reference past the method. Once the object is final, small, and out of every field, allocation on that path falls by most of its volume and collections space to 90 seconds.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The object pool. It sounds responsible: bounded, reused, sparing the collector. But a pooled object lives in a field, so the analysis proves it escapes and every instance is traced for the life of the process. The team buys reset bugs and concurrency defects to avoid allocations that were free. One virtual call on the hot path makes the call site megamorphic, inlining stops, and the erased objects return as garbage.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which allocations actually escape — checked how — and is there a pool maintaining objects the JIT would have erased?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the shape is right. Keep objects small, final, and out of fields, and re-profile when a call site changes.</li>
+<li><strong>If no</strong> → measure before moving code: allocation profiling per call site, and what the pool retains.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Record the allocation rate, the collection interval, and the survival share.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#EscapeAnalysis</code> <code>#Allocation</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-tiered-compilation-c1-and-c2" class="level2 kg-post" hidden="true" data-slug="tiered-startup-2027-07-28-jvm" data-pattern="Tiered compilation, C1 and C2" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-tiered-compilation-c1-and-c2">Case study: Tiered compilation, C1 and C2</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Tiered compilation, the default since Java 8, runs two compilers: C1 compiles fast with light optimization, C2 compiles slowly and optimizes hard, and a method climbs as it proves hot. -XX:TieredStopAtLevel=1 stops the climb at C1. The trade: compile time during startup against peak throughput for the rest of the process’s life, with that lifetime as the exchange rate.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-23" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-23">The JVM knowledge gap it signals</h3>
+<p>Whether the exchange is good is a fact about the process, not the JVM: how long it runs, how much is warmup, and whether steady state arrives before exit. A service alive for a week amortizes every C2 compile to nothing; a command-line tool finishing in seconds never collects the payoff. The gap question: what is the measured lifetime of this process — and does steady state ever arrive before it exits?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A code-generation step in CI, measured at 4.2 seconds wall clock, 38% of it in compilation. C1 only: 2.9 seconds, identical output, no throughput requirement beyond finishing. It runs 400 times an hour, so the saving compounds.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The flag copied from a build-tool tuning guide onto a long-running service. It arrives with plausible provenance, it improves a startup dashboard nobody reads twice, and its cost shows nowhere: peak throughput drops a few percent, latency at saturation rises, and because nothing was measured beforehand, nothing looks wrong. A competent engineer makes this move, because the flag was correct where they found it. The transport was the error, not the reasoning.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured lifetime of this process — and does steady state ever arrive before it exits?</strong></p>
+<ul>
+<li><strong>If yes</strong> → stop at C1, and confirm no path here depends on compiled-code peak performance.</li>
+<li><strong>If no</strong> → the default tiers are the right shape. Attack startup by doing less work, not by refusing to optimize.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure the lifetime distribution and the share spent before hot methods reach C2.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#TieredCompilation</code> <code>#JIT</code> <code>#StartupTime</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-class-data-sharing-application-classes-from-java-10" class="level2 kg-post" hidden="true" data-slug="cds-startup-2027-07-29-jvm" data-pattern="Class Data Sharing, application classes from Java 10" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-class-data-sharing-application-classes-from-java-10">Case study: Class Data Sharing, application classes from Java 10</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Class Data Sharing writes pre-parsed class metadata into an archive the JVM maps read-only, so the page cache and co-located processes share one copy. Application Class Data Sharing (Java 10) covers application classes; the dynamic archive (Java 13) records what a training run loaded, so no class list needs maintaining. The trade: startup work leaves every process, against a snapshot — change the application and it stops matching, quietly.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-24" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-24">The JVM knowledge gap it signals</h3>
+<p>The payoff is a share, not a boolean: how much of this startup is class loading, measured, and how many JVMs on one host load the same classes. A short-lived process gains little; a host running eight gains both. The archive also needs an owner in the build. The gap question: what share of startup is class loading, measured — and who regenerates the archive when the application changes?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An 11/17 fleet starting 300 times a day, class loading at 38% of startup by profile. The dynamic archive ships with the artifact: startup falls from 3.4 to 2.2 seconds. Regeneration is a build step, so the archive cannot go stale.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two ways to get this wrong, both reasonable. The archive dumped once and never again: a framework upgrade changes the class set, the archive serves what it still matches, the rest loads the old way, and the team concludes sharing does not work here. Or the practice dismissed as obsolete because the newest JDK ships ahead-of-time cache work — on a fleet that cannot leave 11.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What share of startup is class loading, measured — and who regenerates the archive when the application changes?</strong></p>
+<ul>
+<li><strong>If yes</strong> → ship the archive from the build, and treat regeneration as a build step.</li>
+<li><strong>If no</strong> → class loading is not your startup. Profile what is before adding a file to the deployment.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mechanism wrong — you’ve found incomplete workload knowledge. Measure startup phases, and count the JVMs per host.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#ClassDataSharing</code> <code>#AppCDS</code> <code>#StartupTime</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-biased-locking-gone-since-java-15" class="level2 kg-post" hidden="true" data-slug="biased-locking-2027-07-30-jvm" data-pattern="Biased locking, gone since Java 15" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-biased-locking-gone-since-java-15">Case study: Biased locking, gone since Java 15</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Biased locking assumed most monitors are taken by one thread for their whole life, so the first acquisition recorded that owner in the object header and later ones by the same thread skipped the atomic compare-and-swap. A second thread revoked the bias — a stop-the-world operation to walk and repair stacks. The trade: uncontended acquisition approaches free, against revocation stalls. Java 15 disabled it by default; later releases removed the implementation.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-25" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-25">The JVM knowledge gap it signals</h3>
+<p>It paid off under conditions to verify, not assume: one owner, no second thread arriving, thousands of acquisitions a second, and a JDK where the code exists. Two are workload facts, one a fleet fact. The gap question: which JDK does this fleet actually run — and would anyone notice the flag being ignored?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The honest case is from the era it served: a shared map touched by one thread tens of thousands of times per second, uncontended, proven by thread dumps showing one owner and no blocked time. On Java 8 that is the shape it was built for.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The tuning guide, still in the repository, still shipping -XX:+UseBiasedLocking to fleets on 17 and 21. The launcher accepts it silently, the mechanism is absent, so the change does nothing and the startup script reads as tuned. The worse outcome is the diagnosis: latency blamed on revocation on a JDK with no bias left to revoke — a plausible cause that closes the investigation before anyone reads the safepoint log. The guide never had a version column.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which JDK does this fleet actually run — and would anyone notice the flag being ignored?</strong></p>
+<ul>
+<li><strong>If yes</strong> → check the flag does what the guide claims on that exact version, and delete it elsewhere.</li>
+<li><strong>If no</strong> → the mechanism is gone; the latency has another cause. Read the safepoint log for what stalls threads.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete fleet knowledge. Inventory JDKs per environment, then test one change.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#BiasedLocking</code> <code>#Locking</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-concurrent-mark-sweep-removed-in-java-14" class="level2 kg-post" hidden="true" data-slug="cms-legacy-2027-07-31-jvm" data-pattern="Concurrent Mark Sweep, removed in Java 14" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-concurrent-mark-sweep-removed-in-java-14">Case study: Concurrent Mark Sweep, removed in Java 14</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> CMS marked and swept while the application ran, so pauses were short — and it never compacted. Free space fragmented, a large allocation failed, and the fallback was a single-threaded full collection with compaction: the debt paid at once, or a concurrent mode failure that stopped everything. The trade: short pauses now, against fragmentation that picks when the long pause comes. Deprecated in Java 9, removed in Java 14.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-26" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-26">The JVM knowledge gap it signals</h3>
+<p>What the team must know is a trend, not an average: pause length between compactions, the promotion rate driving fragmentation, and the JDK the fleet runs in three years. A collector chosen for its pauses is chosen for a shape of heap use; a workload churning large objects breaks it. The gap question: is this fleet on a JDK where CMS still exists — and what is the measured trend of pause length between its compactions?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The Java 8 latency service CMS genuinely served: a 400 ms pause target met at p99, tenuring tuned by measurement, fragmentation bounded by a derived heap size, an upgrade scheduled, not assumed.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The fleet stays on the old JDK because the collector works fine. Each full collection is a few percent longer than the last, so no single event looks like a problem; the average stays flat while the tail grows. The runbook still recommends flags of a collector removed in Java 14; new services copy them until startup fails. The reasoning was sound when written; only the calendar moved.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this fleet on a JDK where CMS still exists — and what is the measured trend of pause length between its compactions?</strong></p>
+<ul>
+<li><strong>If yes</strong> → track pause trend and fragmentation, with a dated plan to leave the collector.</li>
+<li><strong>If no</strong> → the flags are inert or fatal. Measure the pause distribution under the collector you run; re-derive heap size.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the collector wrong — you’ve found incomplete workload knowledge. Record the JDK per environment and the last ten full-collection pauses.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#GarbageCollection</code> <code>#CMS</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-safepoints-and-time-to-safepoint" class="level2 kg-post" hidden="true" data-slug="safepoints-2027-08-01-jvm" data-pattern="Safepoints and time-to-safepoint" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-safepoints-and-time-to-safepoint">Case study: Safepoints and time-to-safepoint</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> To collect, the JVM stops every thread at a safepoint, a point where its state is known. That stop has two parts: the wait for the last thread to arrive, time-to-safepoint, and the operation itself, the pause the log prints. The log bills the second part.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-27" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-27">The JVM knowledge gap it signals</h3>
+<p>The stop you can read is half the stop; the other half is decided by a loop or a native call, not by the heap. Whether your fleet holds the world at a poll it reaches slowly is a fact about your code paths. The gap question: when the world pauses, does the pause appear in the GC log — and if not, who measured time-to-safepoint?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A p99.9 of 700 ms against a 200 ms budget, collector pauses at 8-12 ms. Safepoint logging put 600 ms in time-to-safepoint: one counted loop over a large array in a hot path. Before JDK 17 a long counted loop could walk past the poll and finish before the world stopped; JDK 17 reworked that poll, so older JVMs carry more of the stall in the loop. Restructured to yield inside it, the stall went; the pauses never moved.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The heap is resized, the collector swapped, the flags shuffled. A fair move: you have a latency complaint and a pause log, so you tune what it measures. It misses because the log is honest and incomplete. On a pre-17 JVM the loop keeps every thread hostage every few seconds, no collector flag touches it, and each round tells a convincing story about a generation that was never the problem.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>When the world pauses, does the pause appear in the GC log — and if not, who measured time-to-safepoint?</strong></p>
+<ul>
+<li><strong>If yes</strong> → you see the stops you have. Alarm on time-to-safepoint beside every pause.</li>
+<li><strong>If no</strong> → the missing stop is in an uninstrumented thread. Read time-to-safepoint at peak, not pause duration.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the practice wrong — you’ve found incomplete workload knowledge. Record time-to-safepoint for a peak hour, then find the repeating frame.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Safepoints</code> <code>#GarbageCollection</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-finalization-and-its-successors" class="level2 kg-post" hidden="true" data-slug="finalization-2027-08-02-jvm" data-pattern="Finalization and its successors" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-finalization-and-its-successors">Case study: Finalization and its successors</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> finalize() runs at most once, after the object becomes unreachable, and only if a collection happens. The object is enqueued for finalization first, so freeing it takes a second collection: every finalizable object costs two passes, and it can resurrect itself by publishing this. Deprecated for removal in Java 18; the successors are try-with-resources on AutoCloseable and java.lang.ref.Cleaner (Java 9+).</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-28" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-28">The JVM knowledge gap it signals</h3>
+<p>An eventual close is a claim about the collector’s schedule, which answers to allocation. You must know which resources are finite, their exhaustion symptom, and which path acquires each; finalization hides all three. The gap question: which resources still rely on finalization today — and would explicit closing be measurable work or a refactor hiding behind “it works”?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Descriptors closed by try-with-resources: a batch job walking 200,000 files held a steady 40 descriptors, and a leak test failed loudly instead of drifting.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The handle released in finalize(), and it does run — you see the close in the log, which is why review passed it. It runs when allocation triggers a collection: let the service idle and allocations stop, collections stop, finalizers stop, and the handle stays open until the table fills. Then the cache whose values override finalize: entries stay reachable for the process’s life, and every entry costs a second collection forever.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which resources still rely on finalization today — and would explicit closing be measurable work or a refactor hiding behind “it works”?</strong></p>
+<ul>
+<li><strong>If yes</strong> → you hold the inventory. Move each to try-with-resources; keep a Cleaner as the net.</li>
+<li><strong>If no</strong> → the close is a hope about the collector. Rewrite the acquisition sites; from Java 18, plan for removal.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the practice wrong — you’ve found incomplete workload knowledge. Count open descriptors at idle, not under load.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#ResourceManagement</code> <code>#GarbageCollection</code> <code>#Cleaner</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-perf-data-file-and--xx-useperfdata" class="level2 kg-post" hidden="true" data-slug="hsperfdata-2027-08-03-jvm" data-pattern="The perf-data file and -XX:-UsePerfData" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-the-perf-data-file-and--xx-useperfdata">Case study: The perf-data file and -XX:-UsePerfData</h2>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A running JVM memory-maps a small perf-data file under /tmp, named for the user and pid, holding counters the runtime keeps: heap, threads, classes, GC totals. jstat reads it, and a generation of monitoring agents reads it through the same door. -XX:-UsePerfData stops the JVM creating it; some vendors and images ship that flag by default.</p>
+</blockquote>
+<section id="the-jvm-knowledge-gap-it-signals-29" class="level3">
+<h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-29">The JVM knowledge gap it signals</h3>
+<p>The file is an interface, not a by-product. Disabling it is safe only when you can name every consumer and each has another source — knowing whether /tmp is per-container, wiped by a reaper, or mounted noexec, and whether your agent reads the file or attaches to the process. The gap question: which tools read this JVM’s perf counters — confirmed by name — and do they have a fallback when the file is gone?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A hardened image whose /tmp is noexec and cleared hourly: the perf-data file is unwritable or misleading, so it should not exist. It was disabled deliberately, once the monitoring stack was confirmed to read JFR recordings and MXBeans over the attach API, and the exported series showed no gap across the rollout.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The flag added “to clean up /tmp” across a fleet. /tmp warnings are genuine and the flag name reads like tidiness. What ships is silence. jstat reports no data, the agent exports nothing rather than failing — an empty series is not an error — and the dashboard renders a flat line no alarm watches. Months later nobody can date the change, because nothing broke.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which tools read this JVM’s perf counters — confirmed by name — and do they have a fallback when the file is gone?</strong></p>
+<ul>
+<li><strong>If yes</strong> → disable it and keep the visibility. Alarm on the replacement series.</li>
+<li><strong>If no</strong> → you are trading an instrument for disk hygiene. Find the consumers first.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Check the effective flag on a live process, then trace who reads that file.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Java</code> <code>#JVM</code> <code>#Observability</code> <code>#Monitoring</code> <code>#jstat</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
+
+
+
+</main> <!-- /main -->
+<script src="../../toc-references.js"></script>
+<script src="../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../nav-active.js"></script>
+<script src="../../nav-tree.js"></script>
+<script src="../../scoreboard-tables.js?v=9978d08ec511"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="A series of short posts that read schema constructs and storage mechanisms as encoded facts about the domain.">
+
+<title>Database Constructs as Knowledge-Gap Indicators – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-18c70c2b057c62275a91729d6345f36e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-25a7405868b3a7e5974109f040b8d82a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Database Constructs as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta property="og:description" content="A series of short posts that read schema constructs and storage mechanisms as encoded facts about the domain.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="Database Constructs as Knowledge-Gap Indicators – Independent Variation Principle">
+<meta name="twitter:description" content="A series of short posts that read schema constructs and storage mechanisms as encoded facts about the domain.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../knowledge-gap-indicators/index.html" aria-current="page"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/databases/index.html">Databases</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/database/index.html">Schema &amp; Storage</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Software Patterns</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/substrate/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Substrate Facts</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/encoding/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Encoding Limits</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/dsa/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DSA</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/algorithms/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/data-structures/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/databases/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Databases</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/database/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Schema &amp; Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/orm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ORM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/sql/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/runtimes/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel &amp; Runtimes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/kernel-tuning/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kernel Tuning</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/jvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JVM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/dotnet/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">.NET</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/graalvm/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GraalVM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/frameworks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Frameworks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/spring/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spring</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/quarkus/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quarkus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/micronaut/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Micronaut</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/vertx/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vert.x</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../knowledge-gap-indicators/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/rust/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/java/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/csharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/fsharp/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F#</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/haskell/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../knowledge-gap-indicators/unison/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/databases/index.html">Databases</a></li><li class="breadcrumb-item"><a href="../../knowledge-gap-indicators/database/index.html">Schema &amp; Storage</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Database Constructs as Knowledge-Gap Indicators</h1>
+</div>
+
+<div>
+  <div class="description">
+    A series of short posts that read schema constructs and storage mechanisms as encoded facts about the domain.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Every construct below encodes a fact — what exists, what repeats, what must stay true, what gets read together, how fresh an answer may be. Each post names the construct, states the encoding, and asks whether the fact is the domain’s or the developer’s.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="database">
+<p>Choosing a schema construct or a database mechanism? Ask “which fact does this choice encode — what exists, what repeats, what must stay true, what gets read together, how fresh an answer may be, among others?” If you can’t answer, you’ve found a knowledge gap: the schema enforces a guess. If you can name those facts, the schema is the knowledge embodied — the code catching up to what the domain decided.</p>
+</div>
+<section id="case-study-natural-vs-surrogate-primary-key" class="level2 kg-post" hidden="true" data-slug="primary-key-2027-05-10-database" data-pattern="Natural vs surrogate primary key" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-natural-vs-surrogate-primary-key">Case study: Natural vs surrogate primary key</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A natural key is an attribute the domain already treats as unique and stable: a serial number, an ISBN, a national identity number. A surrogate key has no domain meaning, so identity survives a change to real attributes. Both enforce a unique column; only the natural key makes the domain’s uniqueness claim.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals">The database knowledge gap it signals</h3>
+<p>Identity is a domain decision before it is a column choice. The domain names an attribute that is unique and never reused, or admits it has none. With none, a surrogate is honest — but the sameness rule still needs a home: a UNIQUE constraint over the columns a human compares. The gap question: is the sameness rule written anywhere the database can enforce it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An attribute the domain already guards: a serial number stamped on a device, an IBAN, a legally issued invoice number. Nobody reuses it, so it is the identity. Equally sound: <code>customer_id BIGSERIAL</code> with <code>UNIQUE (email_normalized) WHERE email_normalized IS NOT NULL</code> beneath it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Add <code>id</code>, declare it the key, leave email an ordinary nullable column because emails change. Nothing fails, and the reasoning is sound: surrogate keys are more stable. Then the form double-submits on a flaky connection and the CRM export loads twice. Merging means rewriting foreign keys, and the id has leaked into invoice numbers and URLs — so it becomes the identity nobody can change while the human’s own identity stays unconstrained.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can someone name the rule that makes two rows the same customer — and is that rule enforced anywhere?</strong></p>
+<ul>
+<li><strong>If yes</strong> → identity is a domain fact with an owner. Verify the constraint exists in the schema, not only in a service method.</li>
+<li><strong>If no</strong> → the rule exists with no enforcement. A UNIQUE constraint on the natural candidate is the repair — and it rejects the emails that legitimately change.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Ask whoever merges customer records today which columns they compare.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#PrimaryKeys</code> <code>#DataModeling</code> <code>#SchemaDesign</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-normalization-vs-denormalization" class="level2 kg-post" hidden="true" data-slug="normalization-2027-05-11-database" data-pattern="Normalization vs denormalization" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-normalization-vs-denormalization">Case study: Normalization vs denormalization</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> Normalization stores each fact once, in the table whose key determines it, so every fact has one home, and a change has one place to happen. Denormalization stores a copy so a read avoids a join. The first encodes “this fact changes and must not diverge”; the copy encodes “this read dominates, and someone reconciles it”.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-1">The database knowledge gap it signals</h3>
+<p>A copy is a prediction about the read-to-write ratio, plus an owner for the day the copies disagree. The choice needs both: a measured read pattern, and a named reconciler — refresh job, trigger, event consumer — with a stated staleness bound. The gap question: what ratio was measured, and who owns the reconciliation?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Boyce-Codd normal form — one home per fact — wherever facts change: price, address, status. Denormalize where one read dominates and the maintenance is real: an <code>order_total</code> kept by a trigger, a search index rebuilt from the event stream, a report table refreshed on schedule.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Denormalize for performance”, applied before anyone measured. The plan shows a join over a million rows, and a stored <code>order_total</code> recomputed on every line-item change looks cheaper. The copy lacks two things: a measured ratio and an owner. Then the trigger misses the refund line, the reconciliation job writes its own version, and finance reads whichever ran last. Two mechanisms now maintain one total, and nothing compares their answers.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does a measured read dominate — and is a reconciler named for the copies?</strong></p>
+<ul>
+<li><strong>If yes</strong> → a measured pattern and a named reconciliation exist. Verify the staleness bound is written where readers can see it.</li>
+<li><strong>If no</strong> → say which half failed. No measured read: normalize. Read measured, no reconciler: name the reconciler before keeping the copy.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Instrument the read and write counts for a week, then name who owns reconciliation.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#Normalization</code> <code>#Denormalization</code> <code>#DataModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-nullability" class="level2 kg-post" hidden="true" data-slug="nullability-2027-05-12-database" data-pattern="Nullability" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-nullability">Case study: Nullability</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A nullable column admits absence: the row exists without a value. The model gives absence one representation, NULL, and one consequence — three-valued logic: any comparison against NULL is unknown, apart from <code>IS NULL</code> and <code>IS DISTINCT FROM</code>. The column encodes “absent”, never which kind of absence.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-2">The database knowledge gap it signals</h3>
+<p>Absence has at least three meanings a schema must separate: not known yet, not applicable, not yet reached in a process. NULL stores none of them. The domain must say, per column, which one applies — and whether “not yet” is a state the process will leave. The gap question: which absence does this column carry, and did anyone decide?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>shipped_at</code> NULL means “not yet shipped”: a state the fulfilment process leaves, so <code>WHERE shipped_at IS NULL</code> is exactly the open-orders query. <code>terminated_on</code> NULL means “still active”, and the domain says so.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Nullable as the default for every column not supplied at insert. It never rejects a valid row, so it never fails a test. Now status is NULL for three populations: the row the webhook created before the state machine ran, the row imported from a legacy system with no status, and the row where status does not apply. The logic then works silently — <code>&lt;&gt; 'rejected'</code> is unknown for NULL, so those rows vanish from the count; <code>NOT IN</code> against a subquery yielding one NULL returns no rows at all. The report undercounts while every query looks correct.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does every nullable column carry one decided absence — and does every query agree on which one?</strong></p>
+<ul>
+<li><strong>If yes</strong> → absence is a modeled state. Check the <code>&lt;&gt;</code> and <code>NOT IN</code> filters against it.</li>
+<li><strong>If no</strong> → say which half failed. Undecided absence: make it NOT NULL or split it. Decided absence, disagreeing queries: fix the queries, not the column.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Count NULLs per column and per source; the split counts your hidden meanings.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#Nullability</code> <code>#SQL</code> <code>#DataModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-soft-delete-vs-hard-delete" class="level2 kg-post" hidden="true" data-slug="soft-delete-2027-05-13-database" data-pattern="Soft delete vs hard delete" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-soft-delete-vs-hard-delete">Case study: Soft delete vs hard delete</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> Soft delete keeps the row and marks it: a <code>deleted_at</code> timestamp, an <code>is_active</code> flag. Hard delete removes it. The retained row encodes “the domain must still reason about this thing after it stops being current” — history, audit, and the records that cite it.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-3">The database knowledge gap it signals</h3>
+<p>Forgetting is a rule from outside the schema. Accounting retains invoices for a decade, a regulator names the period, an erasure obligation says personal data must go. These conflict; only the domain resolves it per table. A tombstone — the retained row with its flag — must redact the personal fields to serve an erasure request; whether keeping them is lawful is a judgment the schema cannot make. The gap question: does the domain forget this thing, and who states the retention rule?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>deleted_at</code> where the domain states the rule, deletion is a modeled state, and one filtered view is the only way to read the table: an invoice voided rather than removed, because the ledger must still balance; a user archived because their orders cite them. The rule lives outside the schema, and a named process owns the purge.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>deleted_at</code> added as a habit — “we never really delete, it is safer”. It is safer, and that is the trap: nothing fails, no data is lost, the choice looks conservative. Then every query must remember <code>WHERE deleted_at IS NULL</code> forever, including ones written next year. One forgotten filter leaks tombstones into a production report. Meanwhile the personal data is still physically present, so the erasure request is refused for a reason the schema cannot express.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Must the domain still reason about this thing after it stops being current — and who states the retention rule?</strong></p>
+<ul>
+<li><strong>If yes</strong> → retention is a domain fact with an owner. Verify a purge process exists and that queries filter through one shared view.</li>
+<li><strong>If no</strong> → delete for real, or split the live table from an archive whose access is deliberate.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Ask legal and finance how long each table must keep a row.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#SoftDelete</code> <code>#DataRetention</code> <code>#Compliance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-enum-lookup-table-or-free-text" class="level2 kg-post" hidden="true" data-slug="enum-vs-lookup-2027-05-14-database" data-pattern="ENUM, lookup table, or free text" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-enum-lookup-table-or-free-text">Case study: ENUM, lookup table, or free text</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An ENUM closes a column to a fixed set; an FK lookup restricts it to the rows present; free text constrains nothing. The closed form encodes “the process owns this set and can enumerate it” — values are states a workflow moves through, not labels the world invents.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-4">The database knowledge gap it signals</h3>
+<p>The domain decides whether the set is closed by rule or open by nature. Payment states are closed: the gateway returns a fixed list, and a new one is a version change. Lead sources are open: the world adds one whenever a campaign runs. The gap question: is this set closed by a rule, or open by nature?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Payment states — pending, authorized, captured, refunded, failed — as an enum or a lookup table with an FK: the process owns the transitions, and a typo breaks reconciliation.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An enum for a set the world extends: categories, lead sources, product families. It ships well — fast, typo-proof, cleanly aggregated. Then a value arrives that the enum lacks, and adding it is a migration: a deploy coordinated with the reporting team. After six rounds someone adds <code>other</code> and stops. A year later 40% of rows say <code>other</code>, and the constraint enforces only that the real category lives in a free-text note. The inverse trap: free text where aggregation is required, so the country report needs a hand-written mapping table.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can someone state the complete value set today — and who is consulted when a new value is needed?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the set is closed by rule. Verify the owner exists and that a new value arrives through that owner, by a deploy if the rule says so.</li>
+<li><strong>If no</strong> → say which half failed. No complete set today: the set is open, so store it as data. Set known, no intake path: build the path and keep the constraint.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. List the production values and count the variants.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#Enums</code> <code>#LookupTables</code> <code>#DataModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-valid-time-columns" class="level2 kg-post" hidden="true" data-slug="temporal-columns-2027-05-15-database" data-pattern="Valid-time columns" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-valid-time-columns">Case study: Valid-time columns</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> <code>valid_from</code> and <code>valid_to</code> state the interval over which a row’s fact held, keeping superseded rows instead of overwriting them. The interval encodes “the domain asks about the past”, and it carries a rule the columns alone do not: per entity — per SKU, say — no overlapping intervals.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-5">The database knowledge gap it signals</h3>
+<p>Keeping history is a different claim from current state, and it costs an interval per fact and an integrity rule no writer may violate. The domain must say who closes an interval when a new one opens. The gap question: which decisions were made by reading an old price?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Domains that reason over the past by rule: rate cards, insurance cover evaluated on the incident date, audits of the configuration then. The interval is the domain’s own fact; an enforced exclusion constraint closes the old one as it opens the new one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Temporal columns added for one report. Nothing enforces the intervals; they are maintained by hand, by whoever remembers. Three failures follow. Overlaps: a rate change inserts the new row and forgets to close the old one, so it has two open intervals and queries pick one at random. Gaps: a backdated correction closes the old interval too early, or the new rate starts late, so “price on that date” returns no row. And the current-row convention differs per query — <code>valid_to IS NULL</code> here, a sentinel there — so two teams get two answers from one table.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does anyone ask about the past in domain terms — and who maintains the integrity of the intervals?</strong></p>
+<ul>
+<li><strong>If yes</strong> → history is a domain fact. Verify one shared definition of “current” and an enforced no-overlap rule.</li>
+<li><strong>If no</strong> → say which half failed. Past queried, no interval owner: name the owner and enforce no-overlap. Past not queried: keep current state only.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Ask which decisions were made by reading an old price, then count open intervals.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#TemporalData</code> <code>#DataModeling</code> <code>#Auditability</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-foreign-keys-check-unique" class="level2 kg-post" hidden="true" data-slug="constraints-2027-05-16-database" data-pattern="Foreign keys, CHECK, UNIQUE" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-foreign-keys-check-unique">Case study: Foreign keys, CHECK, UNIQUE</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A constraint is a rule the database evaluates on every write, from any client. Someone can still defer it, disable it, or outrank it. Three shapes: a foreign key forbids a reference to a missing row, CHECK a value outside a predicate, UNIQUE a duplicate. Each encodes “an invariant of the fact”, not a step in one code path.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-6">The database knowledge gap it signals</h3>
+<p>Every rule has a population of writers: the API, the import, the migration, the hotfix, the second service, the analyst with a console. Application validation covers one of them, and the rest arrive later. The question is not whether the app checks, but who may break the rule. The gap question: if a bug or a second writer bypasses the app, what stops this rule from being violated?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A ledger entry’s <code>account_id</code> references <code>accounts(id)</code>: a posting to a nonexistent account must not exist, whatever wrote it. <code>CHECK (amount &gt; 0)</code>, <code>UNIQUE (invoice_number)</code>.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Rules kept in application code “for flexibility”. The reasoning is defensible: validation belongs near the domain logic. It holds while one writer exists. Then the reconciliation script runs at 2 a.m. and writes rows the service never sees; a partner CSV import bypasses every check; a second service ships its own copy of the rules. The constraint dropped for a bulk load “temporarily” is never restored, and nobody notices while production data is valid.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>If a bug or a second writer bypasses the app, does the database still stop this rule from being violated — and is that acceptable?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the rule is a domain invariant with a database owner. Verify no writer holds a privilege that skips it.</li>
+<li><strong>If no</strong> → the rule is unenforced, or not acceptably. Name the writers you accept; their number is a chosen risk.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Enumerate every path that writes this table, including scripts, then compare the rule sets.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#Constraints</code> <code>#DataIntegrity</code> <code>#SchemaDesign</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-json-columns-and-eav-versus-typed-columns" class="level2 kg-post" hidden="true" data-slug="json-columns-2027-05-17-database" data-pattern="JSON columns and EAV versus typed columns" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-json-columns-and-eav-versus-typed-columns">Case study: JSON columns and EAV versus typed columns</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A JSON column, or an EAV table — one row per attribute, no declared columns — stores a shape the schema does not declare. The database reads the stored shape as text: a type, a CHECK, and statistics arrive only with an extracted column. It encodes “the shape is open and decided outside this schema” — a claim about who controls the data.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-7">The database knowledge gap it signals</h3>
+<p>Openness has a source. A provider webhook payload is open because the provider decides its shape. A domain attribute you have not named yet is not open — it is unknown, and the schema records your uncertainty as a permanent storage format. The gap question: who outside this system decides the shape?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A webhook payload stored opaque inside a typed envelope: <code>event_id</code>, <code>type</code>, <code>received_at</code>, <code>payload</code> as JSON. The envelope is typed and constrained because the domain owns those facts; the payload stays opaque because the provider owns its shape.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Core attributes moved into JSON because a column “felt permanent”. Each step was reasonable: the attributes differ per category, adding columns meant a migration, and JSON was there. Soon <code>metadata-&gt;&gt;'colour'</code> sits in a dozen queries, and those numbers are strings, so ‘10’ sorts before ‘9’. No type, no constraint, no statistics — on engines that keep none for expressions, the planner guesses. And the schema cannot be diffed: two environments with “the same” schema hold different shapes in one column.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the shape genuinely open from outside the system — or is this a domain attribute you postponed naming?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the payload is opaque by contract. Verify a typed envelope around it and a version check at every read.</li>
+<li><strong>If no</strong> → the shape was never open; it was undecided. Extraction costs the migration the untyped column avoided, and it is the only place the type can live.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the column wrong — you’ve found incomplete domain knowledge. Count the distinct paths used in queries; that list is the schema you have not written.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#JSON</code> <code>#SchemaDesign</code> <code>#DataModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-views-vs-tables" class="level2 kg-post" hidden="true" data-slug="views-vs-tables-2027-05-18-database" data-pattern="Views vs tables" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-views-vs-tables">Case study: Views vs tables</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A table stores facts; a view stores a definition — a query text plus the name and owner that govern it. Its rows are computed at read time, so it encodes a claim about meaning: this derived fact has one definition, many readers, and one owner who changes it in one place. It predicts the derivation is cheap enough to recompute per read, and that nobody needs the result pinned.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-8">The database knowledge gap it signals</h3>
+<p>A named view is a domain term wearing SQL. Someone decided what “active” means, which rows qualify, and who may change the rule — before CREATE VIEW ran. If that decision lives only in the WHERE clause, the schema enforces a guess. Is this a governed term, or a query that happened to get saved?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain already names the question. Support, billing, and the churn model all need “active customers”; the finance team owns the definition; a policy change — refund window, trial length — edits the view once, and every consumer that holds no copy moves in the same deploy.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Both traps look like good practice. The first is view stacking: <code>v_active</code> on <code>v_orders_recent</code> on <code>v_orders_clean</code>, twelve layers deep, each hiding one filter. On engines that flatten the nested views into one query it works until the plan degrades, and the debugger then has twelve places to look. The second is drift: <code>active</code> was one filter, then silently became “has an order in 90 days.” Who decided 90, and which of the two views is the term now?</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this a named domain question — or a query that got a name because it was pasted twice?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the view is the domain’s vocabulary. Check that one owner can change the definition, and that no caller re-implements the filter locally.</li>
+<li><strong>If no</strong> → it is a saved query. Keep it inside the module that needs it, or make it a table if the derivation is expensive.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the view wrong — you’ve found incomplete domain knowledge. Count how many callers duplicate the filter, then ask who signs off when the meaning changes.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#SQL</code> <code>#Views</code> <code>#SchemaDesign</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-materialized-views" class="level2 kg-post" hidden="true" data-slug="materialized-view-2027-05-19-database" data-pattern="Materialized views" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-materialized-views">Case study: Materialized views</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A materialized view stores the result; on most engines refresh is an explicit job — scheduled, triggered, or manual. It encodes two predictions: the question is asked far more often than the underlying rows change, and an answer of a stated age is acceptable to whoever acts on it.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-9">The database knowledge gap it signals</h3>
+<p>Staleness is a domain fact with an owner and a decision boundary. Someone has to accept “up to six hours old” for this consumer, and name the decision that would flip at the edge of that window. Has anyone accepted that age in writing, for this report?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The dashboard refreshes once at 03:00, the team acts on yesterday’s numbers, and no consumer reads the last day. The refresh cost is known — ninety seconds of I/O, measured — and the slot sits outside the load window. The staleness is printed on the page; the last successful refresh is monitored.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The materialized view added “to make the report fast,” with no freshness contract. Trap one: a decision that needs the last hour gets made on stale data, quietly and confidently. Trap two: the refresh window that outgrew its slot — minutes to forty as the data grew — and now overlaps the business day, blocking readers exactly when the report is read. A failed refresh is silent too: the view serves yesterday, then last week, and the number still looks plausible.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Has someone accepted a stated staleness — with the decision that changes at the boundary named?</strong></p>
+<ul>
+<li><strong>If yes</strong> → staleness is a stated domain fact. Check the refresh is scheduled, timed, and alerts on failure.</li>
+<li><strong>If no</strong> → a cache with no expiry contract. Someone must accept an age in writing; until then the age is whatever the refresh happened to produce.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the materialized view wrong — you’ve found incomplete domain knowledge. Measure the refresh duration against the change rate, then ask each consumer what age they would refuse.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#MaterializedViews</code> <code>#DataFreshness</code> <code>#Caching</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-cte-vs-subquery-vs-temp-table" class="level2 kg-post" hidden="true" data-slug="cte-2027-05-20-database" data-pattern="CTE vs subquery vs temp table" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-cte-vs-subquery-vs-temp-table">Case study: CTE vs subquery vs temp table</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> <code>WITH</code> names a subquery — a common table expression. On engines that inline it (non-recursive, referenced once, unless you write <code>MATERIALIZED</code>), the name costs nothing. On older engines, or with <code>MATERIALIZED</code>, it is a fence: computed once, stored, and hidden from the rest of the query. A temp table is a stronger promise — the result is read more than once and the materialization is deliberate.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-10">The database knowledge gap it signals</h3>
+<p>Readability, reuse, and a materialization boundary are three different claims, and the domain decides which it needs. Steps that mirror domain concepts — billing period, eligible cohort, prorated amount — are knowledge; eleven CTEs that exist because the query grew are not. Does each named step correspond to something the domain names?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>CTEs naming the steps of a domain computation, one step per concept, so a finance reviewer can read the query as the policy it implements: cohort, eligibility, proration. A temp table for a genuine multi-pass pipeline that reads stage one three times.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Cargo-culting “CTE for performance.” The folklore came from planners that fenced every WITH; on modern engines the measured plan shows the CTE is inlined. The engineer adds <code>MATERIALIZED</code> to force the old behavior, and it is slower only where the CTE is referenced once. Second trap: the single 400-line statement of nested CTEs, adopted for modularity, that no reviewer can hold in one reading.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does each named step correspond to a domain concept — and did you confirm on this engine’s plan that the fence is real?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the naming is domain knowledge. Keep the steps, then confirm with EXPLAIN ANALYZE on this engine version.</li>
+<li><strong>If no</strong> → say which half failed. Steps without domain names: collapse them. Named steps, unconfirmed fence: read the plan before trusting the boundary.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the CTE wrong — you’ve found incomplete domain knowledge. Time each stage, read the plan, then ask which steps a domain expert names.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#SQL</code> <code>#QueryPlanning</code> <code>#CTE</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-indexing-single-and-compound" class="level2 kg-post" hidden="true" data-slug="indexing-2027-05-21-database" data-pattern="Indexing (single and compound)" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-indexing-single-and-compound">Case study: Indexing (single and compound)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An index is a second access path over the key columns — sorted in a B-tree, hashed in a hash index — plus whatever the engine needs to reach the row. An index on one column serves predicates on that column at any value; a compound index serves a filter shape, and its column order is part of the claim — equality columns first, then the range. It encodes a claim about a named query and a write tax.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-11">The database knowledge gap it signals</h3>
+<p>An index is a statement about the queries the domain asks: which lookups are named, what they filter and sort by, how often each runs. It also adds write amplification — extra writes per row.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Every index traced to a real query, quoted. Orders filtered by tenant and date get a compound index on <code>(tenant_id, created_at)</code> — equality first, range second — and the ORDER BY needs no sort node. Each index has a caller, an owner, and a measured cost on the insert path.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Index every column, just in case.” The table is insert-hot; twelve indexes each need maintenance per row; writes queue and latency climbs. Second: the compound index in the wrong column order, <code>(created_at, tenant_id)</code>, which serves a date-only filter beautifully and cannot serve the tenant-and-date query by plain descent. Third: the unused index nobody dares drop, because whoever added it has left and its scan count has stayed at zero for a year.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can every index be traced to a named query — and is the write cost of each measured?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the index is the query’s shadow. Check the column order; before dropping a zero-scan index, check what it enforces.</li>
+<li><strong>If no</strong> → finish the audit, not the index. Remove the ones with no named query; measure the write cost of the ones that have one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the index wrong — you’ve found incomplete domain knowledge. Log the queries this table serves for a week, then compare their filter shapes to the index list.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#Indexing</code> <code>#QueryPerformance</code> <code>#SchemaDesign</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-clustering" class="level2 kg-post" hidden="true" data-slug="clustering-2027-05-22-database" data-pattern="Clustering" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-clustering">Case study: Clustering</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A clustered index, an index-organized table, and CLUSTER all store rows in key order in the physical structure. A table carries one physical order at a time — one per partition where it is partitioned — so the choice encodes a claim that one read pattern dominates and the others can pay.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-12">The database knowledge gap it signals</h3>
+<p>The domain must have a dominant read path, measured: what queries this table, in which order, how often, and whether that order survives three more features. What does the domain read together — and is that the order you chose?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Orders read by customer and date range: cluster on <code>(customer_id, placed_at)</code>; on an engine that maintains clustering the matching rows sit in one contiguous run, so readahead works and the query reads only the pages holding them. A time-series table read by timestamp window, clustered on it. The competing paths were counted and are rare enough to pay for.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Clustered on the generated id because ids are “the key,” while every query filters customer_id: reads stay scattered and the clustering buys only rewrite cost. The subtler trap is treating re-clustering as one-time. On engines that maintain clustering (SQL Server), an insert into a random key position splits a page and leaves both halves half empty. On engines where <code>CLUSTER</code> is a one-time rewrite (PostgreSQL), new rows land wherever there is free space, rows per page drift toward random at a rate set by inserts against size, and the rewrite takes an exclusive lock.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the dominant read path counted — and does that read order hold as features are added?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the physical order matches how the domain reads. Check the key’s insert order does not churn, or schedule the rewrite and watch the drift.</li>
+<li><strong>If no</strong> → say which half failed. No counted path: the cluster key is decorative, so keep the heap and a secondary index. Counted path that drifts: schedule the rewrite, or accept the drift.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found clustering wrong — you’ve found incomplete domain knowledge. Measure rows-per-page for the dominant filter, then ask which order survives the roadmap.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#ClusteredIndex</code> <code>#StorageLayout</code> <code>#QueryPerformance</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-sharding-and-partitioning" class="level2 kg-post" hidden="true" data-slug="sharding-2027-05-23-database" data-pattern="Sharding and partitioning" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-sharding-and-partitioning">Case study: Sharding and partitioning</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A shard key routes each row to one shard at write time. Choosing it pre-commits every query path: a query that carries the key reaches one shard, a query without it fans out and pays the slowest. It predicts the domain’s unit of access is that key, that the key has many distinct values, the distribution is even, and cross-unit queries are rare.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-13">The database knowledge gap it signals</h3>
+<p>Two facts outside the framing list decide this: the load that made one database insufficient, and the measured skew of the key.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>B2B software where one database is measurably out of room and every query filters <code>tenant_id</code>: the key is carried by construction, and moving a tenant is an explicit migration, not an accident. Table partitions for retention — no shard key needed — where dropping a month is a metadata operation, not a million-row delete.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Hashing <code>user_id</code> when the domain’s unit is the account: no query carries the key, so every report fans out and joins across shards in application code, and shared-nothing (each shard independent) behaves like a slow single database. Second: a key chosen for assumed evenness that the queries do not carry. Third: the skewed key found in production. One tenant holds 40% of the rows, its shard is the bottleneck, and re-sharding means moving live data while serving traffic.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Do the domain’s queries carry this key — and what is the measured skew, not the assumed evenness?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the key is the domain’s unit. Verify cross-shard queries are enumerated, and that a resharding plan exists.</li>
+<li><strong>If no</strong> → say which half failed. Queries do not carry the key: change it. Carried but skewed: split the hot tenant, or isolate it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found sharding wrong — you’ve found incomplete domain knowledge. Count how many queries carry the candidate key, then measure the top-tenant share of rows.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Databases</code> <code>#Sharding</code> <code>#Partitioning</code> <code>#Scalability</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-function-vs-stored-procedure-vs-query" class="level2 kg-post" hidden="true" data-slug="stored-proc-2027-05-24-database" data-pattern="Function vs stored procedure vs query" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-function-vs-stored-procedure-vs-query">Case study: Function vs stored procedure vs query</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A procedure is a named body of SQL the server compiles and keeps; a function returns a value inside a query; an inline query lives only in the client that sent it. The first two give one rule one home, and claim that the invariant holds for whoever writes.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-14" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-14">The database knowledge gap it signals</h3>
+<p>A rule in the schema asserts that this writer is not the only writer, now or later. That is a fact about the domain, not about speed: no caller may be trusted to remember the rule. The gap question: which writers must obey this rule, and who can currently write without it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Double-entry posting: a debit and its credit must land in one transaction, the sum must be zero, and the rule must hold for the API, the importer, and the service nobody has written yet. One posting procedure covers every caller that uses it, and revoked write grants cover the rest — plus computation that must not travel: sum a hundred million rows in the server, return one number.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Put it in a procedure, it is faster” seduces because it is sometimes true; the trap is the unowned one — a rule the write paths never mention. The app grows a discount rule, the procedure grows one too, and two truths drift until a customer is charged twice. The inverse dogma fails alike: “no procedures, ever,” so five services re-implement the balance rule, and the hundred-million-row sum never travels.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>If a second application writes to this table tomorrow, do the same rules survive — and does a reviewer see them?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the rule is domain-owned, and placement follows. Check one copy exists, the same body runs for every writer, and no grant bypasses the procedure.</li>
+<li><strong>If no</strong> → one client’s habit, not a schema fact. Keep the logic in the application, in version control, with tests.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. List every current and planned writer, then ask which rules the domain requires of each.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#StoredProcedures</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#SchemaDesign</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-row-level-triggers" class="level2 kg-post" hidden="true" data-slug="triggers-2027-05-25-database" data-pattern="Row-level triggers" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-row-level-triggers">Case study: Row-level triggers</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A row trigger is a body of SQL the database fires by itself, once per row a statement touches; a statement-level trigger fires once per statement and does not carry the per-row cost below. It encodes knowledge no caller invokes: the table declares the consequence, for anyone who writes.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-15" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-15">The database knowledge gap it signals</h3>
+<p>A trigger says no writer may be trusted to remember the rule and, while enabled, none may opt out — a strong, sometimes true claim. The rule gains no name at any call site, which is where accountability sits. The gap question: would a developer who never opens the table definitions (the DDL) predict that this happens?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An audit row on every inserted, updated, or deleted row of a regulated table, written in the same transaction, so trail and fact cannot diverge. Or a derived column the schema owns and arithmetic determines — a line total, where the alternative is hoping six code paths agree.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A business rule in a trigger: recalculate loyalty on every order update. It looks stronger than a service call, and it is invisible to everyone reading the application: no call site, no signature, nothing in the trace. It fires per row, so a two-million-row load means two million firings; on engines that allow nested firing it cascades into other triggers. Then comes the week spent answering “who updated this row.”</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Could a developer who never opens the DDL predict that this happens — and does the rule survive that test?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the table owns the consequence, and it is visible where the table is defined. Check it covers every write path and stays cheap per row.</li>
+<li><strong>If no</strong> → an application rule hiding in the schema. Move it to the code that owns the decision.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Measure the biggest write, then ask which rules the domain wants for every writer.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#Triggers</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DataIntegrity</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-object-relational-mapper-orm-lazy-loading-the-n1-query" class="level2 kg-post" hidden="true" data-slug="n-plus-one-2027-05-26-database" data-pattern="Object-relational mapper (ORM) lazy loading (the N+1 query)" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-object-relational-mapper-orm-lazy-loading-the-n1-query">Case study: Object-relational mapper (ORM) lazy loading (the N+1 query)</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A navigation property — a reference from one object to its related rows — loads on first touch, so the ORM issues one query per parent row and the query count becomes a function of the data. It encodes an unstated cardinality — this list is short, this relation is optional here — and defers the second query until someone asks.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-16" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-16">The database knowledge gap it signals</h3>
+<p>Cardinality per parent — rows loaded per navigation — is a domain fact the schema almost never records, and it is a size, measured at the largest page the product offers. Nothing in the access decides it; the code assumes “a few,” and the assumption stays invisible until the list grows. The gap question: what is the real cardinality of this relation at production page size, and did anyone count it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Singular navigation. Load the order header, then load its lines when a person opens that order: one extra query for one row, and nothing paid for the orders nobody opens. The reader waits for one query, not two hundred.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Lazy loading inside a list render. Each row follows the relation, so one statement becomes two hundred, and the defect is invisible until a real list appears: staging has twelve rows, production has two hundred, and the page slows about seventeenfold with no error to grep. Then the fix: load everything up front, which multiplies rows at each join level until a three-level fetch returns the product of all three lists and the ORM de-duplicates them in memory. Both placements encode a cardinality guess; in neither was the number counted.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each navigation the ORM will follow, do you know the cardinality it loads — counted, at production page sizes?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the load matches the domain. Verify it against the largest page the product offers, not the sample data.</li>
+<li><strong>If no</strong> → it is an assumption about size, not a fact about the domain. Eager fetch is the other guess: it multiplies rows at each join level. Neither is a fact until the cardinality is counted.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. Log the query count per request and the row count per relation, at production scale.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#ORM</code> <code>#NPlusOne</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-isolation-levels" class="level2 kg-post" hidden="true" data-slug="isolation-levels-2027-05-27-database" data-pattern="Isolation levels" data-group="database" data-group-label="Database">
+<h2 class="anchored" data-anchor-id="case-study-isolation-levels">Case study: Isolation levels</h2>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> An isolation level names the standard anomalies the engine permits — dirty read (a value never committed), non-repeatable read (a row that changes mid-transaction), phantom (a row that appears on re-query). Each engine adds its own, such as lost update (one write erasing another). Choosing one claims the domain can absorb exactly these — a claim about the business, not a setting.</p>
+</blockquote>
+<section id="the-database-knowledge-gap-it-signals-17" class="level3">
+<h3 class="anchored" data-anchor-id="the-database-knowledge-gap-it-signals-17">The database knowledge gap it signals</h3>
+<p>The domain must already know which anomaly costs money — not which level sounds safest. A level that forbids more than needed is paid in retries; one that forbids less is paid in wrong balances. The gap question: which interleaving would lose money here, and does the chosen level exclude it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Read committed where the domain needs only that independent rows stay independent: two agents editing different orders. Serializable, or an explicit row lock, where two reads feeding one write must not interleave — read both balances, then write both. There the domain can name the loss: an account debited twice, a seat sold twice.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Shipping the default and calling it correct. Read-modify-write in code — read 300, compute, write the absolute value back — can lose an update on engines that give each statement a fresh snapshot, with no error. On engines where a transaction reads one frozen snapshot, the second writer on the same row aborts while write skew — two rows, each written on the other’s stale value — still commits. The over-defence is equally competent: the strictest level everywhere, buying deadlocks and retries for anomalies that never mattered.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the chosen level rule out the anomaly that would actually hurt this domain, on this engine? Name the transaction and the loss.</strong></p>
+<ul>
+<li><strong>If yes</strong> → the level is chosen, not inherited. Check the engine enforces it, not merely that the standard lists it.</li>
+<li><strong>If no</strong> → you inherited a default. Name the money-losing interleaving first, then take the lowest level that excludes it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the choice wrong — you’ve found incomplete domain knowledge. List the transactions that read then write, and ask which pair the business would refuse.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Database</code> <code>#IsolationLevels</code> <code>#Transactions</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Concurrency</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
+
+
+
+</main> <!-- /main -->
+<script src="../../toc-references.js"></script>
+<script src="../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../nav-active.js"></script>
+<script src="../../nav-tree.js"></script>
+<script src="../../scoreboard-tables.js?v=9978d08ec511"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

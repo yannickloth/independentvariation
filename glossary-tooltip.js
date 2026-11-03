@@ -166,7 +166,10 @@
   }
 
   function handleInteraction(ev, glossary) {
-    const el = ev.target.closest('glossary-term');
+    // Document-level listeners see targets that are not Elements (synthetic
+    // events, the document itself); those carry no glossary term, so bail.
+    const t = ev.target;
+    const el = t && typeof t.closest === 'function' ? t.closest('glossary-term') : null;
     if (!el) return;
     const key = el.dataset.gtKey;
     if (!key) return;
@@ -467,7 +470,9 @@
     document.addEventListener('mousemove', handlePointerMove);
 
     const docClick = (e) => {
-      if (!e.target.closest('glossary-term') && !e.target.closest('.gt-pop')) hideAll();
+      const t = e.target;
+      if (!t || typeof t.closest !== 'function') return;
+      if (!t.closest('glossary-term') && !t.closest('.gt-pop')) hideAll();
     };
     document.addEventListener('click', docClick);
     // Clearing the selection suppression must not leave a stale "outside the
