@@ -661,6 +661,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="case-study-vertical-scaling-the-capacity-ceiling" class="level2 kg-post" hidden="true" data-slug="vertical-scaling-2027-01-21-substrate" data-pattern="Vertical Scaling" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-vertical-scaling-the-capacity-ceiling">Case study: Vertical scaling (the capacity ceiling)</h2>
+<p>“Just give it more RAM.” That is a claim about a ceiling: a bound per unit, a bound in count, a bound in total. The claim has a number. Check it.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A ceiling is a hard upper bound the substrate places on capacity: how large one unit may grow, how many units may exist, and what all of them may spend together.</p>
 </blockquote>
@@ -718,6 +720,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-horizontal-scaling-shared-nothing-partition" class="level2 kg-post" hidden="true" data-slug="horizontal-scaling-2027-01-22-substrate" data-pattern="Horizontal Scaling" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-horizontal-scaling-shared-nothing-partition">Case study: Horizontal scaling (shared-nothing partition)</h2>
+<p>“Just add more instances.” Horizontal scaling by shared-nothing partitioning assumes one thing: no mutable state passes between instances. That assumption is a precondition, not a fact.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Shared-nothing means no mutable state crosses an instance boundary: no shared memory, no shared transaction manager, no shared storage. A failure does not propagate through state — but the failed instance’s own slice goes dark.</p>
 </blockquote>
@@ -775,12 +779,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-connection-ceiling-the-pool-is-the-allowance" class="level2 kg-post" hidden="true" data-slug="connection-ceiling-2027-01-23-substrate" data-pattern="Connection Ceiling" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-connection-ceiling-the-pool-is-the-allowance">Case study: Connection ceiling (the pool is the allowance)</h2>
+<p>Twenty instances at twenty connections each is four hundred connections. One database accepts a hundred. The pool size is a multiplication, and it is easy to skip.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A connection pool is a local allowance. The engine’s maximum concurrent connections is a hard limit; a licence maximum is a contractual one. Both refuse the connection; only one can be lifted by a purchase.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-2" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-2">The substrate knowledge gap it signals</h3>
-<p>The limit is documented, and the deployment often never consults it. Pool size often arrives by copy from an example. Threads per instance often outnumber connections. Timeouts stay unset, so a starved caller waits until a timeout nobody chose. The gap question is what the engine allows and which component may spend it. The engine’s maximum is a substrate bound; whether the domain names the pool count is a separate question. Instances × pool size is the first multiplication, and it costs one line. Reserved, administrative, and replication connections spend from the same allowance.</p>
+<p>The limit is documented, and the deployment often never consults it. Where it is consulted, the pool size still arrives by copy from an example, and threads per instance outnumber connections. Timeouts stay unset, so a starved caller waits until a timeout nobody chose. The gap question is what the engine allows and which component may spend it. The engine’s maximum is a substrate bound; whether the domain names the pool count is a separate question. Instances × pool size is the first multiplication, and it costs one line. Reserved, administrative, and replication connections spend from the same allowance.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -832,12 +838,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-latency-budget-the-p99-subtraction" class="level2 kg-post" hidden="true" data-slug="latency-budget-2027-01-24-substrate" data-pattern="Latency Budget" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-latency-budget-the-p99-subtraction">Case study: Latency budget (the p99 subtraction)</h2>
+<p>Every synchronous hop spends from the same budget: the one you stated, or the one nobody did. It is rarely divided.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A latency budget is an allowance of time, stated end to end and divided among the hops that must fit inside it. The sum of per-hop p99s is the envelope the chain must fit inside — a conservative one, because the tails of different hops do not necessarily align.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-3" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-3">The substrate knowledge gap it signals</h3>
-<p>The budget is a subtraction, not an average. Averages hide the tail, and the tail is what the unlucky caller experiences. Physics sets the floor: light travels at about 200,000 km/s in fibre, so a thousand kilometres of fibre path costs about five milliseconds one way, before any code runs. The gap question is who divided the budget, and what is left at the last hop. Hop speed alone does not answer it.</p>
+<p>The budget is a subtraction, not an average. Averages hide the tail, and the tail is what the unlucky caller experiences. Physics sets a floor that no code removes. The gap question is who divided the budget, and what is left at the last hop. Hop speed alone does not answer it.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -889,6 +897,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-availability-arithmetic-the-serial-product" class="level2 kg-post" hidden="true" data-slug="availability-arithmetic-2027-01-25-substrate" data-pattern="Availability Arithmetic" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-availability-arithmetic-the-serial-product">Case study: Availability arithmetic (the serial product)</h2>
+<p>Five serial dependencies at 99.9%, each failing independently, give 99.5%. Let them share a rack, a region, or a pipeline, and the real figure drops below the product.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Serial availability multiplies, and only when the failures are independent. A dependency that must succeed takes its own share of the remaining uptime.</p>
 </blockquote>
@@ -946,6 +956,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-durability-contract-the-domain-and-the-substrate-join" class="level2 kg-post" hidden="true" data-slug="durability-contract-2027-01-26-substrate" data-pattern="Durability Contract" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-durability-contract-the-domain-and-the-substrate-join">Case study: Durability contract (the domain and the substrate join)</h2>
+<p>“How much data may we lose?” is a domain question. “What does each step of protection cost?” is a substrate price. The two answers set one contract; either alone sets half.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A durability contract is the platform’s claim about what survives which failure — a process, a disk, a region — from the point the caller is told the write succeeded. The claim is a promise; what survives is measured. Retention is a separate promise.</p>
 </blockquote>
@@ -1003,6 +1015,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-ephemeral-ports-the-clients-own-ceiling" class="level2 kg-post" hidden="true" data-slug="ephemeral-ports-2027-01-27-substrate" data-pattern="Ephemeral Ports" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-ephemeral-ports-the-clients-own-ceiling">Case study: Ephemeral ports (the client’s own ceiling)</h2>
+<p>A client host with one address can hold about 28,000 connections to one destination address and port. At one connection per request, that caps it at about 470 new connections a second.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Every outbound connection takes a local port from an ephemeral range — the Linux default, 32768 to 60999, which is 28,232 ports. The port stays reserved for about a minute after the client closes the connection — the TCP TIME_WAIT hold, fixed by the kernel.</p>
 </blockquote>
@@ -1060,6 +1074,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-retry-amplification-the-product-across-layers" class="level2 kg-post" hidden="true" data-slug="retry-amplification-2027-01-28-substrate" data-pattern="Retry Amplification" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-retry-amplification-the-product-across-layers">Case study: Retry amplification (the product across layers)</h2>
+<p>Three attempts at three layers is twenty-seven requests. One user click can become twenty-seven, and each layer believes it made three attempts.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A retry policy multiplies. If each layer makes three attempts — one call plus two retries — the layers below see 3ⁿ attempts for one request, where n is the number of layers that retry.</p>
 </blockquote>
@@ -1117,6 +1133,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-connection-setup-the-round-trips-before-the-payload" class="level2 kg-post" hidden="true" data-slug="connection-setup-2027-01-29-substrate" data-pattern="Connection Setup" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-connection-setup-the-round-trips-before-the-payload">Case study: Connection setup (the round trips before the payload)</h2>
+<p>Before the first byte of a request, TCP and a full TLS 1.3 handshake each cost a round trip. At 50 ms, that is 100 ms of a 200 ms budget gone before the call starts.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A new connection pays for its setup before any request bytes move: one round trip — a message out and its reply back — for TCP, one more for a full TLS 1.3 handshake. At a round-trip time of 50 ms, that is 100 ms.</p>
 </blockquote>
@@ -1174,12 +1192,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-partition-count-the-ceiling-on-consumer-parallelism" class="level2 kg-post" hidden="true" data-slug="partition-parallelism-2027-01-30-substrate" data-pattern="Partition Count" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-partition-count-the-ceiling-on-consumer-parallelism">Case study: Partition count (the ceiling on consumer parallelism)</h2>
+<p>In one consumer group, twelve partitions support twelve consumers. The thirteenth consumer idles, however many cores the host has.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A partition is the unit of both order and assignment. Within a consumer group, each partition is assigned to one consumer, so useful parallelism is bounded by the partition count.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-9" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-9">The substrate knowledge gap it signals</h3>
-<p>The partition count is chosen when the topic — the named log — is created, and it can only rise. An increase remaps keys across partitions. The gap question is how much parallelism the throughput target needs, and whether the partition count supplies it. Twelve partitions cap a group at twelve working consumers; the thirteenth is idle, not faster. A skewed key can put the load on one partition while the group waits on it.</p>
+<p>The partition count is chosen when the topic is created, and it can only rise. An increase remaps keys across partitions. The gap question is how much parallelism the throughput target needs, and whether the partition count supplies it. Twelve partitions cap a group at twelve working consumers; the thirteenth is idle, not faster. A skewed key can put the load on one partition while the group waits on it.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1231,8 +1251,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-restore-time-the-copy-time-is-a-floor" class="level2 kg-post" hidden="true" data-slug="restore-time-2027-01-31-substrate" data-pattern="Restore Time" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-restore-time-the-copy-time-is-a-floor">Case study: Restore time (the copy time is a floor)</h2>
+<p>A 100 GB restore at 200 MB/s takes 500 seconds — about eight minutes — before verification and replay. The copy is a division, not a promise.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
-<p><strong>Bound:</strong> Recovery time is at least the data size divided by the restore rate, and longer by every step after the copy. One hundred gigabytes at two hundred megabytes per second is five hundred seconds, about eight minutes.</p>
+<p><strong>Bound:</strong> Recovery time is at least the data size divided by the restore rate: the copy is the floor, and every step after the copy adds to it.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-10" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-10">The substrate knowledge gap it signals</h3>
@@ -1288,6 +1310,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-page-write-amplification-the-engines-page-is-the-unit" class="level2 kg-post" hidden="true" data-slug="page-write-amplification-2027-02-01-substrate" data-pattern="Page Write Amplification" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-page-write-amplification-the-engines-page-is-the-unit">Case study: Page write amplification (the engine’s page is the unit)</h2>
+<p>An eight-byte update to a random row dirties a four-kilobyte page. That is at least 512 times the bytes the application changed, before the log and the index.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> The storage engine reads and writes in pages — 4 KiB here, 8 KiB in PostgreSQL, 16 KiB in InnoDB. A random update to a few bytes still costs a whole page on write-back.</p>
 </blockquote>
@@ -1345,8 +1369,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-receive-window-the-bandwidth-delay-product" class="level2 kg-post" hidden="true" data-slug="receive-window-2027-02-02-substrate" data-pattern="Receive Window" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-receive-window-the-bandwidth-delay-product">Case study: Receive window (the bandwidth-delay product)</h2>
+<p>One connection with a 64 KiB receive window and a 100 ms round trip caps at 5.2 Mbit/s. The link may be 10 Gbit/s; the window decides.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
-<p><strong>Bound:</strong> A sender may have only the smaller of the congestion window and the receive window in flight. The receive window divided by the round-trip time is the ceiling this post prices: 64 KiB over 100 ms caps one connection at 5.24 Mbit/s.</p>
+<p><strong>Bound:</strong> A sender may have only the smaller of the congestion window and the receive window in flight. The receive window divided by the round-trip time is the ceiling of a single connection: 64 KiB over 100 ms caps it at 5.24 Mbit/s.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-12" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-12">The substrate knowledge gap it signals</h3>
@@ -1402,12 +1428,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-integer-key-width-the-positive-range-of-the-type" class="level2 kg-post" hidden="true" data-slug="integer-key-width-2027-02-03-substrate" data-pattern="Integer Key Width" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-integer-key-width-the-positive-range-of-the-type">Case study: Integer key width (the positive range of the type)</h2>
+<p>A signed 32-bit key holds 2,147,483,647 positive ids. The next insert fails, and the failure arrives long after the schema decision that set the limit.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> An identifier has a width. A signed 32-bit integer spans 4,294,967,296 values, and an identity column spends the positive half: 2,147,483,647 inserts, after which the next one fails.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-13" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-13">The substrate knowledge gap it signals</h3>
-<p>The key width is chosen at schema time and is expensive to change later. The gap question is how many rows this table will ever hold, and whether the width covers it. The arithmetic is the usable range, 2³¹ − 1, not the current row count. A migration under load is one price of getting it wrong.</p>
+<p>The key width is chosen at schema time. The gap question is how many rows this table will ever hold, and whether the width covers it. The arithmetic is the usable range, 2³¹ − 1, not the current row count. Migrating the live table is one price of getting it wrong.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1459,6 +1487,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-quorum-the-majority-is-arithmetic" class="level2 kg-post" hidden="true" data-slug="quorum-2027-02-04-substrate" data-pattern="Quorum" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-quorum-the-majority-is-arithmetic">Case study: Quorum (the majority is arithmetic)</h2>
+<p>Five nodes, and three must agree. Two groups of two cannot both write — within one membership view. The rest is policy.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A majority is ⌊n/2⌋ + 1. Five nodes need three; four need three; three need two. A membership view is each node’s current list of voting members; two nodes can disagree on it. Two disjoint groups cannot both hold a majority of the same member set.</p>
 </blockquote>
@@ -1516,6 +1546,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-thread-stack-the-concurrency-model-has-a-memory-bill" class="level2 kg-post" hidden="true" data-slug="thread-stack-2027-02-05-substrate" data-pattern="Thread Stack" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-thread-stack-the-concurrency-model-has-a-memory-bill">Case study: Thread stack (the concurrency model has a memory bill)</h2>
+<p>On a 64-bit host, ten thousand threads with an 8 MB stack reserve about eighty gigabytes of address space. None of them has done useful work yet.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Each thread reserves a stack. Eight megabytes is the Linux default, read with ulimit -s. Ten thousand threads therefore reserve about eighty gigabytes of address space, whether or not they touch it.</p>
 </blockquote>
@@ -1573,6 +1605,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-dns-ttl-the-staleness-bound" class="level2 kg-post" hidden="true" data-slug="dns-ttl-2027-02-06-substrate" data-pattern="DNS TTL" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-dns-ttl-the-staleness-bound">Case study: DNS TTL (the staleness bound)</h2>
+<p>A 300-second TTL lets a conforming resolver serve a stale answer for five minutes. The failover plan is bounded by the record’s lifetime, and by every client that caches past it.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A DNS answer carries a time to live. A caching resolver may serve the old answer until that time expires. A 300-second TTL therefore bounds a conforming resolver’s staleness at five minutes.</p>
 </blockquote>
@@ -1630,6 +1664,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-message-size-the-payload-ceiling" class="level2 kg-post" hidden="true" data-slug="message-size-2027-02-07-substrate" data-pattern="Message Size" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-message-size-the-payload-ceiling">Case study: Message size (the payload ceiling)</h2>
+<p>A message ceiling of 1 MiB belongs to the broker. Amazon SQS enforces it; above it, the vendor ships the workaround: claim check.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A broker accepts messages up to a stated size. Amazon SQS accepts 1,048,576 bytes of encoded message, which is 1 MiB. Above that size the broker rejects the message; the application stores the payload and sends a reference.</p>
 </blockquote>
@@ -1687,6 +1723,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-file-descriptors-the-per-process-limit" class="level2 kg-post" hidden="true" data-slug="file-descriptors-2027-02-08-substrate" data-pattern="File Descriptors" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-file-descriptors-the-per-process-limit">Case study: File descriptors (the per-process limit)</h2>
+<p>A process spends one descriptor per open socket, file, and pipe. At the soft limit the next open fails with an error, not a slow request.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Every open socket, file, and pipe consumes one descriptor, and so does every other handle the kernel returns. The soft limit caps how many a process may hold; the next open fails with EMFILE.</p>
 </blockquote>
@@ -1744,6 +1782,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-inodes-the-file-count-ceiling" class="level2 kg-post" hidden="true" data-slug="inodes-2027-02-09-substrate" data-pattern="Inodes" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-inodes-the-file-count-ceiling">Case study: Inodes (the file-count ceiling)</h2>
+<p>A filesystem with a fixed inode table can run out of files before it runs out of bytes. The error says “no space left on device” while the disk is half empty.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> An inode is the record the filesystem keeps for one file. A filesystem with fixed inodes allocates one per file, directory, and symbolic link; a hard link adds a name and no inode. When the table is full, creating a file fails with ENOSPC (no space left on device) even though bytes remain.</p>
 </blockquote>
@@ -1801,6 +1841,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-replication-lag-the-staleness-bound-on-reads" class="level2 kg-post" hidden="true" data-slug="replication-lag-2027-02-10-substrate" data-pattern="Replication Lag" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-replication-lag-the-staleness-bound-on-reads">Case study: Replication lag (the staleness bound on reads)</h2>
+<p>A read from an asynchronous replica is stale by up to that replica’s lag. At a two-second lag, a write made in the last two seconds is likely missing from the replica.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Asynchronous replication applies changes after the primary commits. A read served by a replica returns data from the point the replica has reached, which trails the primary by up to that replica’s lag.</p>
 </blockquote>
@@ -1858,6 +1900,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-heartbeat-detection-the-detection-bound" class="level2 kg-post" hidden="true" data-slug="heartbeat-detection-2027-02-11-substrate" data-pattern="Heartbeat Detection" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-heartbeat-detection-the-detection-bound">Case study: Heartbeat detection (the detection bound)</h2>
+<p>A 30-second heartbeat with a one-beat death timeout detects a dead node in up to 60 seconds. Detection is twice the interval; failover runs past it.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A cluster notices a dead member by missing its heartbeat. Detection takes up to one interval plus the death timeout (the wait after the last beat before the member is declared dead) — two intervals when the timeout is one interval. With k tolerated missed beats, the bound is k + 1 intervals.</p>
 </blockquote>
@@ -1915,6 +1959,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-retransmission-timeout-the-floor-under-a-lost-tail" class="level2 kg-post" hidden="true" data-slug="retransmission-timeout-2027-02-12-substrate" data-pattern="Retransmission Timeout" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-retransmission-timeout-the-floor-under-a-lost-tail">Case study: Retransmission timeout (the floor under a lost tail)</h2>
+<p>A lost packet that only the timer can recover costs at least 200 milliseconds. When later packets arrive, a fast retransmit recovers it in about one round trip instead.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> When a segment is lost and nothing later recovers it, the sender waits for a retransmission timeout. The kernel clamps that timeout at a minimum — 200 ms on Linux. Fast retransmit — resending as soon as later packets reveal the gap — recovers many other losses in a round trip or two.</p>
 </blockquote>
@@ -1972,6 +2018,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-character-length-the-byte-ceiling-behind-it" class="level2 kg-post" hidden="true" data-slug="utf8-byte-length-2027-02-13-substrate" data-pattern="UTF-8 Byte Length" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-character-length-the-byte-ceiling-behind-it">Case study: Character length (the byte ceiling behind it)</h2>
+<p>A VARCHAR(255) holds 255 characters. In UTF-8 that is up to 1,020 bytes, and the index limit is measured in bytes.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A character column is declared in characters and stored in bytes. UTF-8 encodes a code point in one to four bytes, and the column counts code points, so 255 code points occupy up to 1,020 bytes.</p>
 </blockquote>
@@ -2029,12 +2077,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-send-buffer-the-buffer-divided-by-the-round-trip" class="level2 kg-post" hidden="true" data-slug="send-buffer-2027-02-14-substrate" data-pattern="Send Buffer" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-send-buffer-the-buffer-divided-by-the-round-trip">Case study: Send buffer (the buffer divided by the round trip)</h2>
+<p>One connection on a 10 Gbit/s link moves 17 Mbit/s when its send buffer is 212,992 bytes and the round trip is 100 ms. The buffer sets that number.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A sender may leave only its send buffer’s worth of bytes unacknowledged. net.core.wmem_max caps the buffer an unprivileged process may request — 212,992 bytes in the upstream default, larger where a distribution or an operator raised it — and at a 100 ms round trip that is 212,992 × 8 ÷ 0.1 = 17.04 Mbit/s.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-24" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-24">The substrate knowledge gap it signals</h3>
-<p>A socket’s rate is one division: the buffer it may leave unacknowledged, over the round trip, per connection and per direction. The buffer is a setting; the round trip is a measurement. Autotuning raises the buffer toward that setting, so the ceiling is the setting’s value, not the link’s rating. A single stream that will not fill its share of a fat pipe is usually this division.</p>
+<p>A socket’s rate is one division: the buffer it may leave unacknowledged, over the round trip, per connection and per direction. The buffer is a setting; the round trip is a measurement. Autotuning raises the buffer toward that setting, so the ceiling is the setting’s value, not the link’s rating. A single connection that holds 17 Mbit/s on a 10 Gbit/s link is usually this division.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2086,6 +2136,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-littles-law-the-concurrency-product" class="level2 kg-post" hidden="true" data-slug="littles-law-2027-02-15-substrate" data-pattern="Little's Law" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-littles-law-the-concurrency-product">Case study: Little’s law (the concurrency product)</h2>
+<p>A service at 1,000 requests a second, each living 100 ms, holds 100 requests in flight on average. The pool size is that product, never a round number.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> In a stable system, the average number of items in it equals the arrival rate times the average time each spends there. At 1,000 requests a second and 100 ms end to end, 1,000 × 0.1 = 100 requests are in flight on average — a mean, not a count you will read at any moment.</p>
 </blockquote>
@@ -2143,12 +2195,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-queue-wait-the-headroom-is-the-latency" class="level2 kg-post" hidden="true" data-slug="queue-wait-2027-02-16-substrate" data-pattern="Queue Wait" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-queue-wait-the-headroom-is-the-latency">Case study: Queue wait (the headroom is the latency)</h2>
+<p>A queue at 80 percent utilisation waits four service times on average. At 90 percent it waits nine, and at 95 percent nineteen. The last slice of headroom is the whole latency budget.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> For one server with random arrivals and a random service time — the M/M/1 model — the mean wait in the queue is the service time times ρ ÷ (1 − ρ), where ρ is utilisation. At 0.8 that is 4 service times, at 0.9 it is 9, and at 0.95 it is 19. A scheduled arrival, or a second server, changes the curve.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-26" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-26">The substrate knowledge gap it signals</h3>
-<p>Utilisation and waiting time are not two independent numbers; one divides into the other. The curve is not linear; it is a division by the headroom. A design sized at 90 percent runs ten times slower than an idle one, and a capacity report calls that healthy.</p>
+<p>Utilisation and waiting time are not two independent numbers; one divides into the other. The curve is not linear; it is a division by the headroom. A design sized at 90 percent takes ten times as long per item as an idle one, and a capacity report calls that healthy.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2200,6 +2254,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-durable-write-rate-the-devices-confirmations" class="level2 kg-post" hidden="true" data-slug="fsync-rate-2027-02-17-substrate" data-pattern="Durable-Write Rate" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-durable-write-rate-the-devices-confirmations">Case study: Durable-write rate (the device’s confirmations)</h2>
+<p>One durable write per request, at one millisecond each, caps a device that serialises its flushes at a thousand requests a second. Each confirmation is a millisecond the next request waits.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A durable write waits for the device to confirm that the data is on stable media — an fsync. That confirmation costs about 1 ms on an SSD and 5 to 10 ms on a spinning disk, which caps one device at roughly 1,000 and 100 to 200 such waits a second.</p>
 </blockquote>
@@ -2257,6 +2313,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-drive-endurance-capacity-is-not-the-bound" class="level2 kg-post" hidden="true" data-slug="drive-endurance-2027-02-18-substrate" data-pattern="Drive Endurance" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-drive-endurance-capacity-is-not-the-bound">Case study: Drive endurance (capacity is not the bound)</h2>
+<p>A 1 TB drive rated at one drive-write per day absorbs a terabyte a day for five years. At ten terabytes a day it spends that whole budget in 182 days, and the capacity report still says 1 TB free.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Drive writes per day is the sustained write volume a drive’s endurance covers, as a multiple of its capacity. One DWPD on a 1 TB drive is 1 TB a day for the warranty period — 1,825 TB over five years. At 10 TB a day that budget is gone in 182 days.</p>
 </blockquote>
@@ -2314,6 +2372,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-context-switch-the-cores-switch-budget" class="level2 kg-post" hidden="true" data-slug="context-switch-2027-02-19-substrate" data-pattern="Context Switch" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-context-switch-the-cores-switch-budget">Case study: Context switch (the core’s switch budget)</h2>
+<p>A blocking call costs two context switches. At two microseconds each, one core completes 250,000 blocking calls a second, and the work itself is not counted yet.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A thread that blocks gives up the core and is scheduled back later, and each transition costs one to three microseconds. Two transitions at two microseconds allow about 250,000 blocking calls a second on one core, before the work itself is counted.</p>
 </blockquote>
@@ -2330,7 +2390,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The obligation needs more blocking operations per second than the switches allow. Then batch the items, wait on readiness rather than blocking, or shard across cores. The arithmetic gives the batch size that closes the gap.</p>
+<p>The obligation needs more blocking operations per second than a core’s 250,000 switches allow. Then batch the items, wait on readiness rather than blocking, or shard across cores. The arithmetic gives the batch size that closes the gap.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2371,6 +2431,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-heap-against-the-cgroup-limit-two-numbers-one-wrong" class="level2 kg-post" hidden="true" data-slug="heap-vs-cgroup-2027-02-20-substrate" data-pattern="Heap Against the Cgroup" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-heap-against-the-cgroup-limit-two-numbers-one-wrong">Case study: Heap against the cgroup limit (two numbers, one wrong)</h2>
+<p>A 2 GB container on a 64 GB host: the runtime sizes its heap to 16 GB and the kernel kills it at 2 GB. Both numbers came from the same machine.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> The default maximum heap is one quarter of the memory the runtime detects. In a container on a 64 GB host that detection can return 64 GB, so the heap limit is 16 GB. The cgroup — the kernel’s per-container memory limit — allows 2 GB, and the process dies at the second number, with no heap error to read.</p>
 </blockquote>
@@ -2400,7 +2462,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The runtime reads the cgroup limit and sizes from it, as current versions do. Or the limit is set explicitly and the default never applies. Then the detected memory is irrelevant, and the fraction is harmless.</p>
+<p>The runtime reads the cgroup limit and sizes from it. Or the limit is set explicitly and the default never applies. Then the detected memory is irrelevant, and the fraction is harmless.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2428,6 +2490,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-cpu-quota-the-period-is-the-pause" class="level2 kg-post" hidden="true" data-slug="cfs-quota-2027-02-21-substrate" data-pattern="CPU Quota" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-cpu-quota-the-period-is-the-pause">Case study: CPU quota (the period is the pause)</h2>
+<p>A container that burns its 50 ms quota inside a 100 ms period is stopped for the other 50. The average says half a core; the tail says a 50 ms pause.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> CPU quota is enforced per period, 100 ms by default. A quota of 50 ms lets the threads run for 50 ms and then stops them until the next period begins — if they ask for that much. A workload that wants less is never throttled; one that wants more is throttled in every period it runs. The work still fits the average; the wall clock does not.</p>
 </blockquote>
@@ -2485,6 +2549,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-fibre-latency-the-distance-is-the-floor" class="level2 kg-post" hidden="true" data-slug="fibre-latency-2027-02-22-substrate" data-pattern="Fibre Latency" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-fibre-latency-the-distance-is-the-floor">Case study: Fibre latency (the distance is the floor)</h2>
+<p>Light in glass covers 200 kilometres in a millisecond. A 1,000 km round trip costs 10 ms before any software runs.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Light travels at about 200,000 km/s in fibre. One way, 1,000 km is 5 ms; a round trip is 10 ms. This is a property of the medium, so no release and no setting moves it — only a shorter path does.</p>
 </blockquote>
@@ -2542,6 +2608,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-loss-limited-throughput-the-square-root" class="level2 kg-post" hidden="true" data-slug="mathis-throughput-2027-02-23-substrate" data-pattern="Loss-Limited Throughput" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-loss-limited-throughput-the-square-root">Case study: Loss-limited throughput (the square root)</h2>
+<p>One percent packet loss caps a single connection at 1.2 Mbit/s on a 100 ms path. The link may be 10 Gbit/s; the loss is what caps the flow.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A connection that backs off when it sees loss settles near segment size ÷ round trip × 1 ÷ √p, where p is the loss rate. At a 1,460-byte segment, a 100 ms round trip, and 1 percent loss, 1 ÷ √p is 10, so the ceiling is 1,460 × 8 ÷ 0.1 × 10 = 1.17 Mbit/s.</p>
 </blockquote>
@@ -2599,6 +2667,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-slow-start-the-ramp-before-the-rate" class="level2 kg-post" hidden="true" data-slug="slow-start-2027-02-24-substrate" data-pattern="Slow Start" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-slow-start-the-ramp-before-the-rate">Case study: Slow start (the ramp before the rate)</h2>
+<p>A new connection starts with 10 segments in flight and doubles each round trip. Nearly filling a 10 Gbit/s, 100 ms path takes 13 round trips — 1.3 seconds of ramp.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A flow begins with an initial window of about 10 segments, 14,600 bytes, and doubles it per round trip. The bandwidth-delay product of 10 Gbit/s and 100 ms is 125 MB, so the ramp needs log₂(125,000,000 ÷ 14,600) ≈ 13 round trips to come within about 4 percent of the link’s capacity.</p>
 </blockquote>
@@ -2656,6 +2726,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-packet-count-the-exposure-a-response-buys" class="level2 kg-post" hidden="true" data-slug="packet-count-loss-2027-02-25-substrate" data-pattern="Packet Count" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-packet-count-the-exposure-a-response-buys">Case study: Packet count (the exposure a response buys)</h2>
+<p>A 1 MB response — a million bytes — is 685 packets. At one percent loss, 99.9 percent of such responses lose at least one.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A response is split into segments of at most the MSS. A million bytes over a 1,460-byte MSS is 685 segments, and at 1 percent loss the chance that a response loses none is 0.99^685, about 0.1 percent.</p>
 </blockquote>
@@ -2713,6 +2785,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-clock-skew-the-ordering-bound" class="level2 kg-post" hidden="true" data-slug="clock-skew-2027-02-26-substrate" data-pattern="Clock Skew" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-clock-skew-the-ordering-bound">Case study: Clock skew (the ordering bound)</h2>
+<p>Two healthy hosts disagree about the time by a millisecond, and by ten when the network is busy. Comparing their timestamps is comparing two clocks, not two events.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> NTP holds hosts within a few milliseconds on a good network, and a quartz oscillator drifts up to about 100 parts per million — 8.64 seconds a day if nothing corrects it. The skew between two hosts is the sum of both errors, and it moves with the network.</p>
 </blockquote>
@@ -2770,6 +2844,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-time-column-width-the-last-instant-it-holds" class="level2 kg-post" hidden="true" data-slug="time-t-width-2027-02-27-substrate" data-pattern="Time Column Width" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-time-column-width-the-last-instant-it-holds">Case study: Time column width (the last instant it holds)</h2>
+<p>A signed 32-bit second counter runs out on 19 January 2038 at 03:14:07 UTC. A column of that width cannot store the expiry it was given.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A 32-bit signed integer counts 2,147,483,647 seconds from 1 January 1970, which ends on 19 January 2038 at 03:14:07 UTC. A column of that width cannot hold a later instant: a database rejects the write, and a 32-bit counter in application code wraps, which sends the date backwards.</p>
 </blockquote>
@@ -2827,8 +2903,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-certificate-lifetime-the-renewal-window" class="level2 kg-post" hidden="true" data-slug="certificate-lifetime-2027-02-28-substrate" data-pattern="Certificate Lifetime" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-certificate-lifetime-the-renewal-window">Case study: Certificate lifetime (the renewal window)</h2>
+<p>A public TLS certificate may live no more than 200 days, and 100 from March 2027. A renewal that needs a person is already out of bounds: the window is shorter than the release cadence that carries it.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
-<p><strong>Bound:</strong> Public certificate authorities may issue a TLS certificate valid for at most 200 days, and the ceiling falls to 100 in March 2027 and to 47 in March 2029. Many issue for 90 already. Renewal must complete before expiry, on a schedule no longer than the certificate’s life.</p>
+<p><strong>Bound:</strong> Public certificate authorities may issue a TLS certificate valid for at most 200 days, and the ceiling falls to 100 in March 2027 and to 47 in March 2029. Many already issue for 90 days. Renewal must complete before expiry, on a schedule no longer than the certificate’s life.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-38" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-38">The substrate knowledge gap it signals</h3>
@@ -2884,6 +2962,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-bit-error-rate-one-error-per-125-tb" class="level2 kg-post" hidden="true" data-slug="bit-error-rate-2027-03-01-substrate" data-pattern="Bit Error Rate" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-bit-error-rate-one-error-per-125-tb">Case study: Bit error rate (one error per 125 TB)</h2>
+<p>A drive with an unrecoverable bit error rate of 10⁻¹⁵ meets one unrecoverable error per 125 TB it reads. A 100 TB restore meets at least one such failure about 55 percent of the time.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> The unrecoverable bit error rate is the chance that a read cannot be recovered: the drive reports a failure rather than returning a wrong bit. At 10⁻¹⁵, one failure falls in 10¹⁵ bits, which is 125 TB. A 100 TB restore reads 8 × 10¹⁴ bits, and if the failures arrive independently it meets at least one 1 − e^−0.8 ≈ 55 percent of the time.</p>
 </blockquote>
@@ -2941,6 +3021,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-queue-depth-in-flight-divided-by-service-time" class="level2 kg-post" hidden="true" data-slug="device-queue-depth-2027-03-02-substrate" data-pattern="Queue Depth" data-group="capacity" data-group-label="Capacity">
 <h2 class="anchored" data-anchor-id="case-study-queue-depth-in-flight-divided-by-service-time">Case study: Queue depth (in flight divided by service time)</h2>
+<p>A device holding 32 requests in flight at 200 microseconds each completes at most 160,000 a second. At one in flight it completes 5,000. The depth is a setting you own.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A device can serve many requests at once; a loop that waits for each serves one. A device with a queue depth of 32 and an unloaded service time of 200 microseconds completes at most 32 ÷ 0.0002 = 160,000 requests a second, and it keeps that rate only if the service time holds at that depth. At a depth of one it completes 5,000.</p>
 </blockquote>
@@ -2957,7 +3039,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The obligation needs more than one request’s worth, and the code waits for each to finish. Then issue concurrently, up to the device’s depth, and measure the service time at that depth; an unloaded measurement flatters the device.</p>
+<p>The obligation needs more than 5,000 a second, and the code waits for each to finish. Then issue concurrently, up to the device’s depth, and measure the service time at that depth; an unloaded measurement flatters the device.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2998,6 +3080,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-failure-domains-nodes-are-not-denominators" class="level2 kg-post" hidden="true" data-slug="correlated-failure-2027-03-03-substrate" data-pattern="Failure Domains" data-group="failure" data-group-label="Failure">
 <h2 class="anchored" data-anchor-id="case-study-failure-domains-nodes-are-not-denominators">Case study: Failure domains (nodes are not denominators)</h2>
+<p>Twenty nodes in one rack share one switch. The rack’s availability is the switch’s, and the node count is what the spreadsheet multiplies.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Nodes that share a switch, a power feed, or a hypervisor share a failure: when that component goes, all of them go. A rack of 20 nodes on one top-of-rack switch presents one failure domain, and its availability is that switch’s, not twenty nodes’.</p>
 </blockquote>
@@ -3055,6 +3139,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-mtu-frame-size-and-the-payload-behind-it" class="level2 kg-post" hidden="true" data-slug="mtu-mss-2027-03-04-substrate" data-pattern="MTU and MSS" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-mtu-frame-size-and-the-payload-behind-it">Case study: MTU (frame size, and the payload behind it)</h2>
+<p>A link carries 1,500 bytes per packet, of which 1,460 can be your data. One tunnel header takes 50 of those, and if the network cannot tell you it dropped an oversized packet, a large response never arrives — it just times out.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> The MTU is the largest packet one link carries: 1,500 bytes here. Take away the IP and TCP headers, 40 bytes, and one connection may send 1,460 bytes of payload — the maximum segment size. A tunnel adds its own header first, so VXLAN leaves 1,410 and IPsec about 1,400. A packet above the path’s MTU is dropped rather than split whenever fragmentation is disallowed — always on IPv6, and on TCP over IPv4.</p>
 </blockquote>
@@ -3112,6 +3198,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-zone-boundary-the-cost-of-crossing-it" class="level2 kg-post" hidden="true" data-slug="cross-az-latency-2027-03-05-substrate" data-pattern="Zone Boundary" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-zone-boundary-the-cost-of-crossing-it">Case study: Zone boundary (the cost of crossing it)</h2>
+<p>One call across zones costs a millisecond or two. Twenty of them in one request cost 30 ms; the same twenty inside a zone cost five.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> Round trips inside one availability zone — a separate datacenter with its own power and network — take about 0.25 ms. Across zones in one region they take one to two. A request making 20 sequential round trips spends 5 ms inside a zone and 30 ms across.</p>
 </blockquote>
@@ -3169,12 +3257,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-route-convergence-the-failover-it-sets" class="level2 kg-post" hidden="true" data-slug="bgp-convergence-2027-03-06-substrate" data-pattern="Route Convergence" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-route-convergence-the-failover-it-sets">Case study: Route convergence (the failover it sets)</h2>
+<p>A withdrawn route usually disappears in 30 to 180 seconds, and the tail runs to fifteen minutes. A failover plan that waits on routing is a plan measured in minutes.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A routing change spreads as each router learns the new path and passes it to its neighbours; worldwide, the common case is 30 to 180 seconds and the tail runs to fifteen minutes or more. Anycast — one address announced from several sites — moves the flows with the route, so a moved flow loses its connection state.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-44" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-44">The substrate knowledge gap it signals</h3>
-<p>The failover the obligation allows is compared against a propagation time that runs on routers, not on your schedule. The route is withdrawn only after a health check fails, so the health check adds to it. The client’s resolver and its connection reuse add again.</p>
+<p>The failover the obligation allows meets a propagation time that runs on routers, not on your schedule. The route is withdrawn only after a health check fails, so the health check adds to it. The client’s resolver and its connection reuse add again.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -3226,6 +3316,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-socket-distance-the-share-that-crosses" class="level2 kg-post" hidden="true" data-slug="numa-distance-2027-03-07-substrate" data-pattern="Socket Distance" data-group="topology" data-group-label="Topology">
 <h2 class="anchored" data-anchor-id="case-study-socket-distance-the-share-that-crosses">Case study: Socket distance (the share that crosses)</h2>
+<p>A memory load that crosses to the other CPU socket costs about 1.7 times a local one. A heap spanning both pays it on every access that crosses.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A core reaches memory attached to its own CPU socket in about 80 nanoseconds, and memory on the other socket in about 130 to 140. A working set spread across both pays the remote price on the accesses that cross.</p>
 </blockquote>
@@ -3283,12 +3375,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-timestamp-resolution-the-events-per-tick" class="level2 kg-post" hidden="true" data-slug="timestamp-resolution-2027-03-08-substrate" data-pattern="Timestamp Resolution" data-group="time" data-group-label="Time">
 <h2 class="anchored" data-anchor-id="case-study-timestamp-resolution-the-events-per-tick">Case study: Timestamp resolution (the events per tick)</h2>
+<p>At ten thousand events a second, ten of them share a millisecond on average. A millisecond timestamp cannot order them, and the column looks precise enough to try.</p>
+<p>Choosing a structure? Ask “what measured fact constrains this structure, and what is its value?” If you can’t answer, you’ve found a knowledge gap. If you can, you hold the number. The number rules out a design only where the design breaches an obligation: the fact measures, the obligation rules out. Which of the remaining designs you take is a second decision.</p>
 <blockquote class="blockquote">
 <p><strong>Bound:</strong> A timestamp resolves to one tick. At a peak of 10,000 events a second and a millisecond column, 10 events land on each value on average, and the busier milliseconds hold more — so the column cannot order them and cannot break the tie.</p>
 </blockquote>
 <section id="the-substrate-knowledge-gap-it-signals-46" class="level3">
 <h3 class="anchored" data-anchor-id="the-substrate-knowledge-gap-it-signals-46">The substrate knowledge gap it signals</h3>
-<p>Ordering needs a resolution finer than the event rate, and the column has one tick to give. Resolution is a property of the type, and the event rate is a measurement. A sort on the timestamp leaves the tie in storage order, which is not the order they happened.</p>
+<p>Ordering needs a resolution finer than the interval between events, and the column has one tick to give. Resolution is a property of the type, and the event rate is a measurement. A sort on the timestamp leaves the tie in storage order, which is not the order they happened.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">

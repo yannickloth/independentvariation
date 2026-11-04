@@ -633,21 +633,324 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Effects are declared in types, and a definition’s hash is its identity. Each post will ask which knowledge the type carries and which the hash replaces.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>Effects are declared in types, and a definition’s hash is its identity. Each post asks which knowledge the type carries and which the hash replaces.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="unison">
+<p>Writing Unison? Ask “which knowledge does the signature carry, and which does the definition hash replace?” If you can’t answer, you’ve found a knowledge gap: the effect is undeclared or the dependency unpinned. If you can, the signature is knowledge embodied — the codebase recording what the domain decided.</p>
+</div>
+<section id="case-study-abilities-effects-in-the-signature" class="level2 kg-post" hidden="true" data-slug="abilities-2027-12-08-unison" data-pattern="Abilities (effects in the signature)" data-group="unison" data-group-label="Unison">
+<h2 class="anchored" data-anchor-id="case-study-abilities-effects-in-the-signature">Case study: Abilities (effects in the signature)</h2>
+<p>A function that logs, reads the clock, and can fail carries all three in <code>{IO, Exception}</code> — visible before the first line runs.</p>
+<p>Writing a Unison definition? Ask “which fact does the hash and the signature carry — what this does, which version this is — and what can no longer be a guess?” If you can’t answer, you’ve found a knowledge gap. If you can, the definition is knowledge embodied — the codebase catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In Unison’s documented model an ability declares operations, and a function’s type records the abilities it requires: <code>{}</code> pure, <code>{IO}</code> writing. A call site must handle each one or propagate it, so effects travel inside the type. The trade: no effect hides behind the signature, at the cost of threading abilities through every caller in between.</p>
+</blockquote>
+<section id="the-unison-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-unison-knowledge-gap-it-signals">The Unison knowledge gap it signals</h3>
+<p>The developer must know which effects the program performs — which reads, which writes, which failures — and who is responsible for each. An ability in a type is a claim about how the function touches the world; a handler is a claim about where that responsibility stops. A signature assembled by habit describes a program nobody verified.</p>
+<p>The gap question: does the effect set name every way this function touches the world?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the types encode reality
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for five posts (#496–#500). The framing is fixed; the entries are being written.</p>
+<p>A report job that reads a file and writes a summary needs <code>{IO}</code>; a validator with no effects gets <code>{}</code>, and the compiler will not let it print. Every caller shows what it inherits, so the boundary where effects are discharged — one <code>main</code>, one test harness — is visible in the types.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The team arrives from a language where the type read <code>Promise&lt;User&gt;</code> and the database call inside was invisible. A review step grew to catch what the compiler did not: does this touch the database, can this throw. In Unison that step hunts effects the signature already lists, and what remains is a checklist that always passes. The trap is keeping the ceremony and calling it rigor.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each function: do its effects match its signature — and is that checked by the compiler or by hope?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the signature is the contract. Check that each ability is handled where the program wants the responsibility, not merely somewhere.</li>
+<li><strong>If no</strong> → the type does not describe the function. Narrow the ability set, or move the effect to its handler.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List what it reads, writes, and can fail with, then compare it to the type.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#UnisonLang</code> <code>#Abilities</code> <code>#EffectSystems</code> <code>#TypeSystems</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-content-addressed-definitions" class="level2 kg-post" hidden="true" data-slug="content-addressed-code-2027-12-09-unison" data-pattern="Content-addressed definitions" data-group="unison" data-group-label="Unison">
+<h2 class="anchored" data-anchor-id="case-study-content-addressed-definitions">Case study: Content-addressed definitions</h2>
+<p>Rename a function across a thousand files and its hash does not move; change one character inside it and every dependent’s hash does.</p>
+<p>Writing a Unison definition? Ask “which fact does the hash and the signature carry — what this does, which version this is — and what can no longer be a guess?” If you can’t answer, you’ve found a knowledge gap. If you can, the definition is knowledge embodied — the codebase catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In Unison’s documented model a definition’s identity is a hash of its normalized form, including the hashes of everything it references; the name is a separate, editable annotation. Renaming changes nothing, and an edit changes its hash plus every definition above it. The trade: an identity that cannot drift, against a name that no longer tells you what you are calling until you follow it.</p>
+</blockquote>
+<section id="the-unison-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-unison-knowledge-gap-it-signals-1">The Unison knowledge gap it signals</h3>
+<p>The developer must know which definitions the program depends on at the level of the individual definition, not the repository. “We use library X” becomes a set of hashes, and two identical-looking call sites may sit on different ones.</p>
+<p>The gap question: for each shared definition, is the consumer’s copy the same definition, or a copy that drifted?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two codebases referencing the same hash hold provably identical code — not “the same version”, the same term. A security review or an audit transfers with the hash: whoever verified that hash verified the code your build runs; a measurement does not — it describes one run.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A helper “shared” by two services, edited on separate days, now sits at two hashes with quietly different behavior — and in Unison the divergence is visible, because the hashes differ. The seductive trap runs the other way: believing a shared name means shared code. A name is a claim; the hash is the fact, and a diff between hashes is not a formality.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each shared function: which hash do the consumers reference — and is any divergence visible, or buried in git blame?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the hash is the identity. Compare the hashes across consumers that claim to share a definition; a mismatch is a fork, not a version.</li>
+<li><strong>If no</strong> → the name is carrying an identity it cannot. Record the hash where the dependency lives, and compare before assuming behavior.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Check whether “same function” is a claim about a name or about a hash.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#UnisonLang</code> <code>#ContentAddressing</code> <code>#CodeIdentity</code> <code>#Refactoring</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-escape-hatches-that-do-not-exist" class="level2 kg-post" hidden="true" data-slug="no-null-no-exceptions-2027-12-10-unison" data-pattern="The escape hatches that do not exist" data-group="unison" data-group-label="Unison">
+<h2 class="anchored" data-anchor-id="case-study-the-escape-hatches-that-do-not-exist">Case study: The escape hatches that do not exist</h2>
+<p>A function that can fail returns <code>Either Failure Success</code> — no caller reaches the success path without matching the failure first.</p>
+<p>Writing a Unison definition? Ask “which fact does the hash and the signature carry — what this does, which version this is — and what can no longer be a guess?” If you can’t answer, you’ve found a knowledge gap. If you can, the definition is knowledge embodied — the codebase catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In Unison’s documented model there is no null and no unchecked exception: absence is <code>Optional a</code>, failure is <code>Either e a</code>, and a partial operation such as list head returns an <code>Optional</code> rather than throwing. Matching is exhaustive, so a new case breaks every match with no wildcard branch. The trade: every case is handled where it arises or carried explicitly to a caller, against the verbosity of matching at each step.</p>
+</blockquote>
+<section id="the-unison-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-unison-knowledge-gap-it-signals-2">The Unison knowledge gap it signals</h3>
+<p>The developer must know which failures the domain admits and what should happen at each, because the type is now the list of them. The construct forces the belief open: a crash and an unhandled <code>None</code> are both statements about what the program assumes.</p>
+<p>The gap question: is every failure a caller can meet named in the return type?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A parser returns <code>Either ParseError Ast</code>, so the syntax error is a value the caller destructures and reports; adding a second error case fails compilation at every match that assumed one. Nothing reaches <code>Right</code> by accident, and no failure survives only as a log line.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The habit from other languages: a defensive check for the value that cannot be null, a catch-all handler around a call that cannot throw. Both compile. Then the optimism returns as a wildcard match branch that turns exhaustiveness back into a guess, or a helper that crashes on <code>None</code>, reinstating the exception the language removed. The compiler audits the match; it does not audit the wildcard you added to silence it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each failure path: is it in the return type — where every caller sees it — or in an exception nobody declared?</strong></p>
+<ul>
+<li><strong>If yes</strong> → failure is data. Check that each match names every case, and that no wildcard branch hides a case someone must handle.</li>
+<li><strong>If no</strong> → failure is an implementation detail, invisible at the boundary. Return it as a value, or declare it in the signature.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List how each call can fail, then read the type back.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#UnisonLang</code> <code>#Exhaustiveness</code> <code>#ErrorHandling</code> <code>#TypesAsKnowledge</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-codebase-as-a-database" class="level2 kg-post" hidden="true" data-slug="codebase-dependencies-2027-12-11-unison" data-pattern="The codebase as a database" data-group="unison" data-group-label="Unison">
+<h2 class="anchored" data-anchor-id="case-study-the-codebase-as-a-database">Case study: The codebase as a database</h2>
+<p>Nothing in the build says “4.2.x”. It says the hash of one definition, and that definition is the one that runs.</p>
+<p>Writing a Unison definition? Ask “which fact does the hash and the signature carry — what this does, which version this is — and what can no longer be a guess?” If you can’t answer, you’ve found a knowledge gap. If you can, the definition is knowledge embodied — the codebase catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In Unison’s documented model the codebase is a database of definitions keyed by hash, and a dependency is a set of exact hashes rather than a package version. There is no range to resolve and no “compatible with 4.2.x” — either the definition your code calls is present, or it is not. The trade: the build’s contents are decidable in one lookup, against ranges that let a patch version flow in without a decision.</p>
+</blockquote>
+<section id="the-unison-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-unison-knowledge-gap-it-signals-3">The Unison knowledge gap it signals</h3>
+<p>The developer must know which definition each dependency resolves to, and for each upgrade what actually changed. A range encodes a hope about compatibility; an exact hash encodes a fact somebody recorded. “Which version am I running” stops being archaeology and becomes a lookup — so the honest answer is available, and therefore expected.</p>
+<p>The gap question: for each dependency, can you name the definition the build contains?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An upgrade is deliberate: a dependent moves to a new hash, its own hash changes, and every consumer of it sees a hash it must re-verify. Nothing arrives by accident through a resolved range, and two builds of one commit contain the same definitions by construction.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The range “4.2.x” that behaves two ways in two builds, and a lockfile cited as proof that the code is known. A lockfile records what a resolver chose; it does not name definitions, so two lockfiles can agree on a version string while the code underneath differs. Carry that habit over and “we pin it” becomes a sentence nobody can check.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each dependency: which exact definition does this build contain — answerable in one lookup — or is it a range and a hope?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the dependency is pinned to a definition. Check that the hash in the build is the hash anyone reviewed.</li>
+<li><strong>If no</strong> → compatibility is a belief, not a record. Replace the range with the hash you verified, and note what changed.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Read the dependency’s hash out of the codebase, then read its diff.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#UnisonLang</code> <code>#DependencyManagement</code> <code>#ContentAddressing</code> <code>#Builds</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-publishing-and-consuming-definitions" class="level2 kg-post" hidden="true" data-slug="unison-publishing-2027-12-12-unison" data-pattern="Publishing and consuming definitions" data-group="unison" data-group-label="Unison">
+<h2 class="anchored" data-anchor-id="case-study-publishing-and-consuming-definitions">Case study: Publishing and consuming definitions</h2>
+<p>A consumer does not depend on “the library” — it depends on eleven definitions inside it, each one pinned by hash.</p>
+<p>Writing a Unison definition? Ask “which fact does the hash and the signature carry — what this does, which version this is — and what can no longer be a guess?” If you can’t answer, you’ve found a knowledge gap. If you can, the definition is knowledge embodied — the codebase catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In Unison’s documented model publishing makes a codebase’s definitions available, and consuming brings a definition into your own codebase by its hash, where it can be browsed and diffed like local code. The trade: upgrades become explicit — take one function’s new version and leave the rest — against a project that tracks many hashes and keeps docs as a separate artifact.</p>
+</blockquote>
+<section id="the-unison-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-unison-knowledge-gap-it-signals-4">The Unison knowledge gap it signals</h3>
+<p>The developer must know what the consumer actually uses, and what changed between two hashes of it. “We use the whole library” stops being true once the dependency is a set of definitions, and the set says which ones you took. A changelog is someone’s summary of a diff; the diff is available, so the summary is convenience, not evidence.</p>
+<p>The gap question: can a consumer state, definition by definition, what it depends on?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A library’s consumers pin exact hashes, and an upgrade is a reviewed hash change per definition. A consumer using four of a hundred definitions says so, and a change to any definition the four do not reach never enters that consumer’s build — the pinned set is the dependency and the inventory of trust.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The hand-maintained changelog, drifted from the code: “Renamed X” when the break was a changed error type, no entry because nobody wrote one. In Unison “what changed” is answered by comparing hashes and reading the term diff, so the trap is trusting the prose, not the hash — and releasing under a label that promises more than the definitions deliver.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can a consumer state exactly which definitions it depends on — by hash — or does “what changed” live in a document someone forgot?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the dependency set is the contract. Check that each pinned hash was reviewed, and diff the old and new before releasing.</li>
+<li><strong>If no</strong> → a label carries the claim. Publish the hashes, and let consumers pin what they verified.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List the definitions the build contains, then diff them against the ones you meant.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#UnisonLang</code> <code>#UnisonShare</code> <code>#PackageManagement</code> <code>#ContentAddressing</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

@@ -633,21 +633,740 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>A mapping claims what loads when, what counts as the same thing, what may be stale. Each post will name the claim and ask what the domain says about it.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>A mapping claims what loads when, what counts as the same thing, what may be stale. Each post names the claim and asks what the domain says about it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="orm">
+<p>Writing a mapping? Ask “which fact does this mapping encode — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping claims a loading pattern nobody measured. If you can, the mapping is knowledge embodied — the object model catching up to what the data decided.</p>
+</div>
+<section id="case-study-fetchtype.lazy-versus-eager" class="level2 kg-post" hidden="true" data-slug="lazy-vs-eager-2027-09-03-orm" data-pattern="FetchType.LAZY versus EAGER" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-fetchtype.lazy-versus-eager">Case study: FetchType.LAZY versus EAGER</h2>
+<p>One <code>@ManyToOne</code> marked EAGER pulls the customer and the customer’s billing address into every query that only wanted an order total.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An association declares when its rows travel: LAZY defers them to first touch, EAGER joins them to every load of the owner. JPA defaults to LAZY for collections and EAGER for <code>@ManyToOne</code> and <code>@OneToOne</code>. The asymmetry is the trade: EAGER is baked into the mapping — a fetch graph can subtract it per query, a load graph can only add — while LAZY has no plan of its own, so an unplanned read becomes one query per row.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals">The ORM knowledge gap it signals</h3>
+<p>Fetching is a claim about use cases, not about tables. “Orders need their lines” asserts that every path reading an order also reads its lines. The team must know which reads of the parent go on to the child. The gap question: does any consumer of this association exist that does not need it loaded?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for twelve posts (#400–#411). The framing is fixed; the entries are being written.</p>
+<p>Associations lazy by default, and each query stating what it fetches — a join fetch or an <code>@EntityGraph</code> on the read that needs the child, a DTO projection where the read model differs. The fetch plan lives with the query, where the use case is visible, and a test asserts the query count.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>EAGER everywhere, “for convenience”: the entity that drags half the schema on every lookup, and the one query that needs three tables now joins nine. Its mirror is lazy with no fetch plan anywhere — the N+1 under every page, invisible until the list passes a hundred rows. Both hide one missing fact: nobody named the use cases.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each association: which use case actually needs it loaded — can anyone name it?</strong></p>
+<ul>
+<li><strong>If yes</strong> → lazy plus a fetch plan at that query. Check the query count at realistic row counts.</li>
+<li><strong>If no</strong> → the association is eager by inertia or lazy by default, not by decision. Make it lazy where a fetch plan exists, and count queries at real sizes.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. List the read paths per entity and the child data each one uses.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#EfCore</code> <code>#LazyLoading</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-open-session-in-view" class="level2 kg-post" hidden="true" data-slug="osiv-2027-09-04-orm" data-pattern="Open Session in View" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-open-session-in-view">Case study: Open Session in View</h2>
+<p>A report endpoint calls a payment provider inside a transaction, and the database connection it opened before the first query waits through the whole HTTP round trip.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>spring.jpa.open-in-view</code> defaults to true: one persistence context is bound to the request thread, so lazy loading still works after the service returns, during rendering and serialization. The price is lifespan — the persistence context outlives the transaction and survives every slow call in the view layer, and a connection rides along for the life of any open transaction. Setting it false closes the context at the service boundary.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-1">The ORM knowledge gap it signals</h3>
+<p>A response is assembled from data, and only some of it is persistence data. OSIV asserts that the view’s needs are unknown at service time — that any association may be touched during rendering. The team must know which parts of the response are read after that boundary, and what non-database work runs inside it. The gap question: does rendering still touch entities, or only finished values?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>OSIV off, and fetching completes in the service — a DTO built from a fetch join, so the controller renders plain values with no persistence context open. Queries belong where the transaction is. EF Core reaches the same place differently: its scoped <code>DbContext</code> outlives the service, so a lazy-loading proxy — opt-in, via an option — fires during serialization unless the read is projected.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>OSIV left on because turning it off broke something, and that breakage — the price of the fix — was read as a warning instead of the finding. Then a slow third-party call lands inside the controller’s transaction: each request pins a connection for 1.5 s, the pool sized for query latency starves, and every endpoint times out together. The stack trace names the pool, never the mapping.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does rendering the response still touch the persistence context — and what holds a database connection while it waits?</strong></p>
+<ul>
+<li><strong>If yes</strong> → keep the fetch inside the service. Check each association the view touches, then the outbound calls in the same window.</li>
+<li><strong>If no</strong> → switch OSIV off. You will learn immediately which reads depended on it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the setting wrong — you’ve found incomplete domain knowledge. Log connection hold time per request against query time.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#SpringBoot</code> <code>#ConnectionPool</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-persistence-context" class="level2 kg-post" hidden="true" data-slug="persistence-context-2027-09-05-orm" data-pattern="The persistence context" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-the-persistence-context">Case study: The persistence context</h2>
+<p>A developer changes a field to test a hypothesis, issues no save, runs a finder — and the row in the database moves.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The persistence context is an identity map: within it one row is one object, so <code>a == b</code> for two loads of the same key. Dirty checking compares each managed object with its loaded snapshot and writes the differences at flush — the moment pending writes reach the database. The trade is identity against implicit writes — writes the code never asked for, produced by state nobody decided to commit.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-2">The ORM knowledge gap it signals</h3>
+<p>“Same row, same object” is a claim about scope and about commitment. The team must know where the transaction boundary sits, which objects inside it are managed, and whether an object outside it is a stale copy or a live one. In EF Core the identity map is the same and the moment is not: tracking is automatic, but nothing is flushed or committed until <code>SaveChanges</code>. The gap question: at which line does this change become the database’s problem?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One transaction, one unit of work: load, mutate, commit, with identity and dirty checking relied on deliberately. Read paths say so — <code>@Transactional(readOnly = true)</code> or <code>AsNoTracking()</code> — so a stray mutation cannot reach the database. Equality by key, never by reference, in any object that leaves the boundary.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An entity modified “just locally” while debugging a mapping: AUTO flush writes it before the next query on the same tables, and the change ships. Or two objects for one row, loaded in different sessions, compared by reference and found unequal — so the code adds an update to reconcile what was never two things. Or a detached object merged back in, overwriting a writer it never read.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Within this transaction, which objects are managed — and who decided when the flush happens?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the unit of work is the domain’s. Check that read paths are marked read-only and that no entity escapes the boundary still managed.</li>
+<li><strong>If no</strong> → the mapping commits state nobody chose. Find the flush: explicit, at commit, or AUTO before an unrelated query.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Map the transaction boundaries, then the entities that cross them.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#EfCore</code> <code>#UnitOfWork</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Transactions</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-second-level-cache" class="level2 kg-post" hidden="true" data-slug="second-level-cache-2027-09-06-orm" data-pattern="The second-level cache" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-the-second-level-cache">Case study: The second-level cache</h2>
+<p>A price update commits on node one, and node two quotes the old price for the whole TTL window — from a @Cacheable that outlived its developer.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The persistence context dies with the session; a second-level cache lives in the session factory and serves rows to every session on the node. Hibernate 6 needs a region factory — a region is one named partition of the cache — JPA’s <code>@Cacheable</code> per entity, and a per-region strategy: READ_ONLY, NONSTRICT_READ_WRITE, READ_WRITE, TRANSACTIONAL. Each is a staleness contract, and the cluster must broadcast invalidation. EF Core ships none of this.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-3">The ORM knowledge gap it signals</h3>
+<p>Caching asserts a rate of change and a cost of being wrong. The team must know how often a table’s rows change, how long a reader may see a stale row without harm, and whether invalidation reaches the other nodes. The gap question: what is the measured write rate of this table, and what does the domain lose when a reader sees last hour’s version?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Reference data: country codes, currency tables, category trees — written by a migration, read constantly, changing monthly. Cache it under a JCache region factory with an expiry that matches the publication cycle, and invalidate on the one write path allowed to change it. The staleness window is a published number, not an accident.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The second-level cache enabled globally because reads were slow, applied to orders and inventory. Each node now serves rows another node already changed; NONSTRICT_READ_WRITE returns them until TTL, and with the query cache also enabled it drops whole regions on any write, so hit rate collapses and the wrong rows stay. The invalidation path was never tested with two nodes, because staging runs one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which tables change rarely enough to cache — measured — and how do the other nodes hear about a change?</strong></p>
+<ul>
+<li><strong>If yes</strong> → cache those regions only. Check invalidation with two nodes and a write, then the TTL against the write rate.</li>
+<li><strong>If no</strong> → the cache is a guess about write frequency. Remove it and measure.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Instrument writes per table per hour, then price a stale read.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#Caching</code> <code>#EfCore</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DistributedSystems</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-schema-generated-from-mappings-hbm2ddl.auto" class="level2 kg-post" hidden="true" data-slug="ddl-auto-2027-09-07-orm" data-pattern="Schema generated from mappings (hbm2ddl.auto)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-schema-generated-from-mappings-hbm2ddl.auto">Case study: Schema generated from mappings (hbm2ddl.auto)</h2>
+<p>One field renamed in an entity class: the new column ships empty, a million rows keep their values in a column nothing reads.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Hibernate 6 reads the annotations and emits DDL: validate compares mapping to schema and fails at boot, update adds what it thinks is missing, create drops and rebuilds. update has no concept of a rename — a renamed field becomes a new column while the old one keeps its data and its NOT NULL constraint. Nothing it emits is a reviewed artifact.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-4">The ORM knowledge gap it signals</h3>
+<p>A schema carries a history: the column’s author, its type, its nullability, and the migration that moved the rows. update asserts that history does not exist — that the mapping is the whole truth. True only where the mapping generated the schema.</p>
+<p>The gap question: can you rebuild production’s schema from reviewed files?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Throwaway environments: create-drop for tests on a containerised database, and validate in production so a mapping that disagrees with the schema fails before traffic. The DDL lives in versioned migration files a person reviewed.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>update in production, because it is one property instead of a migration pipeline. It feels safer than create, since it never drops anything — the trap, because never dropping is also never removing. A deleted field leaves its column. Then create on a fresh environment omits every object a person added — the partial index, the check constraint, the trigger — and staging drifts from production, unrecorded.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Who owns the DDL — a migration history a person approved, or a diff the ORM guessed at startup?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the schema is an artifact with an author. Check that validate runs at startup, so a mapping edit that forgets its migration fails the build, not the release.</li>
+<li><strong>If no</strong> → the mapping is the only schema, and its history is whatever the annotations say this morning. Move the DDL into versioned migrations, then switch to validate.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Ask who applied the last production DDL change, and which file records it.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#SchemaMigrations</code> <code>#DDL</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-optimistic-locking-version-concurrency-tokens" class="level2 kg-post" hidden="true" data-slug="optimistic-locking-2027-09-08-orm" data-pattern="Optimistic locking (@Version, concurrency tokens)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-optimistic-locking-version-concurrency-tokens">Case study: Optimistic locking (@Version, concurrency tokens)</h2>
+<p>Two support agents open the same ticket, both change the priority, both save. One change vanishes, and neither agent sees an error.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A version column makes every UPDATE carry its old value: UPDATE ticket SET priority = ?, version = 8 WHERE id = ? AND version = 7. Zero rows updated means somebody wrote first, and Hibernate raises OptimisticLockException while EF Core raises DbUpdateConcurrencyException. The trade: detect the conflict instead of preventing it, against a pessimistic write lock that serialises writers.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-5">The ORM knowledge gap it signals</h3>
+<p>The version column claims two facts: two writers can reach the same row inside the same window, and when they do, somebody is told and something resolves it. The first is a fact; the second a decision the domain must make.</p>
+<p>The gap question: which entities have genuinely concurrent writers, and what happens to the loser?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A row humans edit concurrently for minutes: a ticket, a case file, an insurance claim, a shared document header. The conflict surfaces as a domain event — the second agent is told the record moved and re-reads it, or a merge rule keeps both edits.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>No version on a hot row, because “the second write wins and that is fine” — that is a lost update nobody detects. The mirror trap is a version on everything: every entity carries the column and a retry loop, so unrelated rows colliding fire needless retries, a non-idempotent write is duplicated, and nobody has seen the conflict handler fire.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each entity: can two writers conflict — measured from real flows — and when they do, who is told?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the write path detects the conflict instead of erasing it. Check the resolution exists: a bounded retry, a merge rule, a message to the person who can redo the edit.</li>
+<li><strong>If no</strong> → either two writers cannot collide on this row, so the column buys nothing, or they can and nobody is told, which is a lost update with a column beside it. Add the version only to the entities that measurement finds in conflict.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Read which flows write the same row inside one second, then read the exception handler.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#EfCore</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-batch-fetching-and-fetch-size" class="level2 kg-post" hidden="true" data-slug="batch-fetching-2027-09-09-orm" data-pattern="Batch fetching and fetch size" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-batch-fetching-and-fetch-size">Case study: Batch fetching and fetch size</h2>
+<p>An order list renders in 40 ms against 20 seeded rows and takes 9 seconds in production, because each row’s customer was fetched by its own query.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A lazy association fetched row by row issues one query per owner: 100 orders, 101 queries, and each roundtrip costs real latency. Batch fetching collapses the uninitialised proxies — lazy placeholders for unloaded rows — of one type into IN clauses of a fixed batch size: 32 turns 100 follow-up queries into 4. The JDBC fetch size is a different knob: rows the driver buffers per roundtrip. The trade in both: fewer roundtrips against the memory each page holds.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-6">The ORM knowledge gap it signals</h3>
+<p>Both settings claim how much of the graph a page reads, and how many rows fit its working set. That is a fact about the use case: a list screen renders 25 rows and needs each row’s label.</p>
+<p>The gap question: what is the measured roundtrip count for one page, and how many rows does each roundtrip cost in memory?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A page of fixed size — 25 rows, each needing one association — with a batch size of sixteen chosen against a measured count: 1 query for the page plus 2 for the associations, not 1 plus 25. Or a streaming report at a few thousand rows.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A fetch size of ten thousand “so we make fewer roundtrips”: every user’s list buffers ten thousand rows in the driver and discards 9,975 — a spike per request. The quieter variant is no batching at all: lazy access inside a loop, one query per row, which passes in every suite that seeds 20 rows and dies on the first real account.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured roundtrip count per page — and what does each fetch cost in memory?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the width is a fact about this page. Check the count with query logging at realistic page size, and confirm the batch size divides the typical page, not the largest.</li>
+<li><strong>If no</strong> → one cost is paid blind. Log the queries for one page, then set the batch size and count again.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Measure the page’s row count, its associations, and the heap while it renders.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#EfCore</code> <code>#Performance</code> <code>#NPlusOne</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-flush-timing-flushmodetype.auto-savechanges" class="level2 kg-post" hidden="true" data-slug="flush-timing-2027-09-10-orm" data-pattern="Flush timing (FlushModeType.AUTO, SaveChanges)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-flush-timing-flushmodetype.auto-savechanges">Case study: Flush timing (FlushModeType.AUTO, SaveChanges)</h2>
+<p>A test asserts that one UPDATE reaches the database. It passes until a query is added above it — now two run, one against a row the test never touched.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> JPA’s default AUTO flushes pending changes before a query that might read them, so the query sees writes this transaction has not committed — and the UPDATE lands at an instant nobody wrote. EF Core inverts it: SaveChanges is the only write, so the database never sees pending state; identity resolution — one instance per key — still returns the tracked instance with its modified values. The trade: queries agree with memory, against write timing removed from the code that caused it.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-7">The ORM knowledge gap it signals</h3>
+<p>The team must know when the transaction writes: that instant decides what a constraint violation means, which trigger fires, which audit timestamp is recorded. In Hibernate it is the flush before a query — even a native one.</p>
+<p>The gap question: at which statement does this transaction reach the database — traced, not assumed?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Flush timing understood and explicit at the transaction boundaries where it matters: the write moment chosen at a boundary instead of inherited from statement order, and SaveChanges called once per use case.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Nobody chose anything, and the extra UPDATE appears in the log — dirty managed state written before an unrelated query, a version incremented, a trigger fired for a change nobody meant to save. The tell is a test whose failures move when a query is added: the assertion was never about the write, it was about the flush. The repair that feels right — FlushMode.MANUAL everywhere — makes reads return stale rows.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>When does this transaction actually write — traced — or is flush timing folklore on the team?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the boundary is known. Check that a failing constraint maps to one statement, and that a flush is explicit where a native query needs it.</li>
+<li><strong>If no</strong> → the write instant is an emergent property of statement order. Log SQL for one use case, mark each flush, make the boundary explicit.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Ask which statement must precede the write, and which read must not.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#EfCore</code> <code>#Transactions</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-entity-equals-and-hashcode-the-sameness-claim" class="level2 kg-post" hidden="true" data-slug="entity-equals-2027-09-11-orm" data-pattern="Entity equals and hashCode (the sameness claim)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-entity-equals-and-hashcode-the-sameness-claim">Case study: Entity equals and hashCode (the sameness claim)</h2>
+<p>Two references to the same customer sit in one HashSet; the set holds both, and after the save neither can be found.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> equals and hashCode are the only statement your class makes about sameness. At the Object default, two instances of one row are unequal; overridden, they are a domain rule every Set depends on. The trade: equality by a business key holds in every state; equality by a generated id holds only after the flush — false exactly when the aggregate (the object graph saved as one unit) is assembled.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-8">The ORM knowledge gap it signals</h3>
+<p>The domain knows what makes two customers the same: the tax number, the receipt number. A generated id is a storage artifact — absent while the object is built, decided by nothing in the domain. Equality leaning on it is a database claim dressed as a domain rule.</p>
+<p>The gap question: what makes two entities “the same” — the domain rule — and does equals implement it even before the id exists?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Equals by business key, consistent before and after persistence. An order is the same order by its number, assigned in the domain; a book by ISBN. Two references compare equal the moment both are constructed, so a HashSet deduplicates new objects before any session exists.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Equals on a generated id. Two references to the “same” customer are unequal until saved, so the set stores both; the persist assigns ids, the hash moves, and lookups miss an element still in the bucket. Lombok makes it one annotation and worse: a generated equals compares every field, so a lazy association is initialized to answer the comparison — twenty orders, twenty more selects, or a throw outside the session.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What makes two entities “the same” — the domain rule — and does equals implement it even before the id exists?</strong></p>
+<ul>
+<li><strong>If yes</strong> → equality is a domain statement, true in every state. Check its key fields never change.</li>
+<li><strong>If no</strong> → it is id equality — storage, undefined before the flush. Keep those entities out of hash-based collections, or give them a business key.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Ask which fields the business uses to tell two records apart.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#EntityMapping</code> <code>#Java</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-inheritance-mapping-strategies-the-shape-claim" class="level2 kg-post" hidden="true" data-slug="inheritance-strategies-2027-09-12-orm" data-pattern="Inheritance mapping strategies (the shape claim)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-inheritance-mapping-strategies-the-shape-claim">Case study: Inheritance mapping strategies (the shape claim)</h2>
+<p>One table holds every subtype, forty columns wide, and no row fills more than eight of them.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> SINGLE_TABLE keeps the hierarchy in one table, with a discriminator and a nullable column per subtype field; JOINED gives each class its table and rejoins per query; TABLE_PER_CLASS gives each concrete class a full table and turns polymorphic reads into a UNION. The trade: a wide table with nulls is fast, joined tables are normalized and pay a join per level, per-class tables read one type cheaply, the base type only as a UNION.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-9">The ORM knowledge gap it signals</h3>
+<p>Two facts are encoded here, and the domain never hands them over. The shape is countable from the model: depth, width, columns per subtype. The query mix is countable from the logs: what fraction of reads asks for every type at once. Both are measurable, and the pair decides.</p>
+<p>The gap question: how is this hierarchy actually queried — polymorphically often, or per type — measured?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Shallow and wide: two levels and many subtype columns. SINGLE_TABLE reads a subtype in one row with no join, and a check constraint per discriminator value lets the database enforce which columns belong to which type. Deep and rarely polymorphic: JOINED lets each table hold NOT NULL where its type demands it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>SINGLE_TABLE “for simplicity” over forty columns, a schema cost against the read win: every column is sometimes meaningless, none can be NOT NULL, and the database stops enforcing the domain — the invariant moves to a validator some path skips. TABLE_PER_CLASS under a polymorphic report: the report becomes a UNION over five tables, and no foreign key can point at the base type, because no table holds it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How is this hierarchy actually queried — polymorphically often, or per type — measured?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the strategy can follow the count. Write it down; revisit when the hierarchy gains a level.</li>
+<li><strong>If no</strong> → it is a bet on a query mix nobody recorded. Count the statements that name the base type.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Ask product which screens show mixed types, then read the query log.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Hibernate</code> <code>#JPA</code> <code>#ORM</code> <code>#InheritanceMapping</code> <code>#DatabaseDesign</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-asnotracking-the-tracking-claim" class="level2 kg-post" hidden="true" data-slug="asnotracking-2027-09-13-orm" data-pattern="AsNoTracking (the tracking claim)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-asnotracking-the-tracking-claim">Case study: AsNoTracking (the tracking claim)</h2>
+<p>SaveChanges returns zero with no exception, the page reloads, and the old value is still on screen.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A default EF Core query registers every materialized row in the change tracker — one instance per key, original-value snapshots — so SaveChanges can diff. AsNoTracking skips all of it: less memory, faster materialization, no change tracker — objects the DbContext has never met. The trade: cheaper detached reads against writes that silently do nothing on untracked entities.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-10">The ORM knowledge gap it signals</h3>
+<p>Two facts decide this, and both belong to the application. The role: a projection, or a working set someone will modify and save. The cost: rows, memory per row, whether tracking was ever measurable. Untracked results also lose identity resolution: one key, two objects.</p>
+<p>The gap question: is this query’s result read-only — stated — and is the tracking cost measured as worth paying?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Read-only queries untracked as a rule, measured. A report grid, a twenty-thousand-row export: nothing downstream mutates the result, so the snapshot is pure overhead and the saving is a number someone wrote down. Where identity matters, AsNoTrackingWithIdentityResolution keeps one instance per key.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>No-tracking reads fed into SaveChanges: the entities were modified, the context never saw them, zero rows update, no error — the page keeps the old value. The repair looks like the fix and is worse: Update on a detached graph marks every column modified and overwrites a concurrent edit wholesale. The mirror trap is a tracked ten-thousand-row export: detection scans (its per-save comparison) grow with the graph, and memory doubles for rows nobody modifies.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this query’s result read-only — stated — and is the tracking cost measured as worth paying?</strong></p>
+<ul>
+<li><strong>If yes</strong> → no-tracking is the domain’s own claim. Check that no path downstream hands those instances to SaveChanges.</li>
+<li><strong>If no</strong> → the result is a working set, and detachment is a bet nobody writes. Track it, or reload before writing.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Measure memory and duration with tracking on and off; list which callers write.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#EfCore</code> <code>#JPA</code> <code>#ORM</code> <code>#ChangeTracking</code> <code>#DotNet</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-client-versus-server-evaluation-the-placement-claim" class="level2 kg-post" hidden="true" data-slug="client-server-evaluation-2027-09-14-orm" data-pattern="Client versus server evaluation (the placement claim)" data-group="orm" data-group-label="ORM">
+<h2 class="anchored" data-anchor-id="case-study-client-versus-server-evaluation-the-placement-claim">Case study: Client versus server evaluation (the placement claim)</h2>
+<p>A page renders twenty rows, the database reports almost no reads, and the request still takes nine seconds.</p>
+<p>Mapping an association or tuning the session? Ask “which fact does this mapping claim — what loads when, what counts as the same thing, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the mapping enforces a guess. If you can, the mapping is knowledge embodied — the ORM catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> EF Core translates a LINQ expression tree to SQL. What it cannot translate either throws — since EF Core 3.0, client evaluation is legal only in the final projection — or, in older code, silently fell back and filtered in memory. The trade: any C# expression compiles, and at run time the query either fails fast or the filter moves into the application as data transfer.</p>
+</blockquote>
+<section id="the-orm-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-orm-knowledge-gap-it-signals-11">The ORM knowledge gap it signals</h3>
+<p>Every predicate is one of two things, and the domain decides which: a selection over data, which must run where the data and its index live, or presentation logic, which may run over a reduced page. The ORM reports only what it can translate; conflation reads every row to discard most, and the bill arrives in bytes, not in a slow plan.</p>
+<p>The gap question: did the filter run on the server — checked how — or did it move into the application?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Queries verified on the server before they ship: ToQueryString inspected in a test, the statement EXPLAINed, predicates kept translatable. Where a rule resists translation, the filter runs as SQL over a key projection — only keys come back — and presentation logic stays in C#, over twenty rows, not two million.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An AsEnumerable placed before the Where clause: the whole table is transferred so twenty rows can be chosen. The page is called slow, the database called healthy, and both are true — near-zero reads on the server, a memory spike in the application process. And it reads like style: nothing in the query looks wrong.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Did the filter run on the server — checked how — or did it move into the application?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the selection runs where the data is. Confirm the plan uses an index, and that the check lives in a test.</li>
+<li><strong>If no</strong> → the filter runs in your process over rows already shipped. Move the predicate into the query, or project keys first and fetch by key.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mapping wrong — you’ve found incomplete domain knowledge. Dump ToQueryString for the hot path; compare rows returned with rows the process examined.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#EfCore</code> <code>#JPA</code> <code>#ORM</code> <code>#QueryTranslation</code> <code>#DotNet</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

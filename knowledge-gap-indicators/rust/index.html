@@ -633,21 +633,857 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>The compiler checks a fact — what owns this, what may alias, what may wait — and the check costs something. Each post will name the fact checked and the price paid.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>The compiler checks a fact — what owns this, what may alias, what may wait — and the check costs something. Each post names the fact checked and the price paid.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="rust">
+<p>Writing Rust? Ask “which fact does the compiler check here — what owns this, what may alias, what may wait — and what does the check cost?” If you can’t answer, you’ve found a knowledge gap: the type is a claim nobody can restate. If you can, the annotation is knowledge embodied — the compiler catching up to what the domain decided.</p>
+</div>
+<section id="case-study-the-borrow-checker" class="level2 kg-post" hidden="true" data-slug="borrow-checker-2027-10-23-rust" data-pattern="The borrow checker" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-the-borrow-checker">Case study: The borrow checker</h2>
+<p>Two threads borrow the same vector mutably and the build stops — the compiler ruled the pairing out before the binary existed.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Rust allows many immutable borrows or exactly one mutable borrow, checked on every path. Aliasing plus mutation is the pair it forbids, and a data race needs exactly that pair — so safe code cannot race. The guarantee follows from the typing rule, not from a convention the team promises to honor.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals">The Rust knowledge gap it signals</h3>
+<p>The checker asks one question: right now, how many readers, and is anyone writing? A design that answers this has one shape. One that cannot has two owners, or a cache behind a lock, or a callback outliving its caller — and the compiler forces the developer to name which, at the line where the ambiguity sits.</p>
+<p>The gap question: which sharing pattern is this program’s real shape — and did the types encode it, or was the checker defeated?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the types encode reality
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for fourteen posts (#450–#463). The framing is fixed; the entries are being written.</p>
+<p>A widget tree with one owning parent and borrowed children. A handler taking &amp;Request and returning owned data. A batch pass reading a large buffer immutably while writing results elsewhere. The rule costs nothing, because the sharing really is many readers or one writer.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Rc&lt;RefCell&lt;T&gt;&gt; on every field. The borrow rules rejected the graph, so shared mutable state came back wrapped and the check moved to runtime: RefCell panics on a conflicting live borrow, deep inside a request, far from the line that caused it. The signature now reads “anyone may mutate at any time” — the claim the compiler declined to verify. It compiles.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which sharing pattern is this program’s real shape — and did the types encode it, or was the checker defeated?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the types are the design record. Check that the owning side is the one the domain names.</li>
+<li><strong>If no</strong> → name the aliasing the program actually has, then choose: restructure to one owner, or admit shared mutation and pay for it explicitly.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Draw the ownership graph of the live values and compare it with the signatures.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#BorrowChecker</code> <code>#Ownership</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-ownership-and-moves" class="level2 kg-post" hidden="true" data-slug="ownership-moves-2027-10-24-rust" data-pattern="Ownership and moves" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-ownership-and-moves">Case study: Ownership and moves</h2>
+<p>A function hands back a 10 MB buffer and no byte of the buffer is copied, no allocator runs, no collector wakes — the signature alone decided where the memory went.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A value has one owner. Passing a non-Copy value moves it, and the old binding is dead; when the owner leaves scope the value drops, in an order the compiler fixes. No tracing collector runs, so no pause interrupts the program. The trade is ergonomics: a signature that moves its argument ends the caller’s use of it.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-1">The Rust knowledge gap it signals</h3>
+<p>Ownership is a claim about handoffs. Either the caller still needs the value or it does not. A move says its work in that scope is finished and its future belongs to the callee; a borrow says the caller keeps it and the callee only looks. The compiler accepts the move and rejects the later use — then accepts a clone and rejects nothing.</p>
+<p>The gap question: which clones are real copies the domain needs — counted — and which are compiler-appeasement?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A builder consuming self and yielding the finished value, because the caller has no use for the half-built thing. A message sent through a channel, where the sender’s value is dead by definition. Accessors taking &amp;self and returning borrowed fields.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>.clone() scattered until it compiles. The borrow rules refused a second use, so the value was duplicated instead of the design corrected. Each clone duplicates a whole value the rules never required, and it asserts a fact nobody stated: that two copies of this value may diverge. It hides the real lifetime structure, so the next reader cannot tell an intentional snapshot from a truce with the compiler.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which clones are real copies the domain needs — counted — and which are compiler-appeasement?</strong></p>
+<ul>
+<li><strong>If yes</strong> → count them, and say why each copy exists in the domain, not in the borrow checker.</li>
+<li><strong>If no</strong> → give the callee a reference, or move once at the real handoff, and let the original die there.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found ownership wrong — you’ve found incomplete knowledge of your own program. Trace each clone back to the call that demanded it, and ask what the caller did next.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Ownership</code> <code>#MemoryManagement</code> <code>#APIDesign</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-lifetimes" class="level2 kg-post" hidden="true" data-slug="lifetimes-2027-10-25-rust" data-pattern="Lifetimes" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-lifetimes">Case study: Lifetimes</h2>
+<p>The signature says the returned reference lives as long as the input, and the checker enforces it — so a cache cannot outlive the store it reads.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A lifetime is a named scope, and a reference may not outlive the data it points at. The compiler infers most; where a function without a self parameter returns borrowed data from several inputs, the developer writes the relation down and every call site is checked against it. The trade is annotation overhead exactly where the data flow is complex.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-2">The Rust knowledge gap it signals</h3>
+<p>An annotation states how long a value stays alive relative to another. It forces the developer to say which object owns the memory, which merely looks at it, and for how long that stays legal. That is a domain fact, not syntax. Elision hides it only while the shape is simple.</p>
+<p>The gap question: for each reference, what is its real scope — and does the signature say so, or was ’static a shortcut?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A cache holding &amp;’store Entry values into a longer-lived store: the annotation states the store outlives the cache, true by construction and worth stating. A parser returning a slice of its input.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>’static added until the errors stop. It compiles, so the reference now claims to live for the whole program — true by construction, false as a design statement. The real relationship was never modeled and the structure bent around the annotation: the borrow became an owned copy, or a leak, or an Arc with no sharing. The signature says “forever” because nobody could say “as long as the store”.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each reference, what is its real scope — and does the signature say so, or was ’static a shortcut?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the scope is a domain fact and the signature repeats it. Check that the owner outlives every borrower on every path.</li>
+<li><strong>If no</strong> → name the real scope, write the lifetime that carries it, or move the data so no reference crosses.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found lifetimes wrong — you’ve found incomplete knowledge of your own program. List each reference, its owner, and the longest path on which it is used.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Lifetimes</code> <code>#BorrowChecker</code> <code>#DataModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-send-and-sync" class="level2 kg-post" hidden="true" data-slug="send-sync-2027-10-26-rust" data-pattern="Send and Sync" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-send-and-sync">Case study: Send and Sync</h2>
+<p>A type that was never thread-safe fails to compile the moment it enters a channel — the compiler rejects a bug with no runtime symptom before anyone writes it.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Send marks a type that may move to another thread; Sync marks one whose shared references may be used from several threads. Both are auto traits derived by the compiler from the fields; unsafe impl overrides that. A thread spawn or a channel send requires Send, so the crossing is checked at compile time. The trade is the wrapper maze wherever the requirement bites.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-3">The Rust knowledge gap it signals</h3>
+<p>Thread safety here is a type property: the developer must know which values genuinely cross a thread and which never leave theirs — a fact about the program’s execution structure. The compiler checks the types it is given; it cannot check whether the crossing was real.</p>
+<p>The gap question: which values genuinely cross a thread boundary — and does the type structure say exactly that, no more?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A channel carrying only Send types, its receiver on another thread. A job struct owning its inputs and taking no references, because it must outlive the scope that built it. A shared counter behind Arc&lt;AtomicUsize&gt;, where many threads really read and write.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Mutex&lt;T&gt; around values that never cross a thread. The lock asserts concurrent access and no second thread exists to contend for it. The cost is real: a lock on every read, a poison path nobody designed, guards in the API — a compile-time claim about contention that no measurement supports. Worse, unsafe impl Send on interior-mutable state silences a correct check.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which values genuinely cross a thread boundary — and does the type structure say exactly that, no more?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the wrappers mark real crossings. Check what happens on the panic path, when a lock poisons.</li>
+<li><strong>If no</strong> → drop the wrapper, keep the value on its thread, and let the type say so.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Draw the threads, then the values passing between them.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Concurrency</code> <code>#SendSync</code> <code>#ThreadSafety</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-monomorphisation-versus-dyn-trait" class="level2 kg-post" hidden="true" data-slug="monomorphisation-2027-10-27-rust" data-pattern="Monomorphisation versus dyn Trait" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-monomorphisation-versus-dyn-trait">Case study: Monomorphisation versus dyn Trait</h2>
+<p>One generic function called with twelve types compiles twelve times, and the release binary grows tens of kilobytes for code that runs on two.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A generic function is stamped out once per concrete type: fn area&lt;T: Shape&gt;(s: T) becomes one function per T, each specialised and inlinable. A dyn Trait call goes through a vtable, so one function serves every type at a pointer hop. Static dispatch buys inlining and a known callee; dynamic dispatch buys one code path and a binary that does not grow with call sites.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-4">The Rust knowledge gap it signals</h3>
+<p>Monomorphisation is a claim that this call site is hot enough to pay per-type code — in compile time, binary size, and instruction cache. The developer must know which paths are measured hot, and which boundaries want one code path for an open set of types. The gap question: which call sites are hot enough to pay per-type code — measured — and which boundaries want exactly one code path?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A numeric kernel over f32 and f64 on a measured hot path, where inlining removes the call and lets the vectoriser see the loop. Two instantiations, both benchmarked faster than the dyn version by a measured margin. And at the plugin boundary, dyn: the type set is open, the call happens once per item, and one code path is the requirement rather than a compromise.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Generics over everything, because generics are faster. The binary bloats, compile time triples, and the extra instantiation shows no gain in any benchmark. The mirror trap: dyn in an inner loop, because dyn keeps the binary small — the indirection blocks inlining on the one path the profiler flags.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which call sites are hot enough to pay per-type code — measured — and which boundaries want exactly one code path?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the dispatch matches the profile. Re-check every release; hot paths move.</li>
+<li><strong>If no</strong> → you chose dispatch by slogan. Profile the path; instantiate where it is hot, box where the type set is open.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Time both builds, compare size, and read the profile.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Monomorphisation</code> <code>#Generics</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Compilers</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-zero-cost-abstractions" class="level2 kg-post" hidden="true" data-slug="zero-cost-abstractions-2027-10-28-rust" data-pattern="Zero-cost abstractions" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-zero-cost-abstractions">Case study: Zero-cost abstractions</h2>
+<p>An iterator chain of map, filter and sum compiles to the loop you would have written — until one closure fails to inline, and it compiles to a chain of direct calls.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> “Zero cost” is a claim about one compilation, not a property of the language: the abstraction costs nothing when the optimiser erases it into the code you would have written. An iterator chain, a trait bound, a closure — each disappears in release when inlining succeeds, and each survives as real work when it does not.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-5">The Rust knowledge gap it signals</h3>
+<p>A zero-cost claim is narrow: this chain, this profile, these settings. The developer must know whether the machine code was compared, or the benchmark timed, on that path — and which constructs defeat inlining: dyn dispatch, a boxed closure, bounds checks the optimiser cannot hoist. The gap question: was zero cost measured on THIS path — assembly or benchmark — or assumed from the slogan?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A filter-map-sum over a Vec&lt;u64&gt; in release, checked against the manual loop: identical instructions, timings within noise, no calls and no bounds checks in the disassembly. The abstraction is verified — the compiler wrote the loop, and the source stays composable. A trait bound on a numeric function, inlined at both call sites, shows the same.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Zero cost” as folklore. The closure boxed as Box&lt;dyn Fn&gt;, so the call is indirect and the chain never flattens. The release profile with LTO off and sixteen codegen units — code split before inlining, so nothing crosses a boundary. The abstraction that failed to inline, found only because someone finally looked at the assembly.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Was zero cost measured on THIS path — assembly or benchmark — or assumed from the slogan?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the abstraction earned its name here. Re-measure after every toolchain upgrade; inlining moves between releases.</li>
+<li><strong>If no</strong> → you hold a hope, not a fact. Compare the disassembly with the hand-written loop, or time both, before the claim ships.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Compile with debug symbols, read the disassembly, and count the calls.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#ZeroCostAbstractions</code> <code>#Iterators</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Optimisation</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-rc-arc-and-interior-mutability" class="level2 kg-post" hidden="true" data-slug="rc-arc-2027-10-29-rust" data-pattern="Rc, Arc, and interior mutability" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-rc-arc-and-interior-mutability">Case study: Rc, Arc, and interior mutability</h2>
+<p>A forum’s comment graph builds, passes its tests, and its memory climbs for 6 days straight — nothing is wrong except that no reference count ever reaches zero.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Rc counts owners on one thread, Arc counts them across threads, and RefCell, Mutex and RwLock let a shared handle mutate. The count is a claim: several owners, no single one responsible for the end. A cycle makes the count never fall to zero — and Weak is the only edge that does not count.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-6">The Rust knowledge gap it signals</h3>
+<p>Sharing is a structural fact about the program: which nodes genuinely have more than one owner, and which edges are back-references that must not own. The developer must also know which lock is contended, and for how long, measured. The gap question: which nodes genuinely have multiple owners — stated — and are the cycles broken with Weak, checked?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A tree or graph with parent links: Arc on the nodes several readers hold, Weak on each parent back-edge, so the child never keeps the parent alive. The sharing is visible in the signature, the cycle is broken by construction, and a test drops the root and asserts the nodes are freed.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Arc&lt;Mutex&lt;T&gt;&gt; as a default shared state — the lock nobody measured, the contention nobody profiled, and every read serialised behind a write-capable handle. Cloning an Rc purely to silence a borrow error, which invents a second owner to satisfy the checker. And the parent-owns-child, child-owns-parent cycle that leaks until the process dies, invisible to every test.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which nodes genuinely have multiple owners — stated — and are the cycles broken with Weak, checked?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the count states the structure. Confirm every cycle has one Weak edge, and that the lock’s wait was measured at load.</li>
+<li><strong>If no</strong> → the count is hiding the shape. Draw the ownership graph, name the owners, and break each cycle with a Weak edge.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Watch the memory over hours, not minutes, and graph who owns what.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Ownership</code> <code>#ArcMutex</code> <code>#MemoryLeaks</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Concurrency</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-unsafe" class="level2 kg-post" hidden="true" data-slug="unsafe-2027-10-30-rust" data-pattern="unsafe" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-unsafe">Case study: unsafe</h2>
+<p>An unsafe block added to skip a bounds check in 2025 still runs in 2027, and the invariant it assumed was broken by a refactor in 2026 — the compiler checked neither claim.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> unsafe moves to the human a check the compiler cannot perform: an FFI call, a SIMD intrinsic, a self-referential structure, a hand-rolled arena. Inside the block a specific set of safety checks is lifted — the block is a promise that the invariant holds, and a promise is not evidence.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-7">The Rust knowledge gap it signals</h3>
+<p>Each block names an invariant the type system cannot state: this pointer is valid and aligned, this memory is initialised, nothing else aliases it, this thread has exclusive access, this layout matches the C struct. The developer must know which invariant, and where it is written. The gap question: which invariant does each unsafe block uphold that the compiler cannot check — written where?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Blocks kept minimal, each with a SAFETY comment naming the upheld invariant and the surrounding code that establishes it. A test exercises the unsafe block. Miri (the interpreter that checks undefined behaviour) checks its Rust-only paths. The module that reads uninitialised buffers is fuzzed, the FFI wrapper is called against the real library, and a debug assertion states what the optimiser now assumes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>unsafe for speed — get_unchecked in the loop, the invariant documented nowhere. Variants of the same mistake: one unsafe fn wrapping a whole module, so the boundary is invisible and every caller inherits the burden. A transmute reinterprets bits the type system wanted to check. An unsafe impl Send rests on a comment no test can reach.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which invariant does each unsafe block uphold that the compiler cannot check — written where?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the promise is auditable. Re-read each comment against the code whenever the block or its callers change.</li>
+<li><strong>If no</strong> → the burden moved to everyone who reads the file later, and they were not told. Write the invariant, or drop the block and pay for the check.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Run Miri on the module, grep every unsafe, and write the missing comment.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Unsafe</code> <code>#MemorySafety</code> <code>#FFI</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Invariants</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-rayon-the-work-stealing-pool" class="level2 kg-post" hidden="true" data-slug="rayon-2027-10-31-rust" data-pattern="Rayon (the work-stealing pool)" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-rayon-the-work-stealing-pool">Case study: Rayon (the work-stealing pool)</h2>
+<p>Sixteen cores, a build step at 40 seconds on one core and 41 on sixteen — the loop was parallel, the work was not.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> par_iter splits a range across a thread pool, steals from busy threads, and collects results in order. The split pays only when the chunks are equal, independent, and CPU-bound; a lock or a shared counter inside the closure re-serializes them without a word. The trade is a scheduling cost per split against parallelism that exists only if the work divides.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-8">The Rust knowledge gap it signals</h3>
+<p>Speedup is a fact about the work. The developer must know three things: how much of the runtime is CPU, how evenly it divides, and what each closure touches. Rayon checks the closure is Send and Sync. It does not check that the work is CPU-bound or the chunks balanced.</p>
+<p>The gap question: is the work CPU-bound and independent — measured — and does any closure share state that serializes it secretly?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Per-pixel work on an image, a numeric grid reduced to one scalar, a batch of documents tokenized. Each chunk costs the same, touches nothing shared, holds the CPU throughout. Speedup tracks the cores up to memory bandwidth.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>par_iter over a loop that makes a blocking call per item behind a single connection or disk. Sixteen threads park on it, the pool saturates, wall time lands where the sequential version was — the parallelism lived in the API. Or one Arc&lt;Mutex&lt;Vec&gt;&gt; collecting results: it compiles, and every chunk queues on one lock while the cores idle. The benchmark ran once and never repeated.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the work CPU-bound and independent — measured — and does any closure share state that serializes it secretly?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the pool matches the work. Check that chunks stay coarse enough to amortize the split.</li>
+<li><strong>If no</strong> → the parallelism is nominal. Keep the loop sequential, or move the waiting out of it first.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Time one core’s CPU, then list every shared value a closure touches.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Rayon</code> <code>#Parallelism</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-asyncawait-the-compiled-state-machine" class="level2 kg-post" hidden="true" data-slug="async-state-machines-2027-11-01-rust" data-pattern="async/await (the compiled state machine)" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-asyncawait-the-compiled-state-machine">Case study: async/await (the compiled state machine)</h2>
+<p>A request is cancelled mid-flight, the handler returns, and the database transaction is still open — nothing failed, the future was simply dropped.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An async fn compiles to a state machine: one variant per await point holding the locals live there, driven by poll. Sized and non-recursive, the future sits inline in the caller’s frame, no allocation per call; recursion or dyn forces Box::pin. The trade is allocation-free futures against cancellation that can land only at an await, and a Drop that cannot await.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-9">The Rust knowledge gap it signals</h3>
+<p>The developer must know where this future may be dropped, which state is live at that line, and which of it needs an await to undo. The compiler checks, where a spawn demands it, that the future is Send across its awaits and that locals live long enough. It does not check that a dropped future leaves the system consistent.</p>
+<p>The gap question: where may this future be dropped — and what cleanup must survive that point?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A hot path of nested async fns, no Box::pin: futures inline. A timeout or select! around a future owning nothing that needs rollback — an idempotent read, a reference-counted buffer. Cancellation drops it, the state machine goes, nothing was half-done.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A transaction held across an await, with rollback in Drop. Cancel at the wrong await — a select! arm, a client disconnect — and Drop runs, which cannot await, so the ROLLBACK never reaches the server. The connection returns to the pool still inside a transaction, and the next request inherits it: a write that fails for reasons no one traces to a cancellation three layers up. It compiles, is idiomatic, untested on the cancel path.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Where may this future be dropped — and what cleanup must survive that point?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the awaits are the cancellation map. Check what Drop does at each of them.</li>
+<li><strong>If no</strong> → the cleanup sits after a suspension, not before it. Move it, or own the work in a task that no caller can drop.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List the await points, then name what each one leaves half-done.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#AsyncRust</code> <code>#Cancellation</code> <code>#Tokio</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-no_std-the-target-without-an-os" class="level2 kg-post" hidden="true" data-slug="no-std-2027-11-02-rust" data-pattern="no_std (the target without an OS)" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-no_std-the-target-without-an-os">Case study: no_std (the target without an OS)</h2>
+<p>The firmware tests pass on the laptop, and the first cross-compile for the microcontroller fails four dependencies down.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> #![no_std] removes the std crate, leaving core and, if you opt in, alloc: no threads, no files, no clock, and no allocator unless you supply one. Every crate in the tree must make the same choice, and Cargo features are additive and unified, so one dependency enabling its std feature turns std on for the build. The trade is a small binary with no OS assumptions against an ecosystem split along that exact seam.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-10">The Rust knowledge gap it signals</h3>
+<p>The developer must know which crates in the tree need an allocator, a heap, or an OS, and which of those the target ships. core is portable; alloc needs a global allocator you supply; std needs a system. The compiler checks the tree builds for the target — but only when someone builds for the target.</p>
+<p>The gap question: does every dependency support no_std for this target — checked at which feature set?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A core-only tree: fixed buffers, embedded-hal traits (portable hardware interfaces), defmt logging, a parser with no allocation. Built for thumbv7em-none-eabi in CI, then flashed and exercised on the board. Every dependency is pinned to the feature set that keeps it allocation-free.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The crate is no_std and a dependency’s default features pull std in. On the host the tests pass because std exists; on the target the break surfaces at the layer that never touched the hardware. Or a Vec appears, someone bolts on an allocator, and the firmware links — until the first large allocation exhausts a heap nobody measured, at runtime, on a device with no console.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does every dependency support no_std for this target — checked at which feature set?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the tree is this target’s tree, not the host’s. Check next the allocator budget and the panic strategy.</li>
+<li><strong>If no</strong> → the no_std claim covers your crate, not your program. Cut the dependency, or gate it, then prove it stays off on the target.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Build for the target triple, then read the resolved feature set per crate.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#EmbeddedRust</code> <code>#NoStd</code> <code>#Microcontrollers</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-wasm32-unknown-unknown-the-browser-build" class="level2 kg-post" hidden="true" data-slug="wasm-target-2027-11-03-rust" data-pattern="wasm32-unknown-unknown (the browser build)" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-wasm32-unknown-unknown-the-browser-build">Case study: wasm32-unknown-unknown (the browser build)</h2>
+<p>The same crate compiles for the browser and the server, and only one target honors a thread by default.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The target compiles a crate to a WebAssembly module the browser loads; wasm-bindgen marshals values across the JS boundary. Ownership and lifetimes are checked as natively; platform capability is not. std::thread::spawn compiles, then fails at the first call: this target has no threads without atomics and shared memory, and both need the page cross-origin isolated (the COOP/COEP headers). Blocking work compiles and blocks the main thread. The trade is one codebase against bundle size, a thread model the target lacks, and a boundary that copies.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-11">The Rust knowledge gap it signals</h3>
+<p>The target states what the platform provides: a heap, no file system, no threads by default, no clock to borrow. The program states what it needs: a pool, a blocking read, a buffer copied per call. Nothing compares the two lists. The gap question: does this program block, spawn, or sleep on the main thread — and does the artifact pay for the feature it carries?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Core logic shared to wasm with the boundary drawn thin: pure functions over owned buffers, a measured bundle against a stated budget. It pays because it is the same logic — same tests, same fixes — and every platform difference sits outside it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The whole crate shipped because it compiled: megabytes where two hundred lines of JavaScript would serve, a framework pulled in to avoid writing a fetch. Then the ported worker pool that panicked in production — the build was green throughout.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the bundle size measured — and does the program stay clear of spawning, blocking, or sleeping on the main thread?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the target is this feature’s platform, not the project’s default. Check crossings and what runs on the main thread.</li>
+<li><strong>If no</strong> → the portability is nominal: you shipped a runtime to reuse syntax. Write the thin JS version, or move the feature server-side.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the target wrong — you’ve found incomplete knowledge of your own program. Measure the gzipped artifact, count crossings, list every blocking call.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#WebAssembly</code> <code>#Wasm</code> <code>#Frontend</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-cargo-feature-flags-the-compile-time-switch" class="level2 kg-post" hidden="true" data-slug="cargo-features-2027-11-04-rust" data-pattern="Cargo feature flags (the compile-time switch)" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-cargo-feature-flags-the-compile-time-switch">Case study: Cargo feature flags (the compile-time switch)</h2>
+<p>Two features that each pass CI meet in a combination never compiled, and the failure appears in the customer’s build.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A feature is a named set of optional dependencies, code, and features. The resolver unifies them once per build across the whole graph: enabling one anywhere enables it everywhere, except through the build-dependency seam, so “optional” is a claim about the artifact, not the caller. The trade is optional functionality compiled in or out against combinatorics — n features give 2^n builds, and CI runs n+2.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-12">The Rust knowledge gap it signals</h3>
+<p>The domain decides which optionality is real: a deployment choice, one binary per customer; a platform choice, one build per target; a debugging aid. Cargo cannot tell those apart. Additive-only is a convention the build does not enforce. The resolver will turn a feature back on through a crate three levels down — which is how a no_std tree grows a hidden std dependency the host never misses. The gap question: are the shipped combinations written down, and does anything reject a build outside them?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Features additive-only, the shipped combinations the tested ones: CI builds --no-default-features, each feature alone, all features; mutually exclusive backends guarded by compile_error! so the bad pair fails at the first crate.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Mutually exclusive features accepted by the build. Both backends compile, a <code>cfg!</code> selector picks one silently, and the broken pair waits for the profile nobody runs locally — release, with a customer’s feature set. Also: an “optional” dependency the team believes is off, switched on by a crate nobody read.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which feature combinations actually ship — tested — and is “additive-only” enforced by the build or assumed by the team?</strong></p>
+<ul>
+<li><strong>If yes</strong> → features are a supported interface. Keep them additive, and let CI own the matrix: a new feature arrives with its combinations.</li>
+<li><strong>If no</strong> → every combination you did not build is a configuration you did not design. Shrink the matrix, or reject pairs that must not meet.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flags wrong — you’ve found incomplete knowledge of your own build. List the artifacts you ship, then the features each sets.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#Cargo</code> <code>#BuildSystems</code> <code>#Configuration</code> <code>#CICD</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-monomorphisation-speed-bought-at-compile-time" class="level2 kg-post" hidden="true" data-slug="build-times-2027-11-05-rust" data-pattern="Monomorphisation (speed bought at compile time)" data-group="rust" data-group-label="Rust">
+<h2 class="anchored" data-anchor-id="case-study-monomorphisation-speed-bought-at-compile-time">Case study: Monomorphisation (speed bought at compile time)</h2>
+<p>A 40-minute build is a design decision that never appeared in a review.</p>
+<p>Writing a Rust construct or choosing a target? Ask “which fact did the compiler check for me — what owns this, what may alias, what may wait — and what did it cost?” If you can’t answer, you’ve found a knowledge gap: the borrow checker enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Rust compiles a generic function into one machine-code copy per concrete type it is called with. Those copies cost nothing at run time and everything at build time: compile minutes scale with the number of instantiations, and macro-heavy code adds expansion on top. cargo build --timings shows which crate pays. The trade is runtime speed bought with compile minutes against crate boundaries that keep iteration fast.</p>
+</blockquote>
+<section id="the-rust-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-rust-knowledge-gap-it-signals-13">The Rust knowledge gap it signals</h3>
+<p>The fact here is the shape of the work: how often one edit is compiled, how long CI may take, how many people wait on it. Code does not carry that; the workspace does. A crate boundary is a build boundary — an edit recompiles its own side, not the other, and costs inlining for code that is neither generic nor marked <code>#[inline]</code>. The gap question: which dependency edge, named, costs the most build time, and what budget must it fit?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Crate boundaries drawn so CI builds stay under a stated budget: a clean build of 6 minutes, an incremental edit of 20 seconds, both measured with cargo build --timings and tracked as numbers, not feelings.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One giant crate with generics everywhere — 40-minute builds, and the velocity tax nobody put on any budget, because compile time is not a line item anyone owns. “Zero-cost abstraction” is true of the running program and false of the day: the cost moved from the user’s CPU to every developer’s edit. Add a proc-macro derive on every type and watch the tax compound.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured CI build time — and which dependency edge drives it, named?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the generics are inside their budget. Watch the edge that grew this month, and keep the incremental path short.</li>
+<li><strong>If no</strong> → the abstraction is not free. Split the workspace at the boundary the work actually crosses, or cut an instantiation.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the generics wrong — you’ve found incomplete knowledge of your own build. Time the edges, not the total.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Rust</code> <code>#CompileTimes</code> <code>#BuildSystems</code> <code>#Monomorphisation</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DeveloperProductivity</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

@@ -633,21 +633,622 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>LINQ deferred execution, iterator blocks, expression trees — where evaluation happens is where the claim lives. Each post will locate the evaluation and ask what it assumes.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>LINQ deferred execution, iterator blocks, expression trees — where evaluation happens is where the claim lives. Each post locates the evaluation and asks what it assumes.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="csharp">
+<p>Writing C#? Ask “where does this evaluation happen — now, on enumeration, at the provider — and what does the type of the sequence claim?” If you can’t answer, you’ve found a knowledge gap: the query runs somewhere nobody named. If you can, the construct is knowledge embodied — the execution matching what the domain decided.</p>
+</div>
+<section id="case-study-linq-deferred-execution" class="level2 kg-post" hidden="true" data-slug="linq-deferred-2027-11-14-csharp" data-pattern="LINQ deferred execution" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-linq-deferred-execution">Case study: LINQ deferred execution</h2>
+<p>A query runs twice, the collection changes in between, and the count stops matching the items it counted.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A LINQ chain over IEnumerable compiles to a tower of iterator objects, one per operator, not to a loop. Nothing reads the source until something calls MoveNext. The trade: you get a composable description that always reflects the source as it is at that moment, and you pay for it by re-running the whole pipeline on each enumeration.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals">The C# knowledge gap it signals</h3>
+<p>The result is a function of the source at enumeration time, not at the line the query sits on. To know what the code does, you must know every site that enumerates it, how often each runs, and whether anything writes to the source between them. The variable looks like a value and behaves like a method.</p>
+<p>The gap question: how many times is this query enumerated, and can the source change between the enumerations?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the types encode reality
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for ten posts (#472–#481). The framing is fixed; the entries are being written.</p>
+<p>A pipeline built in stages — filter in one method, project in another, order in a third — materialized once at the end. Deferral is what lets the stages compose without a list per stage, and the result equals the query.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The query held as a value. It is logged, counted, and iterated by a foreach, and the source is a list something else appends to: the count disagrees with the items, and the report states a total from before the last write. Or it is enumerated inside a loop over ten thousand rows, and each row re-reads the store — N+1 produced by deferral, in code that reads as one query assigned to one variable.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How many times is this query enumerated — counted — and can the source change between them?</strong></p>
+<ul>
+<li><strong>If yes</strong> → one enumeration, and no writer between. The deferral is the composition and costs only what you planned. Check the source’s lifetime next.</li>
+<li><strong>If no</strong> → the query was a description where you needed a result. Materialize where it is consumed, and the second execution disappears.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Count the enumeration sites, then find every writer to the source.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#LINQ</code> <code>#DeferredExecution</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-iqueryable-versus-ienumerable" class="level2 kg-post" hidden="true" data-slug="iqueryable-vs-ienumerable-2027-11-15-csharp" data-pattern="IQueryable versus IEnumerable" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-iqueryable-versus-ienumerable">Case study: IQueryable versus IEnumerable</h2>
+<p>One AsEnumerable() mid-chain, and every filter after it reads rows the database already sent.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> They share extension-method names, not methods, and compile to different artifacts. IEnumerable&lt;T&gt; binds to Enumerable: each operator becomes an iterator object over the sequence. IQueryable&lt;T&gt; binds to Queryable, so each operator appends a node to an expression tree that a provider reads and translates — the filters become one statement in another language. The trade: the query travels to the data, at the price of every operator being translatable.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-1">The C# knowledge gap it signals</h3>
+<p>The type of the sequence is the claim about where the work runs. Reading a chain, you must know which operators the provider can translate, whether an untranslatable one throws or falls back to memory, and where the type changed. Same syntax, two locations, nothing in the line announcing the switch.</p>
+<p>The gap question: does each chain’s type say where it runs, and is the location the one you need?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each segment declares its type: the repository hands back IQueryable for the part the store can answer — filter, project, order, page — and the method that needs a regex, a compiled delegate, or a domain object materializes explicitly. The declaration reads as a map of execution.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An AsEnumerable(), a ToList(), or a helper taking IEnumerable&lt;T&gt; inserted mid-chain to satisfy a signature. It compiles, returns the right rows, and the rest of the query runs in memory: the filter that should have shrunk the result set scans it, and the cost grows with the table. In review it reads as a style preference: both sides are sequences.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each LINQ chain: does its type say where it executes — and does the execution location match the claim?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the type transition is deliberate. Check that the operators left on the provider side are translatable, and watch the fallbacks.</li>
+<li><strong>If no</strong> → the sequence acquired a type nobody chose. Move the materialization to the type transition, and widen the helper to IQueryable; keep the filter with the data.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Print the expression tree and read the provider’s translation.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#LINQ</code> <code>#IQueryable</code> <code>#ExpressionTrees</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-iterator-blocks-yield-return" class="level2 kg-post" hidden="true" data-slug="iterator-blocks-2027-11-16-csharp" data-pattern="Iterator blocks (yield return)" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-iterator-blocks-yield-return">Case study: Iterator blocks (yield return)</h2>
+<p>The null check in your iterator throws three frames from the caller, inside someone else’s foreach.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A method containing yield return is not compiled as an ordinary method. The compiler emits a class implementing the returned interface — IEnumerable&lt;T&gt; or IEnumerator&lt;T&gt; — with fields for the current item and a state number; your body becomes MoveNext, resumable at each yield. The trade: a lazy, resumable sequence, against a body that has not run at all when the call returns.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-2">The C# knowledge gap it signals</h3>
+<p>The call returns the state machine, not a value: the arguments are captured now, and the body, guard included, waits for the first MoveNext. A guard belongs to the consumer’s schedule, not the caller’s. To know when the guard fires, you must know who enumerates, and when — knowledge your signature does not carry.</p>
+<p>The gap question: which of these iterator methods validate their arguments, and does that validation run when the caller expects it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An iterator paired with a wrapper: the public method validates eagerly — null guard, range check — then returns the private iterator. The guard runs at call time, in the caller’s frame, and the body stays lazy. The split is the knowledge.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The guard inside the yield method, because that is where the parameter is used. It looks defensive, reads as validation, and fires at the first MoveNext — after the caller’s try block has closed, in another layer’s foreach. A unit test asserting a throw on construction fails while the guard is present. Worse, the method is called for a side effect — a logger, a connection opened in the body — and none of it happens: nobody enumerated.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which iterator methods validate their arguments — and does that validation run when the caller expects?</strong></p>
+<ul>
+<li><strong>If yes</strong> → eager guards, lazy body. Make sure the guard set is complete, then check what the body does on disposal — the last resumption it triggers.</li>
+<li><strong>If no</strong> → the validation is on the consumer’s schedule. Split the method, keeping the body lazy.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List the callers, then mark where the first MoveNext happens.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Iterators</code> <code>#YieldReturn</code> <code>#LazyEvaluation</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-expression-trees-code-as-data" class="level2 kg-post" hidden="true" data-slug="expression-trees-2027-11-17-csharp" data-pattern="Expression trees (code as data)" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-expression-trees-code-as-data">Case study: Expression trees (code as data)</h2>
+<p>A pricing rule is written once as C#, handed to a database as SQL, and never runs in the process that wrote it.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>Expression&lt;Func&lt;Order, decimal&gt;&gt;</code> compiles to IL that builds a tree, not to IL that runs the rule. The compiler emits a tree of node objects — <code>ParameterExpression</code>, <code>MemberExpression</code>, <code>BinaryExpression</code> — that a library reads, rewrites, and hands to another engine. The trade is inspection for expressiveness: a statement body, an assignment, or an <code>await</code> in the lambda is a compile error, so the code-as-data boundary announces itself at the lambda and nowhere else.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-3">The C# knowledge gap it signals</h3>
+<p>The type claims a second engine can reproduce this code. That claim is about your program, not about C#: only you know whether the rule means anything apart from the machine evaluating it. The compiler checks the tree’s shape; it never checks that two engines agree on what the shape means.</p>
+<p>The gap question: does every expression survive translation — verified — or is something lost in transit?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A rule that must run twice: <code>expr.Compile()</code> over one order in memory, the same tree translated to SQL over a million rows. Both engines read the rule as data, so one edit reaches both — the disagreement, when it comes, comes in the translation.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A call the provider cannot translate: a culture-sensitive <code>ToString()</code>, a local helper, a <code>DateTime</code> comparison with an unstated <code>Kind</code>. Sometimes it throws — loud, survivable. Sometimes it translates to different semantics: collation (the database’s text-comparison rules), null ordering, decimal rounding. Zero test failures, because both sides pass their own tests.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For this code-as-data boundary: does every expression survive translation — verified — or is something lost in transit?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the tree is the domain’s rule, portable by construction. Check each provider’s translation of collation, null ordering, and date handling against the local delegate.</li>
+<li><strong>If no</strong> → the code is a delegate wearing a tree’s type. Write it as a delegate and run it where it was written.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Enumerate the tree’s node types, then the provider’s translation table, and diff the two.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#ExpressionTrees</code> <code>#LINQ</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-extension-methods-the-static-call-in-member-clothing" class="level2 kg-post" hidden="true" data-slug="extension-methods-2027-11-18-csharp" data-pattern="Extension methods (the static call in member clothing)" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-extension-methods-the-static-call-in-member-clothing">Case study: Extension methods (the static call in member clothing)</h2>
+<p>The call reads like a member on your own type, resolves to a static method a <code>using</code> brought in, and accepts null as a legal receiver.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>value.Normalize()</code> compiles to <code>TextExtensions.Normalize(value)</code>, the receiver as first argument. No virtual dispatch: binding is fixed at compile time by the namespaces in scope, and an instance member of that name always wins. The trade is methods on a type you do not own, paid for with scope resolution — and a <code>this</code> parameter that may arrive null.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-4">The C# knowledge gap it signals</h3>
+<p>The syntax claims the operation belongs to the type. Whether it does is your program’s fact, not C#’s. The compiler resolves by scope — innermost level first, then outward, and ties inside a level are ambiguous — so a call site rebinds after a <code>using</code> someone added for another reason.</p>
+<p>The gap question: is the receiver checked — and would the reader know this is a static method, not a member?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Extensions in one namespace per concern, imported only where it applies — <code>WhereActive</code> on <code>IQueryable&lt;User&gt;</code> — each guarding <code>this</code> with <code>ArgumentNullException.ThrowIfNull</code>, so the call fails at the entry point it really has.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>maybeNull.OrEmpty()</code>. The syntax reads like a safe member call, so nobody asks whether the receiver could be null — and without a guard the <code>NullReferenceException</code> is thrown inside the extension, not at the call site.</p>
+<p>The silent one: a later package version adds a real member of that name, every call site recompiled against it binds to the instance method (same syntax, different body), and behavior changes with no diff in your repository.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each extension call: is the receiver checked — and would the reader know this is a static method, not a member?</strong></p>
+<ul>
+<li><strong>If yes</strong> → a deliberate widening of a type you do not own. Keep the guard, keep the namespace narrow.</li>
+<li><strong>If no</strong> → a static helper wearing instance syntax: bound by scope, invisible to dispatch, unguarded on null. Make it an explicit static call, or a type you own.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List the <code>using</code> directives each file needs, then check whether the type already ships that member.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#ExtensionMethods</code> <code>#APIDesign</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-nullable-value-types-absence-as-a-value" class="level2 kg-post" hidden="true" data-slug="nullable-value-types-2027-11-19-csharp" data-pattern="Nullable value types (absence as a value)" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-nullable-value-types-absence-as-a-value">Case study: Nullable value types (absence as a value)</h2>
+<p>A total goes null at one unguarded multiplication, and the invoice ships with a zero nobody chose.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>int?</code> is <code>Nullable&lt;int&gt;</code>: a <code>bool</code> and an <code>int</code> in one struct. The compiler lifts every <code>int</code> operator, and the families disagree. Lifted arithmetic returns <code>int?</code> — <code>null + 5</code> is null, and the null spreads. Lifted comparison returns <code>bool</code> — <code>null &lt; 5</code> is false, and so is <code>null &gt;= 5</code>. The trade is declared absence, with operators that answer silently instead of throwing.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-5">The C# knowledge gap it signals</h3>
+<p>Whether “no value” is a fact about this number is your program’s knowledge, not the type’s. The type admits absence and steps aside: it never asks what absence means for a sum or a threshold.</p>
+<p>The gap question: where does null enter this computation — listed — and is each entry point a stated decision or a lifted operator nobody chose?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A measurement that may not exist: a sensor reading. <code>HasValue</code> guards the branch that needs a number, <code>?? throw</code> kills the path that must have one, and <code>GetValueOrDefault(fallback)</code> writes the substitute down, because <code>0</code> is a legal price.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The arithmetic chain. <code>subtotal * discountRate * taxRate</code>, every factor nullable: one null and the result is null, flowing until a <code>?? 0m</code> makes it a zero someone signs.</p>
+<p>The comparison is worse. <code>if (x &lt; threshold) Alert();</code> never fires when <code>x</code> is null; as <code>if (!(x &lt; threshold)) Alert();</code> it fires on every missing reading. Two branches, opposite failures, one absent value.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Where does null enter this computation — listed — and is each entry point a stated decision or a lifted operator nobody chose?</strong></p>
+<ul>
+<li><strong>If yes</strong> → absence is modeled with declared semantics. Check that every <code>??</code> fallback is a domain decision, not a zero-fill.</li>
+<li><strong>If no</strong> → a lifted operator chose for you: null propagates through arithmetic and becomes a <code>bool</code> through comparison. Test <code>HasValue</code> at the entry; never compare a nullable to a threshold without deciding what absence means.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List every <code>??</code> and lifted operator on the path, and name the null each handles.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#NullableValueTypes</code> <code>#ValueTypes</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-generic-constraints" class="level2 kg-post" hidden="true" data-slug="generic-constraints-2027-11-20-csharp" data-pattern="Generic constraints" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-generic-constraints">Case study: Generic constraints</h2>
+<p>“where T : IComparable&lt;T&gt;” tells the compiler every T can be compared — and the path that crosses as object passes a type that cannot.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A where clause compiles to metadata on the method, not to a check inside the body: the runtime verifies it when a concrete type argument closes the method, and the compiler verifies it at every call site that names one. Both checks are free and total — and scoped to the generic door: the call path that names a type argument. A path that never closes the method never instantiates it.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-6">The C# knowledge gap it signals</h3>
+<p>A constraint is a claim about every type that closes this method: comparable, constructible, a reference type, non-null. The developer must know which of those the body actually uses — a new() constraint on a method that never calls new states a requirement the algorithm does not have. The gap question: which types reach this code, and do they all arrive through the constrained door?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The constraint states exactly what the algorithm does with T and nothing more: IComparable&lt;T&gt; on a sort, new() on a factory, class where the null check depends on it. Every call site becomes a proof obligation the compiler discharges, and the signature documents the requirement.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Developers trust the constraint past the generic door. The same algorithm is reached through object and through a non-generic interface. On those paths the promise is checked nowhere, so the failure surfaces as an InvalidCastException deep in a library that “cannot” receive it. The constraint was never wrong. The door beside it was unguarded.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each constraint: does every caller reach this code through the checked path — or is there a door that skips the check?</strong></p>
+<ul>
+<li><strong>If yes</strong> → it is enforced where the traffic is. Check next that no constraint claims more than the body uses.</li>
+<li><strong>If no</strong> → it guards a fraction of the callers. Close the non-generic door, or validate at it — a check you now maintain by hand.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the constraint wrong — you’ve found incomplete knowledge of your own call graph. List every entry into the method, generic and not.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Generics</code> <code>#TypeSafety</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-checked-and-unchecked-arithmetic" class="level2 kg-post" hidden="true" data-slug="checked-arithmetic-2027-11-21-csharp" data-pattern="checked and unchecked arithmetic" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-checked-and-unchecked-arithmetic">Case study: checked and unchecked arithmetic</h2>
+<p>Two positive amounts sum to a negative total, nothing throws, and the report prints that total as a number.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Integral arithmetic is unchecked by default: the compiler emits the wrapping add and multiply, and an overflow disappears in silence. A checked block or expression emits the overflowing forms, and the runtime raises OverflowException as the result leaves the type’s range. The trade: a condition the program can detect, against a number it cannot tell from a correct one. Decimal throws on overflow; int and long wrap.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-7">The C# knowledge gap it signals</h3>
+<p>The developer must know the stated upper bound of the operands, and whether the code enforces it before the arithmetic runs. A bound in a comment is not enforced; a bound validated where input enters is. The gap question: what is the largest value this expression can reach, given every input path into it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Checked context on the arithmetic whose operands are user-sized: amounts in cents, record counts, buffer indexes. There the domain already fixed a bound — the invoice maximum, the page size — and checked arithmetic turns that stated bound into a failure at the exact expression that breached it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The sum that silently wrapped. Every test uses small numbers, the default emits no overflow check, and nothing warns. A year of correct totals ends negative, found only when the figure fits no report. The wrapped value sat inside the type, plausible, and traveled through three aggregates before anyone read it as impossible. The code never stated what it assumed about magnitude, so the language assumed nothing.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For this arithmetic: what is the stated upper bound of the operands — and does the code enforce it, or wrap around it?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the bound is a fact the code holds. Check next that validation sits on every path, not only the parsed one.</li>
+<li><strong>If no</strong> → the range is an assumption, not knowledge. State the bound and validate it where input enters — checked only throws at the breach.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the arithmetic wrong — you’ve found incomplete knowledge of your own program. Measure the largest operands in production; compare them to the type.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Arithmetic</code> <code>#Correctness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-string-comparison" class="level2 kg-post" hidden="true" data-slug="string-comparison-2027-11-22-csharp" data-pattern="string comparison" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-string-comparison">Case study: string comparison</h2>
+<p>The same identifier matches on your laptop and fails on a server whose locale is Turkish, with no code change.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Equality is ordinal: == on string compiles to String.Equals, which compares characters exactly and consults no culture. Ordering is not: string.Compare and CompareTo default to the current culture, so they return 0 for some strings that are not byte-equal, and produce an order that moves with the host’s locale. Casing sits between them: ToUpper() reads the current culture too. Three truths — byte, culture, case rule — and one operator that picks the first.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-8">The C# knowledge gap it signals</h3>
+<p>The developer must know what the string is: identifier, key, or a label a human reads. An identifier needs byte truth; a sorted display list needs the reader’s culture; a case-insensitive login needs a case rule. One type serves all three, so the mode is a claim the code never checks. The gap question: which truth does this comparison claim, and is that the truth this key needs?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The mode is chosen per use: Ordinal for identifiers, keys, file paths; OrdinalIgnoreCase where case carries no meaning but characters do; culture rules only where a human reads the difference, as in a sorted list for a German UI. Then each comparison states its fact.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The Turkish-i problem. An identifier is normalized with ToUpper() and no invariant culture, so the lowercase i becomes İ on a tr-TR host and the key stops matching itself. The developer never chose a culture; ToUpper() chose the host’s. Beside it, Compare(a, b) == 0 used as equality: two distinct keys declared identical because the culture ignores the difference, and a duplicate slips past the uniqueness check meant to catch it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each string comparison: which truth does it claim — byte, culture, or case — and is that the truth this key needs?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the mode is knowledge. Check next that the culture you get is the one you meant, not the host’s.</li>
+<li><strong>If no</strong> → the comparison is a default, not a decision. Name the mode at the call site and remove the ToUpper().</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the comparison wrong — you’ve found incomplete knowledge of your own key. Ask what the string identifies, then who reads it.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Strings</code> <code>#Localization</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-event-keyword" class="level2 kg-post" hidden="true" data-slug="events-vs-delegates-2027-11-23-csharp" data-pattern="the event keyword" data-group="csharp" data-group-label="C#">
+<h2 class="anchored" data-anchor-id="case-study-the-event-keyword">Case study: the event keyword</h2>
+<p>One assignment to a public delegate field erases every subscriber; no compiler error marks the line.</p>
+<p>Writing a C# construct? Ask “when does this code actually run — now, on enumeration, at the provider — and what claim does its type make?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the language catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A field-like event compiles to a private delegate field plus two public accessors, add and remove. Any code may subscribe; only the declaring type may invoke or reassign it, and the compiler enforces both. A public delegate field compiles to no accessors at all: read, invoke, assign, all legal from anywhere. The trade is one rule — who may raise this — held by the compiler or by convention.</p>
+</blockquote>
+<section id="the-c-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-c-knowledge-gap-it-signals-9">The C# knowledge gap it signals</h3>
+<p>The developer must know two facts about their own program: which object owns the decision to raise, and which object outlives which. The second is a lifetime fact. Every subscription is a reference from publisher to subscriber, so a long-lived publisher holds every subscriber that never unsubscribed. The gap question: who may invoke this, and does each subscriber unsubscribe when its own lifetime ends?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Events with subscribe and unsubscribe written as a pair: handler added in a constructor, removed in Dispose or on detach. The publisher is the only raiser, so every raise site sits in one file. The lifetime relation is stated, not assumed: the window subscribes to the store and unsubscribes before it closes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A public delegate field: any caller invokes it, any caller assigns it, wiping every other subscriber. The event semantics exist in a comment; the bytecode has none. Beside it, the subscriber that never unsubscribed: a view model on a singleton, closed, alive because the singleton holds its handler. The leak grows an object per navigation, and the retained object still receives events after its window closes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each event: who may invoke it — enforced — and does every subscriber unsubscribe when its lifetime ends?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the rule and the lifetime are both knowledge. Check next that the unsubscribe runs on the failure path too.</li>
+<li><strong>If no</strong> → you hold the semantics in convention. Replace the field with an event, and detach when the subscriber closes.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own object graph. Draw the publisher and its subscribers, then mark which dies first.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Events</code> <code>#MemoryLeaks</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

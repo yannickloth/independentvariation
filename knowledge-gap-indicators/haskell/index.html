@@ -633,21 +633,504 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Laziness is an evaluation-order claim; a type class is a fact about the domain of types. Each post will read the claim and what GHC makes of it.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>Laziness is an evaluation-order claim; a type class is a fact about the domain of types. Each post reads the claim and what GHC makes of it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="haskell">
+<p>Writing Haskell? Ask “what does this type carry — purity, strictness, totality — and what does GHC do with it?” If you can’t answer, you’ve found a knowledge gap: the type stands in for a fact nobody stated. If you can, the type is knowledge embodied — the program catching up to what the domain decided.</p>
+</div>
+<section id="case-study-laziness-the-default-evaluation-claim" class="level2 kg-post" hidden="true" data-slug="laziness-as-claim-2027-11-30-haskell" data-pattern="Laziness (the default evaluation claim)" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-laziness-the-default-evaluation-claim">Case study: Laziness (the default evaluation claim)</h2>
+<p>A million-element fold returns the right number and holds 30 MB of unevaluated additions — one apostrophe (<code>foldl'</code>) would have freed them.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> By default a binding is not a value but a recipe: GHC emits a thunk and runs it only when something demands the result, and only to weak head normal form (one constructor deep). That buys infinite structures and short-circuiting, and costs a heap profile set by demand sites the type never names.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals">The Haskell knowledge gap it signals</h3>
+<p><code>foldl</code> and <code>foldl'</code> share one type: <code>(b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b</code>. Nothing in that signature separates the version that forces each step from the version that stacks a million thunks: strictness is not carried in a Haskell type. It sits in a bang pattern, a <code>$!</code>, <code>StrictData</code>, or whatever GHC’s strictness analyser inferred. The developer must know, accumulator by accumulator, which chains are forced on purpose and which by luck.</p>
+<p>The gap question: which accumulators are forced on purpose, and which by the optimiser?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the types encode reality
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for eight posts (#488–#495). The framing is fixed; the entries are being written.</p>
+<p>Demand is incremental: <code>take 10 . filter p</code> over an infinite enumeration, <code>zipWith</code> of two generated sequences, the first hit from <code>find</code>. The producer never runs ahead of the consumer, and GHC’s foldr/build fusion can rewrite the pipeline into one loop with no intermediate lists.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>foldl (+) 0</code> over a million-element list. Each step allocates <code>((0+1)+2)+3 …</code>; nothing forces the accumulator until the last demand, so the sum arrives as a million thunks and tens of megabytes for one number. <code>foldl'</code> was one apostrophe away. <code>-Wall</code> stays silent, and <code>-O2</code> can rescue this exact shape — so the leak shows in the test run, not the benchmark. It type-checks, terminates, and is correct: the cost is absent from every artifact except the heap.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which accumulators in this program are forced — measured in a GC profile — or is every fold a thunk chain waiting to happen?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the demand sites are the ones you can name. Keep the profile in CI so a refactor cannot move them silently.</li>
+<li><strong>If no</strong> → the fold is a thunk chain priced by the optimiser. Use <code>foldl'</code>, or force with <code>$!</code>.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found laziness wrong — you’ve found incomplete knowledge of your own program. Read peak live heap (maximum residency) under <code>+RTS -s</code>.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#Laziness</code> <code>#SpaceLeaks</code> <code>#GHC</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-purity-and-the-io-boundary" class="level2 kg-post" hidden="true" data-slug="purity-io-2027-11-31-haskell" data-pattern="Purity and the IO boundary" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-purity-and-the-io-boundary">Case study: Purity and the IO boundary</h2>
+<p>The signature says the function cannot print. Its return value came from a cache populated at a moment nobody chose.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An <code>IO</code> in the type marks a computation that may touch the world; an arrow without it promises referential transparency, so GHC may reorder the call, share one result, or delete it. The trade is the plumbing: every effect shows at every call site, and every caller carries <code>IO</code> up to <code>main</code>.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-1">The Haskell knowledge gap it signals</h3>
+<p>The type tracks effects, not totality. <code>f :: Int -&gt; Int</code> may still loop forever or crash on <code>error</code> — divergence and pure-code exceptions are not in the signature. The arrow therefore promises interchangeable calls, not a delivered result. The developer must know which claim the module makes, and where its effects may sit.</p>
+<p>The gap question: which module may decide when an effect happens?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The domain draws the boundary where the signature does. Parsing, validation, and the state transition are pure functions from data to data; <code>main</code> reads the file, calls them, writes the answer. The core is property-testable without mocks, safe on many threads — and GHC may inline and merge duplicate expressions there precisely because nothing can be observed.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>{-# NOINLINE cache #-}</code> around <code>unsafePerformIO (newIORef Map.empty)</code>, memoising a lookup the signature calls pure. The effect fires once per thunk, on whichever demand arrives first, and a value read from the environment at first use is that environment forever. The purity claim survives in the type and dies in the runtime. <code>unsafePerformIO</code> asserts the effect is order-independent — the same answer whenever it runs — and nothing checks the assertion — not the type checker, not the tests that keep passing.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which functions in this system can affect the world — exactly those with <code>IO</code> in the type, or are there smugglers?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the boundary belongs to the type. Check that <code>main</code> reads in one screen, and that <code>error</code> counts as an effect.</li>
+<li><strong>If no</strong> → the signature is a claim the runtime does not honour. Move the effect into <code>IO</code>, or into <code>ST</code> when it is local mutation (pure once <code>runST</code> closes the scope).</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found purity wrong — you’ve found incomplete knowledge of your own program. Grep <code>unsafePerformIO</code> and every <code>error</code>.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#Purity</code> <code>#IO</code> <code>#UnsafePerformIO</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#FunctionalProgramming</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-type-classes-instances-as-global-facts" class="level2 kg-post" hidden="true" data-slug="type-classes-2027-12-01-haskell" data-pattern="Type classes (instances as global facts)" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-type-classes-instances-as-global-facts">Case study: Type classes (instances as global facts)</h2>
+<p>The same <code>nub</code> (removes repeats by <code>==</code>) returns a different list in two builds; no source line changed, only a dependency.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A type class is a record of functions GHC passes implicitly: <code>Eq a</code> becomes a dictionary argument, resolved once per type, at compile time. That buys composition across packages — every consumer of <code>Eq User</code> gets one equality — and costs the freedom to declare instances anywhere.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-2">The Haskell knowledge gap it signals</h3>
+<p>The compiler checks that an instance exists and its methods type-check. It does not check that <code>==</code> is an equivalence or <code>compare</code> a total order; <code>Data.Map</code> and <code>sort</code> assume those laws and go quietly wrong. The developer must know who owns each instance, and which law it satisfies.</p>
+<p>The gap question: for this type, is there one defensible meaning of equality?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Instances sit beside the type or the class. Coherence holds by construction: one candidate exists, every package sees it, and a dependency cannot change a result. A second legitimate meaning gets a <code>newtype</code> — <code>newtype ByName = ByName User</code> — so the choice is written at the call site, not inferred from imports. <code>-Worphans</code> in CI, failing the build, keeps it that way.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two orphan instances for one pair: <code>Eq User</code> by id in the service package, <code>Eq User</code> by every field in reporting. Each package compiles; its tests pass. A program whose closure reaches only one compiles and uses it; the second arrives as a duplicate-instance error when a dependency adds it. Same expression, different result, chosen by a build file. Orphans seduce because they are local: the instance sits where you needed it, and the bill goes to every program that later combines yours with another.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each instance: who owns it — and could two packages disagree about the same instance in one program?</strong></p>
+<ul>
+<li><strong>If yes</strong> → ownership is structural and the meaning cannot move. Check the laws as tests; the compiler checked signatures only.</li>
+<li><strong>If no</strong> → a global fact has a local owner. Move it beside the type or the class, or wrap the type in a <code>newtype</code>.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found type classes wrong — you’ve found incomplete knowledge of your program. Run <code>-Worphans</code> on the tree.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#TypeClasses</code> <code>#Coherence</code> <code>#OrphanInstances</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#FunctionalProgramming</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-strictness-annotations-and-forcing" class="level2 kg-post" hidden="true" data-slug="strictness-forcing-2027-12-02-haskell" data-pattern="Strictness annotations and forcing" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-strictness-annotations-and-forcing">Case study: Strictness annotations and forcing</h2>
+<p>A record with eight lazy fields allocates eight thunks, and the bill lands in whichever function reads them first — rarely the one that built them.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A field without <code>!</code> holds a thunk: the expression stays unevaluated until something demands it. A <code>!</code> forces it to weak head normal form (one constructor deep) when the record is constructed, and <code>-XStrictData</code> makes that the module default. The trade is placement and amount: a lazy field can skip work nobody needs and can also pile up deferred computation; a strict field pays at every construction, including those whose record nobody reads.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-3">The Haskell knowledge gap it signals</h3>
+<p>Whether a field is always consumed is a fact about your program, not the record type. You must know which parts of the value a consumer touches, and when. A field left lazy because “it might be expensive” is a guess about a consumer you have not listed; a bang added because “laziness is slow” is the same guess in reverse.</p>
+<p>The gap question: which fields are forced at construction, and who forces the rest?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Strict fields on records whose components are always consumed: a config read in full at startup, a metrics record whose every counter is summed. No thunk is built that nobody forces, and no field is forced that costs more than it saves.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The record crossing an API boundary with every field lazy. The library builds it cheaply, the boundary benchmarks beautifully, and the caller pays the forcing — one thunk at a time, inside whatever loop touches the fields, with the cost attributed to the caller. Deferred work is not free work. It is work with an unstated owner.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each record: is the forcing site named — or is it somebody else’s problem?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the strictness is a contract the writer states and the reader can check. Verify the forcing is not repeated per access, and that no thunk retains a large structure.</li>
+<li><strong>If no</strong> → you have a thunk with no owner. Name each field’s consumer, then force at the last point that still has the information.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Trace each field to its reader, or profile for retention.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#Laziness</code> <code>#Strictness</code> <code>#GHC</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-specialize-and-cross-module-inlining" class="level2 kg-post" hidden="true" data-slug="ghc-specialization-2027-12-03-haskell" data-pattern="SPECIALIZE and cross-module inlining" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-specialize-and-cross-module-inlining">Case study: SPECIALIZE and cross-module inlining</h2>
+<p>The pragma sits at the top of the module, the dictionary (class-method record) calls sit in the inner loop, and only the dumped core (GHC’s intermediate form) tells you which one shipped.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In an optimised build, <code>{-# SPECIALIZE f :: Int -&gt; Int #-}</code> asks GHC to build a monomorphic copy (one fixed at <code>Int</code>) and rewrite matching calls to it. The copy is a rewrite rule (a compile-time substitution), and a rule fires only where the compiler can see the call’s types. Across a module boundary, the rule needs the function’s unfolding (its body, kept in the interface file), which <code>INLINABLE</code> exposes. Without it, the callee compiles, the caller compiles, and no specialization exists.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-4">The Haskell knowledge gap it signals</h3>
+<p>You must know which call sites are hot, at which types, and in which module. That is a fact about execution, not syntax. A pragma says “specialize this”; it never says “this is called a million times at <code>Int</code> from a module that cannot see me.” The cost of polymorphism is the dictionary: a record of methods, called through at every un-specialised site.</p>
+<p>The gap question: which call sites did you measure, and at which types?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The hot polymorphic function marked <code>INLINABLE</code>, with <code>SPECIALIZE</code> for exactly the two types the profile shows, checked in the generated core: the specialized name present, the dictionary arguments gone, the loop monomorphic. The cost is paid where it was measured.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The numeric inner loop behind a module boundary. The function was compiled without <code>INLINABLE</code>, so no unfolding left the module; every iteration takes a <code>Num</code> dictionary and calls <code>+</code> through it. Nothing in the source mentions a dictionary. The benchmark is read as “GHC is slow at abstraction”, when the abstraction was never resolved. The mirror trap: <code>INLINABLE</code> sprayed everywhere, inflating code size and compile time to specialize functions called twice.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Was the specialization verified in the generated core — or assumed from the pragma?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the specialization is a fact here. Re-check after a refactor changes its types.</li>
+<li><strong>If no</strong> → you have a wish, not a specialization. Dump the core, grep for the specialized name and dictionary parameters.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Profile first, then read the core of the hot path.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#GHC</code> <code>#Specialization</code> <code>#Inlining</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Performance</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-making-illegal-states-unrepresentable" class="level2 kg-post" hidden="true" data-slug="type-driven-design-2027-12-04-haskell" data-pattern="Making illegal states unrepresentable" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-making-illegal-states-unrepresentable">Case study: Making illegal states unrepresentable</h2>
+<p>The smart constructor validates on the way in, and the module exports <code>Email(..)</code> — so the next module writes the illegal value by hand.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Three mechanisms: a <code>newtype</code> that gives a validation its own type, a sum type (one constructor per case) that gives the impossible state no constructor, a phantom parameter that pins the phase. Each moves an invariant from a comment into the type checker. The trade: an escape hatch — an exported raw constructor, an <code>unsafeCoerce</code> — puts the invariant back into the programmer’s head, silently, with nothing to catch a breach.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-5">The Haskell knowledge gap it signals</h3>
+<p>You must know the invariant, who may break it, and which module boundary enforces it. “Non-empty” is a claim about the values the program can produce, not a property of the list type. If the only rule is a <code>mkNonEmpty</code> that calls <code>error</code> on <code>[]</code>, the invariant is a crash, not a type.</p>
+<p>The gap question: at which boundary can the illegal value still be constructed — and is that boundary named?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>Data.List.NonEmpty</code> where the domain guarantees at least one element, so <code>head</code> is total. A sum type whose constructors are exactly the states the protocol has. A phantom parameter so <code>open</code> and <code>closed</code> connections do not type-check interchangeably.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The smart constructor whose raw constructor is exported — <code>Email(..)</code> beside <code>mkEmail</code> — “for tests”. Or <code>unsafeMkEmail</code> in the same module. The invariant is documented, the check runs on some paths, and one module constructs the illegal value with a clean type. The types still read as proof, and reviewers trust a type that no longer means what it says.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each invariant: does the type make it unrepresentable — or is the check sitting next to a raw constructor?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the compiler is the enforcement, and a bypass is a compile error. Read the export list; the invariant lives there.</li>
+<li><strong>If no</strong> → the check is a convention. Close the constructor, or admit the invariant is unchecked and test it at every producer.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List the invariants, then the constructors that can build each type.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#TypeDrivenDesign</code> <code>#Newtypes</code> <code>#PhantomTypes</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Correctness</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-partial-functions-head-tail-fromjust" class="level2 kg-post" hidden="true" data-slug="total-functions-2027-12-05-haskell" data-pattern="Partial functions (head, tail, !!, fromJust)" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-partial-functions-head-tail-fromjust">Case study: Partial functions (head, tail, !!, fromJust)</h2>
+<p><code>head</code> on the list that is empty “never” — until a refactor lets it be empty, at 3 a.m., in production.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>head :: [a] -&gt; a</code> is total in its type and partial in its value: the signature promises an <code>a</code> for every list, and the empty list has none. <code>!!</code> promises an element for every index, <code>fromJust</code> promises a <code>Just</code>. <code>-Wall</code> reports <code>-Wincomplete-patterns</code> for a case expression you wrote, and says nothing about a <code>head</code> you called: the partiality is in the library. The trade is convenience against a claim that appears in no type.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-6">The Haskell knowledge gap it signals</h3>
+<p>“This list is non-empty” and “this key exists” are facts about the program’s states. They live in the programmer’s head, and the signature does not repeat them. Every call to <code>head</code> is an unverified assertion, and the compiler cannot count the assertions it was never told about.</p>
+<p>The gap question: which functions here can fail at runtime without their type saying so?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Total functions whose signatures state every outcome: an exhaustive match over a sum type, <code>NonEmpty a</code> where the domain guarantees an element, <code>Maybe</code> where absence is a real outcome. The caller is forced to handle each case, and the empty list is impossible or handled.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A filter, a <code>takeWhile</code>, or a new caller produces <code>[]</code> where the author assumed otherwise. Then <code>fromJust</code> on the <code>Maybe</code> the author did not want to match: the absence was known, felt as noise, and deleted with a function that throws. Each one is a <code>Maybe</code>-shaped fact turned back into an exception, and the type stops reporting it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does every function here state its failure in its type — or is a partiality hiding behind a total-looking signature?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the signature is the contract. Check that <code>-Wincomplete-patterns</code> is on and clean.</li>
+<li><strong>If no</strong> → each partial call is an assertion with no witness. Replace <code>head</code> and <code>tail</code> with a match or <code>NonEmpty</code>, <code>fromJust</code> with a case.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List every <code>head</code>, <code>tail</code>, <code>!!</code>, <code>fromJust</code>, and ask who guaranteed the precondition.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#Totality</code> <code>#PartialFunctions</code> <code>#GHCWarnings</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Reliability</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-numeric-defaulting-and-fromintegral" class="level2 kg-post" hidden="true" data-slug="numeric-defaulting-2027-12-06-haskell" data-pattern="Numeric defaulting and fromIntegral" data-group="haskell" data-group-label="Haskell">
+<h2 class="anchored" data-anchor-id="case-study-numeric-defaulting-and-fromintegral">Case study: Numeric defaulting and fromIntegral</h2>
+<p><code>fromIntegral</code> narrows an <code>Int64</code> to an <code>Int32</code> with no line that says so, and the defaulting rule quietly picks <code>Double</code> for money.</p>
+<p>Writing a Haskell definition? Ask “which fact does the type system carry — purity, totality, strictness — and what does GHC actually do with it?” If you can’t answer, you’ve found a knowledge gap: the types enforce a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An ambiguous <code>Num</code> constraint is resolved by a defaulting rule you never wrote: <code>Integer</code> if it satisfies every constraint, else <code>Double</code>. <code>let n = 1000000</code> is <code>Integer</code>; <code>1/2</code> is <code>Double</code>; a module-level <code>default (Int, Double)</code> changes the first, not the second. <code>fromIntegral :: (Integral a, Num b) =&gt; a -&gt; b</code> wraps or truncates when the target is narrower. The trade: one conversion site against a type that no longer says what was converted.</p>
+</blockquote>
+<section id="the-haskell-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-haskell-knowledge-gap-it-signals-7">The Haskell knowledge gap it signals</h3>
+<p>You must know the width of every numeric value at every boundary, and which conversions run there. The compiler knows the types it inferred; it does not know the identifier is 18 digits, or that money needs exactness. A defaulted type is a decision made by a rule, attributed to no one.</p>
+<p>The gap question: which numeric type did the compiler choose here, and did you choose it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Numeric types pinned by signatures where the width matters: <code>Int64</code> for identifiers, <code>Natural</code> for counts, a decimal type for money, <code>Word32</code> for a hash. Explicit <code>fromIntegral</code> at the boundary, with a range check beside it, so the narrowing is a site a reader can find and a test can hit.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <code>Int64</code> identifier narrowed by <code>fromIntegral</code> into an <code>Int32</code> at the serialization boundary: no line mentions narrowing, values past the bound go negative or wrap, and the failure surfaces as a wrong lookup rather than an exception. Defaulting that silently chose <code>Double</code> for a money field, because the literal <code>0.1</code> needed a <code>Fractional</code> type and nobody wrote one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each numeric boundary: which conversion runs — written down — and could it truncate or lose precision?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the conversion is a decision with a visible site. Check the range assumption against real data, not test data.</li>
+<li><strong>If no</strong> → the compiler chose. Pin the type in a signature and make the narrowing explicit.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Turn on <code>-Wtype-defaults</code> and annotate every boundary it reports.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Haskell</code> <code>#NumericTypes</code> <code>#Defaulting</code> <code>#GHC</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Correctness</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

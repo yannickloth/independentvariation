@@ -633,21 +633,619 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>The closed-world assumption encodes what exists, what is reachable, what may load later. Each post will name what the image assumed, and which fact it stands on.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>The closed-world assumption encodes what exists, what is reachable, what may load later. Each post names what the image assumed, and which fact it stands on.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="graalvm">
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image froze a world nobody enumerated. If you can, the image is knowledge embodied — the build catching up to what the application decided.</p>
+</div>
+<section id="case-study-the-closed-world-assumption" class="level2 kg-post" hidden="true" data-slug="native-image-closed-world-2027-10-13-graalvm" data-pattern="The closed-world assumption" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-the-closed-world-assumption">Case study: The closed-world assumption</h2>
+<p>A native binary decides, before it runs, every class it will load — and nothing met later can revise any of it.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Native Image compiles against GraalVM’s closed world: reachability is walked from the entry points, and everything unproven is folded away. Startup falls to tens of milliseconds — no class loader to bootstrap, no JIT to warm — and no unreachable class ships. The trade is exact: every path that reaches a class by a computed name (reflection, resources, JNI, proxies, serialization) must be declared, or the image omits it.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals">The GraalVM knowledge gap it signals</h3>
+<p>The closed world is a claim about your application, not about Java: these are all the types this program will ever touch. Making it true requires knowing your own dynamism — every name your code computes instead of writing, and every access that depends on it. A team that never enumerated those paths inherited the claim.</p>
+<p>The gap question: which classes reach the program only through a string?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for ten posts (#440–#449). The framing is fixed; the entries are being written.</p>
+<p>A dependency set that is fixed and known, audited for reachability, every dynamic access declared and reviewed. Then the image is a fact: the build reproduces, the start-up budget is real, a deleted class leaves the binary.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“It runs on the JVM, so it will build native.” The trap is the successful build. On the JVM, Class.forName resolves against a class path holding everything; here it resolves against a set frozen before the program ran. A missing entry is a run-time failure, not a compile error, so the image builds green, and the gap waits — on a plugin loader, an optional driver, an error path reached once a quarter. Toolchains warn at build time, but only for accesses they can see.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which classes load only by reflection — enumerated — or is that an article of faith?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the closed world matches the application. Check the entries are regenerated when code moves.</li>
+<li><strong>If no</strong> → the image enforces a guess. Run the tracing agent over the suite, diff, declare what it reaches.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Find the string-based entry points, then run the tests under the tracing agent.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#AOT</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-reflection-and-resource-configuration" class="level2 kg-post" hidden="true" data-slug="reflection-config-2027-10-14-graalvm" data-pattern="Reflection and resource configuration" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-reflection-and-resource-configuration">Case study: Reflection and resource configuration</h2>
+<p>One absent entry in a metadata file turns a passing service into a MissingReflectionRegistrationError at two in the morning — and no compiler saw it.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Reachability metadata names what static analysis cannot see: classes reached by reflection, resources fetched by name, proxy and serialization targets. Declared, they enter the image; undeclared, they are compiled out. The trade is one configuration line per dynamic element against a run-time failure on precisely the element you forgot.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-1">The GraalVM knowledge gap it signals</h3>
+<p>The metadata is a written record of the application’s dynamism. Producing it means knowing which types your frameworks resolve by name: the DTO a serializer reflects over, the entity an ORM maps, the handler built from a config string. A hand-written file records what someone remembered that day; a generated one records what a run reached — a smaller claim, and an honest one.</p>
+<p>The gap question: who generated this metadata, and does the generator run where the code changes?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Metadata generated by a test run through the tracing agent, then reviewed and committed: the diff is readable, the entries name real types, and CI regenerates it so a new DTO arrives with its entry. Coverage is the suite’s coverage — a limit you measure rather than discover.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A framework builds proxies by reflection, and the metadata covers the DTOs the tests touched. One rarely used DTO, added last spring, has no entry — so it fails when that endpoint is first called, weeks after deploy. The build was green every day in between. A hand-maintained file rots quieter: nobody deletes the entry when a class is renamed, so the failure surfaces on the new name.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Who generated this metadata — and is it regenerated when the code changes, inside CI?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the declarations track the code. Check a review step exists, so generator noise never becomes an unreviewed grant.</li>
+<li><strong>If no</strong> → the file records a past run’s memory. Regenerate from a production-like suite, diff, commit the delta.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. List the frameworks that reflect, then the types they reflect over.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#Reflection</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-build-time-class-initialization-run-time" class="level2 kg-post" hidden="true" data-slug="build-time-analysis-2027-10-15-graalvm" data-pattern="Build time, class initialization, run time" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-build-time-class-initialization-run-time">Case study: Build time, class initialization, run time</h2>
+<p>A static initializer reading config at build time freezes the build machine’s answer into the binary — every later environment inherits it.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A native image has three phases: build, the class initialization the build performs, and run time. By default initialization runs at start-up; classes marked --initialize-at-build-time run their static initializers on the builder, and their state lands in the image heap. That is the trade: start-up work moves to the build, and every build-time side effect happens once, on a machine that is not production.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-2">The GraalVM knowledge gap it signals</h3>
+<p>The choice is a claim about each class: nothing it computes depends on where or when it runs. So what is its domain — the environment, the locale, the time zone, the clock, a random seed? A class touching these describes a deployment, not a program — and the deployment is unknown at build time.</p>
+<p>The gap question: which classes run their initialization during the build, and would any of them read something that differs per environment?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The order reviewed class by class, every class touching environment, locale, or time kept at the run-time default. Pure lookup tables — parsers, registries, compiled regexes — stay at build time, costing the build and never the start-up.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The build succeeds, the binary starts in 20 ms, so nobody asks what ran at build time. A configuration holder, marked for build-time initialization, caches System.getenv; the staging value ships to production. A default time zone is captured from the builder; a random seed is drawn once, so every replica shares it. None of these crash. Each yields a wrong answer, quietly and uniformly — the harder failure to find.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which classes run code at image build — listed — and would any of them read something that differs per environment?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the split is a decision. Check the list is regenerated when classes move, and measure start-up, where deferred init returns.</li>
+<li><strong>If no</strong> → the build froze a deployment fact. Move those classes to run-time initialization, re-measure start-up.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Enumerate the initializers that touch the environment, then trace what the build ran.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#ClassInitialization</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-profile-guided-optimization" class="level2 kg-post" hidden="true" data-slug="pgo-2027-10-16-graalvm" data-pattern="Profile-guided optimization" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-profile-guided-optimization">Case study: Profile-guided optimization</h2>
+<p>A native image has no JIT to learn hot paths at run time. A training profile decides them months before production does.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> PGO builds the image twice: an instrumented build records a profile from a training run, and the optimized build uses the captured branch and call frequencies to lay out code and choose inlining. The trade is a training run to maintain against much of the peak throughput the JIT would have found by itself. Without it, the image keeps the compiler’s guessed layout; with a stale one, the layout for traffic you no longer serve.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-3">The GraalVM knowledge gap it signals</h3>
+<p>The profile is a claim about workload: these calls dominate, these branches stay cold, these types appear here. A team must know its real traffic shape — endpoint mix, argument distributions, the true rarity of the rare path — as a measurement, not an architecture diagram. The profile is workload knowledge, encoded where the compiler can act.</p>
+<p>The gap question: what traffic trained this profile, and when was it last validated against real load?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>PGO trained from production-like traffic — a replay of recorded requests, or a load test built from measured distributions — with peak throughput compared before and after, recovering toward the JVM’s numbers. The training run is a maintained artifact, regenerated as traffic moves.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A profile recorded in the first month, from synthetic traffic, never regenerated. The code has moved since: a path that was cold is now the main one, so the compiler inlines the old favourite and leaves the new hot path out of line. Nothing fails, no test changes colour. Throughput is simply below the JVM’s, invisible unless someone compares.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What traffic trained this profile — recorded — and when was it last re-validated against real load?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the profile is evidence. Check it still matches the measured traffic, and the measurement uses peak, not the average day.</li>
+<li><strong>If no</strong> → the optimizer aims at a workload that left months ago. Record the traffic shape, retrain, compare peak.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Measure the call and branch mix of real traffic first.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#PGO</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-truffle-and-polyglot-embedding" class="level2 kg-post" hidden="true" data-slug="truffle-polyglot-2027-10-17-graalvm" data-pattern="Truffle and polyglot embedding" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-truffle-and-polyglot-embedding">Case study: Truffle and polyglot embedding</h2>
+<p>An embedded second language runtime is a two-runtime decision: one serves the feature, both cost warmup and footprint.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Truffle implements languages on GraalVM’s shared runtime, and the polyglot API lets them call each other through one interop protocol. The trade is one process and one infrastructure set — collector, threads, debugger — against per-language warmup, footprint, and marshalling on every value that crosses the boundary. Each embedded language adds a language runtime on the shared VM, not a library call.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-4">The GraalVM knowledge gap it signals</h3>
+<p>The choice is a claim about a feature: this capability cannot be expressed in the host language without reimplementing one. Defending it requires knowing which feature that is, how much users exercise it, and what a crossing costs — the interop boundary is where latency and allocation concentrate. A team that cannot name the feature has chosen a platform, not a solution.</p>
+<p>The gap question: which feature genuinely needs a second runtime — measured against what it costs?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>User-supplied scripts evaluated in an isolated polyglot context under resource limits. The users write the language, so the language is the requirement, and warmup is measured against a script’s expected lifetime.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Polyglot chosen because it is impressive. A rules expression evaluates in an embedded Python interpreter: one language’s worth of feature, and the interpreter that runs it in every replica — an interop hop per evaluation. The demonstration was convincing; the steady state was never measured. The second runtime is a permanent tax on a feature a hundred lines of the host language would serve.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which feature genuinely needs a second language runtime — measured against what it costs?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the embedding is a requirement. Check context isolation and per-language warmup are measured, and crossings are bounded.</li>
+<li><strong>If no</strong> → one runtime is doing the work of two. Re-express the feature in the host language, or move it out of process.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Name the feature, then count the calls that cross the boundary.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#Truffle</code> <code>#Polyglot</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-native-image-versus-jit-peak-throughput" class="level2 kg-post" hidden="true" data-slug="native-vs-jit-peak-2027-10-18-graalvm" data-pattern="Native image versus JIT peak throughput" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-native-image-versus-jit-peak-throughput">Case study: Native image versus JIT peak throughput</h2>
+<p>A payments service boots in 90 ms, then runs for six weeks — the native image saves the 90 ms it pays once.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A native image compiles ahead of time under a closed-world assumption: the build decides what code exists, and the result runs without a profiling JIT. The JVM instead profiles the running program and recompiles hot paths. The trade is startup and footprint against peak throughput, which the JIT reaches over minutes and keeps only at steady state — profile-guided native builds narrow the gap.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-5">The GraalVM knowledge gap it signals</h3>
+<p>The team must know the process’s life: how long it runs, and whether the hot code that dominates CPU arrives in the first minute or the fortieth. A short-lived process is mostly warmup; an always-on service lives at steady state, where a per-request throughput difference outweighs a startup difference paid once. The gap question: is this lifetime, measured as a distribution, short enough that the gap never amortizes?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The decision comes from a measured workload shape. Short batch jobs, CLI tools, functions, and scale-to-zero workers live for seconds, and native wins on start-up. A fleet autoscaling on a tight latency objective belongs here too. The mirror case is a result, decided by the same lifetime measurement.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Native chosen for the always-on service, because a demo booted fast on a laptop. Startup improves by a figure nobody disputes; the steady-state gap appears as more CPU per request, so the team adds replicas and calls it capacity planning. The seductive part: the startup number is cheap to reproduce, while the peak gap needs an hours-long test — so the cheap measurement settles the expensive question.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How long does this process live — measured — and does the startup win amortize against the peak gap?</strong></p>
+<ul>
+<li><strong>If yes</strong> → native is admissible. Confirm both builds reached steady state.</li>
+<li><strong>If no</strong> → throughput was traded for a boot time. Measure sustained throughput at production load.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Measure the lifetime distribution, then sustained throughput on both builds.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#JIT</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-native-memory-footprint" class="level2 kg-post" hidden="true" data-slug="memory-footprint-native-2027-10-19-graalvm" data-pattern="Native memory footprint" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-native-memory-footprint">Case study: Native memory footprint</h2>
+<p>The native image dropped the metaspace and the code cache — and the container limit, halved by folklore, was filled by the first burst.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A native image is one executable: class metadata is baked in, code is compiled at build time, and no metaspace or code cache grows with traffic. What remains is real — the image’s size, a runtime heap for allocations still collected (Serial GC by default), thread stacks, native buffers. The trade is a predictable resident size against an image of tens to hundreds of megabytes, plus an allocation rate the collector still serves.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-6">The GraalVM knowledge gap it signals</h3>
+<p>The team must know its memory curve: resident size at peak load, not at boot, and how much the application allocates per request. The removals are easy to predict; some remaining terms are workload-dependent and decide whether the claim holds. A native image that allocates heavily lands close to the JVM build’s resident size, minus the code cache. The gap question: what is the measured resident size at peak load?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Density per node is measured, and the choice follows the number. A team benchmarked a native build under production load, found peak resident size well below the JVM build’s, and raised replica count on the same hardware. The mandate is a schedule paid per gigabyte-hour, or a fixed node count.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Native means small” assumed without measuring resident size under load. The container limit is then set by folklore — the JVM number halved, or a round 256 MB — and a burst drives allocations past it, so the container dies for a limit nobody sized. The seductive part: boot-time resident size looks tiny, and that is the figure on the slide.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured resident size at peak load — and what density did it actually buy per node?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the claim is knowledge. Check the limit covers image baseline, stacks, and collector headroom.</li>
+<li><strong>If no</strong> → the footprint is a story. Measure resident size under sustained peak load on both builds.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Measure peak resident size and allocation rate, then recompute density.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#MemoryFootprint</code> <code>#Kubernetes</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-native-builds-in-the-pipeline" class="level2 kg-post" hidden="true" data-slug="build-pipeline-2027-10-20-graalvm" data-pattern="Native builds in the pipeline" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-native-builds-in-the-pipeline">Case study: Native builds in the pipeline</h2>
+<p>11 minutes of CI per commit, sixty commits a day, and one of those binaries ever reaches a running node.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Producing a native image is a compile job: closed-world analysis and whole-program optimization — one pass over every class, minutes of several cores and a few gigabytes. Its inputs are a pinned JDK, a GraalVM version, the dependencies, and the reachability metadata — the declarations naming what reflection reaches by string. The trade is build time and cache storage against reproducibility; a cache keyed on those inputs decides it.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-7">The GraalVM knowledge gap it signals</h3>
+<p>The team must know which artifacts ship as images and which exist only to be tested. That fact is often unrecorded: services claim to be deployable, so pipelines build the deployable form. The other fact is the input set — toolchain, dependency lock, metadata, build arguments — because a cache that ignores one returns a stale binary. The gap question: which pipelines build native, and does each deploy what it builds?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Native builds are layered and cached, produced only for artifacts that ship as images: release tags, or published artifacts. The cache key covers toolchain and dependency lock, so a hit is a real match, and a per-commit JVM build carries the code’s test signal. The image job costs minutes on the builds that matter, and its binary is the one that ships.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A native build on every commit, for every branch: hours of CI per day for binaries nobody deploys that night, and a cold cache blocks merges that touch nothing native. The seductive part: it looks like thoroughness. Building the same way everywhere is consistent, consistency feels like safety, and it produces a green badge.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which pipelines build native — and does every one of them actually deploy the result?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the build is knowledge: the image job’s inputs match what ships. Check the cache key covers toolchain, lock, and metadata.</li>
+<li><strong>If no</strong> → you pay for a compile nobody consumes. Move native builds to the artifacts that ship, keeping a JVM build for the test signal.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pipeline wrong — you’ve found incomplete delivery knowledge. Map each shipped artifact to its producing pipeline.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#CI</code> <code>#BuildEngineering</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-virtual-threads-on-a-native-image" class="level2 kg-post" hidden="true" data-slug="virtual-threads-native-2027-10-21-graalvm" data-pattern="Virtual threads on a native image" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-virtual-threads-on-a-native-image">Case study: Virtual threads on a native image</h2>
+<p>The service passed every concurrency test on the JVM — the carrier pool ignored its parallelism setting under the native binary, and the first Friday in production found it.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Virtual threads made blocking code cheap: many of them ride a small pool of carrier threads. A native image can inherit the feature through the same libraries, and no declaration is needed for it: the scheduler is reachable through the API. Support and behavior vary by GraalVM and JDK version, so the artifact to validate is the native binary, not the JVM run.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-8">The GraalVM knowledge gap it signals</h3>
+<p>The team must know which concurrency behaviors its code depends on: carrier parallelism, thread-local use, pinning inside synchronized blocks or JNI calls, timing assumptions in tests. Those are facts only the team holds. A feature list is a general claim; a build is specific. The gap question: is the concurrency behavior validated on the native build, or only on the JVM?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The virtual-thread service is validated under the native build: the full suite plus a sustained load test, pinning scenarios exercised, blocking I/O at high virtual-thread counts, throughput compared against the JVM build. The parity claim is then a measurement on the artifact that ships.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Parity assumed: the feature is documented as supported and the JVM mode passed, so the native build is declared equivalent. Under load the difference surfaces only in the native binary: a carrier count that ignores the setting, a pinning path that stalls. The team debugs application code before suspecting the image. The seductive part: passing tests are the evidence people trust most.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this feature validated on the native build — tested — or assumed from the JVM mode?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the parity claim is knowledge. Check the validation exercised load, on the shipping toolchain.</li>
+<li><strong>If no</strong> → you hold an untested claim about the artifact you deploy. Add native concurrency tests and one sustained load test.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the image wrong — you’ve found incomplete application knowledge. Enumerate the concurrency behaviors you rely on, then test each on the native binary.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#VirtualThreads</code> <code>#Concurrency</code> <code>#NativeImage</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-library-reachability-metadata" class="level2 kg-post" hidden="true" data-slug="reachability-metadata-2027-10-22-graalvm" data-pattern="Library reachability metadata" data-group="graalvm" data-group-label="GraalVM">
+<h2 class="anchored" data-anchor-id="case-study-library-reachability-metadata">Case study: Library reachability metadata</h2>
+<p>A library takes a minor upgrade, the metadata still matches the range, and one class stops being registered for reflection.</p>
+<p>Building a native image? Ask “which fact does the closed-world assumption encode — what exists, what is reachable, what may load later?” If you can’t answer, you’ve found a knowledge gap: the image enforces a guess. If you can, the build is knowledge embodied — the binary catching up to what the application actually does.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A native build must know which classes reflection, serialization, JNI, and resource loading reach — closed-world analysis cannot see a runtime-computed name. The GraalVM Reachability Metadata Repository collects community metadata. Entries are tested against particular versions and consumed across declared ranges. The trade is coverage against entries authored for another version.</p>
+</blockquote>
+<section id="the-graalvm-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-graalvm-knowledge-gap-it-signals-9">The GraalVM knowledge gap it signals</h3>
+<p>The team must know the exact library versions in the build and whether the matching metadata was tested against them. That is a fact about the resolved dependency graph, not the repository. A version bump can rename a class or move the reflective path out of coverage. The gap question: which library versions does this metadata target?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Metadata is pinned to the exact library versions in the build, refreshed with every upgrade — range coverage forgone — and matched strictly with GraalVM’s exact-metadata mode, so a version mismatch can fail the build. The version then matches; whether every reflected path has an entry is still the suite’s question.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Metadata carried over from a different version of the library. The range overlaps, so the entry applies and most classes register; the one class that changed between versions is missing, and the failure appears on the single code path that reflects on it. The seductive part: the build is green and quiet. The analysis found a metadata entry — any entry — so it had no warning to give.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which library versions does this metadata target — pinned — and how does the build verify yours match?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the metadata is knowledge. Check the pin comes from the dependency lock.</li>
+<li><strong>If no</strong> → coverage is assumed. Pin metadata to resolved versions and test the reflecting paths natively.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the metadata wrong — you’ve found incomplete application knowledge. List the libraries that reflect, then the versions the build resolves.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#GraalVM</code> <code>#Java</code> <code>#NativeImage</code> <code>#ReachabilityMetadata</code> <code>#Reflection</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

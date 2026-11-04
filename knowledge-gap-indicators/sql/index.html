@@ -633,21 +633,742 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>A query’s shape claims something about the domain — what exists, what counts, what order means, what NULL means. Each post will state the claim and the fact it needs.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>A query’s shape claims something about the domain — what exists, what counts, what order means, what NULL means. Each post states the claim and the fact it needs.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="sql">
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+</div>
+<section id="case-study-three-valued-logic-null-in-a-comparison" class="level2 kg-post" hidden="true" data-slug="three-valued-logic-2027-12-13-sql" data-pattern="Three-valued logic (NULL in a comparison)" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-three-valued-logic-null-in-a-comparison">Case study: Three-valued logic (NULL in a comparison)</h2>
+<p>A revenue report comes up short by 2,190 orders. The table also holds 2,190 rows whose status is NULL, and no clause of the query ever mentions them.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> NULL is not a value; it marks the absence of one, so it equals nothing, not even itself. Every value comparison with NULL yields UNKNOWN, and WHERE keeps only TRUE. <code>status &lt;&gt; 'cancelled'</code> is TRUE for shipped, FALSE for cancelled, UNKNOWN for NULL — and <code>NOT (status = 'cancelled')</code> is UNKNOWN as well. Neither predicate covers the NULL rows.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals">The SQL knowledge gap it signals</h3>
+<p>The query splits the table’s rows into three parts while the writer holds a two-part mental model. Writing the filter requires knowing whether the column is nullable, and what the NULL means here: not yet decided, not applicable, or unknown to the source system. Under “unknown”, excluding those rows is a lie about coverage.</p>
+<p>The gap question: for each comparison in this query, where do the NULL rows go?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for twelve posts (#501–#512). The framing is fixed; the entries are being written.</p>
+<p><code>WHERE status &lt;&gt; 'cancelled' OR status IS NULL</code> — the writer knew the NULL rows were in scope and said so in the statement. The standard goes further: <code>IS DISTINCT FROM</code> treats NULL as a value, so each such comparison answers TRUE or FALSE.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The exclusion query that drops every NULL-status row. It is seductive because the query is well-formed, the filter reads like the English requirement, and a NULL status is invisible in the output. The count then falls short by exactly the unknowns, and the complementary report falls short by the same rows, so the two totals never reconcile to the table and nobody can say why.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each comparison in this query: where do the NULL rows go — stated, or unknown?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the row set is closed and the aggregate is meaningful. Check the aggregates next: COUNT(col) skips NULL, COUNT(*) does not, AVG divides by the non-NULL count.</li>
+<li><strong>If no</strong> → the comparison is a filter with an unstated third outcome, answering a question nobody asked. Add <code>IS NULL</code>, or make the column NOT NULL so the guess cannot recur.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Find the column’s nullability, then count the NULLs before trusting any total.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#ThreeValuedLogic</code> <code>#NullHandling</code> <code>#DataQuality</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-left-join-demoted-by-a-where-clause" class="level2 kg-post" hidden="true" data-slug="inner-vs-left-join-2027-12-14-sql" data-pattern="LEFT JOIN demoted by a WHERE clause" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-left-join-demoted-by-a-where-clause">Case study: LEFT JOIN demoted by a WHERE clause</h2>
+<p>A LEFT JOIN kept all 9,400 customers. One WHERE condition on the right table removed 1,340 of them, and the join became an inner join without anyone editing the join.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A LEFT JOIN promises at least one output row per left row even when the right side has no match, padding the missing right columns with NULL. A WHERE condition on a right-table column then tests those padded rows too: <code>b.type = 'purchase'</code> is UNKNOWN when b is NULL, so the row is discarded. The keyword still says LEFT; the result is INNER.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-1">The SQL knowledge gap it signals</h3>
+<p>The writer must know whether the domain needs every left row: every customer including those who never ordered, every account including those with no transactions. Missing purchases appear as gaps in the output; missing customers do not.</p>
+<p>The gap question: does any WHERE condition on the right table exist — checked — and did anyone intend an INNER JOIN?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Right-table conditions live in the ON clause, where the promise survives: the left row stays and the right columns come back NULL. The deliberate anti-join <code>WHERE b.id IS NULL</code> asks the outer join’s question directly.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>LEFT JOIN orders b ON b.customer_id = c.id WHERE b.type = 'purchase'</code>. Every customer without a purchase vanishes and the count drops to the match count. It is seductive because the LEFT JOIN looks like the careful choice, the author believes the guarantee is preserved, and no error is raised: the query returns a smaller, well-formed, plausible table. The shortfall is exactly the left rows with no right row of type purchase.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each LEFT JOIN: does any WHERE condition on the right table exist — checked — and did anyone intend an INNER JOIN?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the outer join is an inner join wearing an outer join’s name. Move the condition into ON, or delete the LEFT keyword and stop claiming a guarantee the query does not give.</li>
+<li><strong>If no</strong> → every left row survives — the rows are the join’s full result, not a filtered one. Check that consumers expect NULLs there.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Compare COUNT(*) with COUNT(b.id): the difference is the left rows with no right.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Joins</code> <code>#LeftJoin</code> <code>#DataModelling</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-not-in-against-a-set-that-contains-null" class="level2 kg-post" hidden="true" data-slug="not-in-null-2027-12-15-sql" data-pattern="NOT IN against a set that contains NULL" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-not-in-against-a-set-that-contains-null">Case study: NOT IN against a set that contains NULL</h2>
+<p>The exclusion query returned zero rows for three weeks. The blocklist held 40 values, one of them NULL.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> <code>NOT IN</code> is shorthand for a conjunction of inequalities. <code>id NOT IN (1, 2, NULL)</code> means <code>id &lt;&gt; 1 AND id &lt;&gt; 2 AND id &lt;&gt; NULL</code>. The last conjunct is UNKNOWN for every id, UNKNOWN absorbs the conjunction, and no row can satisfy the predicate. The answer is empty for every id — unsatisfiable, not merely over-selective.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-2">The SQL knowledge gap it signals</h3>
+<p>The writer must know whether the subquery’s column can return NULL: a nullable foreign key, an optional attribute, or a LEFT JOIN inside the subquery each produce one. The negation is only safe when that column is provably total, and “nobody inserts NULL there” is a belief, not a proof.</p>
+<p>The gap question: can the subquery return NULL — proven — or should this be NOT EXISTS?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>NOT IN</code> over a subquery column declared NOT NULL, where the constraint is the proof rather than the hope. Or <code>NOT EXISTS</code> for the negation: it tests row existence, not value equality, so a NULL in the subquery cannot match and the intended answer survives.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The exclusion list that gains one NULL row — an import left a cell blank, or a LEFT JOIN in the subquery padded one in. It is seductive because the query is idiomatic, the list is short and looks curated, and the empty result reads as “nothing was excluded” or “the filter cleaned everything” — when it is the correct answer to an accidental question: is this id different from every listed value, including an unknown one?</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each NOT IN: can the subquery return NULL — proven — or should this be NOT EXISTS?</strong></p>
+<ul>
+<li><strong>If yes</strong> → any NULL in the list disables the whole predicate. Rewrite as NOT EXISTS, then compare the row counts before and after.</li>
+<li><strong>If no</strong> → the NOT NULL constraint is doing the work, so check it survives every load path: staging tables, imports, and backfills each need it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Read the subquery column’s definition and every writer of it, then count its NULLs directly.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#NullHandling</code> <code>#Subqueries</code> <code>#DataQuality</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-group-by-as-a-grain-claim" class="level2 kg-post" hidden="true" data-slug="group-by-grain-2027-12-16-sql" data-pattern="GROUP BY as a grain claim" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-group-by-as-a-grain-claim">Case study: GROUP BY as a grain claim</h2>
+<p>A revenue report groups by region and prints a sales rep’s name beside the total. The named rep did not earn the total — the query picked an arbitrary row.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> GROUP BY states the grain of the answer: one output row per distinct combination of the grouped columns. Every selected column must therefore be grouped, aggregated, or functionally dependent on the grouped columns; standard SQL rejects the rest. MySQL with <code>ONLY_FULL_GROUP_BY</code> off, and SQLite by default, accept it and return a value from an arbitrary row of the group.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-3">The SQL knowledge gap it signals</h3>
+<p>The writer must know the grain of the business question: one row per region, per region per month, per rep per month. The grain is a domain fact, not a formatting choice — a total is defined at a grain, and the label beside it must live at the same one.</p>
+<p>The gap question: what is one output row of, exactly — stated — and is every column grouped, aggregated, or dependent?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Every selected column is grouped or aggregated, and the groups match the report’s claim: one row per region per month, said in the header and true in the query. Then every label in a row belongs with the number.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The lenient GROUP BY returning an arbitrary row’s value for the ungrouped column. It is seductive because the query runs, the total is right, and the name belongs to a real rep who does sell in that region — so nothing looks broken. The report is a total joined to a person who did not earn it, and the name can move when the plan does.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For this query: what is one output row of, exactly — stated — and is every column grouped, aggregated, or dependent?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the aggregate is defined at a named grain. Check it is the report’s grain, not a coarser one summed into a finer label.</li>
+<li><strong>If no</strong> → the query aggregates at a grain nobody wrote down, and the ungrouped column is a pick, not a fact. Add it to GROUP BY, or replace it with an aggregate the domain permits.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Find the table’s key, then name the business entity one output row denotes.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#GroupBy</code> <code>#Aggregation</code> <code>#DataModelling</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-having-versus-where" class="level2 kg-post" hidden="true" data-slug="having-vs-where-2027-12-17-sql" data-pattern="HAVING versus WHERE" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-having-versus-where">Case study: HAVING versus WHERE</h2>
+<p>A row filter moved into HAVING drops whole groups or counts the excluded rows, so the total is wrong either way.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> WHERE evaluates rows before grouping; HAVING evaluates groups after aggregation. Two grains: the row and the group. The shape claims which grain the rule belongs to.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-4">The SQL knowledge gap it signals</h3>
+<p>The writer must know whether “more than three orders” filters rows before counting them, or counts a customer’s orders and tests the total. Both readings yield a number; only one is the question. A condition that each row meets or fails belongs before the count, because afterwards it changes what is counted.</p>
+<p>The gap question: which grain does this rule belong to — the row or the group?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>WHERE on the raw rows: shipped orders only, one region, a closed range. HAVING on the aggregate’s meaning: accounts whose summed balance exceeds the limit, customers with more than three orders. The test is the subject, not the grammar: does the condition speak about one row or about the group? One row is WHERE; a group is HAVING.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The aggregate condition pushed into WHERE, which standard SQL rejects — it moves to HAVING to make it run, and the row condition follows. MySQL without ONLY_FULL_GROUP_BY, and SQLite, accept <code>HAVING status = 'shipped'</code> on an ungrouped column, evaluate it on one arbitrary row of the group, and drop the whole group on that row’s value. The mirror image: HAVING used as “WHERE for grouped queries,” filtering groups by a fact about their members while the writer thinks they filtered rows. It runs, the totals look plausible, and they span rows the rule meant to exclude.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each filter: does it constrain the rows or the groups — stated — and is that the question being asked?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the clause records the grain. Check that the filters before the count are the ones the count’s definition assumes.</li>
+<li><strong>If no</strong> → the count is taken over the wrong grain. Move each condition to the clause matching its subject.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Write each metric as one sentence, then place each condition against the noun it constrains.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Grouping</code> <code>#Aggregation</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-no-order-by-no-ordering-guarantee" class="level2 kg-post" hidden="true" data-slug="no-order-no-guarantee-2027-12-18-sql" data-pattern="No ORDER BY, no ordering guarantee" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-no-order-by-no-ordering-guarantee">Case study: No ORDER BY, no ordering guarantee</h2>
+<p>A report has come out sorted for six years. A parallel plan appears, no code changes, and rows arrive in a different order.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A table is an unordered multiset: rows have no position, and no operator reading them promises a sequence. Without ORDER BY the engine returns rows in whatever order the plan produces — index scan, hash build, worker arrival. The statement claims nothing about sequence, so a consumer reading sequence relies on an unstated fact.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-5">The SQL knowledge gap it signals</h3>
+<p>The writer must know whether sequence is part of the answer or only part of the reading habit. Order belongs to the question, not the storage. A client rendering rows top to bottom turns an accident into an expectation the database never agreed to.</p>
+<p>The gap question: does any consumer of these rows depend on their sequence?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Every consumer depending on sequence states it: the API page, the feed, the ledger statement, the migration applying changes in order. Order belongs on the outermost query — ORDER BY in a subquery or view is not carried outward as a contract, and engines that keep it do so by accident.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The report that always came out sorted, until the parallel plan or the new index. Nothing was tested, because the test asserted rows exactly as its environment produced them — a green suite proving the plan, not the query. The failure reads as an intermittent bug, and the fix gets filed against the export layer.</p>
+<p>The sharper variant: <code>LIMIT 10</code> with no ORDER BY, labelled “top ten.” It returns ten rows, not the ten highest, and they can change with the plan.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each query whose consumer cares about order: is ORDER BY written — or is the order an accident being trusted?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the sequence is a stated claim. Check that the sort key is unique, or that a tie-breaker follows.</li>
+<li><strong>If no</strong> → nothing was promised. Add ORDER BY at the outermost query, or drop the consumer’s dependence on sequence.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. List the consumers, then mark which would change output on shuffled rows.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Ordering</code> <code>#Determinism</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-ties-without-a-tie-breaker" class="level2 kg-post" hidden="true" data-slug="order-tie-breaking-2027-12-19-sql" data-pattern="Ties without a tie-breaker" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-ties-without-a-tie-breaker">Case study: Ties without a tie-breaker</h2>
+<p>One row appears on page two and again on page four. Its neighbour appears on no page, and the SQL is correct.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> <code>ORDER BY created_date</code> imposes a partial order: rows sharing a date are equal, and the engine may return them in any sequence. <code>LIMIT</code> and <code>OFFSET</code> re-execute the whole query per page, so a tie straddling a page boundary can be cut at a different place each time — the same row can surface twice, or slip between two pages and land nowhere. Pagination needs totality: no two rows compare equal.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-6">The SQL knowledge gap it signals</h3>
+<p>The writer must know whether the sort key is unique, or which second column makes it so. Timestamps, prices, scores, and truncated dates can be non-unique in practice; a tie can be rare in staging and routine the day one batch writes two records. Pagination claims something about every pair of rows, so one duplicate breaks it.</p>
+<p>The gap question: is the sort key unique, or is there a stated tie-breaker?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A unique tie-breaker appended — <code>ORDER BY created_date, id</code> — makes every page disjoint and complete while the table holds still, and the proof is one line: distinct sort tuples. Keyset pagination goes further, seeking <code>WHERE (created_date, id) &gt; (?, ?)</code> instead of counting rows to skip, so the boundary is a value, not an offset, and ties cannot shift it, giving up the jump to a page number.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>ORDER BY created_date LIMIT 20 OFFSET n</code>. It looks right on every page a developer opens: stable while the plan is stable, and ties near boundaries are absent in a small table. <code>OFFSET</code> reads like a cursor resuming where the last page stopped; it is a skip count computed by re-running the query and re-deciding ties. Add a second non-unique key, and the illusion holds while the guarantee does not.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the sort key unique — or is there a tie-breaker — stated, so pagination is provable?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the order is total. Check that the tie-breaker is unique on the data, not only on today’s sample.</li>
+<li><strong>If no</strong> → pages overlap and leak by construction. Append a unique column, or switch to keyset pagination.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Compare <code>COUNT(*)</code> with <code>COUNT(DISTINCT sort_key)</code> on the real table.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Pagination</code> <code>#Ordering</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-row_number-versus-rank" class="level2 kg-post" hidden="true" data-slug="row-number-vs-rank-2027-12-20-sql" data-pattern="ROW_NUMBER versus RANK" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-row_number-versus-rank">Case study: ROW_NUMBER versus RANK</h2>
+<p>Two players tie for first. The report numbers them 1 and 2, the medal table shows two golds, and the ceremony disagrees with both.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> All three number rows in a partition, each claiming something different about equality. <code>ROW_NUMBER</code> promises distinct consecutive integers, so equal keys get an order the engine picks and a plan change re-picks. <code>RANK</code> promises equal ranks for equal keys and skips what a tie consumes: 1, 1, 3. <code>DENSE_RANK</code> promises equal ranks with no gap: 1, 1, 2. Three claims about ties: none, equal with a gap, equal without.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-7">The SQL knowledge gap it signals</h3>
+<p>The writer must know what a tie means before choosing. Two rows with the same score: same standing, or a deterministic order that must be provable, or labels for a list? Top-N needs exactness: a unique tie-breaker belongs in the ORDER BY. Standings need the opposite — equality preserved, gaps included: after two joint firsts no row is second.</p>
+<p>The gap question: what does a tie mean here, and does the function chosen say the same thing?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Arbitrary-but-total for top-N per group: <code>ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC, id DESC) = 1</code> picks the latest order reproducibly: a unique column breaks ties. <code>RANK</code> where shared standing is the truth: competition results, exam grades, severity bands.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>ROW_NUMBER</code> used as “the ranking” for a leaderboard. Tied players are numbered 1 and 2 by storage order; the report stays stable until the table is rewritten or the plan changes, then the medals can swap between two people with identical scores.</p>
+<p>The mirror trap: <code>RANK</code> for top-N returns eleven rows for <code>WHERE rank &lt;= 10</code> once a tie straddles the cut.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each ranking query: what do ties mean to the domain — and does the function chosen say the same thing?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the numbering encodes the domain’s tie rule. Check that the window’s ORDER BY is unique where exactness is demanded.</li>
+<li><strong>If no</strong> → the numbering imposes a tie rule nobody stated. Switch function, or add the tie-breaker the domain recognizes.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Count duplicate sort keys, then ask what equality means.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#WindowFunctions</code> <code>#Ranking</code> <code>#Database</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-distinct-as-a-bug-mask" class="level2 kg-post" hidden="true" data-slug="distinct-masks-bug-2027-12-21-sql" data-pattern="DISTINCT as a bug mask" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-distinct-as-a-bug-mask">Case study: DISTINCT as a bug mask</h2>
+<p>A join returns 4,000 rows where the domain expects 1,000. Someone adds DISTINCT, the count drops back to 1,000, and the fan-out (row multiplication) that produced the extra rows stays in the query.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> DISTINCT compares each complete result row against every other complete result row and discards the duplicates. It claims that the data can produce identical rows and that the result must not contain them. That claim concerns the output alone: the duplicates are removed after the join multiplied them, so the count a reader sees no longer measures what the join did.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-8">The SQL knowledge gap it signals</h3>
+<p>The writer must know which of two facts holds: the duplicates came from the data, or they came from the join. If the join generated them — a missing condition, a fan-out on a one-to-many key — the query now returns a correct count over an incorrect row set. The gap question: what in the data makes these rows identical?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Counting uniques. “How many distinct customers ordered this month?” The column holds duplicates because one customer orders many times, and the question asks for customers, not orders. DISTINCT is that question, written down. The same holds for a list of distinct shipping countries, or distinct product ids across a set of invoices.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>DISTINCT appended after a row count “came out too high.” The dedup restores the number, the review passes, and the missing join condition stays. The duplicates are now invisible: a region total sums correctly because each duplicated row collapsed, and nobody sees that one order was joined to four addresses. The keyword reclassifies a wrong join as a property of the data.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Was DISTINCT written because the domain counts uniques — or because the join produced too many rows?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the keyword is the domain’s question. Check that distinctness is stated over the columns that matter, and that the dedup is not collapsing rows the domain counts twice.</li>
+<li><strong>If no</strong> → the join is the defect. Remove DISTINCT, then fix the condition or the grain (what one row denotes).</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Count rows before and after each join, and name the key that should be unique.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Database</code> <code>#QuerySemantics</code> <code>#Joins</code> <code>#DataModelling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-union-versus-union-all" class="level2 kg-post" hidden="true" data-slug="union-vs-union-all-2027-12-22-sql" data-pattern="UNION versus UNION ALL" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-union-versus-union-all">Case study: UNION versus UNION ALL</h2>
+<p>Two branches that cannot return the same row. One keyword still sorts or hashes the whole result on every run to prove that they don’t.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> UNION combines the branches, then removes duplicate rows across the combined result — typically through a sort or a hash — and returns each surviving row once. It claims that the branches can produce identical rows and that the result must not contain them. UNION ALL concatenates the branches and claims nothing about overlap; every row from every branch appears.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-9">The SQL knowledge gap it signals</h3>
+<p>The writer must know whether the branches can overlap. They can when one source is queried twice under predicates that do not exclude each other, or when a current table and an archive table share key values. They cannot when the branches read disjoint sources, or one source under mutually exclusive predicates — and the projection keeps the rows apart. The gap question: can branch A and branch B return the same row?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A partial migration leaves the current orders table and the archive table with overlapping id ranges, and a mailing list needs each customer once. Or one branch selects buyers, another selects complainants, and a recipient must appear once. The branches genuinely can return the same row.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>UNION between branches that are disjoint by construction: one predicate on status ‘open’, one on status ‘closed’, both over the same table, and status in the select. Every run pays a sort or hash over the full result to remove duplicates that cannot exist. The inverse trap is quieter: UNION ALL over a current table and a history table that started to overlap after a re-import. Then one customer is counted twice, and the total is wrong with no error to show for it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Can these branches return the same row — proven — and was the dedup cost accepted knowingly?</strong></p>
+<ul>
+<li><strong>If yes</strong> → UNION states the domain’s rule. Check the cost against the result size, since the dedup — sort or hash — is paid on every run.</li>
+<li><strong>If no</strong> → UNION ALL, and say in the query why the branches are disjoint.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Read the predicates: the disjointness you rely on is either written down or it is not.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Database</code> <code>#QuerySemantics</code> <code>#SetOperations</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-scalar-subquery" class="level2 kg-post" hidden="true" data-slug="scalar-subquery-unique-2027-12-23-sql" data-pattern="The scalar subquery" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-the-scalar-subquery">Case study: The scalar subquery</h2>
+<p>A lookup starts returning two rows, and the query does not return the first one. It fails at runtime, on the one row that broke the assumption.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> A scalar subquery stands where one value is required: in the SELECT list, or in a comparison. It claims the inner query returns at most one row for that position, and most engines enforce it: two rows raise a cardinality violation (SQLite takes the first). Zero rows yield NULL, so “none” arrives as a value and the claim stays at most one, never exactly one.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-10">The SQL knowledge gap it signals</h3>
+<p>The writer must know what holds the inner result to one row. Three things can: a constraint, such as a unique index on the lookup key; an aggregate, such as MAX, which collapses any number of rows to one; or hope. The gap question: for each scalar subquery, which of the three?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An aggregate over a set: the highest price in a price history, the maximum approval date for an order. A lookup by primary key, where the constraint guarantees the cardinality. A correlated subquery reading a unique index per outer row. In each case the guarantee is written where the engine and a reader can both inspect it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The lookup runs on a business key only believed unique — an email address, a SKU, a national identifier — and stopped being unique when an import merged two systems. It works for a year. Then production fails on the single duplicated row in a query nobody changed. The seduction is the first thousand runs: a working query looks like a proven claim. Where the inner query carries a LIMIT 1, the failure disappears and the query picks a row arbitrarily — worse than the error.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What guarantees at most one row — a constraint, an aggregate, or hope?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the claim is grounded. Check that the constraint still holds in the data, not only in the schema.</li>
+<li><strong>If no</strong> → the subquery is a bet. Add the constraint, add the aggregate, or make the multi-row case explicit in the query’s shape.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Group the inner key and count the rows where the count exceeds one.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Database</code> <code>#QuerySemantics</code> <code>#Subqueries</code> <code>#Constraints</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-implicit-type-coercion-in-comparisons" class="level2 kg-post" hidden="true" data-slug="implicit-coercion-2027-12-24-sql" data-pattern="Implicit type coercion in comparisons" data-group="sql" data-group-label="SQL">
+<h2 class="anchored" data-anchor-id="case-study-implicit-type-coercion-in-comparisons">Case study: Implicit type coercion in comparisons</h2>
+<p>A varchar column compared to a number turns an index lookup into a full scan — and the stored value into something nobody wrote.</p>
+<p>Writing a SQL statement? Ask “which claim does this query make about the data — what exists, what counts, what order means, what NULL means?” If you can’t answer, you’ve found a knowledge gap: the query enforces a guess. If you can, the query is knowledge embodied — the statement catching up to what the data actually contains.</p>
+<blockquote class="blockquote">
+<p><strong>Construct:</strong> When a comparison puts two different types side by side, the dialect’s coercion rules decide whether they compare at all. The statement claims these values are comparable, and that one side converts to the other’s type without loss. Two costs follow. The conversion happens per row, so an index on the converted column cannot be read. The conversion may also change the value.</p>
+</blockquote>
+<section id="the-sql-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-sql-knowledge-gap-it-signals-11">The SQL knowledge gap it signals</h3>
+<p>The writer must know the declared type of both sides and whether the conversion keeps the meaning. The gap question: are both sides the same type, stated in the query — or is the engine translating a claim nobody wrote?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A cast at a boundary where the types genuinely differ, with the conversion named. A legacy text column of identifiers is cast once, on the parameter side, so the indexed column keeps its type and the cost is one conversion. A date literal written as DATE ‘2027-01-01’, not left as a string. The conversion is visible, so a reader can check it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An order reference stored as varchar, compared to a numeric parameter. Every row is converted, the index goes unread, and the query scans the table while looking identical to an indexed one. Dates stored as strings are the quieter variant: lexical order matches calendar order only while every row is zero-padded and formatted alike. One ‘2027-2-1’, or a locale format, silently reorders the result. Dialects disagree, and that changes the claim. PostgreSQL raises an error. MySQL converts the string to a number — zero when it has no numeric prefix — so <code>= 0</code> matches every row without one.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Are both sides the same type — stated in the query — or is the engine translating a claim nobody wrote?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the comparison is grounded. Check that the cast sits opposite the indexed side.</li>
+<li><strong>If no</strong> → state the type, or cast deliberately at the boundary, knowing the cost.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Read the column definitions, then the parameter types, and compare them.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SQL</code> <code>#Database</code> <code>#QuerySemantics</code> <code>#TypeSystems</code> <code>#Indexing</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

@@ -648,8 +648,10 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="case-study-io-scheduler-choice-none-mq-deadline-bfq-kyber" class="level2 kg-post" hidden="true" data-slug="io-scheduler-2027-05-28-kernel" data-pattern="IO scheduler choice (none, mq-deadline, bfq, kyber)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-io-scheduler-choice-none-mq-deadline-bfq-kyber">Case study: IO scheduler choice (none, mq-deadline, bfq, kyber)</h2>
+<p>An NVMe box hands a measurable share of its IOPS to a scheduler reordering what the drive reorders in silicon.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> Four schedulers front the device, each selling a different ordering service. <code>none</code> reorders nothing; <code>mq-deadline</code> bounds one request’s wait; <code>bfq</code> divides bandwidth by cgroup weight; <code>kyber</code> caps queue depth per operation type. Each buys ordering with CPU per IO — overhead where hardware already reorders.</p>
+<p><strong>Mechanism:</strong> Four schedulers front the device, each selling a different ordering service. <code>none</code> reorders nothing; <code>mq-deadline</code> bounds one request’s wait; <code>bfq</code> divides bandwidth by cgroup weight; <code>kyber</code> caps queue depth per operation type. Three of the four add per-IO CPU work — overhead where hardware already reorders; <code>none</code> buys no ordering and pays no CPU, and it runs no fairness layer.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals">The kernel knowledge gap it signals</h3>
@@ -664,7 +666,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>bfq where many tenants compete on spinning or slow storage: one backup job stopped starving the foreground path, its p99 read latency falling from seconds to tens of milliseconds. mq-deadline on a database box whose writes must not queue behind a read burst. <code>none</code> on NVMe once the merge above the scheduler is confirmed: more IOPS, less CPU per IO.</p>
+<p>bfq where many tenants compete on spinning or slow storage: one backup job stopped starving the foreground path, its p99 read latency falling from seconds to tens of milliseconds. mq-deadline on a database box whose writes must not queue behind a read burst. <code>none</code> on NVMe once request merging above the scheduler is confirmed: more IOPS, less CPU per IO.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -677,7 +679,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The copied tuning guide. bfq is the “low latency” scheduler in every post for spinning disks, so it lands on NVMe, where the drive reorders in hardware and the bookkeeping runs on every submitting core. The quieter trap: <code>none</code> on a SATA SSD with many concurrent sync writers, because “none is fastest” — one queue, no fairness layer, one fsync-heavy writer takes the disk while the rest wait.</p>
+<p>The copied tuning guide. bfq is the “low latency” scheduler in every post for spinning disks, so it lands on NVMe, where the drive reorders in hardware and the bookkeeping runs on every submitting core. The quieter trap: <code>none</code> on a SATA SSD with many concurrent fsync writers, because “none is fastest” — one queue, no fairness layer, one fsync-heavy writer takes the disk while the rest wait.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -690,7 +692,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Can you state the device class, the contention level, and the tail target — and did you measure the scheduler’s effect on this box?</strong></p>
+<p><strong>Can you state the device class, the contention level, and the p99 target — and did you measure the scheduler’s effect on this box?</strong></p>
 <ul>
 <li><strong>If yes</strong> → you hold the three facts it rests on. Re-measure when the device or tenant count changes.</li>
 <li><strong>If no</strong> → the scheduler is an inherited default, not a decision. Name the device and tenant count, then measure an alternative at production queue depth.</li>
@@ -705,6 +707,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-cpu-frequency-governor" class="level2 kg-post" hidden="true" data-slug="cpu-governor-2027-05-29-kernel" data-pattern="CPU frequency governor" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-cpu-frequency-governor">Case study: CPU frequency governor</h2>
+<p>One config line buys a front-end box back its p99 tail, and bills the choice in watts on every idle core.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> Three governors, three claims. <code>performance</code> pins the clock at the top P-state; <code>schedutil</code> derives a target from scheduler utilization; <code>powersave</code> on intel_pstate hands frequency to the hardware’s own control loop. The trade is a latency floor against energy and heat — a constant clock removes the ramp, a scaled clock charges ramp delay on wakeup and saves the watts between.</p>
 </blockquote>
@@ -734,7 +738,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><code>performance</code> copied from a gaming guide onto a fleet idling 95% of the day. The gain is real for the benchmark behind it — single-thread latency — and the bill is every idle core holding its top P-state: power, heat, less turbo headroom for the cores at work. The reverse is subtler: <code>schedutil</code> on a trading or audio path where the ramp is the spike. Those boxes idle by design between events, so utilization reads low and every event pays the delay the governor was meant to avoid.</p>
+<p><code>performance</code> copied from a gaming guide onto a fleet idling 95% of the day. The gain is real for the benchmark behind it — single-thread latency — and the bill is every idle core holding its top P-state: power, heat, less turbo headroom for the cores at work. The reverse is subtler: <code>schedutil</code> on a trading or audio path where the ramp is the spike. Those boxes idle by design between events, so utilization reads low and each event can pay the delay the governor was meant to avoid.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -747,7 +751,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Who owns the tail target — and what does the energy delta cost at fleet size, per month?</strong></p>
+<p><strong>Who owns the SLA — and which currency did the choice spend, watts or wakeup delay, at fleet size?</strong></p>
 <ul>
 <li><strong>If yes</strong> → you can defend the line in both currencies. Re-check when the idle fraction changes.</li>
 <li><strong>If no</strong> → the governor is a copied default. Measure the tail under both, then multiply the watt delta by fleet and month.</li>
@@ -762,6 +766,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-kernel-preemption-model" class="level2 kg-post" hidden="true" data-slug="preemption-model-2027-05-30-kernel" data-pattern="Kernel preemption model" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-kernel-preemption-model">Case study: Kernel preemption model</h2>
+<p>A kernel built for latency can cost a render fleet several percent of throughput, and no dashboard shows what it bought.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> Voluntary preemption runs kernel code to completion at safe points; full preemption allows it nearly anywhere; real-time adds threaded IRQs and priority inheritance. Since 5.12, <code>PREEMPT_DYNAMIC</code> picks among the built variants at boot, so the choice can be per boot, not per build. The trade is throughput against wakeup latency: fewer involuntary switches mean better cache behavior and a longer wait for the task an interrupt woke.</p>
 </blockquote>
@@ -778,7 +784,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A capture path dropping buffers: worst-case wakeup latency fell from milliseconds to tens of microseconds on the same hardware, and the dropouts stopped — worth the throughput the batch job lost, because that job had slack. A render farm took the opposite line: voluntary preemption, no latency target, maximum throughput under a full runqueue.</p>
+<p>A capture path dropping buffers: full preemption cut worst-case wakeup from 3 ms to 20 µs on the same hardware, and the dropouts stopped — the batch job on the same host lost 4% throughput and had the slack to absorb it. A render farm took the opposite line: voluntary preemption, no latency target, maximum throughput under a full runqueue.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -791,7 +797,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The custom kernel built once “for performance” and never re-measured: full preemption everywhere, so the throughput cost is paid continuously against an unmeasured win. The commoner version is quieter: the distro default assumed adequate for a latency SLA it never heard of. Tests pass because tests are idle; the first production burst shows a wakeup delay nobody has a number for.</p>
+<p>The custom kernel built once “for performance” and never re-measured: full preemption everywhere, so the throughput cost is paid continuously against an unmeasured win. The commoner version is quieter: the distro default assumed adequate for a latency SLA it never heard of. Tests pass because tests are idle, and the first production burst can show a wakeup delay nobody has a number for.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -819,12 +825,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-cpu-isolation-and-irq-steering" class="level2 kg-post" hidden="true" data-slug="isolcpus-affinity-2027-05-31-kernel" data-pattern="CPU isolation and IRQ steering" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-cpu-isolation-and-irq-steering">Case study: CPU isolation and IRQ steering</h2>
+<p>Four cores reserved for a latency-critical thread that spends its life sleeping on a lock held on a housekeeping core.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> <code>isolcpus</code> stops the scheduler placing ordinary tasks on named CPUs; IRQ affinity policy keeps interrupts off them; a cpuset or <code>taskset</code> must then put the threads there. The trade is direct: quiet cores for the workload against fewer cores for everything else — housekeeping, softirq work, and the rest of what it runs.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-3" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-3">The kernel knowledge gap it signals</h3>
-<p>Isolation answers a measured jitter question, so it needs a jitter number and a named noise source. You must know whether the spikes came from interrupt delivery, from migration, or from cache contention with a neighbour — each needs a different fix; only the first two are served by moving cores. The gap question: which jitter number did isolation improve, measured before and after, and what do the reserved cores cost the rest of the box?</p>
+<p>Isolation answers a measured jitter question, so it needs a jitter number and a named noise source. You must know whether the spikes came from interrupt delivery, from migration, or from cache contention with a neighbour — each needs a different fix; all three are served by moving work off the core, by a different lever: the IRQ mask, isolcpus, or pinning the thread away. The gap question: which jitter number did isolation improve, measured before and after, and what do the reserved cores cost the rest of the box?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -848,7 +856,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The cargo cult: cores isolated, threads never scheduled onto them, because the pool’s affinity was never set, or the workers sleep on a lock held elsewhere — so the quiet cores idle while the real path stays as noisy as before, on a box with fewer cores for the work. Its fleet cousin reserves those cores on every instance for one benchmark that ran once.</p>
+<p>The cargo cult: cores isolated, threads never scheduled onto them, because the pool’s affinity was never set or the workers sleep on a lock held elsewhere. So the quiet cores idle while the real path stays as noisy as before, on a box with fewer cores for the work. Its fleet cousin reserves those cores on every instance for one benchmark that ran once.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -876,8 +884,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-cgroup-limits-as-contract" class="level2 kg-post" hidden="true" data-slug="cgroups-limits-2027-06-01-kernel" data-pattern="cgroup limits as contract" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-cgroup-limits-as-contract">Case study: cgroup limits as contract</h2>
+<p>A memory limit set at current usage plus ten percent, and the OOM killer arrives on the first busy afternoon.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> <code>memory.max</code>, <code>cpu.max</code> and <code>io.weight</code> are one-directional promises: the workload may not exceed them, and on breach the kernel throttles per period, reclaims then kills, or deprioritises its IO. The trade is a guarantee for the neighbours against a throttle or a kill for the limited workload itself.</p>
+<p><strong>Mechanism:</strong> <code>memory.max</code> and <code>cpu.max</code> are ceilings the workload may not exceed; <code>io.weight</code> is a share, not one. On breach the kernel throttles per period, or reclaims then kills; under contention a low <code>io.weight</code> deprioritises the cgroup’s IO. The trade is a guarantee for the neighbours against a throttle or a kill for the limited workload itself.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-4" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-4">The kernel knowledge gap it signals</h3>
@@ -905,7 +915,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Current usage plus ten percent, sampled on a quiet afternoon: the first legitimate spike exceeds it, direct reclaim eats the response time, then the OOM killer takes a pod that would have survived. The fairness variant looks principled and is worse: a <code>cpu.max</code> quota set “for fairness” with no definition of fair and no measurement of burst shape. A job needing a 100 ms burst each second is throttled at every period boundary, and the symptom is a mysterious 100 ms p99 stall nobody traces to the quota.</p>
+<p>Current usage plus ten percent, sampled on a quiet afternoon: the first legitimate spike exceeds it, direct reclaim eats the response time, then an OOM kill can take a pod that would have survived. The fairness variant looks principled and is worse: a <code>cpu.max</code> quota set “for fairness” with no definition of fair and no measurement of burst shape. A job needing a 100 ms burst each second is throttled at every period boundary, and the symptom is a mysterious 100 ms p99 stall nobody traces to the quota.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -933,8 +943,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-vm.swappiness" class="level2 kg-post" hidden="true" data-slug="swappiness-2027-06-02-kernel" data-pattern="vm.swappiness" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-vm.swappiness">Case study: vm.swappiness</h2>
+<p><code>vm.swappiness=0</code> read as “never swap” turns a slow box into a dead one, mid-transaction.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The knob biases reclaim between anonymous pages and file-backed page cache: a high value moves anonymous memory toward swap sooner, a low value keeps page cache and reclaims anonymous pages later. It does not switch swapping off — on kernels since 3.5 even zero still evicts anonymous pages rather than OOM while swap exists. The trade is warm file data against the reclaim order of process memory.</p>
+<p><strong>Mechanism:</strong> The knob biases reclaim between anonymous pages and file-backed page cache: a high value moves anonymous memory toward swap sooner, a low value drops the page cache first and swaps anonymous pages later. It does not switch swapping off — on kernels since 3.5 even zero still evicts anonymous pages rather than OOM while swap exists. The trade is warm file data against the reclaim order of process memory.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-5" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-5">The kernel knowledge gap it signals</h3>
@@ -949,7 +961,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A database box whose anonymous working set was measured to fit in RAM at peak, with scan, steal and swap-in rate on a graph: low swappiness kept the file reads warm while the working set stayed resident, and any swap-in would have appeared on the latency path immediately.</p>
+<p>A database box whose anonymous working set was measured to fit in RAM at peak, with scan, page-steal and swap-in rate on a graph. Low swappiness kept the working set resident at the price of file-cache warmth, and any swap-in would have appeared on the latency path immediately.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -962,7 +974,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Zero treated as an off switch. The box has swap, the workload grows past RAM, and reclaim walks anonymous memory under pressure with no cold pages paged out ahead of it — direct reclaim storms, then the OOM killer mid-transaction. The escalation is turning swap off entirely to force the point, which removes the valve and the pause it prevents, so the failure changes from slow to sudden.</p>
+<p>Zero treated as an off switch. The box has swap, so zero still pages out — but only once the file cache is gone. The workload grows past RAM, direct reclaim storms as swap fills, and the OOM killer lands mid-transaction once swap runs out too. The escalation is turning swap off entirely, which removes the valve and the slow degradation it buys, so the failure changes from slow to sudden.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -979,7 +991,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the value follows from two measured numbers. Watch swap-in rate on the latency path, not just the swap used column.</li>
 <li><strong>If no</strong> → the value is a slogan, not a setting. Measure peak anonymous usage, then decide whether swap is the valve or the crutch.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Read scan, steal and swap-in through one real peak.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Read scan, page-steal and swap-in through one real peak.</li>
 </ul>
 </div>
 </div>
@@ -990,12 +1002,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-transparent-huge-pages-the-stall-on-the-allocation-path" class="level2 kg-post" hidden="true" data-slug="transparent-hugepages-2027-06-03-kernel" data-pattern="Transparent huge pages (the stall on the allocation path)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-transparent-huge-pages-the-stall-on-the-allocation-path">Case study: Transparent huge pages (the stall on the allocation path)</h2>
+<p>A database on 128 GB of RAM stalls 11 ms once a minute, and no query is running when it does.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> THP backs a 4 KB request with a 2 MB page, so one TLB entry covers 512 times more memory. The bill arrives at allocation: the kernel compacts memory to assemble a contiguous block, and the thread that asked waits. enabled=madvise limits big pages to regions marked MADV_HUGEPAGE; defrag=madvise keeps compaction off the allocation path.</p>
+<p><strong>Mechanism:</strong> THP backs a 4 KB request with a 2 MB page, so one TLB entry covers 512 times more memory. The bill arrives at allocation: when no free 2 MB block exists, the kernel compacts to assemble one, and the thread that asked waits. enabled=madvise limits big pages to regions marked MADV_HUGEPAGE; defrag=madvise keeps compaction off the allocation path.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-6" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-6">The kernel knowledge gap it signals</h3>
-<p>The knob encodes a priority you must state: throughput on a large footprint, or bounded pause on a shared host. Neither is a default — both are properties of your workload and your latency budget. Two boxes want opposite settings and the config file is identical. The gap question: which latency number improved on this box — and what did throughput do in the same measurement window?</p>
+<p>The knob encodes a priority you must state: throughput on a large footprint, or bounded pause on a shared host. Neither value is the right default — both are properties of your workload and your latency budget. Two boxes want opposite settings, yet the config file is identical. The gap question: which latency number improved on this box — and what did throughput do in the same measurement window?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1006,7 +1020,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A jitter-sensitive database shows the stall in its p99: with THP forced on, the tail moved from 0.4 ms to 11 ms; set to madvise, it left the tail and throughput stayed inside the noise. A big-heap batch job that never reports the stall keeps THP on and collects the TLB win.</p>
+<p>A jitter-sensitive database shows the stall in its worst-case latency: with THP forced on, the slowest query moved from 0.4 ms to 11 ms; set to madvise, it left the tail and throughput stayed inside the noise. A big-heap batch job that never reports the stall keeps THP on and collects the TLB win.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1047,8 +1061,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-memory-overcommit-the-promise-the-kernel-cannot-keep" class="level2 kg-post" hidden="true" data-slug="overcommit-2027-06-04-kernel" data-pattern="Memory overcommit (the promise the kernel cannot keep)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-memory-overcommit-the-promise-the-kernel-cannot-keep">Case study: Memory overcommit (the promise the kernel cannot keep)</h2>
+<p>At 02:10 a cache forks to write its snapshot, and the OOM killer takes the parent, not the child.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> vm.overcommit_memory decides what the kernel answers when a process asks for address space it has no pages for: 0 is heuristic, 1 always says yes, 2 refuses anything past CommitLimit — swap plus overcommit_ratio percent of RAM. The trade: optimistic promises against a hard commitment. The fork path needs the second: with copy-on-write the child’s pages materialise when the parent writes, so a fork that succeeds must be forkable.</p>
+<p><strong>Mechanism:</strong> vm.overcommit_memory decides what the kernel answers to an address-space request it has no pages for: 0 is heuristic, 1 always says yes, 2 refuses anything past CommitLimit — swap plus overcommit_ratio percent of RAM. The trade: optimistic promises against a hard commitment. The fork path needs the second: with copy-on-write the child’s pages materialise when the parent writes, so a fork the kernel grants must be backed when the writes arrive.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-7" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-7">The kernel knowledge gap it signals</h3>
@@ -1063,7 +1079,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A fork-heavy service runs mode 2 with swap sized to the largest snapshot: the fork fails fast if it cannot be served, and the snapshot is protected instead of dying at 02:10. A single-purpose box whose application counts its own allocations runs mode 1, where the kernel stops second-guessing a plan the process made.</p>
+<p>A fork-heavy service runs mode 2 with CommitLimit sized to twice the snapshot — the fork charges the COW child in full: the fork fails fast if it cannot be served, and the snapshot is protected instead of dying at 02:10. A single-purpose box whose application counts its own allocations runs mode 1, where the kernel stops second-guessing a plan the process made.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1076,7 +1092,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Heuristic mode, no swap, a fork-heavy service. It survives a year because the parent’s dirty pages stay small until the dataset grows; then one night the fork is refused mid-snapshot and the killer picks its victim by score. The cousin trap is the operator who says “we have swap” while the ratio ignores how the check counts: swap plus a percentage of RAM, not free memory.</p>
+<p>Heuristic mode, no swap, a fork-heavy service. It survives a year because the parent’s dirty pages stay small until the dataset grows; then one night the fork is refused mid-snapshot, or the killer picks its victim by score. The cousin trap is the operator who says “we have swap” while the ratio ignores how the check counts: swap plus a percentage of RAM, not free memory.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1104,12 +1120,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-dirty-writeback-the-flush-wall" class="level2 kg-post" hidden="true" data-slug="dirty-writeback-2027-06-05-kernel" data-pattern="Dirty writeback (the flush wall)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-dirty-writeback-the-flush-wall">Case study: Dirty writeback (the flush wall)</h2>
+<p>A log writer stalls 1.8 seconds every few minutes, and the CPU sits at 30% the whole time.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> vm.dirty_background_ratio is the share of RAM at which the flusher starts writing dirty pages; vm.dirty_ratio is the share at which a writer must write its own pages and block. Between them the kernel absorbs bursts — a delay, not a capacity. A large buffer smooths short bursts and turns the overflow into one long stall: every writer waits at the wall.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-8" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-8">The kernel knowledge gap it signals</h3>
-<p>The ratios mean something only against two facts you hold: the write rate this box sustains, and whether a tail-latency budget shares the box with the flusher. On a 2 GB container the percentage is a handful of megabytes — inherited, never sized. The gap question: what is the measured write pattern of this box — and does any tail-latency budget share the machine with the flusher?</p>
+<p>The ratios mean something only against two facts you hold: the write rate this box sustains, and whether a tail-latency budget shares the box with the flusher. In a container the percentage is of host RAM, not of the limit — inherited, never sized. The gap question: what is the measured write pattern of this box — and does any tail-latency budget share the box with the flusher?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1133,7 +1151,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Raising dirty_ratio “to buffer more”, because the stall looked like a capacity problem. It is seductive: the pause leaves the test window and returns later and taller, since the same megabytes must still reach the disk in one burst. Worse is the inherited default: 20% of RAM on a machine with forty times the memory of the guide that wrote it, buffering 40 GB before stopping for minutes.</p>
+<p>Raising dirty_ratio “to buffer more”, because the stall looked like a capacity problem. It is seductive: the pause leaves the test window and can return later and taller, since the same megabytes must still reach the disk in one burst. Worse is the inherited default: 20% of RAM on a machine with forty times the memory of the guide that wrote it, buffering 40 GB before stopping for minutes.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1146,10 +1164,10 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>What is the measured write pattern of this box — and does any tail-latency budget share the machine with the flusher?</strong></p>
+<p><strong>What is the measured write pattern of this box — and does any tail-latency budget share the box with the flusher?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the ratios match a write rate you can state. Re-check them when RAM or the writer changes.</li>
-<li><strong>If no</strong> → you are buffering against a wall you never measured. Record dirty pages and stall duration for a day.</li>
+<li><strong>If no</strong> → you are buffering against a wall you never measured. Size both ratios from a write rate you can state.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure the peak write rate and the worst pause together.</li>
 </ul>
 </div>
@@ -1161,12 +1179,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-numa-policy-bandwidth-against-locality" class="level2 kg-post" hidden="true" data-slug="numa-policy-2027-06-06-kernel" data-pattern="NUMA policy (bandwidth against locality)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-numa-policy-bandwidth-against-locality">Case study: NUMA policy (bandwidth against locality)</h2>
+<p>A scan reads 40 GB at 3 GB/s, the profiler blames the code, and numastat says 62% of the allocations are remote.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> On a multi-node box an access is local or remote; remote costs latency and shares an interconnect. numactl –interleave spreads allocations for bandwidth; –membind keeps pages on one node for the lowest access time. The trade: whole-machine bandwidth, or latency for one working set. On kernels before 5.9, vm.zone_reclaim_mode made a node reclaim its own pages instead of allocating remotely.</p>
+<p><strong>Mechanism:</strong> On a multi-node box an access is local or remote; remote costs latency and shares an interconnect. numactl --interleave spreads allocations for bandwidth; --membind keeps pages on one node for the lowest access time. The trade: whole-machine bandwidth, or latency for one working set. vm.zone_reclaim_mode still makes a node reclaim its own pages instead of allocating remotely; since 5.9 it defaults to 0.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-9" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-9">The kernel knowledge gap it signals</h3>
-<p>Which share of accesses must stay local belongs to your access pattern, not the machine. A join walking a 20 GB index wants locality; a 200 GB table scan wants bandwidth and does not care where the bytes live. The gap question: what share of memory accesses is remote, measured — and did the policy move that number?</p>
+<p>Which share of accesses must stay local belongs to your access pattern, not the machine. A join walking a 20 GB index wants locality; a 200 GB table scan wants bandwidth and does not care where the bytes live. The gap question: what share of this workload’s allocations is remote, measured — and did the policy move that number?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1177,7 +1197,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A team read numastat, saw 62% remote on a bandwidth-bound scan, and interleaved it: throughput reached the aggregate and the remote share stopped mattering, since bandwidth was the goal. For the database the same measurement pointed the other way — bind to the node sharing its interrupts, the remote share falls, the p99 follows. On a large-NUMA host, a measured reclaim stall justified switching zone_reclaim_mode off.</p>
+<p>A team read numastat, saw 62% remote on a bandwidth-bound scan, and interleaved it: throughput reached the aggregate and the remote share stopped mattering, since bandwidth was the goal. For the database the same measurement pointed the other way — bind to the node sharing its interrupts, the remote share falls, the p99 follows.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1190,7 +1210,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Interleaving everything “for balance”. It reads like fairness and is wrong for a database whose working set fits one node: every page can now be remote, the free locality is gone, and the slowdown shows up as unexplained query time. The companion trap is a host that inherited zone_reclaim_mode=1 from a template for a two-node machine — real allocation stalls, never traced to a knob older than the hardware.</p>
+<p>Interleaving everything “for balance”. It reads like fairness and is wrong for a database whose working set fits one node: every page can now be remote, the free locality is gone, and the slowdown shows up as unexplained query time. The companion trap is a host that inherited zone_reclaim_mode=1 from a template for a two-node machine — stalls that nobody traced to a knob older than the hardware.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1203,7 +1223,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>What share of memory accesses is remote, measured — and did the policy move that number?</strong></p>
+<p><strong>What share of this workload’s allocations is remote, measured — and did the policy move that number?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the policy answers a number you can state. Re-read numastat after a placement change.</li>
 <li><strong>If no</strong> → the policy is a preference. Measure the remote share before and after.</li>
@@ -1218,12 +1238,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-kernel-same-page-merging-density-bought-with-cpu" class="level2 kg-post" hidden="true" data-slug="ksm-2027-06-07-kernel" data-pattern="Kernel same-page merging (density bought with CPU)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-kernel-same-page-merging-density-bought-with-cpu">Case study: Kernel same-page merging (density bought with CPU)</h2>
+<p>Forty containers run the same base image, the host reports 22 GB used, and the sum of their limits is 60 GB.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> KSM scans pages marked MADV_MERGEABLE, hashes them, and merges identical ones into one copy-on-write page; the first write faults and copies. pages_to_scan and sleep_millisecs set the rate. The trade: RAM density per host, paid in CPU for hashing and in fault latency at every write to a shared page.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-10" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-10">The kernel knowledge gap it signals</h3>
-<p>Whether density is the product or a side effect decides this knob. A fleet of near-identical guests selling memory per tenant buys density; a database host selling latency does not. You must also know the scan cost against your CPU budget, and how much is shared: pages_shared and pages_sharing report it. The gap question: what does the dedup save on this host, and what CPU does the scan cost — measured in the same units, over the same week?</p>
+<p>Whether density is the product or a side effect decides this knob. A fleet of near-identical guests selling memory per tenant buys density; a database host selling latency does not. You must also know the scan cost against your CPU budget, and how much is shared: pages_sharing counts the duplicate mappings, pages_shared the unique merged pages. The gap question: what does the dedup save on this host, and what CPU does the scan cost — measured in the same units, over the same week?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1234,7 +1256,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Forty identical images measured 1.4 GB saved per guest, with the scan under a few percent of one core: density was real and priced. They graph the sharing ratio beside the scan cost: a rising ratio with rising CPU is the point, a rising ratio with falling throughput the warning.</p>
+<p>Forty identical images measured 0.8 GB saved per guest, with the scan under a few percent of one core: density was real and priced. They graph the sharing ratio beside the scan cost: a rising ratio with rising CPU is the point, a rising ratio with falling throughput the warning.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1247,7 +1269,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Switching KSM on for a latency-sensitive database host because memory is tight. Identical pages are wasted pages, so the reasoning holds — and it misses that a database writes constantly, so merged pages copy on every write and the churn becomes background load on a machine whose tail latency is its purpose. Nothing on the dashboard attributes it: the fault appears as a slower query, the scan as system CPU.</p>
+<p>Switching KSM on for a latency-sensitive database host because memory is tight. The premise is sound — identical pages are wasted pages. What it misses: a database writes constantly, merged pages copy on every write, and the churn becomes background load on a machine whose tail latency is its purpose. Nothing on the dashboard attributes it: the fault appears as a slower query, the scan as system CPU.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1263,7 +1285,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>What does the dedup save on this host, and what CPU does the scan cost — measured in the same units, over the same week?</strong></p>
 <ul>
 <li><strong>If yes</strong> → density is a priced decision. Watch the ratio as the workloads diverge.</li>
-<li><strong>If no</strong> → you bought an unmeasured discount. Read pages_sharing against system CPU before the next host.</li>
+<li><strong>If no</strong> → you bought an unmeasured discount. Budget the scan’s CPU share on one host before the next.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure saved bytes and scan cost on one host for a week.</li>
 </ul>
 </div>
@@ -1275,8 +1297,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-the-free-page-reserve-headroom-against-the-burst" class="level2 kg-post" hidden="true" data-slug="min-free-kbytes-2027-06-08-kernel" data-pattern="The free-page reserve (headroom against the burst)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-the-free-page-reserve-headroom-against-the-burst">Case study: The free-page reserve (headroom against the burst)</h2>
+<p>A 512 GB host with 200 GB free spends 300 ms in direct reclaim, and the workload has not grown.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> vm.min_free_kbytes reserves free pages for atomic allocations that cannot sleep or reclaim. The reserve must cover the largest burst between wakeups, and every kilobyte of it is page cache the workload cannot use. The default scales with the square root of low memory and is capped near 64 MB, so on a large host it stops growing while the burst does not.</p>
+<p><strong>Mechanism:</strong> vm.min_free_kbytes reserves free pages for atomic allocations that cannot sleep or reclaim. The reserve must cover the largest burst between wakeups, and every kilobyte of it is page cache the workload cannot use. The default is four times the square root of lowmem, the directly mapped zone, and is capped at 256 MB, so on a large host it grows far slower than the burst does.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-11" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-11">The kernel knowledge gap it signals</h3>
@@ -1332,12 +1356,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-io_uring-the-syscall-amortiser" class="level2 kg-post" hidden="true" data-slug="io_uring-2027-06-09-kernel" data-pattern="io_uring (the syscall amortiser)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-io_uring-the-syscall-amortiser">Case study: io_uring (the syscall amortiser)</h2>
+<p>A flame graph puts 38% of on-CPU time in syscall entry and exit at 90k IOPS. That number, not a 100k-connection benchmark, decides the rewrite.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> epoll waits for readiness, then enters the kernel once per read or write. io_uring moves submission and completion into shared-memory rings, so a batch crosses the boundary once, and on kernels that support it SQPOLL keeps a kernel thread polling, so the submitting core never enters. The trade: fewer transitions per operation, paid for with a new completion model, buffer lifetime rules, and failure modes — partial completions, ring exhaustion — that epoll never had.</p>
+<p><strong>Mechanism:</strong> epoll waits for readiness, then enters the kernel once per read or write. io_uring moves submission and completion into shared-memory rings, so a batch crosses the boundary once, and on kernels that support it SQPOLL keeps a kernel thread polling, so the submission path never enters. The trade: fewer transitions per operation, paid for with a new completion model, buffer lifetime rules, and failure modes — partial completions, ring exhaustion — that epoll never had.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-12" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-12">The kernel knowledge gap it signals</h3>
-<p>The knob is not the ring. It is your operation rate at your concurrency, and your syscall share. You need your own IOPS, payload size, and whether latency is spent in the kernel or on the peer. The gap question: which measured fact does this rewrite answer, and what does it trade away?</p>
+<p>The measured fact is not the ring. It is your operation rate at your concurrency, and your syscall share. You need your own IOPS, payload size, and whether latency is spent in the kernel or on the peer. The gap question: what is your syscall share at production IOPS, and what does the ring cost?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1348,7 +1374,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A storage node doing small random reads at high rates. perf and strace put syscall entry and exit near 40% of cycles; after batching submission through a ring, the same workload holds its IOPS with that share in single digits, and the freed core returns to the application. The evidence is the production flame graph.</p>
+<p>A storage node doing small random reads at high rates. perf and strace put syscall entry and exit near 40% of on-CPU time; after batching submission through a ring, the same workload holds its IOPS with that share in single digits, and the freed core returns to the application. The evidence is the production flame graph.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1361,7 +1387,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Rewriting a working epoll service because a benchmark showed io_uring winning at 100k connections. At 50 concurrent connections the ring is pure overhead: two ring operations and a reaping step cost more than the one system call they replaced. Worse, request lifetime now spans two queues, so a buffer freed between submit and completion is corruption epoll could not express.</p>
+<p>Rewriting a working epoll service because a benchmark showed io_uring winning at 100k connections. At 50 concurrent connections the ring is pure CPU overhead: two ring operations and a reaping step cost more than the one system call they replaced. Worse, request lifetime now spans two queues, so a buffer freed between the two is corruption epoll could not express.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1374,7 +1400,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>What share of wall time is syscall entry and exit at production concurrency — and does the rewrite pay for itself there?</strong></p>
+<p><strong>What share of on-CPU time is syscall entry and exit at production concurrency — and does the rewrite pay for itself there?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the ring answers a measured fact. Check latency at your own concurrency, not throughput alone.</li>
 <li><strong>If no</strong> → the rewrite is a bet on a stranger’s workload. Keep epoll, and profile where your time goes.</li>
@@ -1389,6 +1415,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-read-ahead-the-sequential-bet" class="level2 kg-post" hidden="true" data-slug="readahead-2027-06-10-kernel" data-pattern="read-ahead (the sequential bet)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-read-ahead-the-sequential-bet">Case study: read-ahead (the sequential bet)</h2>
+<p>A 4 MB read-ahead on the database host reads four megabytes to serve a 4 KB lookup. The bytes arrive; nobody counts them.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> <code>read_ahead_kb</code> tells the kernel to fetch pages past the one you asked for. When the next read is adjacent, those pages sit in cache and the queue stays deep; when it is not, the kernel fetched pages nothing will touch. The trade: deeper prefetch for sequential streams, against wasted reads and displaced cache for random access.</p>
 </blockquote>
@@ -1405,7 +1433,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A bulk loader streaming a multi-gigabyte file. At the 128 KiB default the queue never fills and the load runs at a fraction of the device’s sequential bandwidth; at 1 MiB it saturates, and every fetched page is consumed, so the fetched-to-used ratio stays near one. Queue depth and that ratio are the evidence.</p>
+<p>A bulk loader streaming a multi-gigabyte file. At the 128 KB default the queue never fills and the load runs at a fraction of the device’s sequential bandwidth; at 1 MB it saturates, and every fetched page is consumed, so the fetched-to-used ratio stays near one. Bandwidth at the device’s ceiling, and that ratio, are the evidence.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1418,7 +1446,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Raising read-ahead to 4 MiB on every host, because the analytics box liked it. The index-heavy OLTP workload now pulls megabytes per random page touch, the working set no longer fits in page cache, and the hit ratio decays slowly enough that the first symptom is a p99 nobody attributes to a sysfs write. The mirror trap is quieter: a bulk loader keeps the 128 KiB default and streams gigabytes anyway.</p>
+<p>Raising read-ahead to 4 MB on every host, because the analytics box liked it. The index-heavy OLTP workload now pulls megabytes per random page touch, the working set may no longer fit in page cache, and the hit ratio decays slowly enough that the first symptom is a p99 nobody attributes to a sysfs write.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1435,7 +1463,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the value answers a fact about this device. Then watch the fetched-to-used ratio, which shows over-prefetch early.</li>
 <li><strong>If no</strong> → the value is borrowed. Revert it, and measure the access pattern before choosing any number.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found read-ahead wrong — you’ve found incomplete system knowledge. Instrument the device for sequential share first.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Instrument the device for sequential share first.</li>
 </ul>
 </div>
 </div>
@@ -1446,12 +1474,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-atime-relatime-noatime-the-metadata-write" class="level2 kg-post" hidden="true" data-slug="noatime-2027-06-11-kernel" data-pattern="atime, relatime, noatime (the metadata write)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-atime-relatime-noatime-the-metadata-write">Case study: atime, relatime, noatime (the metadata write)</h2>
+<p>On a strictatime mount, <code>noatime</code> removes a write per read, and removes the answer to “when was this file last read?” — the tool that asked gets no answer.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A read updates the access time by default, which is a write to inode metadata — costly on a file read many times. <code>relatime</code>, the default on most distributions since kernel 2.6.30, updates it only when the old value predates the modification time or is a day stale. <code>noatime</code> stops the update entirely. The trade: one metadata write per read avoided, against the knowledge of when a file was last read.</p>
+<p><strong>Mechanism:</strong> On a strictatime mount, a read updates the access time, which is a write to inode metadata — costly on a file read many times. <code>relatime</code>, the default on most distributions since kernel 2.6.30, updates it only when the old value predates the modification time or is a day stale. <code>noatime</code> stops the update entirely. The trade: the atime writes avoided, against the knowledge of when a file was last read.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-14" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-14">The kernel knowledge gap it signals</h3>
-<p>atime is an ambient service any process may consume, per filesystem. You must know which of your own processes reads it — backup rotation with <code>find -atime</code>, dedup and HSM tools, cache eviction — and whether the write reduction matters at your write rate. The gap question: which process reads atime, and what did the write reduction actually buy?</p>
+<p>atime is an ambient service any process may consume, per filesystem. You must know which of your own processes reads it — backup rotation with <code>find -atime</code>, dedup and hierarchical-storage (HSM) tools, cache eviction — and whether the write reduction matters at your write rate. The gap question: which process reads atime, and what did the write reduction actually buy?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1462,7 +1492,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A build server serving millions of reads from files whose timestamp nobody consults. Measured, metadata writes dominate the small-write load; with <code>noatime</code> they vanish and write amplification drops, while every atime consumer was enumerated first and none existed.</p>
+<p>A build server on a strictatime mount, serving millions of reads from files whose timestamp nobody consults. Measured, metadata writes dominate the small-write load; with <code>noatime</code> they vanish and filesystem write amplification drops, while every atime consumer was enumerated first and none existed.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1490,9 +1520,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>Which process reads atime — can you name it — and what did the write reduction actually buy?</strong></p>
 <ul>
-<li><strong>If yes</strong> → the flag is safe here. Record the consumer: a later tool inherits the option silently.</li>
-<li><strong>If no</strong> → you traded knowledge for writes you never priced. Use <code>relatime</code>, or cache that answer elsewhere.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found <code>noatime</code> wrong — you’ve found incomplete system knowledge. Enumerate atime readers first.</li>
+<li><strong>If yes</strong> → you found the consumer: <code>noatime</code> would break it, so use <code>relatime</code>, or cache that answer elsewhere.</li>
+<li><strong>If no</strong> → the flag is safe here. Record that no consumer exists: a later tool that reads atime inherits the break silently.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Enumerate atime readers first.</li>
 </ul>
 </div>
 </div>
@@ -1501,14 +1531,16 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </section>
 </section>
-<section id="case-study-descriptor-limits-the-headroom-number" class="level2 kg-post" hidden="true" data-slug="fd-limits-2027-06-12-kernel" data-pattern="descriptor limits (the headroom number)" data-group="kernel" data-group-label="Kernel Tuning">
-<h2 class="anchored" data-anchor-id="case-study-descriptor-limits-the-headroom-number">Case study: descriptor limits (the headroom number)</h2>
+<section id="case-study-descriptor-limits-the-runway-a-leak-consumes" class="level2 kg-post" hidden="true" data-slug="fd-limits-2027-06-12-kernel" data-pattern="descriptor limits (the headroom number)" data-group="kernel" data-group-label="Kernel Tuning">
+<h2 class="anchored" data-anchor-id="case-study-descriptor-limits-the-runway-a-leak-consumes">Case study: descriptor limits (the runway a leak consumes)</h2>
+<p>A connection leak ran for four months because someone raised the descriptor limit until <code>EMFILE</code> stopped. The error was the alarm, not the fault.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> Three limits stack: <code>fs.file-max</code> caps the system, <code>ulimit -n</code> caps the process, and a systemd unit’s <code>LimitNOFILE</code> sets what the service inherits. Raising them admits more concurrent descriptors — the aimed number. The unaimed one is how far a leak now runs before it fails: bounded by a low limit, a leak is a crash, and a crash is a signal.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-15" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-15">The kernel knowledge gap it signals</h3>
-<p>A limit is a claim about your peak descriptor count, measured over weeks, with an alert that makes growth visible below it. A limit is not a cap on demand; it is the point at which demand is declared abnormal. The gap question: what is the measured descriptor curve, and does this raise serve a real peak or hide a leak?</p>
+<p>A limit is a claim about your peak descriptor count, measured over weeks, with an alert that makes growth visible below it. A limit is the point at which demand is declared abnormal, not a cap on demand. The gap question: what is the measured descriptor curve, and does this raise serve a real peak or hide a leak?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1519,7 +1551,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A gateway whose descriptor count follows a known diurnal peak. Measured over weeks: peak 41k, limit raised from 4096 to 65536, alert at 80% of the limit, load test past the peak. The curve stays flat between peaks, so the higher limit answers a named peak rather than a rumour.</p>
+<p>A gateway whose descriptor count follows a known diurnal peak. The limit moved from 4096 to 65536, and the weeks after it measured peak 41k, alert at 80% of the limit, load test past the peak. The curve stays flat between peaks, so the higher limit answers a named peak rather than a rumour.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1532,7 +1564,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Raising the limit toward infinity to silence <code>EMFILE</code>. The competent version is worse: the engineer sets <code>ulimit -n 1048576</code> in a shell profile, restarts the service from that shell, and confirms the error is gone — gone because that shell carried the higher limit. Months later systemd restarts the unit, <code>LimitNOFILE</code> holds the old value, and the service dies at its original count, the drift invisible, since the earlier fix taught everyone this error was solved by raising a number.</p>
+<p>Raising the limit toward infinity to silence <code>EMFILE</code>. The competent version is worse: the engineer sets <code>ulimit -n 1048576</code> in a shell profile, restarts the service from that shell, and confirms the error is gone — gone because that shell carried the higher limit. Months later systemd restarts the unit, and <code>LimitNOFILE</code> still holds the old value. The service dies at its original count, the drift invisible, since the earlier fix taught everyone this error was solved by raising a number.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1545,7 +1577,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>What is the measured fd curve over weeks — and does this raise serve a real peak, or hide a leak?</strong></p>
+<p><strong>What is the measured descriptor curve over weeks — and does this raise serve a real peak, or hide a leak?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the limit encodes a measured peak. Add the alert, so growth stays visible.</li>
 <li><strong>If no</strong> → you disabled a signal. Fix the leak, and keep the limit low enough to fail early.</li>
@@ -1560,12 +1592,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-io.weight-and-ionice-the-priority-claim" class="level2 kg-post" hidden="true" data-slug="io-weight-2027-06-13-kernel" data-pattern="io.weight and ionice (the priority claim)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-io.weight-and-ionice-the-priority-claim">Case study: io.weight and ionice (the priority claim)</h2>
+<p>The transactional p99 triples during the nightly analytics run, so the batch job’s IO weight gets lowered. The tail recovers — until the batch misses its window.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> cgroup v1 called it <code>blkio</code>; cgroup v2 calls it <code>io.weight</code>, a relative share honoured by schedulers that implement proportional service. <code>ionice</code> does a related job per process, though its classes bite only on schedulers that respect them — with <code>none</code> or <code>mq-deadline</code> the effect is small. The trade: a latency guarantee for one IO class, against throughput the yielding class gives up.</p>
+<p><strong>Mechanism:</strong> cgroup v1 called it <code>blkio</code>; cgroup v2 calls it <code>io.weight</code>, a relative share honoured by schedulers that implement proportional service. <code>ionice</code> does a related job per process, though its classes bite only on schedulers that respect them — with <code>none</code> or <code>mq-deadline</code> the effect is small. The trade: a latency share for one IO class, against throughput the yielding class gives up.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-16" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-16">The kernel knowledge gap it signals</h3>
-<p>A weight states which workload owns the IO path under contention, and that ownership comes from an SLA, not a scheduler page. You need the transactional tail split by device queueing time, the batch deadline, and the window where both overlap. The gap question: which SLA owns the IO path, and did the transactional tail improve or just the batch job slow down?</p>
+<p>A weight states which workload holds the IO path under contention, an entitlement from an SLA, not a scheduler page. You need the transactional tail split by device queueing time, the batch deadline, and the window where both overlap. The gap question: which SLA owns the IO path, and did the transactional tail improve or just the batch job slow down?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1576,7 +1610,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A payments service with a written p99 target, and a nightly report on the same volume. Measured, the nightly spike is device queueing time; the batch is weighted down, and the following nights show the payments p99 back inside its target while the report still fits its window.</p>
+<p>A payments service with a written p99 target, and a nightly report on the same volume. Measured, the nightly spike is device queueing time; on the bfq volume the batch is weighted down, and the following nights show the payments p99 back inside its target while the report still fits its window.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1617,13 +1651,15 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-accept-queue-sizing-somaxconn-and-the-listen-backlog" class="level2 kg-post" hidden="true" data-slug="somaxconn-2027-06-14-kernel" data-pattern="Accept queue sizing (somaxconn and the listen backlog)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-accept-queue-sizing-somaxconn-and-the-listen-backlog">Case study: Accept queue sizing (somaxconn and the listen backlog)</h2>
+<p>A tuning guide says net.core.somaxconn=65535, the listen drop counter goes to zero, and p99 climbs from 40 ms to 400 ms at the same 8,000 requests a second.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> net.core.somaxconn caps the accept queue: connections whose handshake completed and which wait for accept(). tcp_max_syn_backlog caps the half-open queue, and the listen(fd, backlog) argument is clipped to somaxconn, so the smallest of the three wins. Raise them and the kernel stops dropping connections — it holds them, and each held connection spends the wait inside your response time.</p>
+<p><strong>Mechanism:</strong> net.core.somaxconn caps the accept queue: connections whose handshake completed and which wait for accept(). tcp_max_syn_backlog caps the half-open queue, and the listen(fd, backlog) argument is clipped to somaxconn, so the smaller of somaxconn and the backlog sets the accept depth. Raise them and the kernel holds connections it would have dropped, while the loop drains — and each held connection spends the wait inside your response time.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-17" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-17">The kernel knowledge gap it signals</h3>
 <p>The queue is a buffer between the arrival rate and your accept loop’s drain rate. Depth buys time only if the loop drains faster than connections arrive; otherwise a fast refusal becomes a slow success. The team must know its accept-loop concurrency, its burst shape, and whether a caller prefers a refusal to a late reply.</p>
-<p>The gap question: which measured fact does this depth answer, and what does it trade away?</p>
+<p>The gap question: what p99 does a queued connection wait for — and who chose that over refusal?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1634,7 +1670,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>TcpExtListenOverflows and TcpExtListenDrops rise while CPU sits idle, and the accept loop is single-threaded or blocked after accept(). Then raise the backlog and the accept concurrency together, and read both numbers again: drops fall to zero while p99 holds flat, because the loop now drains what the queue admits.</p>
+<p>TcpExtListenOverflows and TcpExtListenDrops rise while CPU sits idle, and the accept loop is single-threaded or blocked after accept(). Then raise the backlog and the accept concurrency together, and read both numbers again: drops can fall to zero while p99 stays flat, because the loop now drains what the queue admits.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1647,7 +1683,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The queue raised alone. Drops vanish, the dashboard turns green, and every connection that would have been refused now waits 400 ms for a slot — the loss moved from a visible counter to invisible latency. The tell: 65535 copied from a guide before anyone ran nstat.</p>
+<p>The queue lifted without the accept loop behind it: backlog and somaxconn both raised. Drops vanish, the dashboard turns green, and every connection that would have been refused now waits — p99 at 400 ms — for a slot the slow loop never frees; the loss moved from a visible counter to invisible latency. The tell: 65535 copied from a guide before anyone ran nstat.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1675,6 +1711,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-congestion-control-bbr-versus-cubic" class="level2 kg-post" hidden="true" data-slug="bbr-2027-06-15-kernel" data-pattern="Congestion control (BBR versus cubic)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-congestion-control-bbr-versus-cubic">Case study: Congestion control (BBR versus cubic)</h2>
+<p>BBR lifts one 120 ms path from 40 Mbit/s to 180 Mbit/s, and the cubic flows sharing that 200 Mbit/s bottleneck can be squeezed to what is left.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> net.ipv4.tcp_congestion_control picks the sender’s algorithm. Cubic probes until it sees loss, so it treats every drop as congestion. BBR instead estimates bottleneck bandwidth and minimum RTT, paces to that model, and keeps going through shallow-buffer loss. The trade: it stops backing off where cubic would, which is exactly why it wins on a lossy path and exactly why it can take more than its share of a shared one.</p>
 </blockquote>
@@ -1691,7 +1729,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A long fat pipe or a lossy last mile where cubic collapses on loss that is not congestion: 120 ms RTT, 1% random loss, throughput stuck at 40 Mbit against a 200 Mbit path. On kernels that ship BBRv1, enabling BBR and re-measuring gives 180 Mbit on this path, with retransmits unchanged — the gain measured here, not borrowed.</p>
+<p>A long fat pipe or a lossy last mile where cubic collapses on loss that is not congestion: 120 ms RTT, 1% random loss, throughput stuck at 40 Mbit/s against a 200 Mbit/s path. On kernels that ship BBRv1, enabling BBR and re-measuring gives 180 Mbit/s on this path, with retransmits unchanged — the gain measured here, not borrowed.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1704,7 +1742,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>BBR everywhere, because it was measured somewhere else. On a shallow-buffered shared link the loss-tolerant sender starves the cubic flows beside it, and on a 0.2 ms LAN the bandwidth model has nothing to estimate. Nothing in the local numbers said this path needed it.</p>
+<p>BBR everywhere, because it was measured somewhere else. On a shallow-buffered shared link a BBRv1 sender can starve the cubic flows beside it, and on a 0.2 ms LAN the bandwidth model has nothing to estimate. Nothing in the local numbers said this path needed it.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1732,12 +1770,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-time_wait-knobs-tw_reuse-fin_timeout-port-range" class="level2 kg-post" hidden="true" data-slug="tcp-tw-reuse-2027-06-16-kernel" data-pattern="TIME_WAIT knobs (tw_reuse, fin_timeout, port range)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-time_wait-knobs-tw_reuse-fin_timeout-port-range">Case study: TIME_WAIT knobs (tw_reuse, fin_timeout, port range)</h2>
+<p>A scraper opens 10,000 connections a second, exhausts its 28,000-port ephemeral range in TIME_WAIT, and someone sets net.ipv4.tcp_tw_reuse=1.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> tcp_tw_reuse lets an outbound connection reuse a TIME_WAIT socket after one second, given RFC 1323 timestamps. tcp_fin_timeout shortens FIN_WAIT_2, not TIME_WAIT — that stays 60 seconds. ip_local_port_range widens the ephemeral pool. Together they relieve port and socket-memory pressure by shortening or bypassing what TIME_WAIT guarantees.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-19" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-19">The kernel knowledge gap it signals</h3>
-<p>Every TIME_WAIT socket is a connection the application opened and did not keep. The knob treats the symptom; the count is a fact about churn, which belongs to the client. The gap question: how many connections per second does the application actually open — and what, specifically, stops it from reusing them?</p>
+<p>Every TIME_WAIT socket is a connection the application opened and did not keep. The knob treats the symptom; the count is churn times the 60 s dwell, and the churn belongs to the client. The gap question: how many connections per second does the application actually open — and what, specifically, stops it from reusing them?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1748,7 +1788,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A legitimately churning workload: short-lived scrape targets, one connection per target per interval, keep-alive impossible. Pooling was applied first and measured — churn fell from 10,000 to 400 a second — yet 28,000 TIME_WAIT sockets remain and the port range still exhausts. Widening the range and enabling tw_reuse then answers a measured shortage.</p>
+<p>A legitimately churning workload: short-lived scrape targets, one connection per target per interval, keep-alive impossible. Pooling was applied first and measured — churn fell from 10,000 to 470 a second — yet 28,000 TIME_WAIT sockets remain and the port range still exhausts. With RFC 1323 timestamps confirmed at both ends, widening the range and enabling tw_reuse answers a measured shortage.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1789,12 +1829,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-irq-affinity-rss-rps-and-xps" class="level2 kg-post" hidden="true" data-slug="irq-affinity-2027-06-17-kernel" data-pattern="IRQ affinity, RSS, RPS, and XPS" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-irq-affinity-rss-rps-and-xps">Case study: IRQ affinity, RSS, RPS, and XPS</h2>
+<p>Every NIC interrupt lands on core 0, that core sits at 60% softirq, and the eight application threads pinned to cores 0–7 wait on a CPU busy receiving their packets.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> RSS gives the NIC multiple receive queues; /proc/irq/N/smp_affinity decides which CPU runs each queue’s handler; RPS spreads that work in software when the NIC has one queue; XPS picks the transmit queue per CPU. Moving an IRQ moves work between cores. The trade is a core: whatever core runs the interrupt cannot run application threads at full speed, and a core given to networking is a core taken from the application.</p>
+<p><strong>Mechanism:</strong> RSS gives the NIC multiple receive queues; /proc/irq/N/smp_affinity decides which CPU runs each queue’s handler; RPS spreads that work in software when the NIC has one queue; XPS picks the transmit queue per CPU. The trade is a core: whatever core runs the interrupt cannot run application threads at full speed, and a core given to networking is a core taken from the application.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-20" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-20">The kernel knowledge gap it signals</h3>
-<p>The right mask depends on where the application threads run, how many cores the box has, and whether the bottleneck is receive processing or the application. The team must know both layouts before moving anything. The gap question: what is the measured softirq share per core — and where do the application threads actually run?</p>
+<p>The right mask depends on where the application threads run, how many cores the box has, and whether the bottleneck is receive processing or the application. The team must know the IRQ layout and the thread layout before moving anything. The gap question: what is the measured softirq share per core — and where do the application threads actually run?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1805,7 +1847,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>/proc/softirqs shows NET_RX concentrated on two cores at 55% while six sit near idle, and the application’s threads are pinned across all eight. Steer those IRQs to the idle pair, apply RPS for the queues the NIC lacks, match XPS to the transmit queues: softirq on the application’s cores falls to 8%, and requests per second rise with p99 flat.</p>
+<p>/proc/softirqs shows NET_RX concentrated on two cores at 55% while six sit near idle, and the application’s threads are pinned across six only. Steer those IRQs to the two cores carrying no latency-critical thread, apply RPS for the queues the NIC lacks, match XPS to the transmit queues: softirq on the application’s cores falls to 8%, and requests per second rise with p99 flat.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1834,7 +1876,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>What is the measured softirq share per core — and where do the application threads actually run?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the mask answers a measured imbalance. Re-read /proc/softirqs after traffic shifts.</li>
-<li><strong>If no</strong> → you moved work into the application’s way. Map both layouts before touching a mask.</li>
+<li><strong>If no</strong> → you moved work into the application’s way. Revert the mask until both layouts are measured.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Sample /proc/softirqs per core under production load, and read the thread affinity masks.</li>
 </ul>
 </div>
@@ -1846,8 +1888,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-jumbo-frames-mtu-9000" class="level2 kg-post" hidden="true" data-slug="jumbo-frames-2027-06-18-kernel" data-pattern="Jumbo frames (MTU 9000)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-jumbo-frames-mtu-9000">Case study: Jumbo frames (MTU 9000)</h2>
+<p>MTU 9000 on the backup LAN: 14% more throughput at 40% less CPU per byte, until one switch port in the path stayed at 1500 and the job ran slower than before.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A 9000-byte MTU carries 8972 bytes of payload per frame instead of 1460, so the same byte count costs roughly six times fewer frames: fewer interrupts, fewer headers, less work per packet. The trade is consent — every hop must agree. One port at 1500 forces IPv4 fragmentation or an oversized drop, and filtered ICMP “fragmentation needed” turns that drop into a blackhole.</p>
+<p><strong>Mechanism:</strong> A 9000-byte MTU carries 8960 bytes of payload per frame instead of 1460, so the same byte count costs roughly six times fewer frames: fewer interrupts, fewer headers, less work per packet. The trade is consent — every hop must agree. One port at 1500 forces IPv4 fragmentation or an oversized drop, and filtered ICMP “fragmentation needed” turns that drop into a blackhole.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-21" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-21">The kernel knowledge gap it signals</h3>
@@ -1903,6 +1947,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-tcp_slow_start_after_idle" class="level2 kg-post" hidden="true" data-slug="slow-start-after-idle-2027-06-19-kernel" data-pattern="tcp_slow_start_after_idle" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-tcp_slow_start_after_idle">Case study: tcp_slow_start_after_idle</h2>
+<p>A pooled connection idles three seconds between bursts, so every burst starts at ten segments and pays a slow-start climb the application blames on the database.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> After about one retransmission timeout of idleness, a kernel honouring RFC 2861 collapses the congestion window to the initial window and re-enters slow start. The rule assumes the path may have changed while you looked away. The trade: re-probing safety after silence, against a re-climb stall on every burst of a connection kept open on purpose.</p>
 </blockquote>
@@ -1919,7 +1965,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A sidecar link on a 40 ms path idles three seconds between 200 KB bursts: the window returns to ten segments, and about five RTTs pass before it clears 300, so roughly 200 ms of each burst runs below capacity (qalc: 5 × 40 ms). With the reset off, the burst leaves at bandwidth-delay rate from the first packet.</p>
+<p>A sidecar link on a 40 ms path idles three seconds between 400 KB bursts: the window returns to ten segments, and about five RTTs pass before a burst clears, so roughly 200 ms of each burst runs below capacity (qalc: 5 × 40 ms). With the reset off, the burst leaves at bandwidth-delay rate from the first packet.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1960,8 +2006,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-conntrack-table-sizing" class="level2 kg-post" hidden="true" data-slug="conntrack-max-2027-06-20-kernel" data-pattern="conntrack table sizing" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-conntrack-table-sizing">Case study: conntrack table sizing</h2>
+<p>At peak a NAT gateway refuses new connections with <code>nf_conntrack: table full</code>, and every refused one works when the user retries a minute later.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The conntrack table is what makes NAT and stateful firewalling possible: every flow gets an entry that lives until a timeout reaps it. Sizing is Little’s law on flows — entries are the new-flow rate times the hold time — so the trade is memory against silent drops. A full table drops packets for untracked flows, and a dropped SYN is a connection that never opens.</p>
+<p><strong>Mechanism:</strong> The conntrack table is what makes NAT and stateful firewalling possible: each tracked flow gets an entry that lives until a timeout reaps it — while the table has room. Sizing is Little’s law on flows — entries are the new-flow rate times the hold time — so the trade is memory against silent drops. A full table drops packets for untracked flows, and a dropped SYN is a connection that never opens.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-23" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-23">The kernel knowledge gap it signals</h3>
@@ -1976,7 +2024,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>An edge router measures 8,000 new flows a second at peak and cuts the established timeout to 120 s: steady state is 960,000 entries (qalc: 8000 × 120) in a table sized near twice that, with <code>nf_conntrack_count</code> scraped and an alert at seventy percent.</p>
+<p>An edge router measures 8,000 new flows a second at peak and cuts the established timeout to 120 s — above the longest idle gap any live flow needs: steady state is 960,000 entries (qalc: 8000 × 120) in a table sized near twice that, with <code>nf_conntrack_count</code> scraped and an alert at seventy percent.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1989,7 +2037,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The seductive version is the default table on a busy box: connections fail at peak, succeed off-peak, and the failure reads as random because it is a race with the reaper. The reflex is to double <code>nf_conntrack_max</code> and move on — but max without hash size lengthens the chains, so every packet walks a longer list and silent drops become a CPU tax. The other half is the timeout: five-day entries for flows that ended hours ago.</p>
+<p>The seductive version is the kernel-computed default on a busy box: connections fail at peak, succeed off-peak, and the failure reads as random because it is a race with the reaper. The reflex is to double <code>nf_conntrack_max</code> and move on — but max without hash size lengthens the chains, so every packet walks a longer list and silent drops become a CPU tax. The other half is the timeout: five-day entries for flows that ended hours ago.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2004,7 +2052,7 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>What is the measured concurrent-flow count at peak — and what happens to a NEW flow at the ceiling?</strong></p>
 <ul>
-<li><strong>If yes</strong> → it is sized from your traffic. Check that hash size grows with the maximum, that the timeout matches the flow lifetime, and that pressure alerts before drops.</li>
+<li><strong>If yes</strong> → it is sized from your traffic. Check that hash size grows with the maximum, that the timeout matches the flow lifetime, and that table pressure alerts before drops.</li>
 <li><strong>If no</strong> → the ceiling arrives unannounced at the worst hour. Raise both numbers together, shorten the timeout, and watch insert failures in <code>conntrack -S</code>.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Record <code>nf_conntrack_count</code> and <code>conntrack -S</code> for a week, then recompute at peak.</li>
 </ul>
@@ -2017,6 +2065,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-tcp_nodelay-against-nagle-and-delayed-ack" class="level2 kg-post" hidden="true" data-slug="tcp-nodelay-2027-06-21-kernel" data-pattern="TCP_NODELAY against Nagle and delayed ACK" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-tcp_nodelay-against-nagle-and-delayed-ack">Case study: TCP_NODELAY against Nagle and delayed ACK</h2>
+<p>A median button press in a trading UI takes 41 ms, the server logs 0.8 ms of work, and one socket option removes the other 40.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> Nagle’s algorithm holds a small segment while earlier data is unacknowledged; delayed ACK holds the ACK up to about 40 ms. Together they stall a write-write-read pattern until the peer’s delayed ACK fires. TCP_NODELAY sends each write at once, TCP_CORK batches until released, and the trade is latency against packets.</p>
 </blockquote>
@@ -2033,7 +2083,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>An RPC path measured 41 ms p50 with 1 ms of server time; a capture showed the request leaving in two writes, header then body, the body held until the header’s ACK. Setting TCP_NODELAY on those sockets cut p50 to 1.2 ms and raised packets about eight percent: latency found by measurement, packets counted, budget satisfied.</p>
+<p>An RPC path measured 41 ms p50 with 0.8 ms of server time. A capture showed the request leaving in two writes, header then body; the body waited for the header’s ACK. Setting TCP_NODELAY on those sockets cut p50 to 1.2 ms and raised packets about eight percent: latency found by measurement, packets counted, budget satisfied.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2074,8 +2124,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-socket-busy-polling" class="level2 kg-post" hidden="true" data-slug="busy-poll-2027-06-22-kernel" data-pattern="socket busy polling" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-socket-busy-polling">Case study: socket busy polling</h2>
+<p>A market-data receiver shaves 45 µs off its median receive latency, and two cores now read 100 percent CPU while the box serves no packets.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> Busy polling spins the CPU inside the receive call for up to <code>net.core.busy_poll</code> microseconds instead of sleeping to the wakeup, so the packet arrives with no scheduler round trip. The trade has no third term: every microsecond of latency comes out of a core doing nothing else, burning power whether or not a packet arrives.</p>
+<p><strong>Mechanism:</strong> Busy polling spins the CPU inside the receive call for up to <code>net.core.busy_poll</code> microseconds instead of sleeping to the wakeup, so the packet arrives with no scheduler round trip. The trade is two-sided: every microsecond of latency comes out of a core doing nothing else, burning power whether or not a packet arrives.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-25" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-25">The kernel knowledge gap it signals</h3>
@@ -2090,7 +2142,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A colocated feed handler runs on a dedicated box, thread and interrupt pinned to one NUMA node, two cores reserved. Polling per socket takes wakeup-to-receive latency from about 60 µs to about 15 µs at the median: the number the box exists to produce, and the spin is its price.</p>
+<p>A colocated feed handler runs on a dedicated box, thread and interrupt affinity set on one NUMA node, two cores reserved. Polling per socket takes wakeup-to-receive latency from about 60 µs to about 15 µs at the median: the number the box exists to produce, and the spin is its price.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2131,8 +2183,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-cpu-vulnerability-mitigations-off" class="level2 kg-post" hidden="true" data-slug="mitigations-off-2027-06-23-kernel" data-pattern="CPU vulnerability mitigations off" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-cpu-vulnerability-mitigations-off">Case study: CPU vulnerability mitigations off</h2>
+<p>Three to five percent more throughput on a compile workload with <code>mitigations=off</code>; the same line on a hypervisor removes a boundary for every tenant.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> Spectre, Meltdown and their successors are hardware flaws; the mitigations — page-table isolation, retpolines, bounds masking — cost cycles on every syscall. Turning them off is no performance setting with a security footnote: a security decision carrying a performance number, throughput traded for attackers you assume away.</p>
+<p><strong>Mechanism:</strong> Spectre, Meltdown and their successors are hardware flaws; the mitigations — page-table isolation, retpolines, bounds masking — cost cycles on the paths they guard: switches, indirect calls, indexed loads. Turning them off is a security decision carrying a performance number, not a performance setting with a security footnote — throughput traded for attackers you assume away.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-26" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-26">The kernel knowledge gap it signals</h3>
@@ -2160,7 +2214,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The trap: the benchmark travels, the threat model does not. three to five percent on a kernel build becomes “free throughput” on a multi-tenant host running customer code, where the assumed-away attacker is the tenant next door, and the ticket says performance, the change says page tables are no longer isolated. Then the deferral — “we will re-enable after the migration” — with no owner and no date. On a hypervisor it compounds: mitigations inside a guest do not protect the host.</p>
+<p>The trap: the benchmark travels, the threat model does not. Three to five percent on a kernel build becomes “free throughput” on a multi-tenant host running customer code, where the assumed-away attacker is the tenant next door. The ticket says performance; the change says page tables are no longer isolated. Then the deferral — “we will re-enable after the migration” — with no owner and no date. On a hypervisor it compounds: the guest is the attacker the host’s mitigations exist to bound.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2188,12 +2242,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-ebpf-at-tracepoints-kprobes-and-xdp" class="level2 kg-post" hidden="true" data-slug="ebpf-2027-06-24-kernel" data-pattern="eBPF at tracepoints, kprobes and XDP" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-ebpf-at-tracepoints-kprobes-and-xdp">Case study: eBPF at tracepoints, kprobes and XDP</h2>
+<p>One kprobe on the hottest syscall answers a real question in an afternoon; a year later it is still loaded, costing double-digit CPU.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> An eBPF program runs on every event it attaches to: a tracepoint, a kprobe, an XDP path. XDP is cheapest per packet, running earliest; a kprobe is dearest: a function called a million times a second becomes a million entries into your code. The trade: visibility at the point you need it, against a per-event cost and a pin to kernels you have not run.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-27" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-27">The kernel knowledge gap it signals</h3>
-<p>Attaching is easy; the decision hides inside it. Which question does this program answer, and is it still open? What does it cost per event? Which kernels must it survive, when kprobe targets are no stable interface? The gap question: which fact does it answer, and what does it trade away?</p>
+<p>Attaching is easy; the decision hides inside it. Which question does this program answer, and is it still open? What does it cost per event? Which kernels must it survive, given that kprobe targets are not a stable interface? The gap question: which question is still open, and what does it cost per event?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2217,7 +2273,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The trap is instrumentation nobody reads: a program added because the tooling was easy answers a question closed last quarter, on a path running ten million times a second, and its cost is booked as “kernel overhead” nobody owns. The second cost arrives at upgrade: a kprobe on an internal function may fail to load next time. CO-RE reduces that risk, not the dependence.</p>
+<p>The trap is instrumentation nobody reads. A program added because the tooling was easy answers a question closed last quarter, on a path running ten million times a second. Its cost is booked as “kernel overhead” nobody owns. The second cost arrives at upgrade: a kprobe on an internal function may fail to load next time. CO-RE — compiled against BTF, so the program relocates onto a newer kernel — reduces the load failures, not the dependence on kernel internals.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2245,8 +2301,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-real-time-scheduling-classes" class="level2 kg-post" hidden="true" data-slug="rt-scheduling-2027-06-25-kernel" data-pattern="Real-time scheduling classes" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-real-time-scheduling-classes">Case study: Real-time scheduling classes</h2>
+<p>A control loop misses its 1 ms deadline under load. One sched_setscheduler call can fix it — and hands the box a failure mode it never had.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> SCHED_FIFO and SCHED_RR outrank every fair-share task: a runnable RT thread preempts CFS at once and never yields its share back, so wakeup latency is bounded by the scheduler, not by queue depth. That thread gains a guarantee; every other task on the core loses one. The fuse is sched_rt_runtime_us: by default RT tasks may take 950000 of every 1000000 microseconds, then the throttler stops them.</p>
+<p><strong>Mechanism:</strong> SCHED_FIFO and SCHED_RR outrank every fair-share task: a runnable RT thread preempts CFS at once, and SCHED_FIFO never yields it back, so wakeup latency is bounded by the scheduler, not by queue depth. That thread gains a guarantee; every other task on the core loses one. The fuse is sched_rt_runtime_us: by default RT tasks may take 950000 of every 1000000 microseconds, then the throttler stops them.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-28" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-28">The kernel knowledge gap it signals</h3>
@@ -2274,7 +2332,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>“Make it real-time so it runs faster.” On a lightly loaded box SCHED_FIFO does run sooner, because it preempts, and the benchmark improves. Then a CPU-bound loop wearing that policy owns a core until the throttle fires, restarts, and the machine lurches once a second in a rhythm nobody ties to a scheduler edit. The quieter variant applies the policy by template to every thread, so work with no deadline outranks sshd.</p>
+<p>“Make it real-time so it runs faster.” On a lightly loaded box SCHED_FIFO does run sooner, because it preempts, and the benchmark improves. Then a CPU-bound loop wearing that policy owns a core until the throttle fires. The throttle stops it, the period restarts, and the machine lurches once a second in a rhythm nobody ties to a scheduler edit. The quieter variant applies the policy by template to every thread, so work with no deadline outranks sshd.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2287,10 +2345,10 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Which wakeup number needed a guarantee, measured — and does the RT thread’s worst-case runtime fit the budget the fuse allows?</strong></p>
+<p><strong>Which wakeup number needed a guarantee — does the RT thread’s runtime fit the fuse, and what else lives on that core?</strong></p>
 <ul>
-<li><strong>If yes</strong> → policy per thread, fuse armed, an alert on the throttling counter.</li>
-<li><strong>If no</strong> → a priority boost, not a deadline guarantee, and nothing else on that core is protected.</li>
+<li><strong>If yes</strong> → policy is per thread, fuse armed, alert on the throttling counter.</li>
+<li><strong>If no</strong> → you bought a priority boost, not a guarantee: nothing else on that core is safe.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure the wakeup distribution under load, then worst-case runtime per period.</li>
 </ul>
 </div>
@@ -2302,8 +2360,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-compressed-swap-in-ram-zram-zswap" class="level2 kg-post" hidden="true" data-slug="zram-2027-06-26-kernel" data-pattern="Compressed swap in RAM (zram, zswap)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-compressed-swap-in-ram-zram-zswap">Case study: Compressed swap in RAM (zram, zswap)</h2>
+<p>A 16 GB host serves a 38 GB anonymous working set and touches no disk. It did not get more RAM. It compressed the difference and paid in cycles.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> zram presents a block device whose contents live in RAM, compressed; zswap compresses pages in front of a real swap device. Both trade disk seeks on the swap path for CPU spent compressing and decompressing, and both spend RAM on the compressed store: you pay memory to hold shrunk memory. Effective capacity is the ratio, and the ratio is a property of your pages.</p>
+<p><strong>Mechanism:</strong> zram presents a block device whose contents live in RAM, compressed; zswap compresses pages in front of a real swap device. Both trade swap I/O for CPU spent compressing and decompressing, and both spend RAM on the compressed store: you pay memory to hold shrunk memory. Effective capacity is device size times ratio, and the ratio is a property of your pages.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-29" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-29">The kernel knowledge gap it signals</h3>
@@ -2331,7 +2391,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A leak, hidden by headroom. zram is sized large enough that the OOM never fires, so the graphs look solved for weeks: no kills, no swap I/O, flat latency. The truth is a compressed corpse — the OOM arrives later, deeper into pressure, with a working set several times physical RAM and a decompression path between the operator and the evidence. The tweak did not fix the leak; it rescheduled the discovery.</p>
+<p>A leak, hidden by the memory headroom compression buys. zram is sized large enough that the OOM never fires, so the graphs look solved for weeks: no kills, no disk swap IO, flat latency. The truth is a compressed corpse — the OOM can land later, with a working set several times physical RAM and a decompression path between the operator and the evidence. The tweak did not fix the leak; it rescheduled the discovery.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2359,6 +2419,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-pinning-pages-mlock-the-memlock-limit" class="level2 kg-post" hidden="true" data-slug="mlock-2027-06-27-kernel" data-pattern="Pinning pages (mlock, the memlock limit)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-pinning-pages-mlock-the-memlock-limit">Case study: Pinning pages (mlock, the memlock limit)</h2>
+<p>A database’s p99 read latency doubles whenever reclaim walks its hot index. The fix pins 12 GB; four months later a second service cannot start.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> mlock marks a range resident: those pages leave the reclaim and swap paths until munlock or exit. The trade is a hard residency guarantee against RAM held forever, including on an idle replica. RLIMIT_MEMLOCK was the ceiling that stopped over-pinning, and on kernels from 5.14 a process holding CAP_IPC_LOCK is largely exempt from it.</p>
 </blockquote>
@@ -2388,7 +2450,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>mlockall in the service template, so nothing ever swaps. On one box it looks like a clean win: no swap I/O, latency variance down. The working set was never measured, so the pinned region is whatever the process touched, held forever and idle; the host runs out of pinnable memory at the third deploy. Pinning does not make a leak survivable either: it removes the reclaim path, so the OOM arrives with no pages to evict.</p>
+<p>mlockall in the service template, so nothing ever swaps. On one box it looks like a clean win: no swap IO, latency variance down. The working set was never measured, so the pinned region is whatever the process touched, held forever and idle; the host runs out of pinnable memory on a later deploy. Pinning removes the reclaim path too, so the OOM arrives with no pages to evict — the leak survives no better for the pin.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2416,8 +2478,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-write-barriers-and-the-ext4-commit-interval" class="level2 kg-post" hidden="true" data-slug="fs-durability-2027-06-28-kernel" data-pattern="Write barriers and the ext4 commit interval" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-write-barriers-and-the-ext4-commit-interval">Case study: Write barriers and the ext4 commit interval</h2>
+<p>commit=60 tuned for throughput, then a power cut erases 59 seconds of transactions — and the auditor finds it before monitoring does.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> commit=N sets how long ext4 may hold dirty data and metadata before forcing a journal commit, so anything acknowledged but not fsynced can vanish up to N seconds back. nobarrier drops the flush and FUA the journal relies on, letting a device’s write cache reorder freely. Both buy throughput against a crash-consistency window measured in seconds of lost writes.</p>
+<p><strong>Mechanism:</strong> commit=N sets how long ext4 may hold dirty data and metadata before forcing a journal commit, so anything acknowledged but not fsynced can vanish up to N seconds back. nobarrier drops the device cache flush and FUA the journal relies on, letting a device’s write cache reorder freely. Both buy throughput against a crash-consistency window measured in seconds of lost writes.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-31" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-31">The kernel knowledge gap it signals</h3>
@@ -2461,24 +2525,26 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Which loss window did someone accept, in seconds — and does the storage below actually honor flushes, verified how?</strong></p>
 <ul>
 <li><strong>If yes</strong> → write the window beside the data’s rebuild cost, keep barriers on, verify flush honoring on real storage.</li>
-<li><strong>If no</strong> → you accepted a window you cannot price, on data whose owner never saw the number.</li>
+<li><strong>If no</strong> → you accepted a window you cannot price. Keep barriers on, and cut the interval until the loss fits the rebuild cost.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure fsync latency with barriers on and off, then pull power.</li>
 </ul>
 </div>
 </div>
 <div class="kg-tags">
-<p><code>#Linux</code> <code>#Kernel</code> <code>#Filesystems</code> <code>#Durability</code> <code>#Ext4</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+<p><code>#Linux</code> <code>#Kernel</code> <code>#FileSystems</code> <code>#Durability</code> <code>#Ext4</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
 </div>
 </section>
 </section>
 <section id="case-study-nic-and-stack-offloads-gro-gso-tso-lro" class="level2 kg-post" hidden="true" data-slug="offloads-2027-06-29-kernel" data-pattern="NIC and stack offloads (GRO, GSO, TSO, LRO)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-nic-and-stack-offloads-gro-gso-tso-lro">Case study: NIC and stack offloads (GRO, GSO, TSO, LRO)</h2>
+<p>tcpdump on the sending host shows 64 KB TCP segments; the receiver’s shows 1460-byte ones. Both are correct, and neither holds the bug.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> GSO and TSO hand the device one large buffer to segment below the stack. GRO reassembles received segments before the stack sees them; LRO does so inside the driver, less faithfully. Throughput rises and CPU per byte falls, against granularity: pacing, forwarding and capture see fewer, larger units than the wire carries.</p>
+<p><strong>Mechanism:</strong> GSO and TSO pass one large buffer down the stack to be segmented below it. GRO reassembles received segments before the stack sees them; LRO does so inside the driver, less faithfully. Throughput rises and CPU per byte falls, against granularity: pacing, forwarding and capture see fewer, larger units than the wire carries.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-32" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-32">The kernel knowledge gap it signals</h3>
-<p>The team must know whether this endpoint moves bulk bytes or paces packets, and what its capture shows. Offloads are wrong for a forwarder between rate domains, where a coalesced frame must be re-segmented, and harmless for bulk transfers that never inspect a packet. The gap question: is this endpoint bulk or pacing-sensitive — and when you captured packets, what did you actually capture?</p>
+<p>The team must know whether this endpoint moves bulk bytes or paces packets, and what its capture shows. Offloads are wrong for a forwarder whose two sides run at different shaped rates — a rate-domain boundary, where a coalesced frame must be re-segmented, and harmless for bulk transfers that never inspect a packet. The gap question: is this endpoint bulk or pacing-sensitive — and when you captured packets, what did you actually capture?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2489,7 +2555,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A replication link at 3 Gbit/s saturated a core in the softirq path; TSO and GRO cut CPU per GB by more than half at the same throughput, measured both ways. The routers between rate domains kept LRO off and per-packet shaping intact. Same kernel, opposite settings, each decided by what the hop does with a packet.</p>
+<p>A replication link at 3 Gbit/s saturated a core in the softirq path; TSO and GRO cut CPU per byte by more than half at the same throughput, measured both ways. The routers between rate domains kept LRO off and per-packet shaping intact. Same kernel, opposite settings, each decided by what the hop does with a packet.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2517,9 +2583,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>Is this endpoint bulk or pacing-sensitive — and when you captured packets, what did you actually capture?</strong></p>
 <ul>
-<li><strong>If yes</strong> → offloads on for bulk paths with CPU per GB measured, off for hops that pace or forward.</li>
+<li><strong>If yes</strong> → turn offloads on for bulk paths with CPU per byte measured, off for hops that pace or forward.</li>
 <li><strong>If no</strong> → you optimized a hop whose job is granularity and are measuring something other than the wire.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure CPU per GB both ways, and check where the capture point sits.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure CPU per byte both ways, and check where the capture point sits.</li>
 </ul>
 </div>
 </div>
@@ -2530,12 +2596,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-socket-buffers-the-in-flight-window" class="level2 kg-post" hidden="true" data-slug="socket-buffers-2027-06-30-kernel" data-pattern="socket buffers (the in-flight window)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-socket-buffers-the-in-flight-window">Case study: socket buffers (the in-flight window)</h2>
+<p>A 200 ms round trip over a 1 Gbit/s path needs 25 MB in flight to fill the pipe — an untuned receive buffer starts at a few hundred kilobytes.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The buffers decide how much data may sit unacknowledged on one connection. net.core.rmem_max caps what the autotuner may grant; tcp_rmem holds min, default, and max; an explicit SO_RCVBUF fixes the size and, on Linux, disables autotuning for that socket. You buy throughput on long paths with memory per connection and queue depth for everyone.</p>
+<p><strong>Mechanism:</strong> The buffers decide how much data may sit unacknowledged on one connection. tcp_rmem holds min, default, and max, and the autotuner grows toward that max; net.core.rmem_max caps only an explicit SO_RCVBUF, which fixes the size and, on Linux, disables autotuning for that socket. You buy throughput on long paths with memory per connection and queue depth for everyone.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-33" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-33">The kernel knowledge gap it signals</h3>
-<p>The buffer you need is the product of two facts about your peers: their round-trip time and your bandwidth to them. That product spans three orders of magnitude between a datacenter neighbour and an intercontinental client, so one global value fits almost none of them. A large buffer also buys latency, because the queue that fills it delays the next packet too. Which connections are long fat, measured — and what does the per-connection buffer cost at the connection count you actually run?</p>
+<p>The buffer you need is the product of two facts about your peers: their RTT and your bandwidth to them. That product spans three orders of magnitude between a datacenter neighbour and an intercontinental client, so one global value fits almost none of them. A large buffer also costs latency, because the queue that fills it delays the next packet too. Which connections are long fat, measured — and what does the per-connection buffer cost at the connection count you actually run?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2546,7 +2614,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Measure RTT and throughput to the long-haul peers, multiply, and set the tcp_rmem and tcp_wmem maximums above that product, leaving autotuning to size the rest.</p>
+<p>An intercontinental replica pair measured 190 ms RTT at 800 Mbit/s: the buffer maximums were raised above the 19 MB product, and the transfer left the few-hundred-KB plateau while per-connection memory stayed inside the peak-count budget.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2575,7 +2643,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Which connections are long fat, measured — and what does the per-connection buffer cost at the connection count you actually run?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the size follows from your peers, not a habit. Check the maximums against the peak product.</li>
-<li><strong>If no</strong> → the value is a guess about an unmeasured distribution. Take RTT and bandwidth per peer group.</li>
+<li><strong>If no</strong> → the value is a guess about an unmeasured distribution. Leave autotuning on, and cap the maximum only for measured long-fat peer groups.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Measure RTT, throughput, and peak connection count.</li>
 </ul>
 </div>
@@ -2587,8 +2655,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-tcp-fast-open-data-in-the-syn" class="level2 kg-post" hidden="true" data-slug="tcp-fastopen-2027-07-01-kernel" data-pattern="TCP Fast Open (data in the SYN)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-tcp-fast-open-data-in-the-syn">Case study: TCP Fast Open (data in the SYN)</h2>
+<p>Up to two thirds of a short request’s latency is handshake — and the knob that removes it lets a duplicated SYN replay your request.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> TFO carries request bytes in the SYN, so the first response arrives a round trip earlier; first contact trades a cookie instead of data. net.ipv4.tcp_fastopen takes 1 for client, 2 for server, 3 for both. You buy one RTT per connection with a SYN payload that must be safe to execute twice, on a path that must carry the option intact.</p>
+<p><strong>Mechanism:</strong> TFO carries request bytes in the SYN, so the first response arrives a round trip earlier; first contact trades a server-issued cookie, cached for later SYNs, instead of data. net.ipv4.tcp_fastopen takes 1 for client, 2 for server, 3 for both. You buy one RTT per connection with a SYN payload that must be safe to execute twice, on a path that must carry the option intact.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-34" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-34">The kernel knowledge gap it signals</h3>
@@ -2644,6 +2714,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-reverse-path-filtering-the-spoofing-check" class="level2 kg-post" hidden="true" data-slug="rp-filter-2027-07-02-kernel" data-pattern="reverse path filtering (the spoofing check)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-reverse-path-filtering-the-spoofing-check">Case study: reverse path filtering (the spoofing check)</h2>
+<p>One sysctl turns an asymmetric two-provider box into one that drops half its inbound packets — and only a counter names the culprit.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> net.ipv4.conf.*.rp_filter tests an inbound packet’s source against the route table: 1 demands the reverse path leave by the interface it arrived on, 2 accepts any interface that could route back, 0 skips the test. You buy source-address validation with a rule your routing table must satisfy.</p>
 </blockquote>
@@ -2660,7 +2732,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Strict mode where the topology is single-homed and the claim is true: a plain application host, a single-uplink bastion. On asymmetric boxes, loose mode or off, chosen deliberately, with the reason written down and the drop counters named in the runbook.</p>
+<p>Strict mode where the topology is single-homed and the claim is true: a plain application host, a single-uplink bastion whose drop counters stayed flat across a month, the spoofed-source probe rejected at the door. On asymmetric boxes, loose mode on the interface whose reverse path fails only — the symmetric interfaces kept strict — the reason written down, the drop counters named in the runbook.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2673,7 +2745,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Strict mode inherited from a hardening baseline onto a box with two providers. Packets from the second provider are dropped, so roughly half the traffic fails at random, and the hours go into cables and switch ports while nothing bills the sysctl. The hardening is defensible — a checklist asks for it. The recovery is the second trap: loose mode everywhere “to fix it”, which restores traffic and quietly reopens the spoofing surface the knob existed to close, now with no owner.</p>
+<p>Strict mode inherited from a hardening baseline onto a box with two providers. Packets from the second provider are dropped, so roughly half the traffic fails at random, and the hours go into cables and switch ports while nothing bills the sysctl. The hardening is defensible — a checklist asks for it. The recovery is the second trap: loose mode everywhere “to fix it”, which restores traffic and quietly relaxes the spoofing check the knob existed to impose, now with no owner.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2689,7 +2761,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Is this box’s routing symmetric by design — and which counters showed the drops before anyone looked?</strong></p>
 <ul>
 <li><strong>If yes</strong> → strict filtering costs nothing real and closes a real surface. Keep it, and keep the claim in the platform docs.</li>
-<li><strong>If no</strong> → your policy collides with your topology. Set the mode per interface from the routing design.</li>
+<li><strong>If no</strong> → your policy collides with your topology. Set the mode per interface, and name the compensating filter for the check loose mode relaxes.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the tweak wrong — you’ve found incomplete system knowledge. Trace the reverse path per peer group, and read the drop counters under load.</li>
 </ul>
 </div>
@@ -2701,12 +2773,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-the-adaptive-tick-nohz_full-rcu_nocbs" class="level2 kg-post" hidden="true" data-slug="nohz-full-2027-07-03-kernel" data-pattern="the adaptive tick (nohz_full, rcu_nocbs)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-the-adaptive-tick-nohz_full-rcu_nocbs">Case study: the adaptive tick (nohz_full, rcu_nocbs)</h2>
+<p>A trading gate passes at one tick per second — while one core absorbs every displaced timer and RCU callback.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> nohz_full names cores whose running task sees no periodic timer tick; rcu_nocbs moves that core’s RCU callbacks elsewhere; isolcpus keeps the scheduler off them. All three are boot parameters, not sysctls, so the decision never appears in a config review. You buy undisturbed userspace with a housekeeping burden that must land somewhere.</p>
 </blockquote>
 <section id="the-kernel-knowledge-gap-it-signals-36" class="level3">
 <h3 class="anchored" data-anchor-id="the-kernel-knowledge-gap-it-signals-36">The kernel knowledge gap it signals</h3>
-<p>A tick-free core is worth its cost only where the tick injects jitter the workload can feel — a market-data loop, a control path, an audio buffer. The rest of the machine still needs a core for timers, interrupts, RCU callbacks, and the scheduler — one core now carrying the work of sixteen. So the change moves a known load onto an unknown capacity. What jitter did the tick actually inject, measured — and what runs on the core left holding the housekeeping?</p>
+<p>A tick-free core is worth its cost only where the tick injects jitter the workload can feel — a market-data loop, a control path, an audio buffer. The rest of the machine still needs a core for timers, interrupts, RCU callbacks, and the scheduler — one core now carrying the work of fifteen. So the change moves a known load onto an unknown capacity. What jitter did the tick actually inject, measured — and what runs on the core left holding the housekeeping?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2717,7 +2791,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Tick counts and jitter measured on the isolated cores before and after, with the workload’s latency distribution as arbiter — worst-case wakeup in microseconds, not a topology diagram. Combine with isolcpus, pin the latency-critical thread, and size the housekeeping core.</p>
+<p>A market-data loop on a 16-core box measured 40 µs worst-case wakeup with the tick and 6 µs without; nohz_full plus isolcpus held it there, and the housekeeping core sat at 30% at peak — the cost stated before the line shipped.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2730,7 +2804,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>nohz_full enabled for a vanity number, “one timer tick per second”, on a workload that never measured tick jitter. The mechanism is real, the metric impressive — on a dashboard tied to no latency budget. Meanwhile one core takes every displaced interrupt, timer, and RCU callback and saturates at peak: the spikes return from a new direction, and the team concludes tick suppression “does not work”.</p>
+<p>nohz_full enabled for a vanity number, “one timer tick per second”, on a workload that never measured tick jitter. The mechanism is real, the metric impressive — on a dashboard tied to no latency budget. Meanwhile one core takes the migrated timers and RCU callbacks, plus whichever IRQs you steer there, and can saturate at peak: the spikes return from a new direction, and the team concludes tick suppression “does not work”.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2758,6 +2832,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-the-instrument-guard-perf_event_paranoid-kptr_restrict" class="level2 kg-post" hidden="true" data-slug="perf-paranoid-2027-07-04-kernel" data-pattern="the instrument guard (perf_event_paranoid, kptr_restrict)" data-group="kernel" data-group-label="Kernel Tuning">
 <h2 class="anchored" data-anchor-id="case-study-the-instrument-guard-perf_event_paranoid-kptr_restrict">Case study: the instrument guard (perf_event_paranoid, kptr_restrict)</h2>
+<p>The hardening ticket closes, the fleet is “secure”, and six weeks later a tail-latency spike is answered with folklore.</p>
+<p>Setting a kernel knob? Ask “which measured fact does this tweak answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the config line is a superstition. If you can, the tweak is knowledge embodied — the system catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> kernel.perf_event_paranoid gates perf events by privilege: negative values allow kernel and CPU-wide sampling, 1 restricts CPU events, 2 blocks unprivileged kernel profiling, and level 3, where defined, closes unprivileged perf entirely. kptr_restrict hides kernel addresses. You buy a smaller exposure surface with your ability to measure production.</p>
 </blockquote>
@@ -2774,7 +2850,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The level set per environment: the profiling service authenticated and permitted on production hosts, restrictive defaults elsewhere, one named owner in the docs — cycle counts and kernel stacks reachable during an incident, not a regression reconstructed from log lines.</p>
+<p>A production fleet at paranoid=2, the profiling service on a privileged account: during a p99 spike the on-call pulled kernel stacks in four minutes and named the spinlock, not a regression reconstructed from log lines — restrictive defaults elsewhere, one named owner in the docs.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">

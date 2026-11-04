@@ -633,21 +633,968 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>A .NET knob or practice trades one measured workload behavior for another. Each post will name the two numbers it moves and ask which measured fact of the workload answers them.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>Every knob or practice below moves two numbers: the one it aims at, and one it did not. Each post names the knob, states the trade, and asks which measured fact of this workload answers it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="dotnet">
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+</div>
+<section id="case-study-server-gc-versus-workstation-gc" class="level2 kg-post" hidden="true" data-slug="gc-modes-2027-08-04-dotnet" data-pattern="Server GC versus Workstation GC" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-server-gc-versus-workstation-gc">Case study: Server GC versus Workstation GC</h2>
+<p>Same build, same load: server GC returns 44,000 requests a second holding 690 MB, workstation 31,000 holding 380 MB — each team calls its number correct.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Server GC gives the process one heap per core, each with its own allocation budget and collection thread; workstation GC gives it one heap, collected by the triggering thread. The trade is parallel collection against footprint and pause shape: per-core heaps and helper threads are memory the process must be granted. In a container, server GC sizes its heap count from the CPU limit, not the host’s core count — unless GCHeapCount pins it.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals">The .NET knowledge gap it signals</h3>
+<p>The team must know how many cores it gets, and whether a human waits: throughput on a batch job is invisible to users, pause on an editor is visible on every keystroke. The gap question: which of throughput and pause does this workload sell, and how many cores does the scheduler really give the process?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for sixteen posts (#370–#385). The framing is fixed; the entries are being written.</p>
+<p>A request service on 16 cores, same allocation profile: workstation 31,000 requests a second at 380 MB peak RSS (resident set size), server 44,000 at 690 MB with p99 pause flat. Nobody watched the process and memory was free, so the mode was chosen by the number the customer pays for. An editor takes the opposite side: one heap, a smaller resident set.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Server GC copied into a small container because “web APIs use server GC”. The pod gets 1.5 CPU and 512 MB; the host has 64 cores. The limit should size two heaps; a teammate pinned GCHeapCount to 64, copied from the host’s spec. Sixty-four heaps and their helper threads divide a core and a half, each keeps its own gen0 budget, and the pod is OOM-killed while reporting low CPU.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What do the measured throughput and pause profile need — and how many cores does this process really get?</strong></p>
+<ul>
+<li><strong>If yes</strong> → it answers a stated requirement. Re-measure when the CPU limit or traffic shape changes.</li>
+<li><strong>If no</strong> → a default inherited from another machine. Let the CPU limit, not a config value, decide the heap count.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the mode wrong — you’ve found incomplete workload knowledge. Measure requests a second and p99 pause per mode at the real CPU limit, with peak RSS.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#GarbageCollection</code> <code>#Performance</code> <code>#Containers</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-datas-dynamic-adaptation-to-application-sizes" class="level2 kg-post" hidden="true" data-slug="datas-container-gc-2027-08-05-dotnet" data-pattern="DATAS (Dynamic Adaptation To Application Sizes)" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-datas-dynamic-adaptation-to-application-sizes">Case study: DATAS (Dynamic Adaptation To Application Sizes)</h2>
+<p>The pod’s memory bill halved and its collection count rose 2.4× — memory was the scarce resource, and the four percent of throughput was the number nobody wrote down.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> DATAS — server GC only, opt-in on .NET 8, default on .NET 9 and later — derives heap count from the live data instead of the core count, shrinking the gen0 budget when that live set is small. The trade is footprint against collection frequency: a smaller budget fills sooner, so collections arrive more often and each does less work.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-1">The .NET knowledge gap it signals</h3>
+<p>The team must know which resource is scarce here: a memory limit is a number in a manifest, throughput a number in an SLA, and the runtime reads neither. A mode that shrinks the heap where memory is free and cores are busy turns a non-constraint into a cost. The gap question: is the binding constraint memory or throughput — measured, and for which SLA?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A queue worker in a 900 MB container, live set 210 MB, over a week. DATAS off: peak RSS 940 MB, three OOM kills. On: peak RSS 480 MB, collection count up 2.4×, throughput 18,400 to 17,600 messages a minute. A four percent loss against a ceiling the pod was breaching is a trade one sentence defends.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>DATAS left on for a throughput-bound server GC batch job on a 32-core host with memory to spare. The live set is small — millions of objects a second, most dead within a pass — so the budget shrinks and the collector runs several times as often. Throughput drops nine percent, the memory saving is invisible because nothing there counts memory, and a default charged the number the SLA names.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the binding constraint memory or throughput — measured, and for which SLA?</strong></p>
+<ul>
+<li><strong>If yes</strong> → it is aimed at the constraint. Watch collection count beside RSS.</li>
+<li><strong>If no</strong> → a default doing an unrequested favour. Disable it, or write down the memory it protects.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Measure peak RSS and collection rate on and off, at the limit that would kill the pod.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#GarbageCollection</code> <code>#Memory</code> <code>#Containers</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-spant-and-memoryt" class="level2 kg-post" hidden="true" data-slug="span-memory-2027-08-06-dotnet" data-pattern="Span<T> and Memory<T>" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-spant-and-memoryt">Case study: Span&lt;T&gt; and Memory&lt;T&gt;</h2>
+<p>A parser’s allocations fell from 1.2 GB per 10,000 requests to 40 MB — then the same span types made an async method uncompilable.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Span&lt;T&gt; is a ref struct — a pointer and a length over existing memory — so a slice costs two integers, where string.Substring copies. The trade is allocation-free slicing against a lifetime the compiler enforces: no boxing, no class field, no lambda capture, no crossing an await. Memory&lt;T&gt; is the heap-safe sibling for slices that outlive their method.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-2">The .NET knowledge gap it signals</h3>
+<p>The team must know whether this path’s cost is allocation, and where each slice must live. A slice is free only while its buffer lives; once it outlives the method, Memory&lt;T&gt; or a copy comes back — the old allocation in new syntax. The gap question: is this path measured as allocation-bound, and can every slice die inside its own method?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A log and CSV parsing path over 10,000 fixed requests: 1.2 GB allocated, 210 gen0 collections, 11 percent of wall time in GC. Parsed over ReadOnlySpan&lt;char&gt; from the request buffer instead: 40 MB allocated, 12 gen0 collections, 1 percent in GC, throughput up 11 percent. No slice escaped the parse method.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Span spread through a codebase because spans are faster. A 200-byte model is built with stackalloc, the stack frame grows, and a method that must await a database call cannot hold the buffer — so the code grows a synchronous twin and a defensive copy. The path allocated once per request, a number nobody had taken. On .NET 9 and later a ref struct local may live in an async method that crosses no await — removing the compile error, not the reason for it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this path measured as allocation-bound — or is Span fashion?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the slices encode a real lifetime fact. Keep the measurement, so a later return to Substring shows its price.</li>
+<li><strong>If no</strong> → a constraint bought for an unmeasured number. Keep Substring; revisit when the profiler names this path.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found Span wrong — you’ve found incomplete workload knowledge. Measure allocated bytes per request and GC time share.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Performance</code> <code>#Allocations</code> <code>#Span</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-sync-over-async-.result-.wait" class="level2 kg-post" hidden="true" data-slug="sync-over-async-2027-08-07-dotnet" data-pattern="Sync-over-async (.Result, .Wait())" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-sync-over-async-.result-.wait">Case study: Sync-over-async (.Result, .Wait())</h2>
+<p>One .Result in a shared library passed every unit test, then deadlocked the first request from a UI handler.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> .Result and .Wait() block the calling thread until the task completes. Where a synchronization context exists — WinForms, WPF, MAUI, legacy ASP.NET — the awaited continuation is posted back to it, and the thread it needs is the one blocked on .Result. Without a context, as in ASP.NET Core, the deadlock becomes starvation: every blocked pool thread must be replaced by injection, the pool adding a thread on demand.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-3">The .NET knowledge gap it signals</h3>
+<p>The team must know two facts about every call site: whether a synchronization context is ever present on the calling thread, and how many callers reach it at peak. Both belong to the host, not the method: the same line is safe in a console job, fatal in a UI handler. The gap question: is this path ever called with a synchronization context, or at production concurrency?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Genuinely synchronous code kept synchronous. A CLI import tool reads, transforms and writes a file on its own thread, with no context and one caller, calling a library it cannot change. It blocks with GetAwaiter().GetResult(), which keeps the original exception: 4,000 files a minute.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One .Result inside a library method, “just here”, since the caller was synchronous. The tests pass: the console harness has no context, and the runner’s is not the UI’s. Then a WPF screen calls it and the window stops responding on the first click, the stack trace showing an incomplete task whose continuation never ran. In ASP.NET Core the same line starves: 200 blocked pool threads, p99 from 40 ms to 12 seconds at 15 percent CPU.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this path ever called with a synchronization context or under load — measured?</strong></p>
+<ul>
+<li><strong>If yes</strong> → it is a defect with a schedule. Await to the top of the stack, or make the entry point synchronous end to end, priced against every signature it changes.</li>
+<li><strong>If no</strong> → blocking describes the work, and claims something about the host. Keep the call behind a context-free boundary.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the block wrong — you’ve found incomplete workload knowledge. Grep for .Result and .Wait(), then measure queue length at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#AsyncAwait</code> <code>#Deadlock</code> <code>#ThreadPool</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-configureawaitfalse" class="level2 kg-post" hidden="true" data-slug="configureawait-2027-08-08-dotnet" data-pattern="ConfigureAwait(false)" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-configureawaitfalse">Case study: ConfigureAwait(false)</h2>
+<p>ConfigureAwait(false) skipped the post-back on every continuation after it — and a control that needed its UI thread was touched from the pool, four frames below.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An await captures the current SynchronizationContext and TaskScheduler, then posts the continuation back to them. ConfigureAwait(false) skips the capture, so the continuation resumes on any thread pool thread. It buys the post-back and spends the assumption that the continuation lands on the synchronization context’s thread — the UI thread that must touch a control.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-4">The .NET knowledge gap it signals</h3>
+<p>The knob answers a question about your callers, not your code: which re-enter on a specific thread, and which read ambient state after the await. A library that touches no UI and reads no ambient state can suppress the capture. The gap question: who is downstream of this await, and what does each one need from the context?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A library exercised under a UI dispatcher, where each captured post-back costs a hop nothing below it uses. Ten thousand awaits hold ten thousand post-backs; false removes all ten thousand. Default the library to false, and let the app layer keep the context deliberately, because the app is the layer that owns it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>False copied across application code because a style guide said so. A WPF handler awaits a call, and its continuation touches a control from a pool thread — no exception at the await, only a cross-thread failure four frames down, in a path no test covered. The win is a hop nobody measured; the loss is a crash the console harness never produced.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does anything downstream need the context — can you name it — or was false copied from a style guide?</strong></p>
+<ul>
+<li><strong>If yes</strong> → keep the capture here, and suppress it inside the library.</li>
+<li><strong>If no</strong> → the suppression is free, and the hop was never doing work for anyone.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Measure which continuations resume on a specific thread, then list every ambient read after each await.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#AsyncAwait</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-valuetask" class="level2 kg-post" hidden="true" data-slug="valuetask-2027-08-09-dotnet" data-pattern="ValueTask" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-valuetask">Case study: ValueTask</h2>
+<p>ValueTask removed the allocation from a cache lookup that usually hits — and then two consumers awaited the same instance, which the type forbids.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A Task is a heap object, so a synchronous completion still allocates one unless the runtime hands back a cached instance. ValueTask is a struct wrapping a result, a Task, or an IValueTaskSource, so the synchronous case allocates nothing. It buys the allocation and spends a discipline: one consumption, one await, never stored, never awaited twice. Break it and the behavior is undefined, not merely slow.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-5">The .NET knowledge gap it signals</h3>
+<p>The knob presumes two facts about your path: that it completes synchronously most of the time, and that exactly one consumer touches the result. The first is measurable; the second is structural. A hot cache lookup satisfies both. A method whose result gets logged, branched on, and returned satisfies neither. The gap question: is single consumption guaranteed by the shape of this code, or by hope?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A measured hot path that usually returns without awaiting — a memory cache hit, a buffer already filled. Ten million calls, and each cache hit still allocates a Task where the ValueTask path allocates nothing; the count on that path goes to zero. The discipline holds because one caller awaits it once.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Less allocation” adopted everywhere. A method returns ValueTask, and an interceptor awaits it, then the caller awaits it again: a second await is undefined behavior when the source is an IValueTaskSource — it throws, or it corrupts. Or the value gets handed to two consumers that both start it. The allocation win was nanoseconds; the failure is a corrupted result in production.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the measured path usually complete synchronously — and is single-consumption guaranteed by structure, or by hope?</strong></p>
+<ul>
+<li><strong>If yes</strong> → ValueTask is the honest type here. Verify no call site awaits twice or stores it.</li>
+<li><strong>If no</strong> → use Task. The allocation is the price of a contract your code actually uses.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Measure the synchronous completion rate, then count the consumers per result.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#AsyncAwait</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-iasyncenumerable" class="level2 kg-post" hidden="true" data-slug="iasyncenumerable-2027-08-10-dotnet" data-pattern="IAsyncEnumerable" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-iasyncenumerable">Case study: IAsyncEnumerable</h2>
+<p>IAsyncEnumerable streamed a four-million-row report at constant memory — and the caller called ToListAsync, and the memory came back all at once.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The consumer awaits MoveNextAsync and processes each item before the next arrives. It buys constant memory and a first result before the query ends. It spends the total count, unknown until the stream finishes, and the simpler code that took a materialized list.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-6">The .NET knowledge gap it signals</h3>
+<p>Streaming presumes two facts: the result set is large enough that materializing hurts, and the consumer acts on each item as it arrives. Both are measurable. A consumer that buffers, sorts, or shows a page count has already given up the win, whatever the type promises. The gap question: what is the measured result size — and does the consumer process incrementally, or buffer anyway?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A measured large result set: four million rows at 200 bytes is 800 MB materialized, against a stream that holds one row plus its buffer. The consumer writes each row to a file or a response before the next arrives, so first byte leaves earlier and memory flatlines. The async enumeration per row now buys something: the producer is I/O-bound, and the consumer keeps pace.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>IAsyncEnumerable over a twelve-row lookup table. Twelve rows fit in one page, yet the streaming machinery adds an async state machine, an await per row, and a caller that must step it — and the caller buffers it straight into a list to get the count. Paid for, never collected.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured result size — and does the consumer actually process it incrementally, or buffer it anyway?</strong></p>
+<ul>
+<li><strong>If yes</strong> → streaming is the honest shape. Check that nothing downstream sorts, counts, or materializes before use.</li>
+<li><strong>If no</strong> → materialize. A list is simpler, and the total count is knowledge you get for free.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Measure the rows and the bytes per row, then trace whether the consumer holds them all.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#AsyncStreams</code> <code>#Memory</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-nativeaot-readytorun-plain-jit" class="level2 kg-post" hidden="true" data-slug="nativeaot-readytorun-2027-08-11-dotnet" data-pattern="NativeAOT, ReadyToRun, plain JIT" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-nativeaot-readytorun-plain-jit">Case study: NativeAOT, ReadyToRun, plain JIT</h2>
+<p>NativeAOT took a CLI’s startup from about 80 ms to about 10 ms — and then the JSON serializer threw at runtime on a type the compiler never saw.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> JIT compiles IL on first call and re-optimizes hot paths from real profiles, so steady state wins and startup pays. ReadyToRun precompiles IL to native while keeping the JIT available: startup improves, the binary grows. NativeAOT compiles the whole closed world ahead of time, so startup and footprint drop and reflection stops being free.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-7">The .NET knowledge gap it signals</h3>
+<p>The knob presumes startup dominates and every dependency survives a closed world. Startup-dominated is measurable; AOT-safe is knowable only by trying. Tiered compilation with dynamic PGO, on by default since .NET 8, means the JIT’s peak is the number you give up. The gap question: does startup or steady state dominate, measured — and is the dependency tree known to be AOT-safe?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A measured startup-dominated workload: a CLI at about 80 ms to first output, mostly compiling methods it never runs, against about 10 ms under AOT.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>NativeAOT on a long-running, reflection-heavy API. Startup was never the bottleneck — the process lives for days — so the win is invisible and the cost permanent. Plugins loaded by assembly name, a serializer mapping by reflection, proxies built at runtime: each becomes a runtime failure the compiler never saw, at the first request that touches it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does startup or steady state dominate, measured — and is the dependency tree known to be AOT-safe?</strong></p>
+<ul>
+<li><strong>If yes</strong> → AOT or ReadyToRun is knowledge, not fashion. Check the trim and AOT analyzer warnings, and test every reflection path.</li>
+<li><strong>If no</strong> → stay on the JIT. Keep the throughput: startup is paid once, throughput every day.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Measure time to first useful output against throughput at sustained load, then list every reflection call in the tree.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#NativeAOT</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-il-trimming" class="level2 kg-post" hidden="true" data-slug="trimming-2027-08-12-dotnet" data-pattern="IL trimming" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-il-trimming">Case study: IL trimming</h2>
+<p>The publish folder dropped fifty-four percent, and the first request with an unregistered subtype died on missing metadata.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The linker walks the call graph from entry points and deletes the IL nothing calls. Reflection is not a call edge: a type named in a serializer attribute or emitted by an ORM proxy is reachable only at run time, so the linker trims it unless an annotation roots it, and the app fails at first use. The trade is size and cold start against every path only reflection knows; .NET 8’s annotations narrow that surface, not the trade.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-8">The .NET knowledge gap it signals</h3>
+<p>The team must know its own reflection surface: which types the runtime resolves by name, and which the tests exercise. The library’s annotations describe the library, not your use of it. The gap question: which types are reached only via reflection — enumerated how — and is that list tested after trimming?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A self-contained or AOT deploy where size and cold start are constraints: enumerate the reflection surface in a descriptor (files that list reflection-reached types) or a source-generated context, and run the integration suite on a trimmed publish. Measured: publish 210 MB to 96 MB, cold start 2.4 s to 0.9 s, eleven metadata exceptions caught in that first trimmed run.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Trimming a service dense with runtime polymorphism — dynamic JSON, assembly scanning, lazy proxies — because the folder looked big. It publishes, it starts, the unit tests pass because they never touch the artifact. Weeks later an unforeseen subtype throws a metadata exception naming a type the source contains. Suppressing the warnings to get green makes the guess permanent.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which types are reached only via reflection — enumerated how — and is that list tested after trimming?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the trim states a checkable reachability claim. Re-check it per library upgrade, not the build.</li>
+<li><strong>If no</strong> → the trim was a size decision that deleted reachable code. Enumerate the surface first, or leave the reflection-heavy assemblies untrimmed.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Run a trimmed publish under the integration suite and log every metadata failure.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Trimming</code> <code>#NativeAOT</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-nullable-reference-types" class="level2 kg-post" hidden="true" data-slug="nullable-reference-types-2027-08-13-dotnet" data-pattern="Nullable reference types" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-nullable-reference-types">Case study: Nullable reference types</h2>
+<p>Nullable went on across the solution, the build went green in a day, and nobody can say which parameters may now be null.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The compiler tracks flow for reference types and warns when null can reach a dereference. It checks nothing at run time — the annotation is a claim, not a guard. The gain is a compile-checked nullability claim; the price is the annotation discipline legacy code owes, since every signature becomes a statement somebody must defend. Since .NET 6 templates enable it project-wide, an enable is a commitment, not a sprinkle.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-9">The .NET knowledge gap it signals</h3>
+<p>Nullability is a domain fact at each boundary: which inputs may be absent, which invariants hold after construction. The compiler proves a local flow; it cannot know whether absent means “not yet set” or “caller broken”. The gap question: is every nullable annotation backed by a stated invariant — or silenced to make the build pass?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Enabled per project, warnings as errors, each resolved into a real decision: handle the null, or non-null the parameter and make callers prove it. Measured on a forty-project solution done this way: 1,900 warnings, 61 that a reviewer traced to a real null path — 61 latent bugs in code declared fine.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Enabled wholesale with <code>&lt;NoWarn&gt;CS8600;CS8602;CS8618&lt;/NoWarn&gt;</code>, or a nullable-disable atop the files that complained. The build is green: every warning silenced, and a <code>string?</code> with no invariant behind it reads as a contract. The seduction is real: the property is on, the dashboard says “adopted”, and every consumer trusts a contract nobody checked.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is every nullable annotation backed by a stated invariant — or silenced to make the build pass?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the annotation is knowledge the compiler enforces. Check the <code>!</code> suppressions next; each is a hand-written exception to it.</li>
+<li><strong>If no</strong> → at least one annotation is decorative. Fix those, or revert the enable.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Count the suppressed warnings, then trace what each flagged.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#NullableReferenceTypes</code> <code>#StaticAnalysis</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-c-records" class="level2 kg-post" hidden="true" data-slug="records-vs-classes-2027-08-14-dotnet" data-pattern="C# records" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-c-records">Case study: C# records</h2>
+<p>An order in a HashSet has its status flipped to Shipped, and the lookup misses — its hash moved to another bucket, and the set never rehashed it.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A record gets compiler-written equality over its fields, a matching hash code, and <code>with</code> expressions that copy and modify in one line. The trade is value semantics — equal by data, replaced by convention rather than enforced — against identity semantics, equal by reference or id, which an entity needs to stay itself while its data changes. <code>record struct</code> adds struct rules — copies on assign, no inheritance; <code>with</code> copies shallowly, so nested mutable state stays shared.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-10">The .NET knowledge gap it signals</h3>
+<p>The team must know, per type, whether the domain identifies it by its data or by a persisted id. Money, a date range, a DTO — data is the identity. An order, a user, a document — the id is the identity, and two versions with different data are one thing. The gap question: is this thing a value (equal by data) or an entity (equal by identity) — decided, not defaulted?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>DTOs, messages, and domain values as records, so copy-and-modify collapses into <code>order with { Status = Shipped }</code> — no builder, no forgotten field. Measured on a mapping layer converted this way: 1,400 lines of copy code became 260, and three bugs where a copy kept a stale field left with them.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Records for entities. The instance goes into a set, someone sets a property, and the entity can no longer be found under the key it was added with — no exception, no trace. Then mutable properties undercut the claim: <code>init</code> becomes <code>set</code>, and equality changes while the object is in use.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is this thing a value (equal by data) or an entity (equal by identity) — decided, not defaulted?</strong></p>
+<ul>
+<li><strong>If yes</strong> → equality by fields is the domain’s rule. Check the record is immutable, so the hash cannot move under its container.</li>
+<li><strong>If no</strong> → it is an entity. Give it reference or id-based equality, and never key a set on mutable fields.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the record wrong — you’ve found incomplete workload knowledge. Ask what the domain calls the same thing twice.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Records</code> <code>#DomainModeling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-structs-versus-classes" class="level2 kg-post" hidden="true" data-slug="structs-vs-classes-2027-08-15-dotnet" data-pattern="Structs versus classes" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-structs-versus-classes">Case study: Structs versus classes</h2>
+<p>A 200-byte struct crosses four methods per call, and the profiler puts 11 percent of sampled time in the copy.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A struct is a value: it lives inline in its container, allocates nothing, and sits close to the data beside it. Every by-value assignment copies the whole thing: a by-value parameter, a return, a field store, each a memcpy. The trade is allocation and locality against copy cost, and the cost scales with a size nobody wrote down. <code>readonly struct</code> with <code>in</code> parameters — pass by reference, no copy — is the lever; a non-readonly member on a readonly field still copies.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-11">The .NET knowledge gap it signals</h3>
+<p>The team must know two numbers about its own workload: the struct’s byte size, and how often it travels. A sixteen-byte value passed once per request is free; the same value in a four-million-element array walked twice is the hot path, where locality wins. The gap question: what is the measured size of this struct — and is it immutable, so copies are safe?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Small immutable value types on a measured hot path: an identifier wrapper, a coordinate, a key. Measured on a parsing loop over four million price points: the class version spent 38 percent of its time in garbage collection, the readonly struct with <code>in</code> parameters spent 6 percent, and the pass went from 210 ms to 95 ms — allocation removed and locality gained, not a cleverer algorithm.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A 200-byte struct passed everywhere because structs are “faster”, and the copies add up. Then the mutable struct: a method sets a field, the caller sees nothing, because the mutation landed on a copy that died at the closing brace. The code compiles, the value changes nowhere, and no compiler diagnostic names the copy.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured size of this struct — and is it immutable, so copies are safe?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the struct is a value whose copies cost what you measured. Check no per-call path copies it needlessly, and nothing boxes it.</li>
+<li><strong>If no</strong> → the copy is unmeasured or unsafe. Shrink it and make it readonly, or make it a class if size dominates.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Print <code>Unsafe.SizeOf&lt;T&gt;()</code>, count the copies, compare the allocation profile.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#Performance</code> <code>#ValueTypes</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-arraypool-the-rented-buffer" class="level2 kg-post" hidden="true" data-slug="arraypool-2027-08-16-dotnet" data-pattern="ArrayPool (the rented buffer)" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-arraypool-the-rented-buffer">Case study: ArrayPool (the rented buffer)</h2>
+<p>A 128 KiB buffer allocated per request at 2,000 requests a second: 250 MiB/s onto the Large Object Heap, and a Gen2 pause no call stack explains.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> ArrayPool&lt;T&gt;.Shared lends an array and takes it back on Return, so each rent reuses a pooled array instead of a fresh allocation. Above 85,000 bytes that is the difference between an LOH segment and none, and LOH objects are reached only in Gen2 — the pause you are reading. The trade is a lifetime obligation: every rent needs a return on every path, and the buffer comes back dirty.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-12">The .NET knowledge gap it signals</h3>
+<p>The team must know its allocation profile: which buffers cross 85,000 bytes, how often, and whether Gen0 already absorbs them. Reuse pays where the churn measures as LOH pressure; where it is Gen0 churn, the pool buys nothing and adds a return path. The gap question: is this churn LOH-heavy by measurement, and does every path return what it rents, exceptions included?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A gateway copying bodies into 128 KiB buffers at 2,000 requests a second puts about 250 MiB/s on the LOH. Pooling a bounded set takes LOH allocation to near zero and Gen2 from about 30 a minute to 2 — the unexplained Gen2 pause gone — with the pool size now setting the ceiling.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Pooling 64-byte arrays in a hot loop because “allocation is expensive.” Gen0 allocation is a pointer bump and Gen0 collection is cheap; the pool adds a return obligation on every branch, a dirty-data bug on the first path that forgets to clear, and a stale byte from another request in a response.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the churn measured as LOH-heavy — and does every code path return what it rents, even on exception?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the pool answers a measured fact. Check it is bounded, that buffers carrying request data are cleared, and that used length is tracked apart from array length.</li>
+<li><strong>If no</strong> → no on the churn means nothing pays for the pool — measure first; no on a path means a missing return — fix it. Gen0 churn takes a plain allocation.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the knob wrong — you’ve found incomplete workload knowledge. Measure bytes allocated per second by size bucket, then Gen2 pause time and cause.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#ArrayPool</code> <code>#Performance</code> <code>#GC</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-service-lifetimes-the-claimed-scope" class="level2 kg-post" hidden="true" data-slug="di-lifetimes-2027-08-17-dotnet" data-pattern="Service lifetimes (the claimed scope)" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-service-lifetimes-the-claimed-scope">Case study: Service lifetimes (the claimed scope)</h2>
+<p>A singleton holding a scoped DbContext serves last week’s prices, and the cause is one line in a constructor signature no build check reads.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A registration declares how long an instance lives: transient one per resolution, scoped one per scope — per request in a web host — singleton one for the life of the container. The trade is a claim about who shares an instance. A mismatch fails quietly: a singleton that takes a scoped dependency captures it, and that instance then lives as long as the process.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-13">The .NET knowledge gap it signals</h3>
+<p>The team must know, per service, whose lifetime it shares — per request, per operation, per process — and whether it is thread-safe. Injection makes the claim implicit: a scoped service injected into three singletons shares whatever the first capture gave it. The gap question: for each dependency, is the lifetime stated on the registration, or discovered the first time data goes stale?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An order API scopes its DbContext to the request — the request is the transaction boundary — and keeps the configuration reader singleton, since the process owns it. With ValidateScopes and ValidateOnBuild, the capture becomes a container exception at boot: a failed deploy instead of a pricing incident later.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A singleton holding a scoped DbContext, because “the context is expensive to construct and we wanted one.” The first request’s context is captured and served to every later request — last week’s prices — and under overlap it corrupts across threads: a DbContext is not thread-safe, so callers interleave on one change tracker (its per-request entity set) — “A second operation was started on this context instance” at load, or request A’s entities saved by request B.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each dependency, whose lifetime does it share — stated, or discovered at runtime?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the container serves the claims. Enable scope validation everywhere, and check any captured dependency is thread-safe for that sharing.</li>
+<li><strong>If no</strong> → you have a captive dependency, not a caching problem. Move the scoped service behind a factory or an explicit scope.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the lifetime wrong — you’ve found incomplete workload knowledge. Read every constructor argument’s registration, then the concurrency it implies.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#DependencyInjection</code> <code>#Lifetimes</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-ihostedservice-and-backgroundservice" class="level2 kg-post" hidden="true" data-slug="hosted-services-2027-08-18-dotnet" data-pattern="IHostedService and BackgroundService" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-ihostedservice-and-backgroundservice">Case study: IHostedService and BackgroundService</h2>
+<p>The nightly import job loses its last fourteen rows on every deploy, and the log shows no error because there was no error — the process ended.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A hosted service is started by the host, receives a stopping token, and must stop before the process exits: services start in registration order, stop in reverse, and the host waits up to its shutdown timeout — 30 seconds by default — to drain them all. The trade: the host now owns your work’s lifetime, so the work must be cancellable and a partial batch safe to reread.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-14" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-14">The .NET knowledge gap it signals</h3>
+<p>The team must know what the work does when interrupted: which writes are idempotent, and how long a batch takes. Start order and the shutdown timeout are usable only if the work has a checkpoint the next start can find. The gap question: what happens to in-flight work when the process stops — stated, and does the shutdown path honor it?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A worker consuming 400 messages a second: on deploy it stops accepting, finishes the batch in flight, and exits in 1.8 seconds, queue depth zero. Across 50 deploys: zero truncated batches against a handful before, and no longer deploy time, since the drain finished inside the timeout.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A Task.Run fired from startup “for the background job.” The host does not await it, so shutdown has nothing to drain. The next deploy ends the process mid-write: no commit of the pending write, no retry, no error. It worked locally, because no debug session raced a deploy. The work looks asynchronous and is unowned.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What happens to this work when the process stops — stated — and does the shutdown path honor it?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the lifetime is owned. Check the stopping token reaches the deepest loop, a batch commits or abandons atomically, and the drain fits the timeout.</li>
+<li><strong>If no</strong> → the work is fire-and-forget, and its failures are silent by construction. Move it into a hosted service, or a queue with an acknowledged checkpoint.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the practice wrong — you’ve found incomplete workload knowledge. Measure the longest batch, then watch one deploy stop mid-batch.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#HostedServices</code> <code>#BackgroundJobs</code> <code>#Reliability</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-task.run-wrapping-the-false-offload" class="level2 kg-post" hidden="true" data-slug="taskrun-2027-08-19-dotnet" data-pattern="Task.Run wrapping (the false offload)" data-group="dotnet" data-group-label=".NET">
+<h2 class="anchored" data-anchor-id="case-study-task.run-wrapping-the-false-offload">Case study: Task.Run wrapping (the false offload)</h2>
+<p>A controller awaits Task.Run around an HTTP call, the throughput halves at 800 requests a second, and the work was never CPU-bound.</p>
+<p>Changing a .NET knob or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every knob moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the knob is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Task.Run queues a delegate to the pool and returns a task. The trade is a thread hop to shed the caller’s context: the delegate’s synchronous part runs on a pool thread, and the caller’s continuation needs one again, so a wrapped call pays two pool work items where one would do. On ASP.NET Core there is no synchronization context to escape, so the hop buys nothing.</p>
+</blockquote>
+<section id="the-.net-knowledge-gap-it-signals-15" class="level3">
+<h3 class="anchored" data-anchor-id="the-.net-knowledge-gap-it-signals-15">The .NET knowledge gap it signals</h3>
+<p>The team must know the shape of the work: CPU-bound or waiting on IO, and which thread pool the caller already occupies. Wrapping wait-bound work relabels it; wrapping CPU-bound work moves it to a pool thread the pool must still supply, and the demand is unchanged. The gap question: is the wrapped work CPU-bound by measurement, and does the caller sit on the pool it starves?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A desktop application recomputing a 400 ms report on the dispatcher thread at every filter change leaves the window at about 2.5 frames a second. Moving the compute behind Task.Run with a cancellation token holds the UI at 60 frames, and the calculation still takes 400 ms — one pool thread against a responsive window.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Task.Run around an awaitable inside a server request, “so it does not block the request thread.” Nothing was blocking: async IO frees the thread at the first await. Under load the pool queue grows, the pool injects a thread about once a second, and p99 triples while the CPU sits idle. Wrapping a synchronous call is worse: one pool thread parks while another works.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the wrapped work actually CPU-bound — and does the caller sit on the same pool it starves?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the offload is real. Pass a cancellation token, keep the delegate short, and check the thread pool has threads at peak.</li>
+<li><strong>If no</strong> → no on CPU-bound means IO in disguise: await it directly, remove the wrap. No on the pool means the offload stands.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found Task.Run wrong — you’ve found incomplete workload knowledge. Measure CPU time against wall time for the call, then pool queue length at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#DotNet</code> <code>#CSharp</code> <code>#AsyncAwait</code> <code>#ThreadPool</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

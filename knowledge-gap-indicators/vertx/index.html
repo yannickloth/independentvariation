@@ -633,21 +633,619 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>A design makes a claim about blocking: what may wait, what may never wait. Each post will name the claim and ask what fact of the workload justifies it.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>A design makes a claim about blocking: what may wait, what may never wait. Each post names the claim and asks what fact of the workload justifies it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="vertx">
+<p>Writing an event-loop handler? Ask “which claim does this design make about blocking — what may wait, what may never wait?” If you can’t answer, you’ve found a knowledge gap: the handler blocks on a fact nobody established. If you can, the design is knowledge embodied — the thread model catching up to what the workload decided.</p>
+</div>
+<section id="case-study-never-block-the-event-loop" class="level2 kg-post" hidden="true" data-slug="never-block-loop-2027-10-03-vertx" data-pattern="Never block the event loop" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-never-block-the-event-loop">Case study: Never block the event loop</h2>
+<p>One blocking call on an event loop thread stalls every request that loop is serving — not the one request that made it.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Vert.x runs handlers on a small set of event loop threads, each serving many connections. A handler that waits — a JDBC query, a file read, a lock, a sleep in a retry — holds its loop for the whole wait. Vert.x’s documented rule: a blocked loop stops its connections cold. A handful of threads carry tens of thousands of connections, and one wait takes one of them out of service.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals">The Vert.x knowledge gap it signals</h3>
+<p>The loop is a claim about every call a handler makes: none waits. It holds only if someone checked each one — the driver, the cache client, the name lookup, the log appender, the synchronized block. The team must know which calls in its own code can wait, and for how long. The framework cannot.</p>
+<p>The gap question: for each call on a loop thread, is it proven non-blocking — and how was that proven?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for ten posts (#430–#439). The framing is fixed; the entries are being written.</p>
+<p>An audited blocking inventory: database calls, file IO, locks, synchronized blocks, third-party clients — every entry listed, every one moved to a sized worker pool or a reactive client, at the cost of threads. The load test that would expose a stall runs clean at peak, and loop task durations stay in microseconds.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One JDBC call left on a loop thread. At low concurrency it is invisible: the query returns in 3 ms and the loop looks healthy. Under load the same 3 ms occupies a thread a hundred connections share, so throughput collapses while CPU sits near idle and latency spikes look random. The framework gets the blame, then the database.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each call on a loop thread: is it proven non-blocking — and how was that proven?</strong></p>
+<ul>
+<li><strong>If yes</strong> → no wait remains on the loop. Check the proof names each call site, then reread task durations at peak.</li>
+<li><strong>If no</strong> → some call may wait, and every request on that thread pays. Move it to a worker or a reactive client, and state which.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure handler time on the loop and its p99 task duration.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#EventLoop</code> <code>#Blocking</code> <code>#Latency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-worker-verticles-and-executeblocking" class="level2 kg-post" hidden="true" data-slug="worker-verticles-2027-10-04-vertx" data-pattern="Worker verticles and executeBlocking" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-worker-verticles-and-executeblocking">Case study: Worker verticles and executeBlocking</h2>
+<p>executeBlocking moves your blocking work off the event loop into a pool of twenty threads — where it may also run one task at a time.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Vert.x offers two ways off the loop. A worker verticle is deployed with the worker flag and receives messages on the worker pool. executeBlocking hands one task to that same pool and returns a Future. Both draw on twenty threads by default, and executeBlocking is ordered by default, so tasks from one context run one at a time. Blocking work leaves the loop; its concurrency and ordering move into two settings nobody wrote down.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-1">The Vert.x knowledge gap it signals</h3>
+<p>The offload does not remove the limit; it relocates it to two settings: pool size and ordering. The worker pool is the concurrency limit for everything that blocks, and its queue is where latency accumulates. Ordering is the second half: an ordered flag serialises independent work, and dependent work marked unordered returns out of sequence.</p>
+<p>The gap question: which code blocks — measured — and what pool size keeps the worker queue bounded?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Blocking segments offloaded deliberately — a legacy driver, a render, a filesystem sweep — onto a named pool sized from measured concurrency. Each path states its ordering requirement, and queue depth is watched at peak.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>executeBlocking wrapped around everything to make handlers safe. The pool becomes an unsized thread pool, raised to a hundred threads to stop queueing. Ordering flips quietly: a path that needs sequence is marked unordered, or one that could parallelise keeps the default and serialises, and the results arrive in an order nobody can re-sequence. It reads as non-blocking and behaves as an unmeasured pool.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which code blocks — measured — and what pool size keeps the worker queue bounded?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the offload is a stated fact. Confirm the pool covers concurrent blocking segments at peak, and each path’s ordering flag matches its callers.</li>
+<li><strong>If no</strong> → both the pool and the order are guesses. Size the pool from measured concurrency, and state per path whether results may arrive out of sequence.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure each blocking segment’s hold time, and how many are in flight at peak.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#WorkerVerticles</code> <code>#ThreadPools</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-event-loop-count" class="level2 kg-post" hidden="true" data-slug="event-loop-count-2027-10-05-vertx" data-pattern="Event loop count" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-event-loop-count">Case study: Event loop count</h2>
+<p>A pod with a two-CPU request and no CPU limit starts sixteen event loops, because the JVM sees the host’s eight cores and the default doubles them.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Vert.x sizes its event loop pool, by default, at twice the processors the JVM reports, and each loop is one thread carrying many connections. The number is the process’s unit of parallelism. Too few loops and the cores idle; too many and the threads compete for a quota they never had. The processor count the JVM reports follows the cgroup quota — a CPU request without a limit leaves it reading the host.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-2">The Vert.x knowledge gap it signals</h3>
+<p>The setting encodes a claim about CPU: this process owns that many cores, and all of them may serve handlers. In a container that claim must come from the cgroup, not the host, and even then it is half the fact — workers, GC and any sidecar draw on the same quota. The team must know the quota, then decide how much of it the loops may claim.</p>
+<p>The gap question: how many loops does this process actually run — and does that match the quota rather than the host?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The loop count is set explicitly from the CPU quota and logged at startup beside the worker pool size. Utilization stays low at peak, and task durations stay short — a blocked loop also runs idle.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A two-CPU request without a limit running sixteen loops because the host has eight cores and the default doubles them. Nothing fails outright: latency spikes at random, the throttling counter climbs, and every trace blames the database. Or the quota shrinks in a later release and the loop count is never revisited, because the two numbers live in different repositories.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>How many loops does this process actually run — and does that match the quota rather than the host?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the loop count is a stated fact. Check that workers and heap were sized against the same quota, then watch throttling.</li>
+<li><strong>If no</strong> → the loops compete for CPU they do not have. Set the count from the quota, leaving headroom for workers and GC.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Read the loop count at startup, the quota from the cgroup, and the throttling counter under load.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#Containers</code> <code>#Kubernetes</code> <code>#Performance</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-backpressure" class="level2 kg-post" hidden="true" data-slug="backpressure-2027-10-06-vertx" data-pattern="Backpressure" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-backpressure">Case study: Backpressure</h2>
+<p>A slow client never raises an error. It just grows the server’s outgoing buffer until the heap does.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A write returns before the bytes leave. Each connection holds a queue of pending writes, and writeQueueFull turns true when that queue passes its maximum; a drain handler fires when it falls back to half. Check the queue and it stays bounded while a consumer catches up; skip the check and that queue is the heap.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-3">The Vert.x knowledge gap it signals</h3>
+<p>Backpressure claims some producer can outrun some consumer. That is a fact about the workload — a result set streamed to a mobile client, a fan-out to a reporting replica — and it is invisible in a test where the client reads at server speed. The team must know which paths produce faster than they consume, and which sources can be paused.</p>
+<p>The gap question: what bounds the in-flight bytes to a slow consumer — stated — and is it tested with a throttled peer?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Streaming writes where every path checks the queue, sets a drain handler that resumes, and pauses the source while the queue is full. Bytes in flight per connection stay at the bound, memory is flat against a deliberately throttled consumer, and the bound is a chosen number.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Rows written without a queue check, because the local client was fast. The slow client’s buffer grows to the whole result set, a hundred such clients finish the heap, and the crash points at an allocation unrelated to the peer. The second variant: an upload read into memory because nothing paused the request. The code reads as streaming, because each chunk is written.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What bounds the in-flight bytes to a slow consumer — stated — and is it tested with a throttled peer?</strong></p>
+<ul>
+<li><strong>If yes</strong> → backpressure is a stated bound. Check it is enforced on every write path, and the throttled-peer test runs in the suite.</li>
+<li><strong>If no</strong> → the bound is the heap. Add the queue check and drain handler, pause the source while the queue is full, and state the maximum.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure bytes buffered per connection against a throttled consumer, and the largest result it can stream.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#Backpressure</code> <code>#Streaming</code> <code>#Memory</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-deployment-instances-per-verticle" class="level2 kg-post" hidden="true" data-slug="verticle-deployment-2027-10-07-vertx" data-pattern="Deployment instances per verticle" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-deployment-instances-per-verticle">Case study: Deployment instances per verticle</h2>
+<p>An in-memory counter deployed with eight instances is eight counters, and seven of them count for nobody.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> setInstances deploys N copies of a verticle across the event loop threads; each copy has its own fields. The count is a parallelism claim: N instances may serve handlers at once, and no two share an instance field — static state is common to all of them. Instances buy throughput, and every field becomes per-instance state whether meant or not.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-4">The Vert.x knowledge gap it signals</h3>
+<p>The setting asserts two facts: the work per message is independent, and nothing the verticle holds may be visible to another message on another thread. Both are properties of the workload. The team must know what state the verticle holds and who reads it, then choose the count from that answer, not the core count.</p>
+<p>The gap question: does this verticle hold state — and is the instance count consistent with that answer, by design?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Stateless verticles at N instances, the count set from the CPU quota because the parallelism is real. Stateful ones held at a single instance, or their state moved to a shared store or map, with each field’s scope written beside the deployment.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An in-memory counter — a rate limiter, a cache, a session map — deployed with eight instances because scaling out looked right. Every increment lands in one instance, the dashboard reads one of the eight, and the tests pass on a laptop at one instance. The number is wrong by a factor of eight and nothing throws. The other variant is as quiet: one instance for safety, so one thread carries the traffic.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does this verticle hold state — and is the instance count consistent with that answer, by design?</strong></p>
+<ul>
+<li><strong>If yes</strong> → instances and state agree. Check that no field assumes a single writer across messages, and the count still matches the CPU quota.</li>
+<li><strong>If no</strong> → the count and the state contradict. Either take the state out of the instance, or set the count to one and say why.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. List every field on the verticle, mark each mutable or constant, and name which component reads it.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#Verticles</code> <code>#Scaling</code> <code>#StateManagement</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-event-bus-and-its-scope" class="level2 kg-post" hidden="true" data-slug="event-bus-2027-10-08-vertx" data-pattern="The event bus and its scope" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-the-event-bus-and-its-scope">Case study: The event bus and its scope</h2>
+<p>A clustered event bus delivers a message once and keeps nothing — and three services treat it as a queue that survives a restart.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Vert.x has one EventBus API and two scopes. Local passes messages between verticles inside one JVM, often by reference. Clustered sends the same call over a network transport. The scope changes the route, not the promise: at-most-once, no bus persistence, no bus redelivery after a node dies. The calling code is identical.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-5">The Vert.x knowledge gap it signals</h3>
+<p>The bus promises ordering between one sender and one receiver, and that a registered handler runs. No arrival is promised. Whether a lost message is acceptable is a fact about the workload, never about the bus. The gap question: does any consumer here need the message to arrive after a crash?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Intra-process decoupling. A verticle announces an order was placed; three local handlers update their own state; a lost event costs nothing because that state rebuilds from the database. The claim is local and best-effort, and the bus is exactly that claim.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The clustered bus as a work queue. Work goes to a worker verticle on another node, the sender moves on, nothing records the job. The node restarts mid-job and the work is gone, because no retry was ever designed. It has a bus, an address, and a handler, so it reads as messaging. It is a fire-and-forget network call to an address, with no ledger.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each bus message: what delivery guarantee does it need — stated — and what does this bus actually provide?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the bus is the shape the claim requires. Confirm no consumer’s correctness rests on redelivery, and that a lost message is recoverable from another source.</li>
+<li><strong>If no</strong> → a broker buys durability at the cost of a component to run. Keep the bus for best-effort paths; route durable messages to the broker.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. List every message this bus carries and mark each one durable or best-effort.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#EventBus</code> <code>#Messaging</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-shared-data-local-versus-cluster-wide" class="level2 kg-post" hidden="true" data-slug="shared-data-2027-10-09-vertx" data-pattern="Shared data, local versus cluster-wide" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-shared-data-local-versus-cluster-wide">Case study: Shared data, local versus cluster-wide</h2>
+<p>One network hop per read, times your request rate: the cluster-wide “cache” now answers over the network what the heap answered for free.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Vert.x SharedData offers a local map and a cluster-wide map behind one API. The local map reads in heap with no encoding. The cluster-wide map serialises every value and crosses the cluster manager on each operation, so a read is a roundtrip and a write is a roundtrip plus replication.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-6">The Vert.x knowledge gap it signals</h3>
+<p>The choice is a claim about who needs the truth. Local says: this process is the only reader whose freshness matters. Cluster-wide says: every node must see the same value, and the domain pays a hop for it. The gap question: must a node see a write made on another node, or must it read fast?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Hot read paths use the local map: a per-node lookup table, flags refreshed by an event, a counter only this node’s handlers touch. Nobody asked for cross-node consistency, so the local map states the fact. The cluster-wide map earns its hop where staleness is a bug — a leader flag, a token held by exactly one node, a drain switch whose wrong value corrupts work.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The cluster-wide map used as a cache. Someone adds a lookup table to shared data to stop hitting the database, and every read becomes serialisation plus a hop, inside the handler that could have read the heap. Latency budget spent on lookups, plus a codec cost nobody measured. It reads as a cache and bills as a remote call.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Who reads this map, how often, from where — measured — and does it need cross-node truth or local speed?</strong></p>
+<ul>
+<li><strong>If yes</strong> → confirm the reads are off the hot path, and count the hops each request pays. Verify the hit rate beats the hop, not just the database query.</li>
+<li><strong>If no</strong> → split it. Local map for the hot reads, cluster-wide only for the few values whose staleness is a correctness bug.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Instrument reads per node per second, then the tolerable staleness of each value.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#SharedData</code> <code>#Caching</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-future-and-promise-composition" class="level2 kg-post" hidden="true" data-slug="futures-composition-2027-10-10-vertx" data-pattern="Future and Promise composition" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-future-and-promise-composition">Case study: Future and Promise composition</h2>
+<p>One compose step forgets to complete its promise, and the caller does not fail — it waits, holding a connection, until a timeout that may not exist.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A Promise is the writable end, a Future the readable one. Compose, map, and recover chain steps without blocking a thread. The chain is one error channel: the first failure skips every downstream step until a recovery claims it — and a step that never fails its promise stops every step after it.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-7">The Vert.x knowledge gap it signals</h3>
+<p>Composition moves the failure path into the shape of the chain, away from the code you read. Each link is a claim about who owns the error. Recover turns a failure into a value; otherwise supplies a fallback value; no handler means the error is dropped and nobody hears it. The gap question: for each link, who receives the failure — a named handler, or no one?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Recovery composed exactly where the domain names it. A cache lookup fails and recover serves the database read, because the cache was always optional. A metrics call fails and otherwise completes with an empty result, because metrics are not load-bearing. The fallback is a decision written where it applies, not scattered.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The chain with a lost failure. A middle step calls an async API, subscribes with onSuccess only, and never completes its own promise on error. Upstream fails, downstream never starts, the promise stays pending, the request hangs. Nothing looks wrong: a handler exists, a chain exists, no exception is thrown. The error died inside the chain, and the symptom appears as latency.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each composed chain: who handles the failure path — named — or does the error die inside the future?</strong></p>
+<ul>
+<li><strong>If yes</strong> → check each link completes or fails its promise on every branch, including the branches that throw.</li>
+<li><strong>If no</strong> → add a recovery at the boundary that owns the decision, and fail the promise in every terminal branch, not just the happy one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Count the futures that can stay pending, and the timeout that would end each one.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#Futures</code> <code>#ErrorHandling</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-non-blocking-database-clients-versus-the-jdbc-bridge" class="level2 kg-post" hidden="true" data-slug="blocking-bridge-2027-10-11-vertx" data-pattern="Non-blocking database clients versus the JDBC bridge" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-non-blocking-database-clients-versus-the-jdbc-bridge">Case study: Non-blocking database clients versus the JDBC bridge</h2>
+<p>Every handler is non-blocking, the event loop never stalls, the dashboard is green — and the JDBC bridge pool is the wall the service hits.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Two database clients wear the same API shape. The reactive client speaks the wire protocol itself and never blocks. The JDBC bridge wraps a blocking driver and runs each query on a worker thread from a pool. One occupies no thread per query; the other occupies one for the whole roundtrip.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-8">The Vert.x knowledge gap it signals</h3>
+<p>The bridge is not a lie, it is a borrow. It says: this driver blocks, so lend me a thread from a pool you must size, and the loop stays safe. The claim it encodes is that the pool is the real concurrency limit for the database. The gap question: how many queries are in flight at peak, and how large is the worker pool under the bridge?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The bridge where the driver forces it: a database with no reactive client, a vendor driver only JDBC exposes, a nightly batch far from the hot path. The bridge’s pool is sized from measured in-flight queries and kept separate from the general worker pool.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The reactive application whose data layer is the bridge. Twenty worker threads, five hundred concurrent requests, the rest waiting on a queue nobody sized. Latency climbs while CPU idles, and the trace blames a database that is healthy. It reads as reactive because the call returns a Future. It behaves as a thread pool with extra steps.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which database client is actually non-blocking — verified — and what pool sits under the bridge, sized how?</strong></p>
+<ul>
+<li><strong>If yes</strong> → count in-flight queries at peak against the pool, and confirm the bridge pool is separate from the general worker pool.</li>
+<li><strong>If no</strong> → the loop is safe but the path is not non-blocking end to end. Measure the wait, then either adopt the reactive client or size the bridge deliberately.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure concurrent queries at peak, then the time each one occupies its thread.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#Reactive</code> <code>#JDBC</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-http-client-connection-pool-sizing" class="level2 kg-post" hidden="true" data-slug="webclient-pool-2027-10-12-vertx" data-pattern="HTTP client connection pool sizing" data-group="vertx" data-group-label="Vert.x">
+<h2 class="anchored" data-anchor-id="case-study-http-client-connection-pool-sizing">Case study: HTTP client connection pool sizing</h2>
+<p>Fifty concurrent calls, a default pool of five connections, and forty-five callers queueing on a limit nobody chose.</p>
+<p>Writing a Vert.x handler? Ask “which claim does this design make about blocking — what may wait, and what may never wait?” If you can’t answer, you’ve found a knowledge gap: the event loop enforces a guess. If you can, the design is knowledge embodied — the code catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The Vert.x HTTP client keeps pooled connections per endpoint, and WebClient sits on it. Reuse is the point: a pooled socket beats a handshake. Max pool size caps the connections; requests beyond the cap wait in a queue. Idle and keep-alive timeouts decide when a socket is dropped. They must end before the server ends its own, or the pool hands out sockets the server is closing.</p>
+</blockquote>
+<section id="the-vert.x-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-vert.x-knowledge-gap-it-signals-9">The Vert.x knowledge gap it signals</h3>
+<p>Pool size is a claim about measured concurrency, never about caution. Reuse assumes calls are frequent enough to beat a handshake. The queue assumes the wait costs less than the alternative. Neither is free, and both are decisions. The gap question: what is the peak concurrent call count per endpoint, at the peak hour?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The pool is sized above the measured concurrent-call count and states a wait policy: bounded queue with a fast failure, or unbounded with a measured timeout. Timeouts are set together — connect, request, and idle below the server’s keep-alive.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The default small pool under real load. Nobody set the maximum, so it stays at five; the wait queue has no bound and no policy; the p99 belongs to the queue, not to the service. Then the idle timeout outlives the load balancer’s: the first call on a stale socket fails as a read timeout, and the retries read as flakiness. Somebody did set a timeout, so it looks tuned. Nothing was sized. Under HTTP/2 one connection multiplexes streams, which moves the bound from sockets to streams — not away from it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured concurrent-call count per client — and is the pool above it, with a stated wait policy?</strong></p>
+<ul>
+<li><strong>If yes</strong> → check the idle timeout against the server’s, and that the queue bound fails fast instead of growing silently.</li>
+<li><strong>If no</strong> → the pool is the bottleneck by construction. Raise it to the measured count, or bound the queue and let the caller see the rejection.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure concurrent calls per endpoint at peak, then the wait each one records.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#VertX</code> <code>#Java</code> <code>#WebClient</code> <code>#ConnectionPools</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

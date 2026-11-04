@@ -633,21 +633,619 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>The framework decides at build time what the code left open. Each post will name what was baked in, and which fact set it.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>The framework decides at build time what the code left open. Each post names what was baked in, and which fact set it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="quarkus">
+<p>Adding a build-time decision? Ask “what did the framework bake in, and which fact of the deployment set it?” If you can’t answer, you’ve found a knowledge gap: the build baked a guess into an artifact. If you can, the build is knowledge embodied — the image catching up to what the deployment decided.</p>
+</div>
+<section id="case-study-build-time-augmentation" class="level2 kg-post" hidden="true" data-slug="build-time-metadata-2027-09-15-quarkus" data-pattern="Build-time augmentation" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-build-time-augmentation">Case study: Build-time augmentation</h2>
+<p>The key was changed in production, the service restarted, and the new value took effect nowhere.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Quarkus moves what a framework used to do at boot — bean discovery, bytecode transformation, config resolution — into a build step called augmentation. The shipped artifact is already resolved, so startup is tens of milliseconds and the footprint stays small. The trade is exact: a key fixed at build time cannot change after the build — the binary ignores any value the deployment sends. <code>quarkus.http.root-path</code>, the datasource kind, ORM schema generation — read at build time, fixed in the binary.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals">The Quarkus knowledge gap it signals</h3>
+<p>The team must know which config is a fact about the deployed environment and which about the build. One artifact runs everywhere, so any value that differs between environments belongs to the run, not the build: port, credentials, URLs. A key miscategorized the other way loses its dynamism silently — the binary keeps the baked value and logs a warning nobody reads.</p>
+<p>The gap question: which keys are build-time, and would we have decided the same knowing they can never change without a rebuild?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for ten posts (#412–#421). The framing is fixed; the entries are being written.</p>
+<p>A scale-to-zero service behind a queue: the platform bills cold start on every wake-up, and measured startup decides if the design holds.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A build-time key edited in the production config map, deployed, restarted. The service comes up green. The value is ignored, so the change did nothing — and the team learns this days later, debugging what the change was meant to fix. The quieter reverse trap: making everything runtime-overridable for “flexibility,” returning the boot cost to every replica for dynamism nobody used.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which config keys are build-time — listed — and who knows they cannot change without a rebuild?</strong></p>
+<ul>
+<li><strong>If yes</strong> → augmentation carries the workload’s facts. Check the list is in the readme, not just the config reference.</li>
+<li><strong>If no</strong> → the artifact holds decisions nobody tracked. Diff the build-time keys against what ops believes is runtime.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Measure startup, then count deploys that changed a build-time key.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#BuildTime</code> <code>#CloudNative</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-dev-services" class="level2 kg-post" hidden="true" data-slug="dev-services-2027-09-16-quarkus" data-pattern="Dev Services" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-dev-services">Case study: Dev Services</h2>
+<p>Dev Services started a database for you. It is the image your Quarkus platform version pins, not the one production runs.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> When no datasource URL is configured in dev or test mode, Quarkus starts the container itself — Postgres, Kafka, Redis, Keycloak — and wires the connection. A new developer clones and runs, with no setup. The image is pinned by the Quarkus platform version you build with, not by your production manifest. The trade: parity nobody had to configure, against an environment nobody configured.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-1">The Quarkus knowledge gap it signals</h3>
+<p>The container is a stand-in for a versioned external service, and it may differ where dev and production were never compared: image version, extensions, collation, timezone, TLS, roles, and data already present. Each difference is a fact about production the developer never met. Tests pass against the substitute and say nothing about the original.</p>
+<p>The gap question: which versions does dev actually run, and how were they verified against production?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A team whose production images are pinned and whose CI job compares each Dev Services image tag to the deployed tag. Parity is then a checked fact, and the zero-config start costs nothing but the check.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Dev Services pulls the platform default — a newer Postgres than production runs — and the schema, the JSON functions, and the query planner all behave differently. Everything works locally. The migration passes in CI. Production rejects the syntax, or accepts it and returns a different order. The opposite failure is quieter: tests that pass only because something was listening on the port, never asserting they reached the intended store.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which versions does dev actually run — pinned — and are they verified against production, how?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the stand-in is constrained by the same facts. Check the comparison runs on every build, not once at setup.</li>
+<li><strong>If no</strong> → dev parity is a coincidence that holds until a version differs. Pin the images, then align them to production.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. List every container dev starts and the tag it resolves to.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#DevServices</code> <code>#TestContainers</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-native-image-builds" class="level2 kg-post" hidden="true" data-slug="native-build-2027-09-17-quarkus" data-pattern="Native image builds" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-native-image-builds">Case study: Native image builds</h2>
+<p>The native build took 14 minutes, and the hot service it produced lost a quarter of its peak.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> GraalVM compiles the application ahead of time under a closed-world assumption: reachable code is fixed at build time, reflection needs explicit registration. The trade: minutes of CI per build, harder debugging, and slower peak throughput on long-running CPU-bound work, against startup in the tens of milliseconds and resident memory a fraction of the JVM’s.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-2">The Quarkus knowledge gap it signals</h3>
+<p>Native pays back only where startup or footprint is billed. The team must know which of its services is charged for cold start, which is memory-constrained in density, and which runs hot and long enough to prefer the JIT. Those are three different services, and the build profile is a claim about all of them.</p>
+<p>The gap question: which services pay their native build cost back in startup and footprint, measured?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The services that scale to zero, where the platform bills the wake-up and the measured cold start and RSS decide whether the trade pays back. The native profile applies there and where footprint is billed. Everything else stays in JVM mode, deliberately.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Native for every service, because “Quarkus is fast.” CI accumulates hours per day, reflection failures surface late in the cycle, and the profile attached to the pipeline stops being readable. A throughput regression on the CPU-bound service ships with the build; an operator finds it months later, not a benchmark. The build cost was real; the payoff was never measured, only assumed.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which services pay their native build cost back — measured?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the profile is a fact about each service. Check the numbers are recorded per service, not per organization.</li>
+<li><strong>If no</strong> → the build is a habit. Measure cold start and RSS in both modes on the services that scale to zero.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Time the native build, then measure what it bought.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#NativeImage</code> <code>#GraalVM</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-jvm-mode-footprint-tuning" class="level2 kg-post" hidden="true" data-slug="memory-footprint-2027-09-18-quarkus" data-pattern="JVM-mode footprint tuning" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-jvm-mode-footprint-tuning">Case study: JVM-mode footprint tuning</h2>
+<p>Quarkus means small, so someone set a 256 MB limit. The first traffic spike killed the container.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> In JVM mode Quarkus starts fast, but the heap is still the JVM’s: sized from the container limit, a quarter by default, with GC headroom, metaspace, thread stacks, and native buffers living outside it. The trade: defaults calibrated for a modest workload — small heap, quick start, a default collector — against the headroom a real peak load needs, where allocation spikes push the process past its limit.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-3">The Quarkus knowledge gap it signals</h3>
+<p>Resident memory is heap plus what sits outside it; the peak is the number. The team must know its live set at peak, its allocation rate at peak, and the RSS that follows from both, per replica. Density is computed from RSS; a limit set from a heap estimate or from an idle reading is a guess about a number nobody took.</p>
+<p>The gap question: what is the measured RSS at peak load, and is the container limit above it with stated headroom?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A platform that bills density, not idle: RSS measured per replica at peak, the limit set above it with headroom named in the manifest, and density computed from that RSS rather than from the heap. The small footprint is then a fact the platform can plan against.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Quarkus is small” carried into JVM mode with the default heap: a 256 MB limit, a 64 MB heap, and thread stacks and direct buffers outside it. It works in dev, works in the load test at half rate, and dies on the first real spike: RSS crosses the limit while the collector spends the spike collecting. The kill looks like an infrastructure fault, not a sizing decision. Idle RSS measured once, then multiplied into a density plan, sets the same limit.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the measured RSS at peak load — and is the container limit above it with stated headroom?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the footprint is a measured fact. Check the reading is at peak, not at idle.</li>
+<li><strong>If no</strong> → the limit guards nothing. Measure RSS under the peak profile before setting it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Measure RSS at peak, then compare it to the limit.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#JVM</code> <code>#CapacityPlanning</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-the-reactive-rest-layer" class="level2 kg-post" hidden="true" data-slug="rest-reactive-2027-09-19-quarkus" data-pattern="The reactive REST layer" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-the-reactive-rest-layer">Case study: The reactive REST layer</h2>
+<p>One JDBC call in a Uni-returning endpoint, and every other request on that event loop waits behind it.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>quarkus-rest</code> dispatches by return type: a plain return goes to a worker thread, a <code>Uni</code> or <code>Multi</code> return stays on the event loop. A reactive method that blocks holds the loop, and every request assigned to that thread waits for it. <code>@Blocking</code> forces a worker, <code>@NonBlocking</code> forces the loop. The trade: event-loop dispatch — no thread per request, high concurrency on few threads — against blocking endpoints whose stall is paid by requests that never blocked.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-4">The Quarkus knowledge gap it signals</h3>
+<p>The return type is a claim about the endpoint’s behavior: a reactive return promises no blocking, and dispatch trusts it. The team must know which reactive endpoints still block — JDBC, file I/O, a synchronous client, heavy CPU work — because the type promises and the body decides.</p>
+<p>The gap question: which endpoints block — listed — and is that marking deliberate or trusted by default?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Reactive dispatch for the I/O-bound endpoints, returning <code>Uni</code> and <code>Multi</code> so the thread is released while waiting. Plain returns, or <code>@Blocking</code>, on the CPU-heavy and JDBC-backed ones, chosen per endpoint and written down. The dispatch model then matches what each endpoint does.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A blocking JDBC call in a Uni-returning endpoint. It passes in dev, passes under a light load test, then degrades nonlinearly: one stall per event-loop thread stalls every request queued behind it, and latency rises without CPU rising. The diagnosis is hard because nothing is saturated. The opposite trap is tidier — <code>@Blocking</code> on everything, which queues every call on a small fixed worker pool and gives up the reason the reactive layer was chosen.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which endpoints block — listed — and is that marking deliberate or trusted by default?</strong></p>
+<ul>
+<li><strong>If yes</strong> → dispatch matches behavior. Check the list is reviewed when an endpoint gains a database call.</li>
+<li><strong>If no</strong> → the default is doing the deciding. Walk the resource methods and mark the blocking ones.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. List every endpoint, then its I/O.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#Reactive</code> <code>#REST</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-config-profiles-and-build-time-keys" class="level2 kg-post" hidden="true" data-slug="config-profiles-2027-09-20-quarkus" data-pattern="Config profiles and build-time keys" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-config-profiles-and-build-time-keys">Case study: Config profiles and build-time keys</h2>
+<p>A manifest sets the database kind to Postgres for production, the pipeline applies it, and the application keeps talking to the H2 database the build chose — no error, no restart, no diff anyone reads.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Quarkus sorts every configuration key into a phase: runtime keys are read at startup, build-time keys once on the build machine, then written into the artifact. Profiles (%dev, %test, %prod) select values in either phase. A %prod value for a fixed build-time key is baked, and no environment variable moves it; some build-time keys still keep their value overridable at run time.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-5">The Quarkus knowledge gap it signals</h3>
+<p>A phase is a claim about the workload. The database kind, its JDBC driver, and the extension set are shipped decisions; the URL, the credential reference, and the pool ceiling belong to the deployment. Getting the split wrong is not a framework bug — it is a missing statement about which facts belong to the artifact. The gap question: for each key, is it build-time or runtime, and does anyone on the team know?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Runtime keys change per deploy and arrive from the environment: a pool size the operator tunes, a region flag set per cluster. Build-time keys stay identical everywhere and are documented in the artifact. The split then matches how the platform actually differs, and the build records what it decided.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An environment-specific value placed in runtime configuration for a build-time key. It looks right in the manifest, it sits beside keys that do work, and it is ignored: the jar starts, serves traffic, and uses whatever the build baked in. The failure reads as “staging works, production is slow” with identical configuration files.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each key: build-time or runtime — known — and how is that verified at deploy time?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the configuration follows the workload. Check that verification runs where the deploy happens, not in a wiki page.</li>
+<li><strong>If no</strong> → the key is a wish. Look up its phase, then move it to where it is actually read.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Dump the resolved configuration at startup and compare it against the keys the build fixed.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#Configuration</code> <code>#BuildTime</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-smallrye-health-and-metrics" class="level2 kg-post" hidden="true" data-slug="health-metrics-2027-09-21-quarkus" data-pattern="SmallRye health and metrics" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-smallrye-health-and-metrics">Case study: SmallRye health and metrics</h2>
+<p>The readiness probe calls the payment gateway. The gateway slows past the probe timeout, every replica leaves the load balancer at once, and the outage arrives before the dependency does.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> SmallRye Health exposes /q/health/live and /q/health/ready, each aggregating CDI checks run on every probe call; readiness decides Service membership, liveness decides a container restart. The trade is which remedy a red probe triggers, against checks that are green while useless or red while the application is healthy.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-6">The Quarkus knowledge gap it signals</h3>
+<p>Readiness answers “should traffic reach this instance now” — a fact about dependencies cheap to check per call. Liveness answers “can this process still make progress” — a fact that must never depend on a peer, because the remedy is a restart. A team needs to know which dependencies are fatal, which degrade, and which a restart cannot repair. The gap question: what does readiness check, and which failure is it meant to catch?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Readiness inspects its own pool and each datastore no request survives without, with a timeout shorter than the probe period. Liveness stays minimal: the event loop answers, nothing else. The platform’s remedy then matches the fault.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Readiness fanning out to every downstream: gateway, search, the broker. Each was added after an incident and looks responsible. Then one slow peer marks the whole fleet NotReady, traffic has nowhere to go, and fleet availability equals the weakest dependency’s. The companion trap: green checks on /q/health while the app returns 500s on the paths that matter.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What does readiness actually check — and would a failed dependency flip it, tested how?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the probes state the fault tolerance. Check that a test breaks the dependency on purpose and watches endpoints drain.</li>
+<li><strong>If no</strong> → the probe measures nothing. Make it check the one dependency a request cannot survive.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. List the dependencies per request, then ask which failures a restart repairs.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#Kubernetes</code> <code>#Observability</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-generated-kubernetes-manifests" class="level2 kg-post" hidden="true" data-slug="kubernetes-manifests-2027-09-22-quarkus" data-pattern="Generated Kubernetes manifests" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-generated-kubernetes-manifests">Case study: Generated Kubernetes manifests</h2>
+<p>During an incident someone raises a memory limit to 2Gi on one cluster. The generated manifest still says 512Mi, so every pipeline run proposes to revert the fix — and nobody runs the pipeline.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> The Quarkus Kubernetes extension writes target/kubernetes/kubernetes.yml at build time from the same properties that configure the application: replicas, resource limits, probes. The manifest is an artifact with a version, not a hand-edited document. The trade is deployment knowledge living in the build against the risk of divergence from hand-edited production YAML.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-7">The Quarkus knowledge gap it signals</h3>
+<p>A limit is a claim about the workload: a memory ceiling the heap fits under, a CPU request matching measured usage, a replica count derived from load. When those live in the build, one writer owns them: the build. A hotfix then costs a rebuild. A team needs to know which facts are environment-specific — an ingress host, a secret — and which belong to the artifact. The gap question: is the deployed manifest the generated one, or has the cluster become the source?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Manifests generated from the same keys that set the application’s configuration, so heap maximum and container limit come from one number and cannot drift apart. The manifest is versioned with the code, and CI diffs it against the live cluster before applying.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An ops-edited limit that exists on one cluster only. The generated file and the running system disagree, neither is authoritative: the next apply reverts the fix, the next incident re-applies it. The companion trap: hand-maintained YAML drifting until it describes a service that no longer exists.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is the deployed manifest the generated one — diffed regularly — or did operational drift become the truth?</strong></p>
+<ul>
+<li><strong>If yes</strong> → deployment knowledge lives where it is versioned. Check that the diff runs on a schedule, not when someone remembers.</li>
+<li><strong>If no</strong> → the cluster is the configuration, the build a suggestion. Adopt the live change back into the properties, or write down why it stays local.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Fetch the live manifest, diff it against the generated one, and name who changed each line.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#Kubernetes</code> <code>#Deployment</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-panache-active-record-and-repository" class="level2 kg-post" hidden="true" data-slug="panache-2027-09-23-quarkus" data-pattern="Panache (active record and repository)" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-panache-active-record-and-repository">Case study: Panache (active record and repository)</h2>
+<p>A resource class calls Order.findAll() and reads order.customer.email. The query layer, the fetch strategy, and the entity boundary now sit in the web tier — and nothing failed to compile.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Panache offers two shapes. PanacheEntity puts static find, list, and count on the entity and rewrites public field access at build time; PanacheRepository puts the same queries in a repository bean. Both are supported, and the documentation asks a project to pick one. The trade is terse entities and queries against a pattern decision: where a query lives, and who owns it.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-8">The Quarkus knowledge gap it signals</h3>
+<p>A query states which facts the domain asks for — by identity, by state, by date range — and where it lives marks who may change it. On the entity, the query is part of the model; in a repository, it has an owner and a name. Panache is terse because it assumes that decision is made, and terseness amplifies whatever you assumed. The gap question: can you state which style this service chose, and why?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Panache adopted deliberately per service, the style written down where a reviewer sees it, and every query landing where that style puts it: simple lookups on the entity or in the repository, field access inside the model, so the rewritten access has one owner.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>findAll and field access drifting into controllers. Each hop is one line and reads well, and after a year the web tier builds predicates, the entity is an anemic data bag, and one query exists four times with three fetch strategies. The framework made every step easy, and easy is not decided.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Where does a query live in this service — stated — and can a reviewer find it in one hop?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the pattern is a decision, not a drift. Check that new queries land in the same place and that field access stays inside the model.</li>
+<li><strong>If no</strong> → the web tier is the persistence layer. Move the queries behind one boundary and name the style where they land.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. List the queries the service runs, then map each to the file that owns it.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#Panache</code> <code>#Persistence</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-hibernate-reactive" class="level2 kg-post" hidden="true" data-slug="hibernate-reactive-2027-09-24-quarkus" data-pattern="Hibernate Reactive" data-group="quarkus" data-group-label="Quarkus">
+<h2 class="anchored" data-anchor-id="case-study-hibernate-reactive">Case study: Hibernate Reactive</h2>
+<p>Four event-loop threads are offered 8,000 requests a second. One legacy validator makes a blocking JDBC call on every request, and at most four run at once — the loop count, not the request rate.</p>
+<p>Accepting a Quarkus default? Ask “which decision did the framework make — at build time or at run time — and which fact did it bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Hibernate Reactive pairs the ORM API with reactive SQL clients. Queries return Uni and Multi, and @Transactional scopes a transaction to the reactive context. The constraints are real: no lazy loading, a reactive driver per database, and no mixing with classic Hibernate ORM in one persistence unit. The trade is a non-blocking path end to end against driver support and transactional semantics that must be verified.</p>
+</blockquote>
+<section id="the-quarkus-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-quarkus-knowledge-gap-it-signals-9">The Quarkus knowledge gap it signals</h3>
+<p>Non-blocking is a property of the whole path, not of an annotation. The facts to hold: every dependency speaks a reactive protocol natively, every transaction is short, every association is fetched where needed, and nothing in the dependency tree opens a JDBC connection. One blocking call returns the stall to the event loop, and the damage scales with concurrency, not request count. The gap question: which step in this path can block, and has anyone checked?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An IO-bound service, reactive end to end, driver included, with a build that rejects a blocking driver. Quarkus flags a blocked event-loop thread in dev and test mode, so the property is observed, not asserted.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One blocking call inside the reactive chain. A JWT validator that reads a key from a database, a legacy cache client, a driver that advertises reactive support and hands back a JDBC connection. Each arrives as “just this once”, passes a smoke test, and stalls every request sharing that event loop.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Is every step of the request path non-blocking — verified — and does the driver truly support it?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the choice is the workload’s. Check the warning log for blocked threads, and that no lazy association is traversed in the chain.</li>
+<li><strong>If no</strong> → the annotation is a costume. Find the blocking step, then wrap it off the event loop or remove it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Trace every endpoint’s path once and list each library it touches.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Quarkus</code> <code>#Java</code> <code>#HibernateReactive</code> <code>#Reactive</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

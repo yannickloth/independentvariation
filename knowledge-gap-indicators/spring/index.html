@@ -633,21 +633,862 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>An annotation or a default claims who owns the transaction, what may run later, what may be stale. Each post will name the claim and ask which fact of the domain or the workload backs it.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>An annotation or a default claims who owns the transaction, what may run later, what may be stale. Each post names the claim and asks which fact of the domain or the workload backs it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="spring">
+<p>Adding an annotation or accepting a default? Ask “which fact of the domain or the workload backs this claim — who owns the transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework’s default stands in for knowledge nobody wrote. If you can, the annotation is knowledge embodied — the framework catching up to what the domain decided.</p>
+</div>
+<section id="case-study-transactional-and-the-proxy" class="level2 kg-post" hidden="true" data-slug="transactional-proxy-2027-08-20-spring" data-pattern="@Transactional and the proxy" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-transactional-and-the-proxy">Case study: @Transactional and the proxy</h2>
+<p>A method calls its own sibling on the same bean, and the sibling’s @Transactional never executes — no boundary of its own, no rollback of its own, no warning.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> By default, Spring applies @Transactional by wrapping the bean in a proxy whose intercepted methods begin, commit, or roll back. The annotation binds to the call, not to the method body. In proxy mode, a self-invocation passes through no proxy, so the annotation is inert: the method runs in whatever transaction the caller opened, or in none.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals">The Spring knowledge gap it signals</h3>
+<p>The team must know where its transaction boundaries sit relative to its call paths. The annotation claims “this unit of work is atomic”; the proxy enforces it only on entry from outside. Two facts stay unasked: which paths enter through the proxy, and which failures the domain calls faults. By default, Spring rolls back on unchecked exceptions only, so a checked business failure commits and the claim quietly becomes false.</p>
+<p>The gap question: which call path enters this method — through the proxy?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for fourteen posts (#386–#399). The framing is fixed; the entries are being written.</p>
+<p>Boundaries at entry points that controllers, consumers, or scheduled jobs call from outside the bean. The domain fact is that the step is atomic: the order, the payment, and the reservation succeed or fail together.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>@Transactional on an internal helper “for safety.” The helper joins whatever its caller opened, so it documents an intention and enforces nothing. A test passes because the caller happened to be transactional; the one path without one half-writes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which call path enters this method — through the proxy? And which failures should roll back, by domain rule rather than by default?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the annotation holds on that path. Check the rollback rules name the domain’s fault classes, checked ones included.</li>
+<li><strong>If no</strong> → the call is internal. Move the boundary to the entry point, or split the bean so the call crosses the proxy, and price the extra edge.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. List every caller, then every failure the domain calls a fault.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Transactions</code> <code>#ProxyPattern</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-propagation-levels-required-requires_new-nested" class="level2 kg-post" hidden="true" data-slug="propagation-2027-08-21-spring" data-pattern="Propagation levels (REQUIRED, REQUIRES_NEW, NESTED)" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-propagation-levels-required-requires_new-nested">Case study: Propagation levels (REQUIRED, REQUIRES_NEW, NESTED)</h2>
+<p>The audit log says the order was placed, the order was rolled back, and REQUIRES_NEW let the audit row outlive the fact it describes.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> REQUIRED joins the caller’s transaction, so one rollback takes both. REQUIRES_NEW suspends the caller and commits its own, so it survives the caller’s rollback. NESTED takes a savepoint inside the caller’s transaction, on a JDBC-backed manager that supports savepoints, rolls back to it, and lets the outer work continue. The trade is whose failure set is shared with whose.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-1">The Spring knowledge gap it signals</h3>
+<p>Propagation states which facts live and die together: REQUIRES_NEW declares an independent fact; NESTED declares one that may be abandoned while the larger survives. Neither is a safety setting. Propagation is honored only across a proxy call (Spring’s wrapper around the bean), and its consequences appear only at the first partial failure — the case no test scripts.</p>
+<p>The gap question: for each boundary, must this fact survive the caller’s rollback — answered in domain terms, or copied from a default?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>REQUIRES_NEW where a stated business rule says the attempt must outlive the failure: a compliance record of a rejected application, a security event for a denied login. The rule is written, and the team can state its converse — what must not be recorded.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>REQUIRES_NEW everywhere “to be safe.” Every attempt writes, including attempts the domain considers non-events, and the log reports orders that were never placed — safe against lost writes, unsafe against false ones. NESTED on a store without savepoint support is the same guess in another form: it compiles, and the driver refuses when the first nested call asks for a savepoint.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each boundary: must this fact survive the caller’s rollback — answered in domain terms, or copied from a default?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the level is a domain decision. Write down, per boundary, which facts share a fate and which do not.</li>
+<li><strong>If no</strong> → the level is the default or a habit. Remove it, or restate it in domain terms first.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the level wrong — you’ve found incomplete domain knowledge. Ask which partial failures the domain accepts, and what the log must say about a refused action.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Transactions</code> <code>#AuditLog</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-lazy-versus-eager-bean-initialization" class="level2 kg-post" hidden="true" data-slug="lazy-init-2027-08-22-spring" data-pattern="Lazy versus eager bean initialization" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-lazy-versus-eager-bean-initialization">Case study: Lazy versus eager bean initialization</h2>
+<p>Startup drops from nine to four seconds in the Boot log. A missing property surfaces at 02:00 as a 500 on one endpoint, in front of a customer.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An eager bean is built while the application context refreshes; a lazy one on first lookup. The trade is where a wiring or configuration failure lands: at boot, in front of the deploy pipeline, or at first use, in front of the first caller. Boot 3.x makes the whole context lazy with one property, spring.main.lazy-initialization.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-2">The Spring knowledge gap it signals</h3>
+<p>Laziness relocates failures; it does not remove them. A bean that cannot be configured still fails — the only question is whether the log says “deployment refused” or “request 4471 failed”. That is a claim about consequence: which subsystems must be proven before traffic is admitted, and which may wait. Laziness also stops at the injection point: a lazy bean injected into an eager singleton without an @Lazy injection point is still built at boot.</p>
+<p>The gap question: which beans would you rather fail at boot than at first use — did anyone decide, or did a property decide for them?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Lazy for paths only some traffic reaches: an admin report, an optional integration. Eager, deliberately, for the beans whose misconfiguration must stop the release — datasource, security chain, listener containers.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Global lazy initialization “for startup time.” The broken bean is found by the first user, inside a request thread; the deploy that should have failed becomes an incident. The cost does not vanish: it moves to the first call on each cold path, so the p99 of rarely used endpoints becomes the startup you saved, paid by a customer. Every dashboard looks better.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which beans would you rather fail at boot than at first use — and did anyone decide, or did a property decide for them?</strong></p>
+<ul>
+<li><strong>If yes</strong> → keep those eager by name, make the rest lazy per bean, and check the cold-path latency.</li>
+<li><strong>If no</strong> → nothing was decided. The property bets on which failures nobody notices; you are not the one who pays it.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the property wrong — you’ve found incomplete domain knowledge. Ask which subsystems must be proven before traffic, and what the lazy path costs cold.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#StartupTime</code> <code>#Reliability</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-prototype-scope" class="level2 kg-post" hidden="true" data-slug="prototype-scope-2027-08-23-spring" data-pattern="Prototype scope" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-prototype-scope">Case study: Prototype scope</h2>
+<p>A bean is annotated @Scope(“prototype”) and injected into a singleton. One instance is ever built — and four million requests share it.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A prototype bean is built for each lookup, configured, handed to the caller, and forgotten — the container keeps no record, so it never calls the destruction callback. The trade is lifecycle ownership: a fresh instance per use against a cleanup obligation the container will not discharge. A prototype injected into a singleton is resolved once, at creation, and captured for the singleton’s lifetime.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-3">The Spring knowledge gap it signals</h3>
+<p>Prototype is a claim about per-item state: this object accumulates something a second user must not see — a buffer, a mutable parse tree. It is also a claim about ownership of cleanup. Neither claim is checked. The container hands a prototype to a singleton without a warning, and never runs @PreDestroy on it, so what it holds is released only if the caller does.</p>
+<p>The gap question: who creates and destroys this bean — the container at every lookup, or whoever injected it once?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Work whose state belongs to one unit of use, fetched through ObjectProvider at the moment of need and discarded after: a report builder per export, a stateful parser per payload. The domain says the state is per-item, and the caller owns the end of it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The annotation plus a singleton field. The scope claim is then silently false: mutable state crosses request boundaries, and the bug arrives as another user’s data in a response — intermittent, unreproducible, and naming nothing in the stack trace. A quieter variant: expecting @PreDestroy on a prototype, so connections leak per lookup.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Who creates and destroys this bean — the container at every lookup, or whoever injected it once?</strong></p>
+<ul>
+<li><strong>If yes</strong> → hold it behind an ObjectProvider, fetch per use, and give the caller an explicit end-of-life.</li>
+<li><strong>If no</strong> → the singleton holds one instance. Make the state immutable, or inject an ObjectProvider instead of the bean.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the scope wrong — you’ve found incomplete domain knowledge. Ask which state belongs to one use, and who closes what the object opens.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#BeanScope</code> <code>#Lifecycle</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-async-and-the-executor-nobody-named" class="level2 kg-post" hidden="true" data-slug="async-executor-2027-08-24-spring" data-pattern="@Async and the executor nobody named" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-async-and-the-executor-nobody-named">Case study: @Async and the executor nobody named</h2>
+<p>One @Async on the nightly import, and every @Async handler now queues behind the batch.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> @Async lifts a method body off the caller’s thread and returns a future. It runs on an executor you name or do not: Boot 3.x auto-configures a pool of eight with an unbounded queue; the thread-per-task fallback belongs to plain Spring, or to virtual threads. Name nothing, and every @Async method shares that default.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-4">The Spring knowledge gap it signals</h3>
+<p>An executor is a capacity claim about a workload, and the workload is a domain fact. Peak concurrent invocations, thread hold time, the share of that spent waiting on I/O — a pool sized from those three is measured; one sized from a default is inherited. The team must also know which workloads may share a fate: a saturated batch is a different risk from a saturated checkout.</p>
+<p>The gap question: which pool runs this method — named, sized — and from what measured task profile?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A dedicated executor per workload, sized from its own profile. The reconciliation job gets two threads because two saturate the source database and more only contend. The request path gets a pool sized from the concurrency its latency budget allows. They share nothing, so a first-of-month spike cannot starve the health check.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>@Async on a method, no executor configured anywhere. It compiles, the single-call test passes, and the annotation reads as “we made it async”. Under load the import, the audit write, and the mail send compete for one pool designed for none of them. The unbounded default is worse: nothing is refused, the queue grows without bound, and the heap fills with work that never runs.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which pool runs this method — named, sized — and from what measured task profile?</strong></p>
+<ul>
+<li><strong>If yes</strong> → an executor per workload, with a number behind each size. Check its queue: a large queue turns saturation into latency that a refusal would have made visible.</li>
+<li><strong>If no</strong> → it runs on whatever the framework chose. Name the executor, size it, and decide what happens when it is full.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found @Async wrong — you’ve found incomplete knowledge of your workload. Measure the peak concurrent calls and the thread hold time.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Async</code> <code>#ThreadPools</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-cacheable-cacheevict-and-the-ttl-that-is-not-there" class="level2 kg-post" hidden="true" data-slug="cacheable-2027-08-25-spring" data-pattern="@Cacheable, @CacheEvict, and the TTL that is not there" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-cacheable-cacheevict-and-the-ttl-that-is-not-there">Case study: @Cacheable, @CacheEvict, and the TTL that is not there</h2>
+<p>A @Cacheable method that reads the current user, under a key that never names the user, serves one customer another’s price.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> @Cacheable stores a return value under a key built from the arguments and serves it to the next caller with that key. @CacheEvict drops entries. Neither carries a TTL — the abstraction offers key, keyGenerator, condition, and unless, so it lives in the CacheManager underneath or nowhere: stale until evicted, forever if nothing does.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-5">The Spring knowledge gap it signals</h3>
+<p>A cache is a staleness contract the domain must state: which reads tolerate lag, and how much. The key is a second claim — an assertion that two calls with equal keys have equal answers. Every input that changes the answer belongs in it, including ones off the parameter list: the principal, the tenant, the locale.</p>
+<p>The gap question: what may be stale, for how long — stated by the domain? And does the key capture every input that changes the answer?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A price list that may trail five minutes is a business statement a person can defend: the five-minute TTL sits in the CacheManager entry beside the annotation that cannot express it, the key carries sku, currency, and tier, and eviction hangs off the write that changes it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>@Cacheable on a method whose result depends on the authenticated user, keyed by product id alone. The first caller populates the entry; every other customer reads their price. Nothing fails; the numbers are another customer’s. A self-invoked call bypasses the AOP proxy, so those calls never touch the cache.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What may be stale, for how long — stated by the domain? And does the key capture every input that changes the answer?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the lag is a decided fact and the key is the identity. Check eviction against every invalidating write, and set the TTL in the CacheManager — the annotation will not.</li>
+<li><strong>If no</strong> → you have a correctness defect no test can see: the wrong answer is a cached one. Add the missing key input, or drop the cache.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found @Cacheable wrong — you’ve found incomplete domain knowledge. Ask which reads tolerate lag, on which inputs.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Caching</code> <code>#Staleness</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-auto-configuration-and-its-embedded-guesses" class="level2 kg-post" hidden="true" data-slug="autoconfiguration-2027-08-26-spring" data-pattern="Auto-configuration and its embedded guesses" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-auto-configuration-and-its-embedded-guesses">Case study: Auto-configuration and its embedded guesses</h2>
+<p>The connection pool maxes at ten because ten is the HikariCP default, and nobody in the room ever chose ten.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Auto-configuration adds beans when conditions match: a DataSource from a classpath driver, an ObjectMapper, a pool of ten connections, a thirty-second connect timeout, unknown JSON fields ignored rather than rejected. Each is a decision taken by a condition, not by a person.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-6">The Spring knowledge gap it signals</h3>
+<p>A default answers a question the framework asked on your behalf: how many connections may exist in total, what a consumer does when a payload gains a field, how long a socket may hang. The multiplication is what the default hides — ten per instance, twelve instances, one database accepting one hundred: the last two lose.</p>
+<p>The gap question: which defaults is this application running on — listed anywhere — and which did anyone consciously accept?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each active auto-configuration reviewed once, each exclusion recorded with its reason. The pool is eight because the database’s limit divided by the instance count gives eight, and that arithmetic sits in the configuration comment. Jackson’s conventions are pinned because a contract test asserts them.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“It works” as the only evidence. The pool is ten because ten is the default, and staging never ran twelve instances. The ObjectMapper swallows unknown fields, so an upstream rename becomes a null three layers deeper instead of a parse failure. Dates serialize as ISO because Boot disabled the timestamp form, and the consumer reading epoch numbers never noticed.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which defaults is this application running on — listed anywhere — and which did anyone consciously accept?</strong></p>
+<ul>
+<li><strong>If yes</strong> → configuration is a stated set of choices, and an upgrade is a diff against them. Check each value’s arithmetic against the constraint behind it.</li>
+<li><strong>If no</strong> → the application runs on inherited answers. Enumerate what auto-configured, then accept or override each in writing.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found auto-configuration wrong — you’ve found incomplete domain knowledge. Compare what the deployment needs with what the framework supplied.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#AutoConfiguration</code> <code>#Defaults</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-actuator-endpoints-and-what-they-expose" class="level2 kg-post" hidden="true" data-slug="actuator-exposure-2027-08-27-spring" data-pattern="Actuator endpoints and what they expose" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-actuator-endpoints-and-what-they-expose">Case study: Actuator endpoints and what they expose</h2>
+<p>A heap dump endpoint sits one curl away, left open for a demo, and a heap holds every live session token.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Boot exposes only health over the web by default; env, heapdump, threaddump, and configprops need an explicit include. Enabled means switched on for the app; exposed means reachable over HTTP; the network interface is the port that answers, and a management port moves the exposed ones off the application port. The sensitive ones read configuration and memory — env every property, heapdump the heap itself.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-7">The Spring knowledge gap it signals</h3>
+<p>An endpoint is a read of the running system, and the domain decides who may perform it and from where. Env and configprops mask values whose key name looks sensitive — password, secret, token — so masking follows naming, and a credential under an unrecognized name prints in clear. A heap dump is never masked: it is memory, with tokens inside it.</p>
+<p>The gap question: which endpoints are enabled, on which interface, reachable by whom — stated anywhere?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Health and metrics on the internal interface, where the load balancer and the scrape job reach them and the internet cannot. Env and heapdump unreachable from outside, behind authentication if enabled at all, the reason written down. In an incident the dump is taken deliberately, then deleted.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A wildcard include added “for the demo”, kept because the demo still runs, with management on the application port so the link works from a laptop. Every step was locally reasonable: the wildcard unblocked a deadline, the public port fixed reachability, and the endpoint “only reads”. Months later an env response appears in a chat channel and a heap dump is a URL.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which endpoints are enabled, on which interface, reachable by whom — stated anywhere?</strong></p>
+<ul>
+<li><strong>If yes</strong> → exposure is a decided surface with an owner. Check it against the network path from outside, and the masking rules against the property names here.</li>
+<li><strong>If no</strong> → the surface exists and nobody chose it. Drop the wildcard, move management to its own interface, and gate what remains.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the actuator wrong — you’ve found incomplete domain knowledge. Enumerate what is exposed, then trace each path from the internet.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Actuator</code> <code>#Security</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-scheduled-cron-expressions" class="level2 kg-post" hidden="true" data-slug="scheduled-cron-2027-08-28-spring" data-pattern="@Scheduled cron expressions" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-scheduled-cron-expressions">Case study: @Scheduled cron expressions</h2>
+<p>A month-end report fires at 23:00 UTC on the last day of the month. In Berlin that is already 00:00 on the 1st — November’s numbers land in December’s file.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> @Scheduled(cron = “0 0 23 L * *“) hands the trigger to the framework: six fields, seconds first, with L for last day of month. Spring evaluates it in a zone — the JVM default unless you name one — and every instance runs its own scheduler, so nothing in the annotation limits how many machines fire. The annotation buys automation; the bill arrives in the meaning of”when.”</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-8">The Spring knowledge gap it signals</h3>
+<p>“Month end” is a business-calendar fact before it is a trigger: a zone where the month really closes, an accounting boundary, a tolerance. None of that lives in the cron string. Nor does cardinality — whether two runs are a duplicate or a partition of the work. The gap question: whose calendar is “month end,” and how many copies of this job may exist at one instant?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Every expression carries zone = “Europe/Berlin”, reviewed as an accounting fact rather than a default, and a lock holds exactly-once: a ShedLock row, a clustered Quartz trigger, or a database advisory lock — a lock the second instance cannot take.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>No zone field, inheriting whatever the container reports, so a base-image change shifts the run by hours and no test notices. Or a 02:30 local trigger on the DST night, firing in an hour that does not exist, or in one that occurs twice, depending on a resolver nobody read. Or nobody asked, and three replicas each send the invoice email — found by a customer, not a monitor.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>In which timezone does “month end” actually mean what it says — and how many instances may run this concurrently, by design?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the expression is an accounting fact. Check the zone at every call site, and that the lock fails loudly rather than skipping.</li>
+<li><strong>If no</strong> → it is a default wearing a schedule. Set the zone, decide cardinality, and price the lock before adding one.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. Ask finance which calendar closes the period, and operations how many replicas run.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Scheduling</code> <code>#DistributedSystems</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-profiles-and-per-environment-configuration" class="level2 kg-post" hidden="true" data-slug="profiles-2027-08-29-spring" data-pattern="Profiles and per-environment configuration" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-profiles-and-per-environment-configuration">Case study: Profiles and per-environment configuration</h2>
+<p>One key exists only in production, added years ago by an engineer who has left. Staging has never had it, and never failed that way.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Spring Boot merges application.yml with application-{profile}.yml, selected by spring.profiles.active; @Profile gates beans on the same switch. The merge is additive and silent: a key in one profile and absent in another gives no warning, no diff, no error — only a different object graph. The trade: environment knowledge placed deliberately against profile sprawl, where nobody can name which keys differ.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-9">The Spring knowledge gap it signals</h3>
+<p>A profile claims two environments differ in stated ways and agree elsewhere. Each difference is a fact someone owns: another database, another bucket, a live gateway instead of a sandbox. Sprawl begins when a difference is added for convenience and never stated — a timeout tuned once under load, a key nobody owns. The gap question: which keys differ between production and staging, and does each difference match a reason you can say out loud?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The environments differ in few named ways: a datasource URL, a credential from the environment, a log level, a sandbox endpoint. Secrets stay out of the YAML, injected as variables or fetched from a vault, so the file records shape only.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>application-prod.yml drifting for years, one line at a time, each urgent when added. The result is a key only production has — the one that makes the service start there — and a failure only production has, reproduced nowhere, debugged by diffing files at 2 a.m. Worse: a profile per developer, so the active set is a local ritual.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which keys differ between production and staging — listed — and does each difference correspond to a stated environment difference?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the profiles are environment knowledge. Check that secrets live outside the files, and re-read the diff each release.</li>
+<li><strong>If no</strong> → drift. Move the stray key to the shared file, or write down why it differs.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. Diff the resolved key sets, then ask who added each.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Configuration</code> <code>#Environments</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-configurationproperties-versus-scattered-value" class="level2 kg-post" hidden="true" data-slug="configuration-properties-2027-08-30-spring" data-pattern="@ConfigurationProperties versus scattered @Value" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-configurationproperties-versus-scattered-value">Case study: @ConfigurationProperties versus scattered @Value</h2>
+<p>A property key is renamed, the build stays green, and forty @Value sites read a default that nobody set — or fail on the first request.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> @ConfigurationProperties binds a prefix to one class — constructor binding, ideally a record — so acme.pool.* arrives as typed fields, and @Validated with JSR-380 constraints — Bean Validation, provider on the classpath — rejects a bad set at startup. @Value(“${acme.limit}”) binds one converted value at one injection point, with no shared home and no link between key and field. The trade: typed, validated, grouped configuration against keys scattered across forty classes.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-10">The Spring knowledge gap it signals</h3>
+<p>Configuration is where the domain states its bounds: a pool size above zero and below the database’s ceiling, a timeout short enough that a stuck dependency does not eat the request budget. A scattered @Value records the key and forgets the bound: every limit is a string that parses or does not. The gap question: which values carry constraints the domain would defend, and does anything enforce them before startup?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The bound is cheap to state: pool sizes, timeouts, retry counts. One properties class per bounded area, constructor-bound, valid on arrival, with @Min, @Max and duration constraints on exactly those fields. A pool of zero becomes a startup failure naming the field, not a stall an hour into load.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>@Value(“${acme.limit}”) in forty places, each with its own default. The key is renamed where it is documented, and nothing connects that string to the code: with a default the fallback wins silently, without one the failure waits for whichever bean initializes first — for a lazy bean, a request.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which configuration values carry domain constraints — and does anything check them before the application starts?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the configuration is domain knowledge, enforced early. Check that each constraint matches a bound the domain would defend.</li>
+<li><strong>If no</strong> → the values are strings the domain hopes are sane. Group and type them, constrain the ones that matter.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. List the keys, then ask which values have a bound you would defend.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#Configuration</code> <code>#Validation</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-circular-dependencies-the-refused-start" class="level2 kg-post" hidden="true" data-slug="circular-dependencies-2027-08-31-spring" data-pattern="Circular dependencies (the refused start)" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-circular-dependencies-the-refused-start">Case study: Circular dependencies (the refused start)</h2>
+<p>Two beans each demand the other in their constructor, and the container refuses to start — that refusal is the most useful thing the framework says today.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Bean A takes B in its constructor and B takes A, so neither can be built first — a constructor cycle has always failed. From Boot 2.6 the container also refuses a setter or field cycle: <code>spring.main.allow-circular-references</code> defaults to false, and the context fails with the cycle printed in full. <code>@Lazy</code> on one injection point restores the old behaviour with a container proxy resolved at first call. The trade: refusal as design information at build time, against a patch that keeps the cycle and defers resolution to call time.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-11">The Spring knowledge gap it signals</h3>
+<p>A bean cycle is a concept cycle. Each constructor argument claims the object cannot be described without the other, and both cannot hold unless the two are one thing. The team must know which direction is a genuine, conditional use, and which is a need at construction.</p>
+<p>The gap question: what is the shared concept both beans need?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A cache and the loader that fills it. The cache cannot fetch on a miss, the loader has nowhere to store the result, and the second direction is deferred — called on a miss, never at construction. Inject a provider (an ObjectProvider, which yields the bean on demand), and “may be called later” is a domain fact, not a workaround.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>@Lazy</code> added to clear the startup error. Initialization order becomes a runtime lottery — whichever entry point touches the proxy first decides when the other bean gets built, so wiring that worked on the web path fails under a scheduled job; no stack trace names the cycle. One annotation, green build, a startup refusal reclassified as a deferral.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the shared concept these two beans both need — extracted, or hidden behind a proxy?</strong></p>
+<ul>
+<li><strong>If yes</strong> → give it its own bean, and let both depend on that.</li>
+<li><strong>If no</strong> → the deferral is priced, not proved: the cycle persists, resolved one call later under production load.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. List what each bean does with the other, then ask which use must be at construction.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#DependencyInjection</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Java</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-restclient-and-webclient-timeouts" class="level2 kg-post" hidden="true" data-slug="client-timeouts-2027-09-01-spring" data-pattern="RestClient and WebClient timeouts" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-restclient-and-webclient-timeouts">Case study: RestClient and WebClient timeouts</h2>
+<p>A client with no read timeout waits forever on a stalled upstream, and takes every calling thread down with it.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Spring’s HTTP clients inherit the bound of the library beneath them, and several stock paths leave the read timeout unset — an unbounded wait: <code>RestClient</code> with its default factory, <code>WebClient</code> on Reactor Netty with no <code>responseTimeout</code>. The trade: a latency budget per dependency, enforced by the client, against a default that reads as “nothing to configure”.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-12">The Spring knowledge gap it signals</h3>
+<p>A timeout is a claim about the dependency, not a setting: this call is worth at most N ms. Only the dependency’s owner can state N; only the caller can enforce it. The team must know, per dependency, the promised response time and what the caller does when it is missed — fail, retry, or serve stale.</p>
+<p>The gap question: for each dependency, how long may it take, and who said so?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Two numbers per dependency, both derived. Connect is short and local — the network reaches the host or it does not. Read equals the slowest response its budget permits. Set them per client: each failure stays bounded by its own promise.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The client that keeps the library default. While answers are fast nothing shows; on the first stall every calling thread blocks, the pool can drain, and the endpoints sharing that pool fail together. The seduction: one autoconfigured bean everyone reuses, and an absent setting looks like nothing to review.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each outbound dependency: how long may it take — stated by whom — and does the client enforce that number?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the budget is knowledge, and the client enforces it. Check that the overall timeout exceeds the callee’s read timeout, so the inner failure fires first.</li>
+<li><strong>If no</strong> → a library default that knows nothing about this dependency. Set it per client, and decide what the caller does at the limit.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. Measure the response-time distribution, then ask its owner what they promise.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Resilience</code> <code>#Timeouts</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-applicationevent-and-eventlistener" class="level2 kg-post" hidden="true" data-slug="application-events-2027-09-02-spring" data-pattern="ApplicationEvent and @EventListener" data-group="spring" data-group-label="Spring">
+<h2 class="anchored" data-anchor-id="case-study-applicationevent-and-eventlistener">Case study: ApplicationEvent and @EventListener</h2>
+<p>A listener confirms the order, the transaction rolls back, and the customer keeps the email for something that never happened.</p>
+<p>Adopting a Spring annotation or default? Ask “which fact does this choice claim — who owns this transaction, what may run later, what may be stale?” If you can’t answer, you’ve found a knowledge gap: the framework enforces a guess. If you can, the annotation is knowledge embodied — the framework catching up to what the domain already decided.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>publishEvent</code> calls each matching non-async listener on the publisher’s thread, inside its transaction, and names none of them. <code>@TransactionalEventListener</code> adds a timing claim: AFTER_COMMIT by default, else BEFORE_COMMIT or AFTER_ROLLBACK — and with <code>fallbackExecution</code> false, a listener is skipped outright when no transaction is active. The trade: decoupling from the call graph, against timing someone must pick.</p>
+</blockquote>
+<section id="the-spring-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-spring-knowledge-gap-it-signals-13">The Spring knowledge gap it signals</h3>
+<p>An event asserts that others care about a fact; it is not an instruction to one collaborator. The team must list who consumes the fact, and say whether the reaction belongs inside the transaction, as one atomic outcome, or outside it, surviving a rollback. Both are domain claims, not defaults.</p>
+<p>The gap question: who consumes this event, and must their reaction survive the producer’s rollback?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An order is placed, and three things react that the order service need not name: the confirmation mail, the analytics counter, the warehouse pick. The fact is stated once in the past tense, and the reactions run after commit, because a mail cannot be unsent.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An event used as a method call with extra steps: one publisher, one listener, no other consumer. The edge has left the source, so a reader who follows <code>publishEvent</code> finds nothing, and deleting the listener leaves a silent no-op.</p>
+<p>The timing variant is quieter and worse. A before-commit listener mails or writes a file, acting on state the transaction may still discard — a phantom no rollback undoes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Who consumes this event — listed — and must the reaction survive the producer’s rollback?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the list is real and the phase is explicit. Check each phase against its job: after-commit for the irreversible.</li>
+<li><strong>If no</strong> → nobody else consumes it, or the phase is unstated. Call the method, or state the phase; let the compiler keep the edge.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the annotation wrong — you’ve found incomplete domain knowledge. Ask what the listener does on rollback, and whether the domain accepts that.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Spring</code> <code>#SpringBoot</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#DomainEvents</code> <code>#Transactions</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

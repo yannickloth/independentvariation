@@ -633,21 +633,500 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>The framework learns about the application at build time. Each post will ask what it learned, and from whose knowledge.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>The framework learns about the application at build time. Each post asks what it learned, and from whose knowledge.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="micronaut">
+<p>Adopting compile-time wiring? Ask “what did the framework learn about this application at build time, and from whose knowledge?” If you can’t answer, you’ve found a knowledge gap: the compile-time metadata stands in for facts about the runtime. If you can, the wiring is knowledge embodied — the build catching up to what the application decided.</p>
+</div>
+<section id="case-study-compile-time-dependency-injection" class="level2 kg-post" hidden="true" data-slug="compile-time-di-2027-09-25-micronaut" data-pattern="Compile-time dependency injection" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-compile-time-dependency-injection">Case study: Compile-time dependency injection</h2>
+<p>Two services hold the same beans: one boots in 40 ms, the other in 3 seconds. One framework read the graph at build time; the other reads it at every start.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Micronaut’s annotation processor emits a definition per bean, so the container builds graphs from generated classes instead of scanning a classpath reflectively. Startup is a bounded sequence of constructor calls, and a native image has no reflection metadata to guess at. The trade: the candidate set is fixed at compile time, so a bean that only appears at run time — registered, scanned, or loaded later — has no definition at all.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals">The Micronaut knowledge gap it signals</h3>
+<p>The framework learned which beans exist, what each constructor needs, and the order they must be built in — from your source code. That is a claim: every bean is knowable statically; any bean the source cannot see breaks it, and none appears in the artifact.</p>
+<p>The gap question: is the bean graph a build-time fact or a runtime surprise?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the domain mandates it
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for eight posts (#422–#429). The framing is fixed; the entries are being written.</p>
+<p>Cold starts on serverless and container platforms, where boot time is billed and a fixed graph is what makes the number small. Measure the start on the target runtime with the production bean count.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Runtime-DI habits carried across unchanged: a factory scanning a directory for handlers, a registry filled from ServiceLoader at first use. It compiles, tests pass, and the container wires exactly what the generated definitions describe — the late registrations riding alongside, invisible to the compiler and absent from the native binary.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which beans are decided at runtime, by condition — can you list them — or is the graph fully known at build?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the graph is a build-time fact and the startup number is its consequence. Check that nothing registers after startup.</li>
+<li><strong>If no</strong> → name the conditions, then move each to a compile-time requirement or accept that this part sits outside the framework’s knowledge.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Compare the bean count at startup with the count of generated definitions.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#DependencyInjection</code> <code>#GraalVM</code> <code>#StartupTime</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-aop-without-proxies" class="level2 kg-post" hidden="true" data-slug="compile-time-aop-2027-09-26-micronaut" data-pattern="AOP without proxies" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-aop-without-proxies">Case study: AOP without proxies</h2>
+<p>Three interceptors wrap one method — retry, trace, transaction — a patch bump reorders them with no annotation changed, and the first symptom is a duplicate charge.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Micronaut resolves interception at compile time: an advised bean gets a generated subclass whose interceptors run in an order the processor fixed, with no runtime proxy and no reflection. That class is ordinary Java in your build output. The trade: cross-cutting behavior costs nothing at startup and survives native image, but the composed behavior of stacked advice lives in that file, not in the annotations.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-1">The Micronaut knowledge gap it signals</h3>
+<p>Annotation order is not call order: the processor learned each method’s interceptors and emitted one order, and whether that suits the domain is a fact about your workload. A retry outside a transaction re-runs the whole transaction, commit included; inside, it re-runs one statement. A span outside the retry records one per attempt; inside, one total.</p>
+<p>The gap question: what fixes this interceptor order, and has anyone read the answer? For this bean the answer is the generated chain, stated nowhere else.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Retry and tracing advice on an outbound client, with the generated order read once, noted in the design notes, and asserted by a test. An upgrade that reorders the chain fails loudly.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Advice stacked three deep from three libraries, assuming annotations imply sequence. Nobody opens the generated subclass. The behavior is real, ordered, and determined, in a file no reviewer reads — so a patch bump that reorders one library changes the system silently, and the first symptom is a duplicate charge.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>What is the final call order for this bean — read from the generated source, or assumed from the annotations?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the chain is known and reviewable. Record and assert it, so the next upgrade cannot move it quietly.</li>
+<li><strong>If no</strong> → you are running an order you never chose. Read the generated class for one advised bean and write the order down.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Open the generated source for the most-advised bean and diff the order after each upgrade.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#AOP</code> <code>#Interceptors</code> <code>#GraalVM</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-bean-introspection" class="level2 kg-post" hidden="true" data-slug="bean-introspection-2027-09-27-micronaut" data-pattern="Bean introspection" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-bean-introspection">Case study: Bean introspection</h2>
+<p>The same serializer returns a complete object on the JVM and an empty one in the native binary — same classes, same annotations, different runtime.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Annotate a class with @Introspected and the processor generates BeanIntrospection metadata at build time, so a serializer using it reads properties without reflection. The trade is coverage: a class with metadata serializes anywhere, native image included; a class without it falls back to reflection, which works until reflection is gone.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-2">The Micronaut knowledge gap it signals</h3>
+<p>The framework learned which properties each class exposes, for the classes it was told of. That is a claim: the serialized types are enumerable from the source, and the claim covers your annotated types, not your controllers. Error payloads, cache entries, message bodies, types nested in your own DTOs — each crosses a serialization edge, and each is a fact the build learned or did not.</p>
+<p>The gap question: is the bean graph a build-time fact or a runtime surprise? For serialization the set is the types with generated metadata; the gap is all the rest.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A boundary that must run native: JSON routed through introspections, every payload type round-tripped in the binary’s test run.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A library deserializes by reflection on classes with no introspection — a third-party type, a DTO from a module built without the processor. On the JVM nothing looks wrong: tests pass, staging is green, the fallback returns the right object. Under native image the same call returns an empty payload, and the trace points at the library, not the annotation missing three modules away. Silent by design.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which classes are serialized — and is their metadata generated, verified for the native build?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the boundary is a build-time fact. Check that no nested type was forgotten: an outer introspection does not imply the inner.</li>
+<li><strong>If no</strong> → the fallback is doing the work. Annotate the type, or use a serializer path that refuses what it cannot generate.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Round-trip every payload type in a native build and list those that came back empty.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#Serialization</code> <code>#GraalVM</code> <code>#NativeImage</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-executable-and-introspection-boundaries" class="level2 kg-post" hidden="true" data-slug="executable-annotation-2027-09-28-micronaut" data-pattern="@Executable and introspection boundaries" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-executable-and-introspection-boundaries">Case study: @Executable and introspection boundaries</h2>
+<p>The endpoint passes every test, every JVM build, every staging deploy — and returns 404 in the native binary that ships.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> @Executable marks a class so the ExecutableMethodProcessor registers its methods where bean conventions would not; @Introspected does the same for serialization metadata. Both are opt-in declarations telling the processor to emit code. Opt-in is a boundary with no middle where conventions are silent: what is declared is generated, what is missed is not, and the miss is silent on the JVM.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-3">The Micronaut knowledge gap it signals</h3>
+<p>The gap is not in what the processor emitted but in what nobody asked it for. The question is whether the annotated set equals the set your runtime needs. A bean in a library module built without the processor, a class the build never treated as a bean, a nested payload without introspection — each is an omission with no local symptom.</p>
+<p>The gap question: is the route set a build-time fact or a runtime surprise? The omission is the surprise, and the JVM hides it.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A build output enumerating every generated definition and every registered method, read in review and diffed per release. A route without a generated entry then fails the review, not the deploy.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A controller in a library module compiled without the processor: the JVM falls back to a reflective definition, the native image has no reflection, and the route 404s only in the binary that ships. Every JVM test says the route exists. The seduction is the evidence — green tests, a working local build, a production report that reads like a routing bug in a component nobody touched.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does the build report list every route — checked — or is the gap found by a user?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the route set is a build-time fact. Check the diff, not the list: an omission shows up as an unintended deletion.</li>
+<li><strong>If no</strong> → the artifact asserts routes the build never generated. Compare the list with the API contract.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Enumerate the generated definitions, then call every documented route in a native build.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#GraalVM</code> <code>#NativeImage</code> <code>#AnnotationProcessing</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-declarative-client-client-interface" class="level2 kg-post" hidden="true" data-slug="declarative-client-2027-09-29-micronaut" data-pattern="Declarative client (@Client interface)" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-declarative-client-client-interface">Case study: Declarative client (@Client interface)</h2>
+<p>One annotated interface becomes an HTTP client — and one hand-rolled call for an awkward endpoint splits the contract in two.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An <code>@Client</code> interface declares one method per remote endpoint. Micronaut generates the implementation at compile time and binds the base URL from <code>micronaut.http.services.&lt;id&gt;.url</code>. Timeouts and a <code>@Fallback</code> sit beside the declaration. The trade: one contract that the compiler checks and every caller reuses, against a hand-rolled client whose paths, headers, and error handling drift from the provider’s.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-4">The Micronaut knowledge gap it signals</h3>
+<p>A declared client asserts that the remote service has a stable contract, that callers share it, and that the address is configuration rather than code. Each is a claim about a service you do not own that can be false. The gap question: for each remote service, is there exactly one declared contract — single-sourced — and where does its URL come from?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One service, many callers, one provider contract: checkout calling payments, a gateway calling identity. Then declare a single client per service, put timeouts and fallback beside the declaration, and let every caller inject the same interface. A provider change becomes one edit in one file.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Simpler to write it by hand.” One awkward call gets a second client on <code>RestClient</code> or raw HTTP, because the interface felt heavy for one endpoint. The contract now lives in two places, only one is reviewed, and they disagree the day the provider answers 429 — the declared client had a fallback, the hand-rolled one had none, and the busiest caller was the one without it.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each remote service: is there exactly one declared contract — single-sourced — and where does its URL come from?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the client is the contract. Check that timeouts and the fallback sit beside the declaration, not in a caller.</li>
+<li><strong>If no</strong> → the contract is duplicated, and the duplicate is already wrong. Fold the hand-rolled call in.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. List every outbound call per service, then the file each contract lives in.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#DeclarativeClients</code> <code>#APIContracts</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-validated-configuration-configurationproperties" class="level2 kg-post" hidden="true" data-slug="configuration-props-2027-09-30-micronaut" data-pattern="Validated configuration (@ConfigurationProperties)" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-validated-configuration-configurationproperties">Case study: Validated configuration (@ConfigurationProperties)</h2>
+<p>Every key was marked optional, and the one feature that needs a real value finds out in production.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A <code>@ConfigurationProperties</code> bean binds a key group to typed fields, and the annotation processor generates that binding at build time. With <code>@Validated</code>, <code>@NotNull</code>, and <code>@Context</code> scope, a missing key fails startup — the context-scoped bean is created at startup, and startup fails if a required property is missing. The trade: required keys declared and enforced before the application serves a request, against an optional-everything configuration where every key’s presence is discovered at runtime.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-5">The Micronaut knowledge gap it signals</h3>
+<p>Marking a key required is a claim that the feature cannot function without it — not that it is usually set. Only the team that owns the feature can supply that claim. The gap question: which config keys are required for this feature to work — enforced at startup — or discovered when it first runs?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A key without which the feature is meaningless: a signing secret, a database URL, a tenant identifier. Then bind it as a required field with a constraint, and let a bad deployment die at startup, not at 3 a.m. in the one path that reads it. Bind the type too: a duration as a duration.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>“Keep it optional for flexibility” — a <code>@Nullable</code> field or an empty default, applied to every key because one is genuinely optional. The group now boots in any state. The missing key surfaces when the rarely-used feature runs: the nightly export, the regional failover, the admin path nobody exercises — in production, on the day it matters. Optionality spread over a group hides which single key was ever the exception.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which config keys are required for this feature to work — enforced at startup — or discovered when it first runs?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the group encodes what the feature needs. Check each key has a type, not just a presence rule.</li>
+<li><strong>If no</strong> → the group encodes nothing, and startup proves only that the process can boot. Make the true requirements fail fast.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Remove each key in a test profile and record which feature breaks.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#Configuration</code> <code>#FailFast</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-netty-server-thread-selection-and-event-loops" class="level2 kg-post" hidden="true" data-slug="netty-server-2027-10-01-micronaut" data-pattern="Netty server (thread selection and event loops)" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-netty-server-thread-selection-and-event-loops">Case study: Netty server (thread selection and event loops)</h2>
+<p>A handler that returns a reactive type is assumed non-blocking — put JDBC inside it and every request on that event loop queues behind the database.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> Micronaut serves HTTP on Netty, with a small set of event loops derived from the processors the JVM sees and a blocking pool behind them. Thread selection <code>AUTO</code> reads the handler’s return type: a reactive type stays on the loop, a plain object moves to the blocking pool. The trade: thread economy on the loop against blocking handlers moved to a bounded pool.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-6">The Micronaut knowledge gap it signals</h3>
+<p>Deciding where a handler runs requires knowing what its body does — wait on a socket, wait on a database, or compute. That is a property of your code, invisible to the framework, which is exactly why <code>AUTO</code> guesses from a type. The gap question: which endpoints run blocking code — listed — and on which pool, sized from what measurement?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Blocking endpoints that are known and counted: JDBC, a filesystem read, a legacy client without async support. Then mark them with <code>@ExecuteOn(TaskExecutors.BLOCKING)</code>, size that pool from the concurrency the dependency tolerates, and verify the loop count against the container’s CPU quota — the count follows the processors the JVM sees, which in a container may be the host’s, not the quota’s.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A handler declared reactive, returning a <code>Mono</code>, while its body runs a blocking JDBC query — often wrapped to look asynchronous. <code>AUTO</code> trusts the return type, keeps it on the loop, and one slow query stalls every connection that loop owns. Under default configuration the symptom is polite: throughput can halve as load rises, latency climbs, and no thread dump shows a blocked pool.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which endpoints run blocking code — listed — and on which pool, sized from what measurement?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the placement is a fact. Confirm the pool each blocking handler runs on — not the loop count.</li>
+<li><strong>If no</strong> → some loop is running a database call. Mark the handler, and size the pool it moves to.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. Time each endpoint’s body, then read loop count and pool saturation under load.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#Netty</code> <code>#EventLoop</code> <code>#Blocking</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-bean-conditions-requires" class="level2 kg-post" hidden="true" data-slug="startup-conditions-2027-10-02-micronaut" data-pattern="Bean conditions (@Requires)" data-group="micronaut" data-group-label="Micronaut">
+<h2 class="anchored" data-anchor-id="case-study-bean-conditions-requires">Case study: Bean conditions (@Requires)</h2>
+<p>A bean exists in production and not in the test suite, and no test ever fails — the wiring is simply absent on one side.</p>
+<p>Accepting a Micronaut default? Ask “what did the framework learn about my application at build time, and which fact did that bake in?” If you can’t answer, you’ve found a knowledge gap: the framework decided on your behalf. If you can, the default is knowledge embodied — the build catching up to what the workload demands.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>@Requires</code> makes a bean definition conditional — on a class, a property, an environment, another bean’s presence or absence. The processor bakes the definitions into the build, and the context resolves the conditions at startup, against the classpath and configuration it actually has. The trade: wiring declared per environment and fixed at startup, against a container that decides at runtime.</p>
+</blockquote>
+<section id="the-micronaut-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-micronaut-knowledge-gap-it-signals-7">The Micronaut knowledge gap it signals</h3>
+<p>A condition is a claim about which environments and classpaths this application runs in, and those combinations are the team’s to enumerate, not the framework’s. The build answers only the question it was asked. The gap question: under which conditions does each conditional bean exist — enumerated — and do the tests cover the production combination?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Genuinely different environments: an in-memory queue, a broker client where the client library is on the classpath, a stub for an external provider in the test profile. Then write the conditions down per bean, and let the test profile differ only where production differs, so the coverage gap stays visible.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A bean gated on <code>@Requires(classes = SomeClient.class)</code> where the test profile, lean on dependencies, lacks that library. The bean is absent in CI, the endpoint that injects it is absent too, and the build succeeds because nothing ever asked for it. The path ships unexercised, exists in production, and is first run there — a startup decision made against a test classpath that never matched the deployment.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Under which conditions does each conditional bean exist — enumerated — and do the tests cover the production combination?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the conditions are documented facts. Check the test profile’s differences are the intended ones, not missing dependencies.</li>
+<li><strong>If no</strong> → some path is greened by absence. Add the dependency to the test classpath, or delete the condition.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the default wrong — you’ve found incomplete workload knowledge. List conditions, then diff the production classpath against the test one.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#Micronaut</code> <code>#Java</code> <code>#ConditionalBeans</code> <code>#CompileTime</code> <code>#Testing</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 

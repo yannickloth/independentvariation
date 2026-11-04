@@ -648,12 +648,14 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="case-study-collector-choice-g1-zgc-parallel" class="level2 kg-post" hidden="true" data-slug="gc-choice-2027-07-05-jvm" data-pattern="Collector choice (G1, ZGC, Parallel)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-collector-choice-g1-zgc-parallel">Case study: Collector choice (G1, ZGC, Parallel)</h2>
+<p>A checkout path passes its load test at 40 ms p99.9, ships on the collector nobody chose, and the first busy Tuesday spends the budget on stops.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> G1 is the default: it hides most collection work behind concurrent threads while keeping a young generation. Generational ZGC, default since Java 23, pushes pauses towards sub-millisecond with a barrier cost and larger headroom. Parallel GC stops everything and spends the cores on throughput.</p>
+<p><strong>Mechanism:</strong> G1 is the default: it hides most collection work behind concurrent threads while keeping a young generation. Generational ZGC, the default ZGC mode since Java 23, pushes pauses towards sub-millisecond with a per-reference barrier cost and larger headroom. Parallel GC stops everything and spends the cores on throughput.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals">The JVM knowledge gap it signals</h3>
-<p>A collector answers a pause budget the SLA states and a throughput number the peak hour carries. G1’s mixed collections land in the low hundreds of milliseconds by default, so a path with no written budget inherits that number by accident. The gap question: what is the measured pause budget you must meet, and what did throughput cost under the chosen collector at peak?</p>
+<p>A collector answers a pause budget the SLA states and a throughput number the peak hour carries. G1’s mixed collections, the ones that also collect old regions, land in the low hundreds of milliseconds by default, so a path with no written budget inherits that number by accident. The gap question: what is the measured pause budget you must meet, and what did throughput cost under the chosen collector at peak?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -664,7 +666,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A payment path with a stated 50 ms p99.9 budget on a 6 GB live set: generational ZGC held stops under a millisecond, for a tenth of throughput against G1 in the same harness and a heap target raised from 8 GB to 12 GB. A nightly reconciliation nobody waits on stayed on Parallel, finished fastest, and counted its multi-second stops as nothing.</p>
+<p>A payment path with a stated 50 ms p99.9 budget on a 6 GB live set: generational ZGC held stops under a millisecond, for a tenth less throughput against G1 in the same harness and a heap target raised from 8 GB to 12 GB. A nightly reconciliation nobody waits on stayed on Parallel, finished fastest, and counted its multi-second stops as nothing.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -705,8 +707,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-heap-sizing--xmx-maxrampercentage" class="level2 kg-post" hidden="true" data-slug="heap-sizing-2027-07-06-jvm" data-pattern="Heap sizing (-Xmx, MaxRAMPercentage)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-heap-sizing--xmx-maxrampercentage">Case study: Heap sizing (-Xmx, MaxRAMPercentage)</h2>
+<p>A container gets 8 GB of memory, the heap gets 8 GB, and the process is killed with gigabytes of heap still free.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The heap flag caps the heap; the container limit caps everything the process touches. Between them sit metaspace, the code cache, GC native structures, thread stacks, and direct buffers — none of them inside -Xmx. Sizing sets that gap deliberately, or loses it to a kill.</p>
+<p><strong>Mechanism:</strong> The heap flag caps the heap; the container limit caps everything the process touches. Between them sit metaspace (class metadata), the code cache, GC native structures, thread stacks, and direct buffers (off-heap IO memory) — none of them inside -Xmx. Sizing sets that gap deliberately, or loses it to a kill.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-1" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-1">The JVM knowledge gap it signals</h3>
@@ -721,7 +725,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A service measuring 900 MB live after a full collection at peak, bursting to 1.6 GB between collections, 40 threads in a 4 GB container: heap at 2 GB, leaving 2 GB for metaspace, code cache, stacks, and direct buffers, MaxRAMPercentage tuned against the limit rather than a bare-metal value. The load test held at 82% of the limit, no kill.</p>
+<p>A service with 900 MB live after a full collection at peak, the heap bursting to 1.6 GB between collections, 40 threads in a 4 GB container: heap at 2 GB via -Xmx, leaving 2 GB for metaspace, code cache, stacks, and direct buffers; MaxRAMPercentage, where -Xmx is unset, tuned against the limit rather than a bare-metal value. A 24-hour soak held at 82% of the limit, non-heap charted, no kill.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -734,7 +738,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>-Xmx equal to the container limit, because the container is “the memory” and the heap is “the memory” — the arithmetic feels complete, and it passes in staging, where nothing else grows. In production the kill arrives before any collection can act. MaxRAMPercentage at 100 is the same choice in percent form. The opposite failure is quieter: native exhaustion with gigabytes of heap free, as metaspace, direct buffers, or threads grew into an unreserved gap.</p>
+<p>-Xmx equal to the container limit, because the container is “the memory” and the heap is “the memory” — the arithmetic feels complete, and it passes in staging, where nothing else grows. In production the kill can arrive before any collection can act. MaxRAMPercentage at 100 is the same choice in percent form. The opposite failure is quieter: native exhaustion with gigabytes of heap free, as metaspace, direct buffers, or threads grew into an unreserved gap.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -750,7 +754,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>What is the measured live set at peak — and how much of this container’s memory lives outside the heap?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the heap is derived from a number. Check native growth at peak and watch the headroom.</li>
-<li><strong>If no</strong> → you have a budget, not a heap size. Take the live set, add a growth factor, then subtract the native reservation.</li>
+<li><strong>If no</strong> → you have a budget, not a heap size. Take the live set, add a growth factor, then check that total against the limit less the native reservation.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure the live set after a forced full collection at peak, and read RSS against the limit.</li>
 </ul>
 </div>
@@ -762,8 +766,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-compact-object-headers" class="level2 kg-post" hidden="true" data-slug="compact-object-headers-2027-07-07-jvm" data-pattern="Compact object headers" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-compact-object-headers">Case study: Compact object headers</h2>
+<p>Every object on the heap carries a header, and on a 64-bit JVM those headers have been twice the size they need to be.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> -XX:+UseCompactObjectHeaders, product-ready in Java 25, shrinks an object header from 16 bytes to 8. The saving lands on footprint, then on cache locality, then on collection frequency, which tracks the live set. The direct cost on a modern 64-bit JVM is negligible; the real work is measuring the migration, since some agents assume the old header layout, and vendor support still differs.</p>
+<p><strong>Mechanism:</strong> -XX:+UseCompactObjectHeaders, product-ready in Java 25, shrinks an object header from 16 bytes to 8. The saving lands on footprint, then on cache locality, then on collection frequency — young collections fall with bytes allocated. The direct cost on a modern 64-bit JVM is negligible; the real work is measuring the migration, since some instrumentation agents assume the old header layout, and vendor support still differs.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-2" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-2">The JVM knowledge gap it signals</h3>
@@ -778,7 +784,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A service holding 3.1 million live order objects with references: 2.4 GB before the flag, 2.05 GB after, in the same staging harness. Roughly 15% off the live set, young collections from 22 to 18 per minute, throughput unchanged, no tooling objection in a soak run.</p>
+<p>A service holding 44 million live order objects with references: 2.4 GB before the flag, 2.05 GB after, in the same staging harness. Roughly 15% off the live set, young collections from 22 to 18 per minute, throughput unchanged, no tooling objection in a soak run.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -791,7 +797,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Enabling it because the release notes call it free, on a service whose live set is a handful of large arrays. The flag works, the migration runs, the heap barely moves, and the team records a win it cannot reproduce under load. The cost is not the flag: it is the soak run, the agent audit, and the false confidence from quoting a benchmark built on small objects when yours holds arrays.</p>
+<p>Enabling it because the release notes call it free. On the array-heavy service the flag works, the migration runs, the heap barely moves, and the team records a win it cannot reproduce under load. The cost is the soak run, the instrumentation audit, and a benchmark built on small objects quoted where the live set holds arrays.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -807,7 +813,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>What share of the live set is object-dominated, measured — and did the heap and the collection frequency actually move?</strong></p>
 <ul>
 <li><strong>If yes</strong> → it answers an object-count fact you hold. Compare heap and collection rate before and after, at peak.</li>
-<li><strong>If no</strong> → the flag cannot help you, because there are too few headers to reclaim.</li>
+<li><strong>If no</strong> → the saving scales with header count, so at your object count it rounds away — expect no measurable move.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Take a heap histogram by class and instance count, then compare the live set with the flag on and off.</li>
 </ul>
 </div>
@@ -819,8 +825,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-maxgcpausemillis-as-an-slo-knob" class="level2 kg-post" hidden="true" data-slug="maxgc-pause-millis-2027-07-08-jvm" data-pattern="MaxGCPauseMillis as an SLO knob" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-maxgcpausemillis-as-an-slo-knob">Case study: MaxGCPauseMillis as an SLO knob</h2>
+<p>A team sets the pause target to 5 ms to fix tail latency, and gets a busier CPU with the same tail.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> On G1 the value is a goal, not a guarantee: the collector shrinks the young generation and collects fewer regions per mixed cycle to approach it. A smaller target means more collections, more concurrent marking, and more CPU for shorter stops. It cannot collect less than the live young generation demands.</p>
+<p><strong>Mechanism:</strong> On G1 the value is a goal, not a guarantee: the collector shrinks the young generation, the nursery area where new objects are allocated, and collects fewer regions per mixed cycle to approach it. A smaller target means more collections and more CPU for shorter stops, so the same live young generation is copied more often.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-3" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-3">The JVM knowledge gap it signals</h3>
@@ -835,7 +843,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A request path with a stated 100 ms p99.9 budget and a measured pause tail of 190 ms at default, given a target of 50 ms for headroom: the pause p99.9 settled at 55 ms, young collections rose from 12 to 30 per minute, and process CPU moved from 55% to 68%. The budget was met with room, the CPU rise recorded beside the win.</p>
+<p>A request path with a stated 100 ms p99.9 budget carried a measured pause tail of 190 ms at default. Given a target of 50 ms for headroom: the pause p99.9 settled at 55 ms, young collections rose from 12 to 30 per minute, and process CPU moved from 55% to 68%. Request p99.9, re-measured, settled at 92 ms inside the budget; the CPU rise was recorded beside the win.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -848,7 +856,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Setting 5 ms on G1 to obtain ZGC behavior. The reasoning holds as far as it goes — pauses are latency, latency is the complaint, so lower the pause target — and it fails on the mechanism: G1 buys shorter stops with more of them and more marking in between, so CPU rises while the tail stays where the live young generation puts it.</p>
+<p>Setting 5 ms on G1 to obtain ZGC behavior. The reasoning holds as far as it goes: pauses are latency, latency is the complaint, so lower the target. It fails on the mechanism. G1 buys shorter stops with more of them and more marking between, so CPU rises while the tail stays where the young generation puts it.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -876,6 +884,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-string-deduplication-on-g1" class="level2 kg-post" hidden="true" data-slug="string-dedup-2027-07-09-jvm" data-pattern="String deduplication on G1" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-string-deduplication-on-g1">Case study: String deduplication on G1</h2>
+<p>A 200,000-record cache, and 38% of its character data is the same field names copied again and again.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> -XX:+UseStringDeduplication spends collection time hashing the backing arrays of surviving strings and pointing duplicates at one copy. It touches the character data behind each string, not the objects, and reaches only strings old enough to survive a collection. The trade is collector CPU against footprint, which moves only where duplicates exist.</p>
 </blockquote>
@@ -892,7 +902,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A parsed-document pipeline holding 200,000 records with repeated field names: character data at 1.1 GB of a 2.8 GB live set, roughly 38% duplicated. Dedup brought the live set to 2.0 GB, young collections fell with it, and collector CPU for the pass stayed under 3%.</p>
+<p>A parsed-document pipeline holding 200,000 records with repeated field names: character data at 1.1 GB of a 2.8 GB live set, roughly 38% duplicated. Dedup brought the live set to 2.4 GB, and collector CPU for the pass stayed under 3%.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -905,7 +915,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Enabling it as a general memory optimization: it costs nothing to add and reads as strictly good. On a workload of numeric arrays it burns collector CPU scanning strings that are not there, and full collections grow longer — a small tax with no invoice. The subtler version uses it in place of a design fix: keys that should be interned, shared by construction, or replaced by enum constants stay duplicated, and the flag compresses the waste.</p>
+<p>Enabling it as a general memory optimization: it costs nothing to add and reads as strictly good. On a numeric-array workload the pass runs over every collection and finds nothing, yet full collections grow longer — a small tax with no invoice. The subtler version uses it in place of a design fix: keys that should be interned (one shared instance), shared by construction, or replaced by enum constants stay duplicated, and the flag compresses the waste.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -921,7 +931,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>What share of the live set is character data in duplicated strings, measured — and could a design fix hold the dedup instead?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the pass answers a duplication fact you hold. Keep its CPU share under watch: it is paid on every collection.</li>
-<li><strong>If no</strong> → the flag cannot pay for itself. Fix the duplication where it is created, then re-measure.</li>
+<li><strong>If no</strong> → the flag cannot pay for itself. Duplication is a code lever — fix it where it is created — then re-measure.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Break the live set down by content type.</li>
 </ul>
 </div>
@@ -933,12 +943,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-virtual-threads-waiting-made-cheap-and-only-waiting" class="level2 kg-post" hidden="true" data-slug="virtual-threads-2027-07-10-jvm" data-pattern="Virtual threads (waiting made cheap, and only waiting)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-virtual-threads-waiting-made-cheap-and-only-waiting">Case study: Virtual threads (waiting made cheap, and only waiting)</h2>
+<p>Two hundred platform threads, 1,800 requests a second, p99 stuck at 240 ms — every thread parked on a downstream wait.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A virtual thread is a continuation the JVM mounts on carrier threads, one per CPU. Blocked on IO it unmounts and frees the carrier, so a parked request costs a heap object, not an OS thread. Final since Java 21; since Java 24 <code>synchronized</code> no longer pins the carrier it blocks on. The trade: waiting becomes cheap, computing does not, and the pool stops limiting concurrency.</p>
+<p><strong>Mechanism:</strong> A virtual thread is a task the JVM mounts on carrier threads, one per detected CPU by default. Blocked on integrated IO it unmounts and frees the carrier, so a parked request costs a heap object, not an OS thread. Final (no longer preview) since Java 21; since Java 24 <code>synchronized</code> no longer pins the carrier it is mounted on. The trade: waiting becomes cheap, computing does not, and the pool stops capping waiting tasks.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-5" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-5">The JVM knowledge gap it signals</h3>
-<p>You must know the waiting-to-computing ratio here, and where its threads stop being virtual — a native call holds its carrier until it returns. You must also know what replaces the pool as the gate. The gap question: is the measured waiting of this workload IO-blocking rather than CPU — and does anything still pin a carrier thread?</p>
+<p>You must know the waiting-to-computing ratio here, and where this workload’s threads stop being virtual — a native call holds its carrier until it returns. You must also know what replaces the pool as the gate. The gap question: is the measured waiting of this workload IO-blocking rather than CPU — and does anything still pin a carrier thread?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -949,7 +961,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>An API gateway measured 92 percent of request time in downstream waits: 200 platform threads, 1,800 req/s, p99 240 ms, saturated at 210 concurrent. On virtual threads the same heap held 4,000 in-flight requests on 8 carriers — p99 90 ms, kilobytes of stack per parked request. A semaphore held 500 concurrent database calls, the number the pool could serve.</p>
+<p>An API gateway measured 92 percent of request time in downstream waits, saturated at 210 concurrent. On virtual threads the same heap held 80 in-flight requests on 8 carriers — p99 90 ms, kilobytes of stack per parked request. A semaphore held 500 concurrent database calls, the number the connection pool would serve.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -962,7 +974,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The seductive version: read “threads are cheap” and parallelize a CPU-bound job over 10,000 tasks. Nothing waits, nothing unmounts, every task holds a carrier to the end — throughput equals the carrier count. The pool then reappears as a virtual-thread “pool” capped at 500: it controls nothing, since creating one costs nothing and the semaphore was always the control.</p>
+<p>The seductive version: read “threads are cheap” and parallelize a CPU-bound job over 10,000 tasks. Nothing waits, nothing unmounts, every task holds a carrier to the end — throughput equals the carrier count. The pool then reappears as a virtual-thread “pool” capped at 500: it bounds little: creating a thread costs nothing, so the semaphore stays the control.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -990,8 +1002,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-thread-pool-sizing-a-number-that-states-a-claim" class="level2 kg-post" hidden="true" data-slug="thread-pool-sizing-2027-07-11-jvm" data-pattern="Thread-pool sizing (a number that states a claim)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-thread-pool-sizing-a-number-that-states-a-claim">Case study: Thread-pool sizing (a number that states a claim)</h2>
+<p>Sixteen threads, a queue toward its 40,000 bound, a p99 of 9 s — and a pool that was the ceiling, not the workload.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A platform thread pool carries one number, and that number asserts a task profile: on N cores, CPU-bound tasks want N threads, IO-bound tasks want N × (1 + waiting ÷ computing). The trade: the pool turns the claim into a ceiling and a queue — correct, the queue drains; wrong either way, the queue is where the damage shows.</p>
+<p><strong>Mechanism:</strong> A platform thread pool carries one number, and that number asserts a task profile: on N cores, CPU-bound tasks want N threads, IO-bound tasks want N × (1 + waiting ÷ computing), per Goetz’s pool-sizing rule. The trade: the pool turns the claim into a ceiling and a queue — correct, the queue drains; wrong either way, the queue is where the damage shows.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-6" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-6">The JVM knowledge gap it signals</h3>
@@ -1006,7 +1020,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>An image service measured 12 ms of CPU and 60 ms waiting on object storage per task — a ratio of six — on 8 cores: 48 threads, a queue bounded at 200, a rejection handler returning 429. At 400 tasks/s it held p99 at 180 ms. The 32-thread pool before it ran the queue 40,000 deep at p99 9 s: same ceiling, latency in a queue no dump shows.</p>
+<p>An image service measured 12 ms of CPU and 60 ms waiting on object storage per task — a multiplier of six — on 8 cores: 48 threads, a queue bounded at 200, a rejection handler returning 429. At 400 tasks/s it held p99 at 180 ms. The 16-thread pool before it ran the queue bounded at 40,000 at p99 9 s: the ceiling was the pool, and the damage sat in a queue no dump shows.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1019,7 +1033,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Two shapes, both respectable. A cached pool under IO load: threads are created until the load stops, so 3,000 threads at a megabyte of stack each, and a heap that dies before the queue fills. Or 4 × cores “for IO”, applied to tasks that block on a lock: the wait ratio is real, the conclusion is not, and the queue never drains.</p>
+<p>Two shapes, both respectable. A cached pool under IO load: threads are created until the load stops, so 3,000 threads at a megabyte of stack each, and a process that hits its thread limit before the queue fills. Or 4 × cores “for IO”, applied to tasks that block on a lock: the wait ratio is real, the conclusion is not, and the queue never drains.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1036,7 +1050,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the pool is a priced claim. Re-measure when the dependency changes, and read queue depth first.</li>
 <li><strong>If no</strong> → the number is a guess with a queue attached, which absorbs the error as latency.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the sizing wrong — you’ve found incomplete workload knowledge. Measure CPU time and wall time per task at peak, then divide.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the sizing wrong — you’ve found incomplete workload knowledge. Measure CPU time and waiting time per task at peak, then divide.</li>
 </ul>
 </div>
 </div>
@@ -1047,12 +1061,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-parallel-streams-a-shared-pool-you-never-sized" class="level2 kg-post" hidden="true" data-slug="parallel-streams-2027-07-12-jvm" data-pattern="Parallel streams (a shared pool you never sized)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-parallel-streams-a-shared-pool-you-never-sized">Case study: Parallel streams (a shared pool you never sized)</h2>
+<p>One parallel() on a stream that calls a REST endpoint, and an unrelated report in the same JVM takes 4 s instead of 200 ms.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> parallel() splits a stream across the JVM-wide common ForkJoinPool — seven workers on an eight-core box — and joins the results. The trade: one line buys data parallelism, spent from an account every parallel stream shares, a pool whose size and failure behaviour nobody in your code chose.</p>
+<p><strong>Mechanism:</strong> parallel() splits a stream across the JVM-wide common ForkJoinPool — seven workers by default on an eight-core box; a CPU quota shrinks it to max(quota − 1, 1) — and joins the results. The trade: one line buys data parallelism, spent from an account every parallel stream shares, a pool whose size and failure behaviour nobody in your code chose.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-7" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-7">The JVM knowledge gap it signals</h3>
-<p>The pool’s size is a default, its tenants are someone else’s code, and its work-stealing assumes tasks that finish on their own. You must know whether the operations are pure computation, whether the data amortizes the forking, and who else draws on the pool. The gap question: are the operations strictly CPU-bound and the data large enough to amortize forking — measured how, and who else shares this pool?</p>
+<p>The pool’s size is a default, its tenants are someone else’s code, and its work-stealing assumes tasks that finish on their own. You must know whether the operations are side-effect-free CPU-bound work, whether the data amortizes the forking, and who else draws on the pool. The gap question: are the operations strictly CPU-bound and the data large enough to amortize forking — measured how, and who else shares this pool?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1076,7 +1092,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The line reads fine. Then a downstream call goes inside the stream — 80 ms against a service that is usually fast — and it parks one of seven workers. Six concurrent requests saturate the common pool, and the unrelated report sharing it measured 4 s instead of 200 ms, its stack trace saying it waited. As common and cheaper: parallel() on a hundred elements, where splitting and joining outweigh the work.</p>
+<p>The line reads fine. Then a downstream call goes inside the stream — 80 ms against a service that is usually fast — and it parks one of seven workers. Six concurrent requests can exhaust the common pool, and the unrelated report sharing it measured 4 s instead of 200 ms, its stack trace saying it waited. Equally common and cheaper still: parallel() on a hundred elements, where splitting and joining outweigh the work.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1092,7 +1108,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Are the operations strictly CPU-bound and the data large enough to amortize forking — measured how, and who else shares this pool?</strong></p>
 <ul>
 <li><strong>If yes</strong> → the common pool is adequate, while nothing blocking enters the stream.</li>
-<li><strong>If no</strong> → you are spending a shared resource on work that does not repay it. Use a sequential stream, or a pool you own.</li>
+<li><strong>If no</strong> → you are spending a shared resource on work that does not repay it. Use a sequential stream, or a pool you own, sized and bounded deliberately.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found parallel streams wrong — you’ve found incomplete workload knowledge. Time the serial loop, then the parallel one, at your real element count.</li>
 </ul>
 </div>
@@ -1104,8 +1120,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-scopedvalue-context-with-a-visible-lifetime" class="level2 kg-post" hidden="true" data-slug="scoped-values-2027-07-13-jvm" data-pattern="ScopedValue (context with a visible lifetime)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-scopedvalue-context-with-a-visible-lifetime">Case study: ScopedValue (context with a visible lifetime)</h2>
+<p>A request ends, its platform thread returns to the pool, and the next task’s log names the previous customer.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A ScopedValue binds a value for the dynamic extent of a block — <code>ScopedValue.where(TENANT, t).run(...)</code> — readable inside, gone on return. Final in Java 25. The trade: you give up a mutable per-thread slot that survives until someone removes it, for cleanup that cannot be forgotten and inheritance from a task scope, still a preview in 25.</p>
+<p><strong>Mechanism:</strong> A ScopedValue binds a value for the dynamic extent of a block — <code>ScopedValue.where(TENANT, t).run(...)</code> — readable inside, gone on return. Final in Java 25. The trade: you give up a mutable per-thread slot that survives until someone removes it, for cleanup that cannot be forgotten and inheritance from a task scope, which is still a preview in 25.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-8" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-8">The JVM knowledge gap it signals</h3>
@@ -1120,7 +1138,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A service carries tenant, actor, and trace id four levels down into a data layer that reads them without an argument in any signature. On virtual threads at 4,000 concurrent requests it binds once at the edge and reads everywhere inside, with no remove() on nine exit paths. It measured no faster: the win is that handlers nobody wrote a cleanup for are correct.</p>
+<p>A service carries tenant, actor, and trace id four levels down into a data layer that reads them without an argument in any signature. On virtual threads at 4,000 concurrent requests it binds once at the edge and reads everywhere inside, with no remove() on nine exit paths. It measured no faster: the win is correctness — handlers nobody wrote cleanup for are still correct.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1133,7 +1151,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>ThreadLocal keeps working, which is the trap. A forgotten remove() lands on a reused platform thread, and the next task inherits the tenant — a defect that shows in logs, not in tests, which start fresh threads. Then the invisible-parameter variant: a method needing the user id takes no argument for it, so the dependency hides in every signature.</p>
+<p>ThreadLocal keeps working, which is the trap. A forgotten remove() can land on a reused platform thread, and the next task inherits the tenant — a defect that shows in logs, not in tests, which start fresh threads. Then the invisible-parameter variant: a method needing the user id takes no argument for it, so the dependency hides from every signature.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1148,7 +1166,7 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>Which context values are effectively immutable — and who guarantees the cleanup that ScopedValue makes structural?</strong></p>
 <ul>
-<li><strong>If yes</strong> → bind them at the boundary of the work, and delete the remove() calls that guarded them.</li>
+<li><strong>If yes</strong> → bind them at the boundary of the work; delete the remove() calls only once every exit path is migrated.</li>
 <li><strong>If no</strong> → the context is mutable by design, and no scoping API fixes that; find the mutation.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found ThreadLocal wrong — you’ve found incomplete workload knowledge. List every thread-local the path sets, and where each is cleared.</li>
 </ul>
@@ -1161,6 +1179,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-container-cpu-detection-one-number-many-consumers" class="level2 kg-post" hidden="true" data-slug="container-cpu-2027-07-14-jvm" data-pattern="Container CPU detection (one number, many consumers)" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-container-cpu-detection-one-number-many-consumers">Case study: Container CPU detection (one number, many consumers)</h2>
+<p>Two CPUs in the quota, forty-three GC threads in the JVM, and a p99 that worsens each time the heap is raised.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> The JVM reads the container’s CPU allowance at startup and publishes it through Runtime.availableProcessors(). GC threads, concurrent marking threads, the common ForkJoinPool, and the JIT compiler threads all size from that number. The trade: right-sizing when detection is right, correlated over-allocation when it is wrong.</p>
 </blockquote>
@@ -1177,7 +1197,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A worker under a two-CPU quota reported availableProcessors 2: two parallel GC threads, common-pool parallelism 1, heap 1 GB, p99 collection pause 40 ms. Where detection returned 64 — shares set, no quota — the same worker ran 42 parallel GC threads inside two CPUs and spent 30 percent of its quota collecting. Setting ActiveProcessorCount=2 took that to 4 percent.</p>
+<p>A worker under a two-CPU quota reported availableProcessors 2: two parallel GC threads, common-pool parallelism 1, heap 1 GB, p99 collection pause 40 ms. Where detection returned 64 — shares set, no quota — the same worker ran 43 parallel GC threads inside two CPUs and spent 30 percent of its quota collecting. Setting ActiveProcessorCount=2 took that to 4 percent — until the next rescale.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1190,7 +1210,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Latency rises, so heap is raised — the lever everyone trusts. Sixteen GC threads then share two CPUs, the collection has more heap to walk, and the pause grows, so the fix makes the symptom a memory problem for a quarter. The quieter variant: a ForkJoin pool of sixteen on the same two CPUs, matched to the host it was born on — sixteen workers for a quota that schedules two.</p>
+<p>Latency rises, so heap is raised — the lever everyone trusts. Forty-three GC threads then share two CPUs, the collection has more heap to walk, and the pause grows, so the fix turns a latency problem into a memory problem for a quarter. The quieter variant: a ForkJoin pool of sixteen on the same two CPUs, matched to the host it was born on — sixteen pool threads for a quota that schedules two.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1218,8 +1238,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-aot-cache-and-ahead-of-time-compilation" class="level2 kg-post" hidden="true" data-slug="aot-startup-2027-07-15-jvm" data-pattern="AOT cache and ahead-of-time compilation" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-aot-cache-and-ahead-of-time-compilation">Case study: AOT cache and ahead-of-time compilation</h2>
+<p>A function answers one webhook and exits: 1.4 s of JVM startup to do 40 ms of work.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> An AOT cache and ahead-of-time method compilation (Java 24–25, the Leyden work) move class loading, linking, and some code generation into the build: run the application once, record what it touched, ship what was learned. The trade is a training run and a cache artifact as build inputs, against code that never gets as hot as C2 would make it.</p>
+<p><strong>Mechanism:</strong> An AOT cache (Java 24, JEP 483) and ahead-of-time method profiling (Java 25, JEP 515), the Leyden work, move class loading, linking, and some code generation into the build: run the application once, record what it touched, ship what was learned. The trade is a training run and a cache artifact as build inputs, against code that never gets as hot as C2, the optimizing JIT compiler, would make it.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-10" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-10">The JVM knowledge gap it signals</h3>
@@ -1262,8 +1284,8 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>What share of this process’s life is measured as startup-to-useful-work — and where does AOT’s steady-state cost land: p50, or only p99?</strong></p>
 <ul>
-<li><strong>If yes</strong> → the trade is cheap. Rebuild the training run in CI on every release.</li>
-<li><strong>If no</strong> → throughput was traded for noise. Measure sustained throughput with and without the cache.</li>
+<li><strong>If yes</strong> → the trade is cheap only if that share dominates. Rebuild the training run in CI on every release.</li>
+<li><strong>If no</strong> → throughput was traded for a startup gain nobody observes. Measure sustained throughput with and without the cache.</li>
 <li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Measure the lifetime distribution, then p50 and p99 at steady load.</li>
 </ul>
 </div>
@@ -1275,8 +1297,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-jmh-and-the-discipline-of-measurement" class="level2 kg-post" hidden="true" data-slug="jmh-2027-07-16-jvm" data-pattern="JMH and the discipline of measurement" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-jmh-and-the-discipline-of-measurement">Case study: JMH and the discipline of measurement</h2>
+<p>A change measured four times faster in a timed main() method was four times faster at being optimized away.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> JMH runs warmup iterations, then measurement iterations, in forked JVMs, consumes every result through a black hole so the compiler cannot delete the work, and reports a confidence interval instead of a number. The trade is time and care — minutes per benchmark, code written for the harness rather than the product — against an answer that survives production.</p>
+<p><strong>Mechanism:</strong> JMH, the JDK’s microbenchmark harness, runs warmup iterations, then measurement iterations, in forked JVMs — a fresh JVM per run — consumes every result through a black hole so the compiler cannot delete the work, and reports a confidence interval instead of a number. The trade is time and care — minutes per benchmark, code written for the harness rather than the product — against an answer that holds outside the harness.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-11" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-11">The JVM knowledge gap it signals</h3>
@@ -1332,6 +1356,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-java-flight-recorder-left-on" class="level2 kg-post" hidden="true" data-slug="jfr-2027-07-17-jvm" data-pattern="Java Flight Recorder, left on" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-java-flight-recorder-left-on">Case study: Java Flight Recorder, left on</h2>
+<p>At 02:14 last night p99 tripled for forty seconds. The answer comes from a recording already running, not a reproduction that will never happen.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> JFR records runtime events — allocation, GC pauses, lock contention, code cache occupancy — into a bounded ring buffer, and it can stay enabled in production. The trade is a measured cost near one percent, plus storage discipline, against no evidence at the moment the anomaly arrives.</p>
 </blockquote>
@@ -1348,7 +1374,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A payments service kept a continuous recording at the default profile and measured 1.1% of CPU with no shift in p99. A nightly batch degraded three weeks later and the recording answered it from one file: allocation pressure in a single code path, a wrapper object built per row, inside the exact forty seconds everyone had argued about.</p>
+<p>A payments service kept a continuous recording at the default profile and measured 1.1% of CPU with no shift in p99. Three weeks in, a nightly batch degraded at 02:14; the recording answered it from one file: allocation pressure in a single code path, a wrapper object built per row, inside the exact forty seconds everyone had argued about.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1361,7 +1387,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Two failures that look like opposites. “Enabled for emergencies only” sounds prudent, but the emergency is when no data exists, so the incident is argued from theory and the postmortem concludes “likely GC” without one allocation event. The other wears a lab coat: every event at maximum detail on the busiest nodes, until the observer effect is real and the team blames the release for the slowdown the configuration caused. Both are one gap: nobody measured observability’s cost on the workload carrying it.</p>
+<p>Two failures that look like opposites. “Enabled for emergencies only” sounds prudent, but the emergency is when no data exists, so the incident is argued from theory and the postmortem concludes “likely GC” without a single allocation event. The other wears a lab coat: every event at maximum detail on the busiest nodes, until the observer effect is real and the team blames the release for the slowdown the configuration caused. Both are one gap: nobody measured observability’s cost on the workload carrying it.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1389,12 +1415,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-the-code-cache-and-its-eviction" class="level2 kg-post" hidden="true" data-slug="code-cache-2027-07-18-jvm" data-pattern="The code cache and its eviction" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-the-code-cache-and-its-eviction">Case study: The code cache and its eviction</h2>
+<p>Nine days after a deployment one hot method stopped being compiled. Latency rose by an order of magnitude: no exception, no log line.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The JVM reserves a bounded region for JIT-compiled code, sized by ReservedCodeCacheSize. When it fills, the runtime sweeps and frees compiled methods; if nothing can be freed, compilation stops and the affected methods run interpreted — an order of magnitude slower, no exception. The trade is memory reserved for compiled code against a silent ceiling.</p>
+<p><strong>Mechanism:</strong> The JVM reserves a bounded region for code the JIT — the just-in-time compiler — produces, sized by ReservedCodeCacheSize. When it fills, the runtime sweeps and frees compiled methods; if nothing can be freed, compilation stops and the affected methods run interpreted — an order of magnitude slower, no exception. The trade is memory reserved for compiled code against a silent ceiling.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-13" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-13">The JVM knowledge gap it signals</h3>
-<p>Two facts: how fast this workload’s compiled-code footprint grows, and whether growth is bounded or continuous. A steady application plateaus; one that generates classes at runtime — proxies, lambda forms, script engines — climbs until it hits the ceiling. The gap question: what is the measured fill trend of the code cache — and when it fills, does an alert fire or does silence fall?</p>
+<p>Two facts: how fast this workload’s compiled-code footprint grows, and whether growth is bounded or continuous. A steady application plateaus; one that generates classes at runtime — proxies, hidden classes for lambdas, script engines — climbs until it hits the ceiling. The gap question: what is the measured fill trend of the code cache — and when it fills, does an alert fire or does silence fall?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1405,7 +1433,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A long-running application where the footprint was charted before the flag was touched: occupancy over a week, a slow rise at peak hours, a plateau under the default. The size was raised deliberately, fill curve in hand, kept as a dashboard so the next rise is a signal, not a surprise.</p>
+<p>A long-running application where the footprint was charted before the flag was touched: occupancy over a week, a slow rise at peak hours toward the default, no plateau. The size was raised deliberately, fill curve in hand, kept as a dashboard so the next rise is a signal, not a surprise.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1418,7 +1446,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The value copied from a tuning guide, doubled to be safe. It removes the symptom and keeps the cause: if occupancy climbed because a library generates a class per request, a bigger ceiling buys weeks and arrives at the same cliff, further from the change that caused it. The quieter failure: hot methods fall back to the interpreter on a hot deployment, latency doubles, and the only symptom is a slow afternoon until someone reads occupancy. Nothing alerts — nobody decided a full cache was worth watching.</p>
+<p>The value copied from a tuning guide, doubled to be safe. It removes the symptom and keeps the cause: if occupancy climbed because a library generates a class per request, a bigger ceiling buys weeks and arrives at the same cliff, further from the change that caused it. The quieter failure: on a live redeploy, methods still needing compilation stay interpreted, latency rises by an order of magnitude, and the only symptom is a slow afternoon until someone reads occupancy. Nothing alerts — nobody decided a full cache was worth watching.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1446,12 +1474,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-records-and-sealed-hierarchies" class="level2 kg-post" hidden="true" data-slug="records-sealed-2027-07-19-jvm" data-pattern="Records and sealed hierarchies" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-records-and-sealed-hierarchies">Case study: Records and sealed hierarchies</h2>
+<p>A new order state shipped on Friday. Nothing failed the build, and on Monday three consumers handled it — the other eleven silently ignored it.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A record states the type is a transparent carrier of its components: final fields, accessors, equals and hashCode from them. A sealed hierarchy states its implementations are a closed set, and an exhaustive switch turns a missing case into a compile error. The trade is two claims — value and closure — checked at compile time, against the flexibility classes grant.</p>
+<p><strong>Mechanism:</strong> A record states the type is a transparent holder of its components: final fields, accessors, equals and hashCode from them. A sealed hierarchy states its implementations are a closed set, and a pattern switch over it — no default branch, Java 21 — turns a missing case into a compile error. The trade is two claims — value and closure — checked at compile time, against the flexibility classes grant.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-14" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-14">The JVM knowledge gap it signals</h3>
-<p>Whether the domain makes those claims. A record is wrong when identity or mutation is part of the meaning; a sealed type when someone outside the module legitimately adds a case. Each is a statement about the domain, enforced by the compiler in every consumer. The gap question: is this set genuinely closed by the domain — and does the next variant break compilation everywhere, or break production somewhere?</p>
+<p>Whether the domain makes those claims. A record is wrong when identity or mutation is part of the meaning; a sealed type when someone outside the Java module legitimately adds a case. Each is a statement about the domain, enforced in every exhaustive switch over it. The gap question: is this set genuinely closed by the domain — and does the next variant break compilation everywhere, or break production somewhere?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1462,7 +1492,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A payment state machine as a sealed interface with one record per state. Adding a state was a compile error in every consumer: eleven files, named in one build. The switch turned a production incident into a failing branch before anything shipped.</p>
+<p>A payment state machine as a sealed interface with one record per state. Adding a state was a compile error in every consumer: fourteen files, named in one build. The switch turned a production incident into a failing case before anything shipped.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1503,8 +1533,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-foreign-function-memory-final-since-java-22" class="level2 kg-post" hidden="true" data-slug="ffi-2027-07-20-jvm" data-pattern="Foreign Function &amp; Memory, final since Java 22" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-foreign-function-memory-final-since-java-22">Case study: Foreign Function &amp; Memory, final since Java 22</h2>
+<p>A native decoder was replaced and p99 halved — not because the new API is faster, but because the rewrite batched crossings that each pinned a carrier before.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The Foreign Function &amp; Memory API calls native code through a method handle bound to a linker and manages native memory as segments whose lifetimes follow an Arena. The trade is managed safety — a segment cannot outlive its arena, no hand-written glue to get wrong — against a per-crossing cost JNI does not pay the same way and no API removes.</p>
+<p><strong>Mechanism:</strong> The Foreign Function &amp; Memory API calls native code — a downcall — through a bound method handle, a callable to a native entry point, and manages native memory as segments in an Arena, a region whose memory is freed all at once, not per object. The trade is managed safety — a segment cannot outlive its arena, no hand-written glue to get wrong — against a per-crossing cost intrinsic to the boundary, whatever the API.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-15" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-15">The JVM knowledge gap it signals</h3>
@@ -1532,7 +1564,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>JNI kept because it was always there, around a library that blocks inside a native call — and that call pins its carrier thread for the duration, invisible until the service moves to virtual threads and the scheduler runs out of carriers. The seductive opposite: FFM adopted, then called once per element in a tight loop, where crossing cost dominates what the native code saves. The fix is batching, which nobody measured for.</p>
+<p>JNI, the older calling convention, kept because it was always there, around a library that blocks inside a native call. That call pins the carrier it runs on for the duration, invisible until the service moves to virtual threads and the scheduler runs out of carriers. The seductive opposite: FFM adopted, then called once per element in a tight loop, where crossing cost dominates what the native code saves. The fix is batching, which nobody had measured.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1547,8 +1579,8 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>How often does control cross this boundary, measured — and does each crossing pay for the safety it buys?</strong></p>
 <ul>
-<li><strong>If yes</strong> → batch it and keep the managed boundary. Count crossings again after the rewrite.</li>
-<li><strong>If no</strong> → the boundary is the cost centre. Move the loop into native code, or amortize it over a buffer.</li>
+<li><strong>If yes</strong> → the boundary is the cost centre: batch it, amortize over a buffer, or move the loop into native, then count crossings again.</li>
+<li><strong>If no</strong> → crossings are rare; leave the loop where it is, and keep the managed boundary for the safety it buys.</li>
 <li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Count crossings per request and per second at peak.</li>
 </ul>
 </div>
@@ -1560,8 +1592,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-compressed-oops-and-the-32-gb-boundary" class="level2 kg-post" hidden="true" data-slug="compressed-oops-2027-07-21-jvm" data-pattern="Compressed oops and the 32 GB boundary" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-compressed-oops-and-the-32-gb-boundary">Case study: Compressed oops and the 32 GB boundary</h2>
+<p>A host goes from 31 GB of heap to 40, gains nine gigabytes, and holds fewer objects per gigabyte. Nothing crashed. The 32 GB boundary did it.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> Below roughly 32 GB of heap, HotSpot stores a reference in 4 bytes instead of 8, scaling by object alignment so the short form still spans the heap — compressed oops, default since Java 6u23. At or above the boundary the scaling fails, references widen, and every object holding one grows. The trade is pointer width against reach: more addressable memory, less of it usable.</p>
+<p><strong>Mechanism:</strong> Below a maximum heap of roughly 32 GB, HotSpot stores a reference in 4 bytes instead of 8, scaling by object alignment so the short form still spans the heap — compressed oops, on by default since Java 6u23. At or above the boundary the scaling fails, references widen, and every object holding one grows. The trade is pointer width against reach: more addressable memory, less of it usable.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-16" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-16">The JVM knowledge gap it signals</h3>
@@ -1576,7 +1610,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A cache team counted entries against heap used: 4.2 million fit at 28 GB, so it held there and ran three smaller JVMs instead of one large one.</p>
+<p>A cache team counted entries against heap used: 38 million fit at 28 GB, so the team held the heap there and ran three smaller JVMs instead of one large one.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1589,7 +1623,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>“Memory pressure — add heap.” The 31 GB box becomes 40 GB, the flag stays default, and the work is declared done because the alert stopped. Underneath, references widened, pointer-heavy objects inflated, promotion rose, and the collector does more work per gigabyte while holding a smaller live set. Pressure returns; someone proposes more heap. The seductive part is that the change did help — a heap near its ceiling always does — so the story writes itself backwards.</p>
+<p>“Memory pressure — add heap.” The 31 GB box becomes 40 GB, the flag stays default, and the work is declared done because the alert stopped. Underneath, references widened, pointer-heavy objects inflated, promotion rose, and the collector does more work per gigabyte while holding a smaller live set. Pressure can return; someone proposes more heap. The seductive part is that the change did help — a heap near its ceiling always does — so the story writes itself backwards.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1606,7 +1640,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → you can size deliberately: stay under it and scale out, or accept the widening for the reach.</li>
 <li><strong>If no</strong> → the resize was arithmetic on a number you never measured. Compare entries per gigabyte before and after.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure objects reachable per GB, then read the effective oop mode on a live process.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure objects reachable per GB, then read the effective reference width on a live process.</li>
 </ul>
 </div>
 </div>
@@ -1617,12 +1651,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-g1-humongous-objects" class="level2 kg-post" hidden="true" data-slug="g1-humongous-2027-07-22-jvm" data-pattern="G1 humongous objects" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-g1-humongous-objects">Case study: G1 humongous objects</h2>
+<p>The service throws “OutOfMemoryError: Java heap space” while its own GC log shows four gigabytes free. No contiguous run of free regions was left to allocate into.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> G1 splits the heap into fixed power-of-two regions, derived from the heap, between 1 MB and 32 MB. An allocation at or above half the region size is humongous: it lands in contiguous regions and skips the young generation’s copying path. The trade is speed through the young path against contiguity.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-17" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-17">The JVM knowledge gap it signals</h3>
-<p>The allocation-size distribution is the fact; the flag is not. You must know your largest allocations, how they die, and what region size your heap implies — the same 2 MB buffer is ordinary on a 64 MB region and humongous on a 2 MB one. The gap question: what is the measured allocation-size distribution against the region size — and who owns the giant arrays?</p>
+<p>The allocation-size distribution is the fact; the flag is not. You must know your largest allocations, how they die, and what region size your heap implies — the same 2 MB buffer is ordinary on a 32 MB region and humongous on a 2 MB one. The gap question: what is the measured allocation-size distribution against the region size — and who owns the giant arrays?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1633,7 +1669,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A document service profiled its allocations: 99.9 percent under 4 KB, plus a 3 MB paging buffer. Raising the region size to 8 MB would stop it being humongous; splitting it into 64 KB pages removed it.</p>
+<p>A document service profiled its allocations: 99.9 percent under 4 KB, plus a 3 MB paging buffer. Raising the region size to 8 MB would stop it being humongous; splitting the buffer into 64 KB pages removed it.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1646,7 +1682,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A request handler allocates a 2 MB byte array per call on a 4 GB heap — 2 MB regions, so every array is humongous. Hundreds arrive each second and die at once, but their regions wait for a cycle a mostly-young workload rarely triggers. The old generation fills with dead giants, the next large allocation finds no contiguous run, and the failure reads as heap exhaustion. The team adds heap, the symptom eases, and they credit the memory — but region size derives from the heap, so the regions grew and the objects stopped being humongous.</p>
+<p>A request handler allocates a 2 MB byte array per call on a 4 GB heap — 2 MB regions, so every array is humongous. Hundreds are in flight at once, and the dead ones wait for the next collection before eager reclaim frees their regions. The old generation fills with live giants, the next large allocation finds no contiguous run, and the failure reads as heap exhaustion. The team adds heap, the symptom eases, and they credit the memory — but region size derives from the heap, so 8 GB only buys 4 MB regions, the 2 MB arrays stay humongous, and the easing is headroom, not a fix.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1674,12 +1710,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-direct-buffers-and--xxmaxdirectmemorysize" class="level2 kg-post" hidden="true" data-slug="maxdirect-memory-2027-07-23-jvm" data-pattern="Direct buffers and -XX:MaxDirectMemorySize" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-direct-buffers-and--xxmaxdirectmemorysize">Case study: Direct buffers and -XX:MaxDirectMemorySize</h2>
+<p>A service with 8 GB of heap dies with OutOfMemoryError, and the dump left behind is almost empty. The memory it ran out of was never on the heap.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> ByteBuffer.allocateDirect returns a buffer whose bytes live outside the heap, in memory the collector does not trace. It exists for one reason: to hand an address to the operating system — socket, file, TLS — without a copy. -XX:MaxDirectMemorySize caps the total, defaulting to roughly the maximum heap. The trade is a copy saved against memory the collector learns about only through a Cleaner.</p>
+<p><strong>Mechanism:</strong> ByteBuffer.allocateDirect returns a buffer whose bytes live outside the heap, in memory the collector does not trace. It exists for one reason: to hand an address to the operating system — socket, file, TLS — without a copy. -XX:MaxDirectMemorySize caps the total, defaulting to roughly the maximum heap. The trade is a copy saved against memory the collector learns about only through a Cleaner — a free that runs when a collection finds it dead.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-18" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-18">The JVM knowledge gap it signals</h3>
-<p>The deciding facts are how many bytes per second must reach native code, and how long each buffer lives. A buffer allocated per message pays malloc and a Cleaner registration per message; a pooled buffer pays neither while traffic lasts. And because the default cap derives from -Xmx, raising the heap silently raises the off-heap ceiling too. The gap question: how many off-heap bytes per second does this workload allocate, measured — and what frees them?</p>
+<p>The deciding facts are how many direct-memory bytes per second must reach the operating system, and how long each buffer lives. A buffer allocated per message pays malloc and a Cleaner registration per message; a pooled buffer pays neither while traffic lasts. And because the default cap derives from -Xmx, raising the heap raises the direct-buffer cap too, though other off-heap memory is untouched. The gap question: how many direct-memory bytes per second does this workload allocate, measured — and what frees them?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1703,7 +1741,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>“Off-heap is faster, so move the cache off-heap.” A 4 GB cache in direct buffers, allocated on demand, no cap set — and the collector can release a buffer only when it runs, so the memory moved out of the heap is still reclaimed by the heap collector. When the process dies, the dump is nearly empty and the alert names a heap that is not the problem.</p>
+<p>“Off-heap is faster, so move the cache off-heap.” A 12 GB cache in direct buffers, allocated on demand, no cap set — and the direct-memory bytes are only freed when a heap collection happens to run, so the memory moved out of the heap is still reclaimed by the heap collector. When the process dies, the dump is nearly empty and the alert names a heap that is not the problem.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1719,8 +1757,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>How many off-heap bytes per second does this workload allocate, measured — and what frees them?</strong></p>
 <ul>
 <li><strong>If yes</strong> → pool the buffers, cap direct memory explicitly, and keep the copy you saved.</li>
-<li><strong>If no</strong> → direct memory buys what the heap was not paying for. Measure allocation rate off-heap, not heap occupancy.</li>
-<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Read native memory tracking against the container limit at peak.</li>
+<li><strong>If no</strong> → direct memory buys the copy the heap path cannot skip, and this workload saves none. Measure the direct-memory allocation rate, not heap occupancy.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong practice — incomplete workload knowledge. Read the direct-buffer pool’s used bytes against the container limit at peak.</li>
 </ul>
 </div>
 </div>
@@ -1731,12 +1769,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-system.gc-and--xxdisableexplicitgc" class="level2 kg-post" hidden="true" data-slug="disable-explicit-gc-2027-07-24-jvm" data-pattern="System.gc() and -XX:+DisableExplicitGC" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-system.gc-and--xxdisableexplicitgc">Case study: System.gc() and -XX:+DisableExplicitGC</h2>
+<p>Someone adds System.gc() to a request path to silence an alert. The pause lands on whichever user is unlucky — and the alert returns.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> System.gc() is a suggestion, not an instruction. HotSpot answers it with a stop-the-world full collection by default; -XX:+ExplicitGCInvokesConcurrent makes that collection concurrent, and -XX:+DisableExplicitGC makes the call a no-op. The trade is timing: the collector schedules from occupancy and a pause budget, while an explicit call overrides that judgement with a caller’s guess about when memory should be returned.</p>
+<p><strong>Mechanism:</strong> System.gc() is a suggestion, not an instruction. G1, the default collector, answers it with a stop-the-world full collection by default; -XX:+ExplicitGCInvokesConcurrent makes G1 and ZGC answer concurrently, and -XX:+DisableExplicitGC makes the call a no-op. The trade is timing. The collector schedules from occupancy and a pause target; an explicit call overrides that with a caller’s guess about when memory should be returned.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-19" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-19">The JVM knowledge gap it signals</h3>
-<p>The fact to establish is what the call releases. Some resources free themselves only when a collection runs: direct buffers behind their Cleaner, the distributed garbage collector of RMI, some unmapped-file releases. So disabling explicit collection removes a release path together with the pause. The gap question: name what this call releases, measured — and what breaks if it never happens?</p>
+<p>The fact to establish is what the call releases. Some resources free themselves only when a collection runs: direct buffers, freed by a Cleaner once a collection sees them dead; remote references in RMI (the JDK’s remote-call service), released only by its distributed garbage collector; and unmapped-file regions, freed by the next collection. So disabling explicit collection removes a release path together with the pause. The gap question: name what this call releases, measured — and what breaks if it never happens?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1760,7 +1800,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A library calls System.gc() after closing a mapped file, and the call is copied into a service that maps nothing. The team then disables explicit collection to remove a 400 ms pause — and silences the call the library depended on, so a resource that was released by force now waits for whatever collection happens next, or for none if the heap never fills. A global no-op is not a fix for one bad call site.</p>
+<p>A library calls System.gc() after closing a mapped file, and the call runs inside a service that maps files too. The team then disables explicit collection to remove a 400 ms pause — and silences the call the library depended on, so a resource that was released by force now waits for whatever collection happens next, or for none if the heap never fills. The fix belongs at the one bad call site; the flag cuts a mechanism the library needs.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1788,8 +1828,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study--xxheapdumponoutofmemoryerror-and-heapdumppath" class="level2 kg-post" hidden="true" data-slug="heap-dump-on-oome-2027-07-25-jvm" data-pattern="-XX:+HeapDumpOnOutOfMemoryError and HeapDumpPath" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study--xxheapdumponoutofmemoryerror-and-heapdumppath">Case study: -XX:+HeapDumpOnOutOfMemoryError and HeapDumpPath</h2>
+<p>A production OOM at 03:00 earns a container restart. By 09:00 the evidence is one log line and a theory.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> When a memory pool is exhausted the JVM can write the live object graph to an HPROF file before it dies: -XX:+HeapDumpOnOutOfMemoryError enables the write, -XX:HeapDumpPath names the file or directory, and the process dumps then exits. The trade is a file the size of the heap, written at the worst possible moment, against the only snapshot of the state that failed.</p>
+<p><strong>Mechanism:</strong> When a memory pool is exhausted the JVM can write the live set to an HPROF file before it dies: -XX:+HeapDumpOnOutOfMemoryError enables the write, -XX:HeapDumpPath names the file or directory; the JVM writes the dump, then the uncaught OutOfMemoryError ends the process. The trade is a file the size of the live set, written at the worst possible moment, against the only snapshot of the state that failed.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-20" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-20">The JVM knowledge gap it signals</h3>
@@ -1834,7 +1876,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → keep it on, keep the path on durable storage, and set a retention rule.</li>
 <li><strong>If no</strong> → the dump is a file nobody reads. Fix the path and the reader first, then enable.</li>
-<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete operational knowledge. Check free space at the mount, and whether the kill is even a heap OOM.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete operational knowledge. Check free space at the mount — your platform team’s volume room — and whether the kill is even a heap OOM.</li>
 </ul>
 </div>
 </div>
@@ -1845,12 +1887,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study--xxalwayspretouch" class="level2 kg-post" hidden="true" data-slug="always-pretouch-2027-07-26-jvm" data-pattern="-XX:+AlwaysPreTouch" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study--xxalwayspretouch">Case study: -XX:+AlwaysPreTouch</h2>
+<p>A service starts in 40 seconds, then spends its first ten minutes stepping down in latency as the heap fills page by page.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> The JVM reserves the heap as virtual address space and commits pages only as objects touch them, so a 40 GB heap is cheap until it is used. -XX:+AlwaysPreTouch walks the whole heap at startup and writes to every page, forcing the kernel to map frames now. The trade is paid before the first request: a longer startup and a resident set equal to the heap, against page faults and kernel zeroing spread across live traffic.</p>
+<p><strong>Mechanism:</strong> The JVM reserves the heap as virtual address space and commits pages only as objects touch them, so a 40 GB heap is cheap until it is used. -XX:+AlwaysPreTouch, with -Xms at -Xmx, walks the whole heap at startup and writes to every page, forcing the kernel to map frames now. The trade is paid before the first request: a longer startup and a resident set, the physical pages held, equal to the heap, against page faults — the kernel’s per-page charge on first touch — and kernel zeroing spread across live traffic.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-21" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-21">The JVM knowledge gap it signals</h3>
-<p>The fact that decides it is how long the ramp lasts. A service that reaches steady state in seconds amortizes a one-time cost; one that grows for an hour pays faults while serving. Pre-touch also makes commitment visible: a heap larger than the container limit fails at startup instead of being killed at peak. The gap question: how long until this heap reaches steady state, measured — and does the container limit allow the whole heap to be committed up front?</p>
+<p>The fact that decides it is how long the ramp lasts. A service whose heap reaches its full committed size in seconds amortizes a one-time cost; one whose heap grows for an hour pays faults while serving. Pre-touch also makes commitment visible: a heap larger than the container limit fails at startup instead of being killed at peak. The gap question: how long until this heap reaches steady state, measured — and does the container limit allow the whole heap to be committed up front?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1874,7 +1918,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>-Xmx64g inside a 32 GB container. Pre-touch commits all of it at startup, the kernel sees the limit, and the process is killed before it logs anything. The lazy version would have died later, so nothing was lost — except the diagnosis, which is now a startup crash nobody can explain.</p>
+<p>-Xms64g -Xmx64g inside a 32 GB container. Pre-touch commits all of it at startup, the kernel sees the limit, and the process is killed before it logs anything. The lazy version would have run to the peak, where the death is diagnosable. Pre-touch moved the death to startup — the diagnosis was the loss, a crash nobody can explain.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1887,11 +1931,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>How long until this heap reaches steady state, measured — and does the container limit allow the whole heap to be committed up front?</strong></p>
+<p><strong>How long until this heap reaches its full committed size, measured — and does the container limit allow the whole heap to be committed up front?</strong></p>
 <ul>
 <li><strong>If yes</strong> → enable it, and keep the ramp inside a phase you already budget for.</li>
 <li><strong>If no</strong> → the walk is a tax on a heap that never grows. Leave the pages lazy.</li>
-<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete workload knowledge. Plot resident memory against time after startup, and compare it with the container limit.</li>
+<li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete workload knowledge. Plot committed heap pages against time after startup — RSS is the proxy — and compare it with the container limit.</li>
 </ul>
 </div>
 </div>
@@ -1902,6 +1946,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-escape-analysis-and-scalar-replacement" class="level2 kg-post" hidden="true" data-slug="escape-analysis-2027-07-27-jvm" data-pattern="Escape analysis and scalar replacement" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-escape-analysis-and-scalar-replacement">Case study: Escape analysis and scalar replacement</h2>
+<p>A pricing path allocates 40 MB a second and young collections run twice a minute — almost none of those objects leave the method.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> HotSpot asks whether an object can be reached outside the method or thread that allocated it. Where it proves the object local, the compiler dissolves it into registers and stack slots — scalar replacement — and the allocation disappears. The trade: objects proven local become free; everything else keeps a real allocation plus the analysis spent on it.</p>
 </blockquote>
@@ -1918,7 +1964,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A pricing step builds a small value object per line item, 300,000 per batch, with a collection every 30 seconds. Nothing stores a reference past the method. Once the object is final, small, and out of every field, allocation on that path falls by most of its volume and collections space to 90 seconds.</p>
+<p>A pricing step builds a small value object per line item, 30 million per batch, with a collection every 30 seconds. Every reference stays inside the method. Once the object is small and no reference to it leaves the method, allocation on that path falls by most of its volume and collections grow to 90 seconds apart.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -1931,7 +1977,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The object pool. It sounds responsible: bounded, reused, sparing the collector. But a pooled object lives in a field, so the analysis proves it escapes and every instance is traced for the life of the process. The team buys reset bugs and concurrency defects to avoid allocations that were free. One virtual call on the hot path makes the call site megamorphic, inlining stops, and the erased objects return as garbage.</p>
+<p>The object pool. It sounds responsible: bounded, reused, sparing the collector. But a pooled object lives in a field, so the analysis proves it escapes and every instance is traced for the life of the process. The team buys reset bugs and concurrency defects to avoid allocations that were free. Under C2, a hot-path call site with many receiver types turns megamorphic, inlining stops, and the scalar-replaced objects return as garbage.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -1959,6 +2005,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-tiered-compilation-c1-and-c2" class="level2 kg-post" hidden="true" data-slug="tiered-startup-2027-07-28-jvm" data-pattern="Tiered compilation, C1 and C2" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-tiered-compilation-c1-and-c2">Case study: Tiered compilation, C1 and C2</h2>
+<p>A build step lives four point two seconds. One point six of them go to compiling methods the process will never call twice.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> Tiered compilation, the default since Java 8, runs two compilers: C1 compiles fast with light optimization, C2 compiles slowly and optimizes hard, and a method climbs as it proves hot. -XX:TieredStopAtLevel=1 stops the climb at C1. The trade: compile time during startup against peak throughput for the rest of the process’s life, with that lifetime as the exchange rate.</p>
 </blockquote>
@@ -1988,7 +2036,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The flag copied from a build-tool tuning guide onto a long-running service. It arrives with plausible provenance, it improves a startup dashboard nobody reads twice, and its cost shows nowhere: peak throughput drops a few percent, latency at saturation rises, and because nothing was measured beforehand, nothing looks wrong. A competent engineer makes this move, because the flag was correct where they found it. The transport was the error, not the reasoning.</p>
+<p>The flag copied from a build-tool tuning guide onto a long-running service. It arrives with plausible provenance. It improves a startup dashboard nobody reads twice, and its cost shows nowhere: peak throughput drops a few percent, latency at saturation rises. Because nothing was measured beforehand, nothing looks wrong. A competent engineer makes this move, because the flag was correct where they found it. The transport was the error, not the reasoning.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2003,8 +2051,8 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p><strong>What is the measured lifetime of this process — and does steady state ever arrive before it exits?</strong></p>
 <ul>
-<li><strong>If yes</strong> → stop at C1, and confirm no path here depends on compiled-code peak performance.</li>
-<li><strong>If no</strong> → the default tiers are the right shape. Attack startup by doing less work, not by refusing to optimize.</li>
+<li><strong>If yes</strong> → keep the default tiers; C2 pays back before exit.</li>
+<li><strong>If no</strong> → stopping at C1 is the priced choice: the process never collects C2. Startup work is a different lever, with its own measurement.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the flag wrong — you’ve found incomplete workload knowledge. Measure the lifetime distribution and the share spent before hot methods reach C2.</li>
 </ul>
 </div>
@@ -2016,8 +2064,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-class-data-sharing-application-classes-from-java-10" class="level2 kg-post" hidden="true" data-slug="cds-startup-2027-07-29-jvm" data-pattern="Class Data Sharing, application classes from Java 10" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-class-data-sharing-application-classes-from-java-10">Case study: Class Data Sharing, application classes from Java 10</h2>
+<p>On a Java 17 service, 1.9 seconds of a 3.4-second startup are class loading: 4,800 classes parsed and verified before the first request.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> Class Data Sharing writes pre-parsed class metadata into an archive the JVM maps read-only, so the page cache and co-located processes share one copy. Application Class Data Sharing (Java 10) covers application classes; the dynamic archive (Java 13) records what a training run loaded, so no class list needs maintaining. The trade: startup work leaves every process, against a snapshot — change the application and it stops matching, quietly.</p>
+<p><strong>Mechanism:</strong> Class Data Sharing writes pre-parsed class metadata into an archive the JVM maps read-only — the OS keeps one copy in the page cache, so co-located processes share it. Application Class Data Sharing (Java 10) covers application classes; the dynamic archive (Java 13) records what a training run loaded, so no class list needs maintaining. The trade: startup work leaves every process, against a snapshot.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-24" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-24">The JVM knowledge gap it signals</h3>
@@ -2032,7 +2082,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>An 11/17 fleet starting 300 times a day, class loading at 38% of startup by profile. The dynamic archive ships with the artifact: startup falls from 3.4 to 2.2 seconds. Regeneration is a build step, so the archive cannot go stale.</p>
+<p>A 17-only fleet starting 300 times a day, class loading at 56% of startup by profile. The dynamic archive ships with the artifact: startup falls from 3.4 to 2.2 seconds. Regeneration is a build step per JDK and per artifact, so the archive matches what ships — a bump or dependency change rebuilds it.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2061,7 +2111,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>What share of startup is class loading, measured — and who regenerates the archive when the application changes?</strong></p>
 <ul>
 <li><strong>If yes</strong> → ship the archive from the build, and treat regeneration as a build step.</li>
-<li><strong>If no</strong> → class loading is not your startup. Profile what is before adding a file to the deployment.</li>
+<li><strong>If no</strong> → your startup is spent elsewhere. Profile it before adding a file to the deployment.</li>
 <li><strong>If you can’t answer</strong> → unclear. You haven’t found the mechanism wrong — you’ve found incomplete workload knowledge. Measure startup phases, and count the JVMs per host.</li>
 </ul>
 </div>
@@ -2071,14 +2121,16 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </section>
 </section>
-<section id="case-study-biased-locking-gone-since-java-15" class="level2 kg-post" hidden="true" data-slug="biased-locking-2027-07-30-jvm" data-pattern="Biased locking, gone since Java 15" data-group="jvm" data-group-label="JVM">
-<h2 class="anchored" data-anchor-id="case-study-biased-locking-gone-since-java-15">Case study: Biased locking, gone since Java 15</h2>
+<section id="case-study-biased-locking-off-by-default-since-15-removed-in-18" class="level2 kg-post" hidden="true" data-slug="biased-locking-2027-07-30-jvm" data-pattern="Biased locking, gone since Java 15" data-group="jvm" data-group-label="JVM">
+<h2 class="anchored" data-anchor-id="case-study-biased-locking-off-by-default-since-15-removed-in-18">Case study: Biased locking, off by default since 15, removed in 18</h2>
+<p>A cache guarded by a synchronized block, hit by one thread 40,000 times a second, costs almost nothing — on a JDK where the mechanism that made it true is gone.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> Biased locking assumed most monitors are taken by one thread for their whole life, so the first acquisition recorded that owner in the object header and later ones by the same thread skipped the atomic compare-and-swap. A second thread revoked the bias — a stop-the-world operation to walk and repair stacks. The trade: uncontended acquisition approaches free, against revocation stalls. Java 15 disabled it by default; later releases removed the implementation.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-25" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-25">The JVM knowledge gap it signals</h3>
-<p>It paid off under conditions to verify, not assume: one owner, no second thread arriving, thousands of acquisitions a second, and a JDK where the code exists. Two are workload facts, one a fleet fact. The gap question: which JDK does this fleet actually run — and would anyone notice the flag being ignored?</p>
+<p>It paid off under conditions to verify, not assume: one owner, no second thread arriving, thousands of acquisitions a second, and a JDK where the code exists. Three are workload facts, one a fleet fact. The gap question: which JDK does this fleet actually run — and would anyone notice the flag being ignored?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2089,7 +2141,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The honest case is from the era it served: a shared map touched by one thread tens of thousands of times per second, uncontended, proven by thread dumps showing one owner and no blocked time. On Java 8 that is the shape it was built for.</p>
+<p>The honest case is from the era it served: a shared map, uncontended — one owner and no revocation events in a peak hour of JFR lock records, not a thread dump. On Java 8 that is the shape it was built for.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2102,7 +2154,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The tuning guide, still in the repository, still shipping -XX:+UseBiasedLocking to fleets on 17 and 21. The launcher accepts it silently, the mechanism is absent, so the change does nothing and the startup script reads as tuned. The worse outcome is the diagnosis: latency blamed on revocation on a JDK with no bias left to revoke — a plausible cause that closes the investigation before anyone reads the safepoint log. The guide never had a version column.</p>
+<p>The tuning guide, still in the repository, still shipping -XX:+UseBiasedLocking to fleets on 17 and 21. On 17 the flag still works; on 21 the launcher warns that support was removed in 18 — a line nobody reads — and the script still reads as tuned. The worse outcome is the diagnosis. Latency gets blamed on revocation, on a JDK with no bias left to revoke. That cause is plausible enough to close the investigation before anyone reads the safepoint log. The guide never had a version column.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2118,7 +2170,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Which JDK does this fleet actually run — and would anyone notice the flag being ignored?</strong></p>
 <ul>
 <li><strong>If yes</strong> → check the flag does what the guide claims on that exact version, and delete it elsewhere.</li>
-<li><strong>If no</strong> → the mechanism is gone; the latency has another cause. Read the safepoint log for what stalls threads.</li>
+<li><strong>If no</strong> → the mechanism may be gone on this fleet’s JDK; the latency has another cause. Read the safepoint log — time-to-safepoint, the wait before a pause — for what stalls threads.</li>
 <li><strong>If you can’t answer</strong> → unclear. Not a wrong flag — incomplete fleet knowledge. Inventory JDKs per environment, then test one change.</li>
 </ul>
 </div>
@@ -2130,12 +2182,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-concurrent-mark-sweep-removed-in-java-14" class="level2 kg-post" hidden="true" data-slug="cms-legacy-2027-07-31-jvm" data-pattern="Concurrent Mark Sweep, removed in Java 14" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-concurrent-mark-sweep-removed-in-java-14">Case study: Concurrent Mark Sweep, removed in Java 14</h2>
+<p>A service pinned to Java 8 for its pauses, where every full collection arrives a little later and lasts a little longer.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> CMS marked and swept while the application ran, so pauses were short — and it never compacted. Free space fragmented, a large allocation failed, and the fallback was a single-threaded full collection with compaction: the debt paid at once, or a concurrent mode failure that stopped everything. The trade: short pauses now, against fragmentation that picks when the long pause comes. Deprecated in Java 9, removed in Java 14.</p>
+<p><strong>Mechanism:</strong> CMS marked and swept while the application ran, so pauses were short — and it never compacted. Free space fragmented, a large allocation failed, and the fallback was a single-threaded full collection with compaction: the debt paid at once, or a concurrent mode failure — the concurrent pass falling behind and giving up — that stopped everything. The trade: short pauses now, against fragmentation that picks when the long pause comes. Deprecated in Java 9, removed in Java 14.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-26" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-26">The JVM knowledge gap it signals</h3>
-<p>What the team must know is a trend, not an average: pause length between compactions, the promotion rate driving fragmentation, and the JDK the fleet runs in three years. A collector chosen for its pauses is chosen for a shape of heap use; a workload churning large objects breaks it. The gap question: is this fleet on a JDK where CMS still exists — and what is the measured trend of pause length between its compactions?</p>
+<p>What the team must know is a trend, not an average: pause length between compactions, the promotion rate — the young-to-old flow — driving fragmentation, and the JDK the fleet runs in three years. A collector chosen for its pauses is chosen for a shape of heap use; a workload churning large objects breaks it. The gap question: is this fleet on a JDK where CMS still exists — and what is the measured trend of pause length between its compactions?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2146,7 +2200,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The Java 8 latency service CMS genuinely served: a 400 ms pause target met at p99, tenuring tuned by measurement, fragmentation bounded by a derived heap size, an upgrade scheduled, not assumed.</p>
+<p>The Java 8 latency service CMS genuinely served: a 400 ms pause target met at p99, tenuring — the age at which an object is promoted — tuned by measurement, fragmentation bounded by a derived heap size, an upgrade scheduled, not assumed.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2159,7 +2213,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The fleet stays on the old JDK because the collector works fine. Each full collection is a few percent longer than the last, so no single event looks like a problem; the average stays flat while the tail grows. The runbook still recommends flags of a collector removed in Java 14; new services copy them until startup fails. The reasoning was sound when written; only the calendar moved.</p>
+<p>The fleet stays on the old JDK because the collector works fine. Each full collection tends to be a few percent longer than the last, and none crosses the alarm — the tail grows while the average holds. The runbook still recommends flags of a collector removed in Java 14; on a new JDK, startup fails. The reasoning was sound when written; only the calendar moved.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2187,6 +2241,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-safepoints-and-time-to-safepoint" class="level2 kg-post" hidden="true" data-slug="safepoints-2027-08-01-jvm" data-pattern="Safepoints and time-to-safepoint" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-safepoints-and-time-to-safepoint">Case study: Safepoints and time-to-safepoint</h2>
+<p>A service stalls 600 ms every few seconds; the GC log shows 8 ms pauses, so nobody looks at the collector again.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
 <p><strong>Mechanism:</strong> To collect, the JVM stops every thread at a safepoint, a point where its state is known. That stop has two parts: the wait for the last thread to arrive, time-to-safepoint, and the operation itself, the pause the log prints. The log bills the second part.</p>
 </blockquote>
@@ -2203,7 +2259,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A p99.9 of 700 ms against a 200 ms budget, collector pauses at 8-12 ms. Safepoint logging put 600 ms in time-to-safepoint: one counted loop over a large array in a hot path. Before JDK 17 a long counted loop could walk past the poll and finish before the world stopped; JDK 17 reworked that poll, so older JVMs carry more of the stall in the loop. Restructured to yield inside it, the stall went; the pauses never moved.</p>
+<p>A p99.9 of 700 ms against a 200 ms budget, collector pauses at 8-12 ms. Safepoint logging put 600 ms in time-to-safepoint: one counted loop, a loop whose end the compiler knows, over a large array in a hot path. Before Java 10 such a loop could run past its poll and finish before the world stopped; loop strip mining, since Java 10, places a poll inside it, so older JVMs carry more of the stall in the loop. After the loop was restructured to yield inside it, the stall went; the pauses never moved.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2216,7 +2272,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The heap is resized, the collector swapped, the flags shuffled. A fair move: you have a latency complaint and a pause log, so you tune what it measures. It misses because the log is honest and incomplete. On a pre-17 JVM the loop keeps every thread hostage every few seconds, no collector flag touches it, and each round tells a convincing story about a generation that was never the problem.</p>
+<p>The heap is resized, the collector swapped, the flags shuffled. A fair move: you have a latency complaint and a pause log, so you tune what it measures. It misses because the log is honest and incomplete. On a pre-10 JVM the loop keeps every thread hostage every few seconds, no collector flag touches it, and each round tells a convincing story about the young generation, which was never the problem.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2244,8 +2300,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-finalization-and-its-successors" class="level2 kg-post" hidden="true" data-slug="finalization-2027-08-02-jvm" data-pattern="Finalization and its successors" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-finalization-and-its-successors">Case study: Finalization and its successors</h2>
+<p>A nightly job dies at 1,024 open files, and every test passes: the close sits in finalize(), which runs when the JVM pleases.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> finalize() runs at most once, after the object becomes unreachable, and only if a collection happens. The object is enqueued for finalization first, so freeing it takes a second collection: every finalizable object costs two passes, and it can resurrect itself by publishing this. Deprecated for removal in Java 18; the successors are try-with-resources on AutoCloseable and java.lang.ref.Cleaner (Java 9+).</p>
+<p><strong>Mechanism:</strong> finalize() runs at most once, after the object becomes unreachable, and only if a collection happens. The object is enqueued for finalization first, so freeing it takes a second collection: every finalizable object that dies costs two passes, and it can resurrect itself by publishing this. Deprecated for removal in Java 18; the successors are try-with-resources on AutoCloseable and java.lang.ref.Cleaner, a deferred free the collector runs (Java 9+).</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-28" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-28">The JVM knowledge gap it signals</h3>
@@ -2273,7 +2331,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The handle released in finalize(), and it does run — you see the close in the log, which is why review passed it. It runs when allocation triggers a collection: let the service idle and allocations stop, collections stop, finalizers stop, and the handle stays open until the table fills. Then the cache whose values override finalize: entries stay reachable for the process’s life, and every entry costs a second collection forever.</p>
+<p>The handle released in finalize(), and it does run — you see the close in the log, which is why review passed it. It runs whenever the collector schedules it: let the service idle and allocations stop, collections stop, finalizers stop, and the handle stays open, and the table fills. Then the cache whose values override finalize: every evicted entry still costs two collections, and nothing tells you which are queued.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
@@ -2301,12 +2359,14 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="case-study-the-perf-data-file-and--xx-useperfdata" class="level2 kg-post" hidden="true" data-slug="hsperfdata-2027-08-03-jvm" data-pattern="The perf-data file and -XX:-UsePerfData" data-group="jvm" data-group-label="JVM">
 <h2 class="anchored" data-anchor-id="case-study-the-perf-data-file-and--xx-useperfdata">Case study: The perf-data file and -XX:-UsePerfData</h2>
+<p>A flag is added to stop a JVM writing into /tmp. Two months later the dashboard is a flat line, and no alarm fired.</p>
+<p>Changing a JVM flag or adopting a practice? Ask “which measured fact of this workload does it answer, and what does it trade away?” Every flag moves two numbers — the one you aim at, and one you did not. If you can’t name both, you’ve found a knowledge gap: the flag is a superstition. If you can, it’s knowledge embodied — the runtime catching up to what the workload demands.</p>
 <blockquote class="blockquote">
-<p><strong>Mechanism:</strong> A running JVM memory-maps a small perf-data file under /tmp, named for the user and pid, holding counters the runtime keeps: heap, threads, classes, GC totals. jstat reads it, and a generation of monitoring agents reads it through the same door. -XX:-UsePerfData stops the JVM creating it; some vendors and images ship that flag by default.</p>
+<p><strong>Mechanism:</strong> A running JVM memory-maps a small perf-data file under /tmp, named for the user and pid, holding counters the runtime keeps: heap, threads, classes, GC totals. jstat, the JDK command for runtime stats, reads it, and a generation of monitoring agents reads it through the same door. -XX:-UsePerfData stops the JVM creating it; some vendors and images ship that flag by default.</p>
 </blockquote>
 <section id="the-jvm-knowledge-gap-it-signals-29" class="level3">
 <h3 class="anchored" data-anchor-id="the-jvm-knowledge-gap-it-signals-29">The JVM knowledge gap it signals</h3>
-<p>The file is an interface, not a by-product. Disabling it is safe only when you can name every consumer and each has another source — knowing whether /tmp is per-container, wiped by a reaper, or mounted noexec, and whether your agent reads the file or attaches to the process. The gap question: which tools read this JVM’s perf counters — confirmed by name — and do they have a fallback when the file is gone?</p>
+<p>The file is a published contract, not a by-product. Disabling it is safe only when you can name every consumer and each has another source. That means knowing whether /tmp is per-container, wiped by a reaper, or mounted noexec, and whether your agent reads the file or attaches to the process. The gap question: which tools read this JVM’s perf counters — the platform team’s list, by name — and do they have a fallback when the file is gone?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2317,7 +2377,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A hardened image whose /tmp is noexec and cleared hourly: the perf-data file is unwritable or misleading, so it should not exist. It was disabled deliberately, once the monitoring stack was confirmed to read JFR recordings and MXBeans over the attach API, and the exported series showed no gap across the rollout.</p>
+<p>A hardened image whose /tmp is noexec and cleared hourly: the perf-data file is deleted under the process, so it should not exist. It was disabled deliberately, once the monitoring stack was confirmed to read JFR recordings and MXBeans, the runtime’s management beans, over the attach API, and the exported series showed no gap across the rollout.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
@@ -2330,7 +2390,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The flag added “to clean up /tmp” across a fleet. /tmp warnings are genuine and the flag name reads like tidiness. What ships is silence. jstat reports no data, the agent exports nothing rather than failing — an empty series is not an error — and the dashboard renders a flat line no alarm watches. Months later nobody can date the change, because nothing broke.</p>
+<p>The flag added “to clean up /tmp” across a fleet. /tmp warnings are genuine and the flag name reads like tidiness. What ships is silence. jstat reports no data, the agent exports nothing rather than failing — an empty series is not an error — and the dashboard can render a flat line no alarm watches. Months later nobody can date the change, because nothing broke.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">

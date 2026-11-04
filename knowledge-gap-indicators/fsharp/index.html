@@ -633,21 +633,384 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Computation expressions, units of measure, type providers — compile-time knowledge drawn from data. Each post will name what the construct knew, and when it knew it.</p>
-<div class="callout callout-style-default callout-note no-icon callout-titled">
+<p>Computation expressions, units of measure, type providers — compile-time knowledge drawn from data. Each post names what the construct knew, and when it knew it.</p>
+<p>Pick a post on the left. It opens on the right.</p>
+<div class="kg-layout">
+<div class="kg-pane-left">
+<div id="kg-list" class="kg-list" aria-label="Post list" role="list">
+
+</div>
+</div>
+<div class="kg-pane-right">
+<div id="kg-viewer" class="kg-viewer">
+<div class="kg-group-intro" hidden="true" data-group="fsharp">
+<p>Writing F#? Ask “which knowledge does this construct carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the type says less than the domain does. If you can, the construct is knowledge embodied — the compiler catching up to what the domain decided.</p>
+</div>
+<section id="case-study-computation-expressions" class="level2 kg-post" hidden="true" data-slug="computation-expressions-2027-11-24-fsharp" data-pattern="Computation expressions" data-group="fsharp" data-group-label="F#">
+<h2 class="anchored" data-anchor-id="case-study-computation-expressions">Case study: Computation expressions</h2>
+<p>Two builders both called “result”: one stops at the first failed step, one collects all of them. The call sites look identical.</p>
+<p>Writing an F# construct? Ask “which fact does the type carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A computation expression is a builder object plus syntax. <code>let! x = e</code> desugars to <code>builder.Bind(e, fun x -&gt; ...)</code> (or a fused <code>Source</code> form when the builder defines one), <code>return</code> to <code>Return</code>, <code>and!</code> to <code>MergeSources</code> or a <code>BindN</code>, whatever the builder defines. The builder decides what a bind means — stop on first error, accumulate all, await, retry — and the syntax hides that decision behind <code>let!</code>.</p>
+</blockquote>
+<section id="the-f-knowledge-gap-it-signals" class="level3">
+<h3 class="anchored" data-anchor-id="the-f-knowledge-gap-it-signals">The F# knowledge gap it signals</h3>
+<p>Know your workflow’s failure semantics first: does one failed step end the run, or must every failure report in one pass? A payment authorization stops: the second step is invalid once the first refused. A form validation reports all fields; no user should submit five times to learn five things. Both look like <code>let!</code>, and only the author knows which this is.</p>
+<p>The gap question: for this workflow, what does one failed step mean — stop, accumulate, retry — and does the builder actually do that?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>In preparation
+<span class="screen-reader-only">Important</span>When the types encode reality
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This list is reserved for six posts (#482–#487). The framing is fixed; the entries are being written.</p>
+<p>Steps as sequential obligations: read the order, charge the card, write the receipt. Any failure aborts, and a short-circuiting <code>Bind</code> is exactly that rule. Or a validation builder where <code>and!</code> accumulates every violation into one pass.</p>
 </div>
 </div>
-<p>The lists already open: the <a href="../../knowledge-gap-indicators/software-patterns/index.html">software patterns</a>, the <a href="../../knowledge-gap-indicators/substrate/index.html">substrate facts</a>, and the <a href="../../knowledge-gap-indicators/encoding/index.html">encoding limits</a>.</p>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The computation expression was adopted “for readability”. The builder comes from a library because <code>let!</code> beats nested matching, and nobody reads its <code>Bind</code>. A record then fails two rules, the short-circuiting builder returns the first, and the second error waits for the next submission. The syntax matches an accumulating builder’s, so review sees nothing. The elegance was real; the failure semantics were never decided.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For this workflow: what does one failed step mean — stop, accumulate, retry — and does the builder actually do that?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the syntax carries the domain’s rule. Check the builder’s <code>Bind</code>, not the call sites.</li>
+<li><strong>If no</strong> → the construct asserts a failure rule your domain lacks. Swap the builder, or handle what it drops.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Write down what happens to the other steps when one fails, then read <code>Bind</code> against it.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#FSharp</code> <code>#DotNet</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#ComputationExpressions</code> <code>#ErrorHandling</code> <code>#TypeSafety</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-units-of-measure" class="level2 kg-post" hidden="true" data-slug="units-of-measure-2027-11-25-fsharp" data-pattern="Units of measure" data-group="fsharp" data-group-label="F#">
+<h2 class="anchored" data-anchor-id="case-study-units-of-measure">Case study: Units of measure</h2>
+<p>A length in metres plus a length in feet refuses to compile — and the same two numbers, cast to <code>float</code> for a library call, add up silently.</p>
+<p>Writing an F# construct? Ask “which fact does the type carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>[&lt;Measure&gt;] type m</code> makes <code>float&lt;m&gt;</code> a dimensioned number, and arithmetic keeps the dimension: metres times metres is <code>float&lt;m^2&gt;</code>, metres plus feet is a type error. The check runs entirely in the compiler — the units are erased, so nothing exists at runtime and nothing re-checks it later. Conversions become explicit factors like <code>0.3048&lt;m/ft&gt;</code>.</p>
+</blockquote>
+<section id="the-f-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-f-knowledge-gap-it-signals-1">The F# knowledge gap it signals</h3>
+<p>Dimension is a claim about the quantity itself, and the author must know which quantities have one: is this number a length, a duration, a rate, a count, money? <code>float&lt;m/s&gt;</code> and <code>float&lt;kg/s&gt;</code> are both “a rate” and are not interchangeable. A type says which.</p>
+<p>The gap question: which numbers in this system carry units — typed — and at which boundary do the units disappear?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A measured calculation: structural spans in metres against a specification table in feet, with the conversion written once as <code>0.3048&lt;m/ft&gt;</code>. The mixup that ships elsewhere is a compile error here, at the line. Dosages, flow rates, fuel per distance behave alike.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The dimensional claim stops at the interop edge. The core is typed, then a DTO needs <code>double Length</code> for JSON, a column is <code>float</code>, a plotting call takes plain floats — and the unit is stripped by a cast to <code>float</code>, at the boundary, where no reviewer looks twice. The metre/foot mixup now lives exactly where the compiler was told to stop caring, and the runtime has no units left to disagree with.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which numbers in this system carry units — typed — and at which boundary do the units disappear?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the compiler guards the interior. List the boundaries and check each conversion factor by hand.</li>
+<li><strong>If no</strong> → the numbers are plain <code>float</code> and the dimensional claim lives in a comment or a variable name. Add the measures, starting at the boundary that hurts.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Walk the data path and name the unit of every stored number.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#FSharp</code> <code>#DotNet</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#UnitsOfMeasure</code> <code>#TypeSafety</code> <code>#DomainModeling</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-type-providers" class="level2 kg-post" hidden="true" data-slug="type-providers-2027-11-26-fsharp" data-pattern="Type providers" data-group="fsharp" data-group-label="F#">
+<h2 class="anchored" data-anchor-id="case-study-type-providers">Case study: Type providers</h2>
+<p>A column gets renamed upstream. The build stays green, because it read a sample file committed in March.</p>
+<p>Writing an F# construct? Ask “which fact does the type carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> <code>CsvProvider&lt;"sample.csv"&gt;</code> reads that file at compile time and generates a row type with the columns it found; an OpenAPI or SQL provider does the same from a document or a live schema. Your code is then checked against those types, so a misspelled column fails the build. But the schema was read once, at that build — and erased providers leave nothing at runtime to re-check it.</p>
+</blockquote>
+<section id="the-f-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-f-knowledge-gap-it-signals-2">The F# knowledge gap it signals</h3>
+<p>The author must know whether the schema is a contract they control or a snapshot they observed. A provider turns an observation into a type: as true as the document read, as durable as the next change to it. The knowledge is not “these columns exist” but “these columns exist in version N, which is what production serves”.</p>
+<p>The gap question: when was this type last generated — and from which version of the schema?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A contract that is stable and fetchable at build time: the provider regenerates in CI against the current schema document, so a renamed column or an added field breaks the build instead of a nightly job. The generated type is that agreement, dated.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The committed sample. Someone checked in a CSV, or pointed the provider at last quarter’s schema document, and every build since has asserted that old shape. Then the API renames a field: the build reads the stale document, compiles clean, tests pass on recorded fixtures, and the runtime serves the new one. The failure arrives as a null under the old field’s name — right type, missing value, no exception — and “it compiles” had felt like validation.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>When was this type last generated — and from which version of the schema?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the type is a claim about a named version. Pin it in the build and fail when the source document moves.</li>
+<li><strong>If no</strong> → the type is a claim about a snapshot nobody tracks. Regenerate, or drop the provider and validate where the data enters.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Find the file or URL the provider reads, and date it.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#FSharp</code> <code>#DotNet</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code> <code>#TypeProviders</code> <code>#SchemaEvolution</code> <code>#APIContracts</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-discriminated-unions-and-the-incomplete-match-warning" class="level2 kg-post" hidden="true" data-slug="du-matching-warnings-2027-11-27-fsharp" data-pattern="Discriminated unions and the incomplete-match warning" data-group="fsharp" data-group-label="F#">
+<h2 class="anchored" data-anchor-id="case-study-discriminated-unions-and-the-incomplete-match-warning">Case study: Discriminated unions and the incomplete-match warning</h2>
+<p>A union gains a case, the build prints four warnings among three thousand lines, and the missing arm throws at 2 a.m. in production.</p>
+<p>Writing an F# construct? Ask “which fact does the type carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A multi-case reference-type discriminated union compiles to a tagged class hierarchy; a match compiles to a tag test with the arms inlined. Incompleteness is FS0025 — a warning, not an error — so a match that omits a case compiles clean and throws MatchFailureException when that case arrives. The trade: the type carries the whole case set, and the compiler reports the mismatch only at the volume you configured.</p>
+</blockquote>
+<section id="the-f-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-f-knowledge-gap-it-signals-3">The F# knowledge gap it signals</h3>
+<p>The developer must know the case set is closed, that every consumer was rebuilt against it, and that no wildcard arm stands in for cases not yet written. The wildcard is where the next case is swallowed: the warning disappears and the new case takes the fallback branch. An old binary does not warn at all — it throws.</p>
+<p>The gap question: does an unmatched case break this build — configured — or only a production run?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>FS0025 promoted to an error in the project file, and no wildcard arms on the union. A new case then breaks the build in every consumer that has not handled it: the compiler enumerates the sites you would otherwise grep for, and both stay in lockstep.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A developer adds the case, the warning lands in the log, and nobody reads it. Four matches have no arm for the new case — the warning was their only check. The build stays green, and the one path that reaches the case throws in production.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Does an unmatched case break this build — configured — or only a production run?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the union is the authority on its case set. Check which arms are wildcards; those are the ones the next case will not reach.</li>
+<li><strong>If no</strong> → the exhaustiveness claim is prose, not a checked fact. Promote FS0025 to an error and rebuild every consumer.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List every match over the union, then the arms that name no case.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#FSharp</code> <code>#DotNet</code> <code>#DiscriminatedUnions</code> <code>#PatternMatching</code> <code>#TypeSafety</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-immutability-by-default" class="level2 kg-post" hidden="true" data-slug="immutability-default-2027-11-28-fsharp" data-pattern="Immutability by default" data-group="fsharp" data-group-label="F#">
+<h2 class="anchored" data-anchor-id="case-study-immutability-by-default">Case study: Immutability by default</h2>
+<p>One unguarded mutable field turns a record you could hand to ten threads into a record you must hand to one.</p>
+<p>Writing an F# construct? Ask “which fact does the type carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> A record compiles to a class with get-only fields, and a list to a linked chain no operation modifies; a change produces a new value. The trade: the compiler checks nothing about sharing. It makes mutation hard to write, then trusts you to know what is actually shared. Declare one field mutable and the type is immutable in shape, mutable in fact, and nothing warns.</p>
+</blockquote>
+<section id="the-f-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-f-knowledge-gap-it-signals-4">The F# knowledge gap it signals</h3>
+<p>The developer must know which values more than one owner reads at once, and which of those hold state that changes once another thread can see it. Immutability by default keeps that question cheap only while it holds — and one unguarded mutable field ends it.</p>
+<p>The gap question: which types in this module contain mutable state — listed — and is each one’s sharing story stated?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Records updated by explicit with expressions, so a change yields a new value and the old one stays valid for every reader holding it. Lists shared by prepending, where the tail is reused without a copy and both owners hold it safely.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The record is immutable except for one field, declared mutable to avoid threading an update through six call sites — a real saving, and why the trap works. Two threads now share the instance and the field crosses a thread boundary with no synchronization and no symptom until the read lands stale. The mutable list says it louder: a ResizeArray handed to two owners, both appending, one growing under the other’s loop.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Which types in this module contain mutable state — listed — and is each one’s sharing story stated?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the default is doing its job and the exceptions are deliberate. Check that each mutable field is confined to one owner or guarded.</li>
+<li><strong>If no</strong> → the type says immutable and the program says otherwise. Confine the mutation to one owner, or make the sharing explicit and synchronized.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. List the mutable fields, then the threads that reach them.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#FSharp</code> <code>#DotNet</code> <code>#Immutability</code> <code>#ThreadSafety</code> <code>#RecordTypes</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+<section id="case-study-async-of-t-versus-task-of-t" class="level2 kg-post" hidden="true" data-slug="async-fsharp-2027-11-29-fsharp" data-pattern="Async of T versus Task of T" data-group="fsharp" data-group-label="F#">
+<h2 class="anchored" data-anchor-id="case-study-async-of-t-versus-task-of-t">Case study: Async of T versus Task of T</h2>
+<p>An async workflow that never runs throws nothing — it is a value built, passed on, and dropped.</p>
+<p>Writing an F# construct? Ask “which fact does the type carry — units, effects, exhaustiveness — and when is it checked?” If you can’t answer, you’ve found a knowledge gap: the construct enforces a guess. If you can, the code is knowledge embodied — the types catching up to what the program means.</p>
+<blockquote class="blockquote">
+<p><strong>Mechanism:</strong> An async workflow compiles to a function taking a cancellation token and a callback that resumes it — cold: nothing runs until something starts it. A Task is hot when its factory starts it: work begins there, and the bare constructor leaves it cold until Start(). Both are generic over the result: the type says “this produces a T” and nothing about who starts it or whether cancelling reaches the work. The trade: coldness with an implicit token against immediacy with an explicit one.</p>
+</blockquote>
+<section id="the-f-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-f-knowledge-gap-it-signals-5">The F# knowledge gap it signals</h3>
+<p>The developer must know which token the work observes — a fact no signature records. Async threads cancellation through the workflow context, so a started workflow inherits the token given to Start; a Task observes only the token its factory was given. Convert and the answers diverge.</p>
+<p>The gap question: for each async value, who starts it, and does cancellation cross the Async and Task boundary — verified?</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the types encode reality
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One world per Async/Task seam, chosen once and named. Async inside the domain where composition and inherited cancellation matter, converted where a .NET library returns a Task — named, so a reader sees the task is already hot. Startup is one explicit Start at the top, and its token is the one the workflow observes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Start called inside a function to make sure the work happens: it fires, returns, runs under Async’s default token, so the caller’s cancellation never reaches it. Or the reverse — an async wrapper awaited around a Task created without a token, so cancelling the workflow is a request the Task never received.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>For each async value: who starts it, and does cancellation cross the Async and Task boundary — verified?</strong></p>
+<ul>
+<li><strong>If yes</strong> → the boundary is explicit and the token path is real. Check the one place startup happens, and that it is not repeated deeper.</li>
+<li><strong>If no</strong> → the workflow may never run, or may never stop. Make startup explicit, and pass the token into every factory that creates a Task.</li>
+<li><strong>If you can’t answer</strong> → unclear. You haven’t found the construct wrong — you’ve found incomplete knowledge of your own program. Trace each value from its creation to its Start or await.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#FSharp</code> <code>#DotNet</code> <code>#AsyncProgramming</code> <code>#Cancellation</code> <code>#Concurrency</code> <code>#CausalKnowledge</code> <code>#SoftwareArchitecture</code></p>
+</div>
+</section>
+</section>
+</div>
+</div>
+</div>
+<noscript><div class="kg-status">This page needs JavaScript to open posts one at a time.</div></noscript>
+<script src="../../post-viewer.js"></script>
 
 
 
