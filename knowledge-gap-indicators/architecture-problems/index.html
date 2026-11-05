@@ -728,14 +728,78 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </section>
 </section>
+<section id="shared-database-or-api" class="level2 kg-post" hidden="true" data-slug="shared-database-or-api-2026-12-24-arch" data-pattern="Shared Database or API" data-group="boundaries" data-group-label="Boundaries &amp; Packaging">
+<h2 class="anchored" data-anchor-id="shared-database-or-api">Shared Database or API</h2>
+<blockquote class="blockquote">
+<p><strong>Question:</strong> “Should these two services share a database, or integrate through an API?”</p>
+</blockquote>
+<p>The claim is who owns a row’s meaning. A shared table has no contract: changing what a field means needs no DDL, so nothing announces it. An API publishes a named contract; one side answers for it.</p>
+<p>Both are defensible. Whether the meanings can diverge is a domain fact; who answers is a choice.</p>
+<section id="the-architecture-knowledge-gap-it-signals-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-1">The architecture knowledge gap it signals</h3>
+<p>A shared table enforces shape and declared constraints, not each side’s private reading. Redefine a field’s meaning and the other side’s reading is wrong until it follows. An API names the meaning, at a price: a round trip, a failure mode, versioning.</p>
+<p>The gap question, on a redefinition not an addition: must both sides change together, or can one change alone? Disjoint schemas are not table-sharing; the test is about rows.</p>
+<p>“It is only a read” does not avoid the claim. A reader still depends on the fields it reads. A named contract makes the telling someone’s job; a table leaves it to whoever notices.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>When the domain mandates it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One transaction boundary: one invariant spans two capabilities, stock on hand and the stock ledger agreeing at every commit. Two writers on one table still commit twice; both writes must land in one serialisable transaction, or the second aborts and retries. Across two databases only two-phase commit, or one store under one owner, keeps that; a saga trades it for compensation.</p>
+<p>API: no invariant binds the two at every commit. Billing issues an invoice; a report reads it a day later. The lag is the domain’s call; the contract still needs versioning.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When it’s a guess dressed as engineering
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>One guess: a shared table chosen for a faster join. A join is a performance fact; a cross-table constraint is an invariant, and belongs above. If performance is the reason, name the query, measure it, materialise or cache it, then read it through a published view: no writes back, a contract to version, a lag. A view inherits redefinitions too; publishing announces, never protects.</p>
+<p>An API spans two halves of one invariant, because services must not share databases. The invariant becomes a saga, a failure mode nobody asked for, unless the domain accepts drift.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The faithfulness test
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>❓ Can the two readings differ on one row? Must both change together, or can one alone?</p>
+<ul>
+<li><strong>If both must change together</strong> → one meaning owner and a coordinated release; add one transaction boundary only where the row must also agree at every commit.</li>
+<li><strong>If one can change alone</strong> → a published contract: an API if the other side writes, a view if it only reads and can absorb a rename.</li>
+<li><strong>If one ships and the other is silently wrong in meaning</strong> → nobody carried it across, or the window was never scheduled.</li>
+<li><strong>If you can’t answer</strong> → nobody wrote the meaning down; often nobody holds the authority.</li>
+</ul>
+</div>
+</div>
+<div class="kg-tags">
+<p><code>#SharedDatabase</code> <code>#DatabasePerService</code> <code>#APIDesign</code> <code>#DomainDrivenDesign</code> <code>#DomainKnowledge</code> <code>#SoftwareArchitecture</code> <code>#Coupling</code></p>
+</div>
+</section>
+</section>
 <section id="principle-of-least-surprises" class="level2 kg-post" hidden="true" data-slug="least-surprises-2026-12-25-arch" data-pattern="Principle of Least Surprises" data-group="boundaries" data-group-label="Boundaries &amp; Packaging">
 <h2 class="anchored" data-anchor-id="principle-of-least-surprises">Principle of Least Surprises</h2>
 <blockquote class="blockquote">
 <p><strong>Question:</strong> “How do you apply the Principle of Least Surprises when designing components?”</p>
 </blockquote>
 <p>Least surprise is usually taught as consistency: don’t be clever, don’t hide side effects. The domain-knowledge reading is stronger. Surprise is what the caller could not predict because the component answered a domain question the caller did not know was being answered.</p>
-<section id="the-architecture-knowledge-gap-it-signals-1" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-1">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-2" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-2">The architecture knowledge gap it signals</h3>
 <p>A component surprises when its behavior encodes domain knowledge the caller cannot see — a default, an ordering, a rounding, an implicit rule. Every default is a silent claim: “this is the normal case.” Every surprising side effect is a domain decision the interface failed to name.</p>
 <p>Least surprise is therefore not a style preference. It is a completeness check on whether the domain knowledge is visible where it is used.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
@@ -793,8 +857,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you avoid accidental complexity when scaling a system?”</p>
 </blockquote>
 <p>The usual answer is a checklist: cache, shard, queue, replicate, split. That checklist is where accidental complexity is born. The domain-knowledge lens separates the complexity the problem forces from the complexity a technology choice adds.</p>
-<section id="the-architecture-knowledge-gap-it-signals-2" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-2">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-3" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-3">The architecture knowledge gap it signals</h3>
 <p>Scale itself is not a requirement until the domain names it. “Handle more traffic” is not a domain fact; “the month-end close must finish before the regulator’s deadline” is. Distribution, caching, and sharding each add a coupling — consistency windows, failure modes, partition keys. Those couplings are justified only when a domain property requires them.</p>
 <p>Complexity added ahead of the domain reason is accidental by definition.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
@@ -852,8 +916,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you choose between synchronous and asynchronous communication?”</p>
 </blockquote>
 <p>The decision is usually framed as a performance and resilience trade-off. The domain-knowledge lens reframes it: sync versus async is a statement about time — and a measured limit can revise that statement.</p>
-<section id="the-architecture-knowledge-gap-it-signals-3" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-3">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-4" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-4">The architecture knowledge gap it signals</h3>
 <p>Synchronous says: the caller needs the answer now, as part of this activity. Asynchronous says: the caller can continue before the answer exists, and the answer will be handled later. Both are claims about what the business expects — whether a step is part of the current act or a separate future act. The transport (HTTP, message, stream) merely encodes that expectation.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -915,8 +979,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you design idempotent operations for systems with retries?”</p>
 </blockquote>
 <p>The standard answer is a dedup key and a seen-set. The domain-knowledge lens shows that the hard part is not the mechanism. It is deciding what “the same operation” means — and only the domain can.</p>
-<section id="the-architecture-knowledge-gap-it-signals-4" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-4">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-5" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-5">The architecture knowledge gap it signals</h3>
 <p>Retries are a transport concern. Duplicates are a domain possibility with domain meaning. Idempotency is the rule “doing this again with the same identity is a no-op.” The identity is the domain’s: the order number, the trade reference, the invoice id.</p>
 <p>If the dedup key is a message UUID, the system catches transport retries but misses the real duplicate: the customer who clicked twice, the two batches carrying the same instruction.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
@@ -974,8 +1038,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How would you prevent race conditions in a high-throughput workflow?”</p>
 </blockquote>
 <p>The reflex is locks, transactions, and actors. The domain-knowledge lens asks first: is the contention a fact about the world, or an artifact of how we built it?</p>
-<section id="the-architecture-knowledge-gap-it-signals-5" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-5">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-6" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-6">The architecture knowledge gap it signals</h3>
 <p>A race condition matters only when two conflicting operations touch something the domain says cannot be shared inconsistently. Sometimes that is real: one seat, one parking spot, ten license seats, one account balance. The constraint — “only N at once,” “only one owner” — is domain knowledge. Other times the “contention” is an implementation accident: two workers updating the same cache row or the same counter that exists only for bookkeeping.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1032,8 +1096,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you decide when to use queues, streams, or direct calls?”</p>
 </blockquote>
 <p>The comparison usually weighs latency, durability, and ordering. The domain-knowledge lens reduces it to one question: does the domain treat this as one activity, or as a fact others will care about?</p>
-<section id="the-architecture-knowledge-gap-it-signals-6" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-6">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-7" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-7">The architecture knowledge gap it signals</h3>
 <ul>
 <li>A direct call says: this is part of one activity; I need the answer to continue.</li>
 <li>A queue says: do this later, once; the work is addressed to a consumer.</li>
@@ -1091,8 +1155,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “What’s the role of sagas in long-running workflows?”</p>
 </blockquote>
 <p>A saga sequences local steps and, on failure, compensates the completed ones. The domain-knowledge lens: a saga is legitimate only when the domain itself knows how to undo each step.</p>
-<section id="the-architecture-knowledge-gap-it-signals-7" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-7">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-8" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-8">The architecture knowledge gap it signals</h3>
 <p>Compensation is not a technical rollback. It is a domain act — cancel a booking, refund a charge, restock a shipment. The domain must already perform these reversals in the real world. If it does, the saga is the domain’s own “how we undo this” rules made executable, and it correctly refuses to pretend a cross-boundary process is atomic.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1149,8 +1213,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you design for exactly-once or effectively-once processing guarantees?”</p>
 </blockquote>
 <p>Exactly-once delivery across a network is a myth. Effectively-once is achievable — but only if the domain defines “once.” The domain-knowledge lens: the guarantee lives in the domain identity, not the transport.</p>
-<section id="the-architecture-knowledge-gap-it-signals-8" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-8">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-9" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-9">The architecture knowledge gap it signals</h3>
 <p>“Exactly-once” means: the effect happens once even if the message arrives many times. To know it happened once, you must know what “it” is — a domain identity. Effectively-once is idempotent handling keyed by that identity, plus durable state. Without the domain identity, you can suppress transport duplicates but not semantic ones.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1207,8 +1271,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you handle partial failures in distributed systems?”</p>
 </blockquote>
 <p>Retries, timeouts, compensations, let-it-fail — the menu is technical. But “what should happen when this step fails midway?” is a business question: legal deadlines, SLA promises, manual fallbacks, who gets notified.</p>
-<section id="the-architecture-knowledge-gap-it-signals-9" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-9">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-10" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-10">The architecture knowledge gap it signals</h3>
 <p>A partial failure is not just a technical state. It is often a domain state with a name: “order accepted but not confirmed,” “payment captured but not settled.” The domain decides whether that intermediate state is allowed, how long it may persist, and who resolves it. The failure-handling strategy should encode those decisions.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1265,8 +1329,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “What patterns help maintain consistency across multiple services?”</p>
 </blockquote>
 <p>Eventual consistency, sagas, outbox, two-phase commit — the patterns are tools. The domain-knowledge lens: consistency is not a global setting. It is a per-fact claim about which things must agree at once, and the domain owns that claim.</p>
-<section id="the-architecture-knowledge-gap-it-signals-10" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-10">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-11" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-11">The architecture knowledge gap it signals</h3>
 <p>“Consistent” is meaningless without the unit. The domain decides what counts as one indivisible fact: an order and its line items must agree always; an order and its analytics record may lag. Cross-service consistency is a set of domain-drawn transaction boundaries, expressed across process seams. The pattern should follow the boundary, never define it.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1319,8 +1383,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you design a resilient system that survives external dependency failures?”</p>
 </blockquote>
 <p>Circuits, bulkheads, retries — but resilience is not a property you bolt on. It is a set of decisions about what to do when a dependency dies, and those decisions are domain ones.</p>
-<section id="the-architecture-knowledge-gap-it-signals-11" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-11">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-12" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-12">The architecture knowledge gap it signals</h3>
 <p>When an external system fails, the domain must say what is acceptable: keep serving from a cached or alternate source, degrade a feature, queue and reconcile later, or fail loudly. Each is a business stance. A circuit breaker is only the mechanism; the fallback is the knowledge.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1377,8 +1441,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “What’s your approach to detecting and isolating slow services?”</p>
 </blockquote>
 <p>Dashboards, timeouts, bulkheads. But “slow” is relative to a promise. The domain-knowledge lens: a service is slow only against a deadline the domain cares about, and isolation serves that deadline.</p>
-<section id="the-architecture-knowledge-gap-it-signals-12" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-12">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-13" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-13">The architecture knowledge gap it signals</h3>
 <p>Latency is not a domain fact by itself; a promised response time is. “Checkout must answer in 2 seconds” or “the nightly settlement must finish by 6 a.m.” is domain knowledge. Timeouts and bulkheads should encode those promises, not arbitrary constants.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1435,8 +1499,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you design caching layers (L1/L2) to avoid stale data and thundering herds?”</p>
 </blockquote>
 <p>TTLs, jitter, single-flight — but the first question is not “how long” in technical terms. It is “how stale may this answer be?” — and that is a domain freshness tolerance.</p>
-<section id="the-architecture-knowledge-gap-it-signals-13" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-13">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-14" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-14">The architecture knowledge gap it signals</h3>
 <p>A cache is a bet that a slightly old answer is acceptable. The size of “slightly” is domain knowledge: account balances may be seconds fresh; a product description may be hours stale; a tax rate changes once a year and is not stale for months. L1 versus L2, TTL, and invalidation all encode that tolerance. Thundering herds are technical, but they exist because the tolerance was set and the refresh synchronized.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1493,8 +1557,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “What are the signals that a system needs vertical scaling vs horizontal scaling?”</p>
 </blockquote>
 <p>CPU graphs and cost curves are the usual signals. The domain-knowledge lens: the real signal is whether the domain allows the workload to be split, and whether growth is in a shared resource or independent ones.</p>
-<section id="the-architecture-knowledge-gap-it-signals-14" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-14">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-15" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-15">The architecture knowledge gap it signals</h3>
 <p>Horizontal scaling assumes the work can be partitioned and the state replicated without breaking a domain invariant. Vertical scaling assumes it cannot — one big node is the honest shape. Which is true depends on the domain: can two orders be handled by two machines with no shared invariant? Can one ledger be?</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1551,8 +1615,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you design read-heavy workloads for maximum throughput?”</p>
 </blockquote>
 <p>Replicas, caches, denormalization, CQRS. But “maximum throughput” is the trap. Throughput is bounded by what the readers are allowed to see. Freshness tolerance, not horsepower, sets the ceiling.</p>
-<section id="the-architecture-knowledge-gap-it-signals-15" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-15">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-16" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-16">The architecture knowledge gap it signals</h3>
 <p>Reads are cheap to scale only if they may be served from a copy. Whether they may — and how stale the copy may be — is domain knowledge. A price shown to browsing users may lag; a price shown at checkout may not. CQRS and read replicas are domain claims that reads are separable from writes and tolerate a delay.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1609,8 +1673,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “What patterns help reduce database load without harming consistency?”</p>
 </blockquote>
 <p>The question already concedes the constraint — consistency — but which consistency? The domain-knowledge lens: “harm” is domain-specific, and the patterns only work once you know which invariant is load-bearing.</p>
-<section id="the-architecture-knowledge-gap-it-signals-16" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-16">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-17" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-17">The architecture knowledge gap it signals</h3>
 <p>Denormalization, caching, materialized views, and read models all reduce load by keeping a second copy. They are safe exactly when the copy may lag for the domain’s purposes. The load reduction is real; whether it “harms consistency” depends on whether the lagged fact is one the domain requires to be current.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1667,8 +1731,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you approach hot partition problems?”</p>
 </blockquote>
 <p>The obvious move is to salt the key or spread the load. The domain-knowledge lens: a hot partition usually means the domain funnels many operations through one entity — and that entity often exists for a reason.</p>
-<section id="the-architecture-knowledge-gap-it-signals-17" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-17">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-18" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-18">The architecture knowledge gap it signals</h3>
 <p>A partition key is an identity choice: what makes a thing the same thing. A hot key says “most activity touches this one identity” — the current account, the flagship customer, the singleton counter, the day’s date. The heat is a domain fact before it is a scaling problem. Salt it and you may break the very grouping the domain needs.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1725,8 +1789,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you handle high-volume write workloads?”</p>
 </blockquote>
 <p>Batching, async writes, log-structured storage, sharding. The domain-knowledge lens: write volume is manageable only after you know whether the domain needs the history, the current state, or both.</p>
-<section id="the-architecture-knowledge-gap-it-signals-18" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-18">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-19" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-19">The architecture knowledge gap it signals</h3>
 <p>High-volume writes stress the current-state store. If the domain is event-shaped — it needs to know what happened and when — an append-only log is the honest fit and absorbs volume naturally. If the domain cares only about the present value, in-place updates suffice. Choosing between them is a domain claim about history.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1783,8 +1847,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you pick between relational vs document database?”</p>
 </blockquote>
 <p>The comparison lists schema flexibility versus joins. The domain-knowledge lens: both really ask “is this one fact or several?” — and that is an aggregate boundary question.</p>
-<section id="the-architecture-knowledge-gap-it-signals-19" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-19">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-20" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-20">The architecture knowledge gap it signals</h3>
 <p>A document database suits data the domain treats as one thing, fetched and changed together — an order with its lines. A relational database suits data whose parts are independent facts that must be queried across — customers, orders, products. The storage model should mirror the domain’s own unit of consistency and retrieval.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1837,8 +1901,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “When would you use distributed transactions vs eventual consistency?”</p>
 </blockquote>
 <p>This is the cleanest domain question in the list. Both patterns answer “what must be true at the same time?” — and only the domain knows.</p>
-<section id="the-architecture-knowledge-gap-it-signals-20" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-20">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-21" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-21">The architecture knowledge gap it signals</h3>
 <p>A distributed transaction asserts: these changes are one indivisible fact across systems. Eventual consistency asserts: these changes are separate facts that will converge. The choice is a domain claim about whether the parts are one unit.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1895,8 +1959,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “How do you design an audit-friendly system without killing performance?”</p>
 </blockquote>
 <p>Audit is usually framed as overhead. The domain-knowledge lens: who must be able to answer who-changed-what is a domain — often legal — fact, and what it requires dictates both design and cost.</p>
-<section id="the-architecture-knowledge-gap-it-signals-21" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-21">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-22" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-22">The architecture knowledge gap it signals</h3>
 <p>“We must be able to prove who changed what” is regulatory, contractual, or safety knowledge. It decides whether you keep an immutable log, for how long, whether history is queryable, and whether current state may be derived from it. The performance tension appears only once those requirements are known — and sometimes disappears, because the audit store is what makes the system fast.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1953,8 +2017,8 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Question:</strong> “What’s your strategy for schema evolution without downtime?”</p>
 </blockquote>
 <p>Expand-contract, dual writes, versioned APIs. The domain-knowledge lens: backward compatibility is about your consumers, and who they are — and how fast they can move — is domain knowledge.</p>
-<section id="the-architecture-knowledge-gap-it-signals-22" class="level3">
-<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-22">The architecture knowledge gap it signals</h3>
+<section id="the-architecture-knowledge-gap-it-signals-23" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture-knowledge-gap-it-signals-23">The architecture knowledge gap it signals</h3>
 <p>A schema is a shared vocabulary. Changing it disrupts whoever reads and writes it. Whether that disruption is acceptable depends on the domain: who the consumers are (other teams, old app versions, external partners), whether old and new must coexist, and for how long. Expand-contract is only the mechanical shape; the policy is the domain’s release reality.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
