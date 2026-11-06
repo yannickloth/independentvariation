@@ -1911,7 +1911,7 @@ div.csl-indent {
 </section>
 <section id="the-checklist" class="level2" data-number="10">
 <h2 data-number="10" class="anchored" data-anchor-id="the-checklist"><span class="header-section-number">10</span> The checklist</h2>
-<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section above that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase.</p>
+<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section above that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase. <code>rg</code> is ripgrep, and <code>grep -rn</code> with the same pattern does the same job; where a regex cannot find the shape, the line says what to review instead.</p>
 <style>
 .cl-table table { table-layout: fixed; width: 100%; }
 .cl-table th:nth-child(1) { width: 6.25%; }
@@ -1957,7 +1957,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td><a id="item-4"></a>4</td>
-<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>rg 'Object\[\]'</code>, <code>rg 'Map&lt;String, Object&gt;'</code></td>
+<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>rg 'Object\[\]'</code>, <code>rg 'Map&lt;String,\s*Object&gt;'</code></td>
 <td>a record</td>
 <td>—</td>
 <td><a href="#data-shape">Data shape</a><br>—<br>since 16</td>
@@ -1971,7 +1971,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td><a id="item-6"></a>6</td>
-<td><code>Optional.get()</code><br><code>rg '\.get\(\)'</code></td>
+<td><code>Optional.get()</code><br>review each <code>.get()</code> on an <code>Optional</code></td>
 <td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
 <td>—</td>
 <td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8, no-arg <code>orElseThrow</code> at 10</td>
@@ -2006,7 +2006,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-11"></a>11</td>
-<td><code>throws</code> on a domain method<br><code>rg 'throws \w+Exception'</code></td>
+<td><code>throws</code> on a domain method<br><code>rg 'throws .*Exception'</code></td>
 <td>the result type</td>
 <td>the edge that accepts only exceptions</td>
 <td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a> <a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
@@ -2076,7 +2076,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-21"></a>21</td>
-<td><code>new Thread(...)</code>, or a pool created per request<br><code>rg 'new Thread&lt;'</code>, <code>rg 'newFixedThreadPool'</code></td>
+<td><code>new Thread(...)</code>, or a pool created per request<br><code>rg 'new Thread\('</code>, <code>rg 'newFixedThreadPool'</code></td>
 <td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
 <td>—</td>
 <td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k6">K6, absent since 21</a><br>since 21</td>
@@ -2090,14 +2090,14 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-23"></a>23</td>
-<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>rg 'synchronized'</code>, <code>rg '\.wait\(\)'</code></td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>rg 'synchronized'</code>, <code>rg '\bwait\('</code></td>
 <td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
 <td>—</td>
 <td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 5</td>
 </tr>
 <tr class="even">
 <td><a id="item-24"></a>24</td>
-<td><code>Future.get()</code> for a fan-out<br><code>rg 'Future&lt;.*&gt;.*\.get\('</code></td>
+<td><code>Future.get()</code> for a fan-out<br>review each <code>.get()</code> on a <code>Future</code></td>
 <td>a block-scoped <code>ExecutorService</code></td>
 <td>—</td>
 <td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k4">K4, absent since 21</a><br>since 19</td>
