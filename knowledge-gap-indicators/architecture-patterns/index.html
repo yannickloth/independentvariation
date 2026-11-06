@@ -663,14 +663,11 @@ div.csl-indent {
 </div>
 <div class="kg-pane-right">
 <div id="kg-viewer" class="kg-viewer">
-<div class="kg-post" hidden="true" data-slug="command_cqrs-2026-08-07-architecture" data-pattern="Command Pattern" data-group="architecture" data-group-label="Architecture Patterns">
-<p>Patterns &amp; Constructs as Knowledge-Gap Indicators</p>
-<p>The faithfulness test is a 3-way verdict, not a binary: Applicable — if yes, the pattern encodes what the domain already dictates.</p>
-<p>Inapplicable — if no, the pattern forces coupling the domain doesn’t have. Unclear — if you can’t answer, you’ve found incomplete domain knowledge. If you can’t answer, you haven’t found that the pattern is wrong — you’ve found that your domain knowledge is incomplete.</p>
-<section id="case-study-command-pattern" class="level2">
+<section id="case-study-command-pattern" class="level2 kg-post" hidden="true" data-slug="command_cqrs-2026-08-07-architecture" data-pattern="Command Pattern" data-group="architecture" data-group-label="Architecture Patterns">
 <h2 class="anchored" data-anchor-id="case-study-command-pattern">Case study: Command Pattern</h2>
 <p>🔥 Almost every design pattern/principle can be used as a completeness-check on domain knowledge.</p>
-<p>The faithfulness test is a 3-way verdict, not a binary: 🔵 Applicable — if yes, the pattern encodes what the domain already dictates. 🔴 Inapplicable — if no, the pattern forces coupling the domain doesn’t have. ⚪ Unclear — if you can’t answer, you’ve found incomplete domain knowledge. If you can’t answer, you haven’t found that the pattern is wrong — you’ve found that your domain knowledge is incomplete.</p>
+<p>The faithfulness test asks for an answer on record, not an answer in someone’s head. A pattern is a knowledge check only when a missing answer stops the design.</p>
+<p>Ask what the fact is and where it is written. Then ask where the term is defined, and whether all its users share that definition. If either answer is missing, the design waits until the artifact exists.</p>
 <p>When you’re reaching for a pattern, ask “does the domain knowledge mandate the coupling this pattern would add or remove?” If you can’t answer, you’ve found a knowledge gap. If you can, the knowledge prescribes the structure directly — the pattern adds nothing the domain hadn’t already decided.</p>
 <blockquote class="blockquote">
 <p><strong>GoF:</strong> Encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations. <span class="citation" data-cites="gamma1994design"><a href="#ref-gamma1994design" role="doc-biblioref">[1]</a></span></p>
@@ -716,7 +713,9 @@ div.csl-indent {
 <div class="callout-body-container callout-body">
 <p><strong>Does the domain expert talk about this operation as a thing that exists — “the shipment,” “the refund,” “the approval request”?</strong></p>
 <ul>
-<li><strong>If yes</strong> → applicable: Command is the code catching up to the knowledge. If no → inapplicable: it’s function-call packaging. If you can’t answer → unclear: you haven’t found the pattern wrong, you’ve found incomplete domain knowledge.</li>
+<li><strong>If yes</strong> → applicable: Command is the code catching up to the knowledge.</li>
+<li><strong>If no</strong> → inapplicable: it is function-call packaging.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the operation register: each operation the business names, with what records it, who may request it, and what undoes it. Until it is on file, a method call is wearing an entity’s name.</li>
 </ul>
 </div>
 </div>
@@ -725,7 +724,6 @@ div.csl-indent {
 </div>
 </section>
 </section>
-</div>
 <div class="kg-post" hidden="true" data-slug="dependency-injection-2026-12-10-architecture" data-pattern="Dependency Injection" data-group="architecture" data-group-label="Architecture Patterns">
 <section id="case-study-dependency-injection" class="level2">
 <h2 class="anchored" data-anchor-id="case-study-dependency-injection">Case study: Dependency Injection</h2>
@@ -777,7 +775,12 @@ div.csl-indent {
 <ul>
 <li><strong>If the need is real and the supply can vary</strong> → applicable. Dependency injection is the code catching up to the knowledge.</li>
 <li><strong>If the need is invented</strong> → inapplicable; nothing to abstract. If the supply cannot vary → inapplicable; no variation justifies it.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong — you’ve found incomplete domain knowledge.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the supply record: for each collaborator, the need it serves and the list of suppliers that may satisfy it, with the owner who chooses. Until it is on file, the binding is invented by the container.</li>
+</ul>
+<p>=== DI is not the composition root === DI is a technique: how a service declares its dependencies and receives them from outside. The composition root is a place: where the application assembles its object graph, at the entry point. Only applications should have one — composition belongs to the application. A DI container belongs only there. DI does not specify where the object graph is assembled; the composition root answers that. Two failures hide when the names are conflated:</p>
+<ul>
+<li>Scattered wiring: composition at each use site, with no root. A deployment change touches many files.</li>
+<li>A frozen choice: a root that bakes a per-operation choice in at startup.</li>
 </ul>
 </div>
 </div>
@@ -843,11 +846,11 @@ div.csl-indent {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Can you state the rule that places the composition root and assigns what each service receives?</strong></p>
+<p><strong>Where is the rule written that places the composition root and assigns what each service receives?</strong></p>
 <ul>
-<li><strong>If yes</strong> → applicable. Composition Root is the code catching up to the knowledge.</li>
-<li><strong>If no</strong> → inapplicable. The composition root is placed by guesswork.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the pattern wrong — you’ve found incomplete domain knowledge.</li>
+<li><strong>If the placement rule and the wiring table are on file</strong> → applicable. Composition Root is the code catching up to the knowledge.</li>
+<li><strong>If neither exists</strong> → inapplicable. The composition root is placed by guesswork.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifacts to produce are the root’s placement rule and the table of injections it performs. Until both are on file, the wiring states nothing the design decided.</li>
 </ul>
 </div>
 </div>
@@ -904,10 +907,9 @@ div.csl-indent {
 <ul>
 <li><strong>If yes</strong> → applicable. Hexagonal is the code catching up to the knowledge; the boundary is the domain’s own.</li>
 <li><strong>If no</strong> → inapplicable. The port asserts an independence that is not there; the cut is packaging.</li>
-<li><strong>If you can’t answer</strong> → unclear. You have not identified the change drivers.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the change-driver record: for each change the system must absorb, the requirement that forces it and the side that owns it. Until that record is on file, the boundary is packaging and the drivers are unassigned.</li>
 </ul>
-<p><strong>The claim is relative, not absolute. The core is independent of the <em>mechanism</em> — not of everything. A business-rule change still changes the core. The style promises independence from integration, never changelessness.</strong></p>
-<p>Sibling styles guess other axes: layering guesses technical roles (#171), vertical slices guess features (#172), Clean (#173) and Onion (#174) guess concentric rings. Do not choose the style. Find the change-driver assignment; a style is valid only if that structure mandates it — the style is whichever cut matches.</p>
+<p>⚠️ The claim is relative, not absolute. The core is independent of the <em>mechanism</em> — not of everything. A business-rule change still changes the core. The style promises independence from integration, never changelessness. Sibling styles guess other axes: layering guesses technical roles (#171), vertical slices guess features (#172), Clean (#173) and Onion (#174) guess concentric rings. Do not choose the style. Find the change-driver assignment; a style is valid only if that structure mandates it — the style is whichever cut matches.</p>
 </div>
 </div>
 <div class="kg-tags">
@@ -962,7 +964,7 @@ div.csl-indent {
 <ul>
 <li><strong>If yes</strong> → applicable. The layers coincide with the change-driver assignment.</li>
 <li><strong>If no</strong> → inapplicable. The layers group different change-driver assignments; the cut is technical, not structural.</li>
-<li><strong>If you can’t answer</strong> → unclear. You have not identified the change drivers.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the change-driver record: for each change the system must absorb, the requirement that forces it and the side that owns it. Until that record is on file, the boundary is packaging and the drivers are unassigned.</li>
 </ul>
 <p>Sibling styles guess other axes: vertical slices guess features (#172), hexagonal guesses core-versus-mechanism (#170), Clean (#173) and Onion (#174) guess concentric rings. Do not choose the style. Find the change-driver assignment; a style is valid only if that structure mandates it — the style is whichever cut matches.</p>
 </div>
@@ -1019,7 +1021,7 @@ div.csl-indent {
 <ul>
 <li><strong>If it lands in one</strong> → applicable. The slice is the change driver’s home.</li>
 <li><strong>If it reaches across</strong> → inapplicable. A shared change driver was split; the slices assert an independence that is not there.</li>
-<li><strong>If you can’t answer</strong> → unclear. You have not identified the change drivers.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the change-driver record: for each change the system must absorb, the requirement that forces it and the side that owns it. Until that record is on file, the boundary is packaging and the drivers are unassigned.</li>
 </ul>
 <p>Layers and slices are dual guesses — one cuts by technique, the other by feature. A domain can carry both a feature change driver and a shared rule change driver, so neither pure cut need be right. Sibling styles: layered (#171), hexagonal (#170), Clean (#173), Onion (#174).</p>
 </div>
@@ -1076,9 +1078,9 @@ div.csl-indent {
 <ul>
 <li><strong>If every answer points to the centre</strong> → applicable. The ordering is the domain’s own.</li>
 <li><strong>If an outer choice is independently governed</strong> → inapplicable. The ring asserts a direction the domain does not have.</li>
-<li><strong>If you can’t answer</strong> → unclear. You have not identified the change drivers.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the change-driver record: for each change the system must absorb, the requirement that forces it and the side that owns it. Until that record is on file, the boundary is packaging and the drivers are unassigned.</li>
 </ul>
-<p><strong>Entities are the innermost ring, not an unchanging one. Clean claims independence from mechanism, not from everything; a business-rule change still reaches the centre. Sibling styles: hexagonal (#170), layered (#171), vertical slice (#172), Onion (#174).</strong></p>
+<p>⚠️ Entities are the innermost ring, not an unchanging one. Clean claims independence from mechanism, not from everything; a business-rule change still reaches the centre. Sibling styles: hexagonal (#170), layered (#171), vertical slice (#172), Onion (#174).</p>
 </div>
 </div>
 <div class="kg-tags">
@@ -1133,7 +1135,7 @@ div.csl-indent {
 <ul>
 <li><strong>If yes</strong> → applicable. The rings are the domain’s own.</li>
 <li><strong>If a rule needs two rings</strong> → inapplicable. The boundary cut a change driver.</li>
-<li><strong>If you can’t answer</strong> → unclear. You have not identified the change drivers.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the change-driver record: for each change the system must absorb, the requirement that forces it and the side that owns it. Until that record is on file, the boundary is packaging and the drivers are unassigned.</li>
 </ul>
 <p>Onion and Clean are cousins: both order policy inward. Onion’s distinctive kernel is the domain model with two service rings; Clean’s inner ring is enterprise policy with use cases next. Sibling styles: hexagonal (#170), layered (#171), vertical slice (#172), Clean (#173).</p>
 </div>

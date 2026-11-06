@@ -697,7 +697,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → no wait remains on the loop. Check the proof names each call site, then reread task durations at peak.</li>
 <li><strong>If no</strong> → some call may wait, and every request on that thread pays. Move it to a worker or a reactive client, and state which.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure handler time on the loop and its p99 task duration.</li>
+<li><strong>If you can’t answer</strong> → stop. Measure handler time on the loop and its p99 task duration. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -757,7 +757,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the offload is a stated fact. Confirm the pool covers concurrent blocking segments at peak, and each path’s ordering flag matches its callers.</li>
 <li><strong>If no</strong> → both the pool and the order are guesses. Size the pool from measured concurrency, and state per path whether results may arrive out of sequence.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure each blocking segment’s hold time, and how many are in flight at peak.</li>
+<li><strong>If you can’t answer</strong> → stop. Measure each blocking segment’s hold time, and how many are in flight at peak. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -817,7 +817,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the loop count is a stated fact. Check that workers and heap were sized against the same quota, then watch throttling.</li>
 <li><strong>If no</strong> → the loops compete for CPU they do not have. Set the count from the quota, leaving headroom for workers and GC.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Read the loop count at startup, the quota from the cgroup, and the throttling counter under load.</li>
+<li><strong>If you can’t answer</strong> → stop. Read the loop count at startup, the quota from the cgroup, and the throttling counter under load. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -877,7 +877,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → backpressure is a stated bound. Check it is enforced on every write path, and the throttled-peer test runs in the suite.</li>
 <li><strong>If no</strong> → the bound is the heap. Add the queue check and drain handler, pause the source while the queue is full, and state the maximum.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure bytes buffered per connection against a throttled consumer, and the largest result it can stream.</li>
+<li><strong>If you can’t answer</strong> → stop. Measure bytes buffered per connection against a throttled consumer, and the largest result it can stream. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -937,7 +937,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → instances and state agree. Check that no field assumes a single writer across messages, and the count still matches the CPU quota.</li>
 <li><strong>If no</strong> → the count and the state contradict. Either take the state out of the instance, or set the count to one and say why.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. List every field on the verticle, mark each mutable or constant, and name which component reads it.</li>
+<li><strong>If you can’t answer</strong> → stop. List every field on the verticle, mark each mutable or constant, and name which component reads it. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -996,7 +996,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the bus is the shape the claim requires. Confirm no consumer’s correctness rests on redelivery, and that a lost message is recoverable from another source.</li>
 <li><strong>If no</strong> → a broker buys durability at the cost of a component to run. Keep the bus for best-effort paths; route durable messages to the broker.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. List every message this bus carries and mark each one durable or best-effort.</li>
+<li><strong>If you can’t answer</strong> → stop. List every message this bus carries and mark each one durable or best-effort. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1055,7 +1055,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → confirm the reads are off the hot path, and count the hops each request pays. Verify the hit rate beats the hop, not just the database query.</li>
 <li><strong>If no</strong> → split it. Local map for the hot reads, cluster-wide only for the few values whose staleness is a correctness bug.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Instrument reads per node per second, then the tolerable staleness of each value.</li>
+<li><strong>If you can’t answer</strong> → stop. Instrument reads per node per second, then the tolerable staleness of each value. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1114,7 +1114,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → check each link completes or fails its promise on every branch, including the branches that throw.</li>
 <li><strong>If no</strong> → add a recovery at the boundary that owns the decision, and fail the promise in every terminal branch, not just the happy one.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Count the futures that can stay pending, and the timeout that would end each one.</li>
+<li><strong>If you can’t answer</strong> → stop. Count the futures that can stay pending, and the timeout that would end each one. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1173,7 +1173,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → count in-flight queries at peak against the pool, and confirm the bridge pool is separate from the general worker pool.</li>
 <li><strong>If no</strong> → the loop is safe but the path is not non-blocking end to end. Measure the wait, then either adopt the reactive client or size the bridge deliberately.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure concurrent queries at peak, then the time each one occupies its thread.</li>
+<li><strong>If you can’t answer</strong> → stop. Measure concurrent queries at peak, then the time each one occupies its thread. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1232,7 +1232,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → check the idle timeout against the server’s, and that the queue bound fails fast instead of growing silently.</li>
 <li><strong>If no</strong> → the pool is the bottleneck by construction. Raise it to the measured count, or bound the queue and let the caller see the rejection.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the design wrong — you’ve found incomplete workload knowledge. Measure concurrent calls per endpoint at peak, then the wait each one records.</li>
+<li><strong>If you can’t answer</strong> → stop. Measure concurrent calls per endpoint at peak, then the wait each one records. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>

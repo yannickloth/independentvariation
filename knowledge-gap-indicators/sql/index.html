@@ -697,7 +697,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the row set is closed and the aggregate is meaningful. Check the aggregates next: COUNT(col) skips NULL, COUNT(*) does not, AVG divides by the non-NULL count.</li>
 <li><strong>If no</strong> → the comparison is a filter with an unstated third outcome, answering a question nobody asked. Add <code>IS NULL</code>, or make the column NOT NULL so the guess cannot recur.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Find the column’s nullability, then count the NULLs before trusting any total.</li>
+<li><strong>If you can’t answer</strong> → stop. Find the column’s nullability, then count the NULLs before trusting any total. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -757,7 +757,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the outer join is an inner join wearing an outer join’s name. Move the condition into ON, or delete the LEFT keyword and stop claiming a guarantee the query does not give.</li>
 <li><strong>If no</strong> → every left row survives — the rows are the join’s full result, not a filtered one. Check that consumers expect NULLs there.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Compare COUNT(*) with COUNT(b.id): the difference is the left rows with no right.</li>
+<li><strong>If you can’t answer</strong> → stop. Compare COUNT(*) with COUNT(b.id): the difference is the left rows with no right. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -817,7 +817,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → any NULL in the list disables the whole predicate. Rewrite as NOT EXISTS, then compare the row counts before and after.</li>
 <li><strong>If no</strong> → the NOT NULL constraint is doing the work, so check it survives every load path: staging tables, imports, and backfills each need it.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Read the subquery column’s definition and every writer of it, then count its NULLs directly.</li>
+<li><strong>If you can’t answer</strong> → stop. Read the subquery column’s definition and every writer of it, then count its NULLs directly. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -877,7 +877,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the aggregate is defined at a named grain. Check it is the report’s grain, not a coarser one summed into a finer label.</li>
 <li><strong>If no</strong> → the query aggregates at a grain nobody wrote down, and the ungrouped column is a pick, not a fact. Add it to GROUP BY, or replace it with an aggregate the domain permits.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Find the table’s key, then name the business entity one output row denotes.</li>
+<li><strong>If you can’t answer</strong> → stop. Find the table’s key, then name the business entity one output row denotes. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -937,7 +937,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the clause records the grain. Check that the filters before the count are the ones the count’s definition assumes.</li>
 <li><strong>If no</strong> → the count is taken over the wrong grain. Move each condition to the clause matching its subject.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Write each metric as one sentence, then place each condition against the noun it constrains.</li>
+<li><strong>If you can’t answer</strong> → stop. Write each metric as one sentence, then place each condition against the noun it constrains. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -998,7 +998,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the sequence is a stated claim. Check that the sort key is unique, or that a tie-breaker follows.</li>
 <li><strong>If no</strong> → nothing was promised. Add ORDER BY at the outermost query, or drop the consumer’s dependence on sequence.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. List the consumers, then mark which would change output on shuffled rows.</li>
+<li><strong>If you can’t answer</strong> → stop. List the consumers, then mark which would change output on shuffled rows. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1058,7 +1058,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the order is total. Check that the tie-breaker is unique on the data, not only on today’s sample.</li>
 <li><strong>If no</strong> → pages overlap and leak by construction. Append a unique column, or switch to keyset pagination.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Compare <code>COUNT(*)</code> with <code>COUNT(DISTINCT sort_key)</code> on the real table.</li>
+<li><strong>If you can’t answer</strong> → stop. Compare <code>COUNT(*)</code> with <code>COUNT(DISTINCT sort_key)</code> on the real table. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1119,7 +1119,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the numbering encodes the domain’s tie rule. Check that the window’s ORDER BY is unique where exactness is demanded.</li>
 <li><strong>If no</strong> → the numbering imposes a tie rule nobody stated. Switch function, or add the tie-breaker the domain recognizes.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Count duplicate sort keys, then ask what equality means.</li>
+<li><strong>If you can’t answer</strong> → stop. Count duplicate sort keys, then ask what equality means. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1178,7 +1178,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the keyword is the domain’s question. Check that distinctness is stated over the columns that matter, and that the dedup is not collapsing rows the domain counts twice.</li>
 <li><strong>If no</strong> → the join is the defect. Remove DISTINCT, then fix the condition or the grain (what one row denotes).</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Count rows before and after each join, and name the key that should be unique.</li>
+<li><strong>If you can’t answer</strong> → stop. Count rows before and after each join, and name the key that should be unique. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1237,7 +1237,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → UNION states the domain’s rule. Check the cost against the result size, since the dedup — sort or hash — is paid on every run.</li>
 <li><strong>If no</strong> → UNION ALL, and say in the query why the branches are disjoint.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Read the predicates: the disjointness you rely on is either written down or it is not.</li>
+<li><strong>If you can’t answer</strong> → stop. Read the predicates: the disjointness you rely on is either written down or it is not. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1296,7 +1296,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the claim is grounded. Check that the constraint still holds in the data, not only in the schema.</li>
 <li><strong>If no</strong> → the subquery is a bet. Add the constraint, add the aggregate, or make the multi-row case explicit in the query’s shape.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Group the inner key and count the rows where the count exceeds one.</li>
+<li><strong>If you can’t answer</strong> → stop. Group the inner key and count the rows where the count exceeds one. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>
@@ -1355,7 +1355,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If yes</strong> → the comparison is grounded. Check that the cast sits opposite the indexed side.</li>
 <li><strong>If no</strong> → state the type, or cast deliberately at the boundary, knowing the cost.</li>
-<li><strong>If you can’t answer</strong> → unclear. You haven’t found the query wrong — you’ve found incomplete data knowledge. Read the column definitions, then the parameter types, and compare them.</li>
+<li><strong>If you can’t answer</strong> → stop. Read the column definitions, then the parameter types, and compare them. The choice waits until that is on file.</li>
 </ul>
 </div>
 </div>

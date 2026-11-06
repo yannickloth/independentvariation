@@ -675,8 +675,7 @@ ul.task-list li input[type="checkbox"] {
 <p>Three principles can govern where boundaries go: - IVP: group elements that change together; separate those that change apart. - Cohesion: group elements that are functionally related. - Coupling: place boundaries to minimise dependencies across them.</p>
 <p>They are not independent. When cost is dominated by maintenance — the common case — all three converge on nearly the same partition: keep together what changes together, separate what changes apart. Three vocabularies, one structure; that is why the boundary question feels like a single question.</p>
 <p>They diverge only when another cost dominates: performance, distribution, security. Then coupling and cohesion stop meaning change locality, and the principles disagree — marking where a non-maintenance cost governs the design.</p>
-<p><strong>Decision 2: redeployment independence — the domain also decides</strong></p>
-<p>Deployment separation buys three things: independent release cadence, independent scaling, independent failure isolation. Each is a domain fact, not a default. Two modules need separate deployment only when the domain makes one of them true: - Cadence: they change at different rates and must ship separately. - Scaling: one faces different load and must grow on its own. - Isolation: one must survive, or be contained, when the other fails.</p>
+<p><strong>Decision 2: redeployment independence — the domain also decides</strong> Deployment separation buys three things: independent release cadence, independent scaling, independent failure isolation. Each is a domain fact, not a default. Two modules need separate deployment only when the domain makes one of them true: - Cadence: they change at different rates and must ship separately. - Scaling: one faces different load and must grow on its own. - Isolation: one must survive, or be contained, when the other fails.</p>
 <p>If the domain requires none of these, microservices buys an independence nobody asked for — and pays a network, a consistency window, and a failure mode for it.</p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -716,10 +715,10 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Two questions, kept apart:</p>
 <ul>
-<li>What belongs together? → the domain’s change structure answers it; the three principles agree here.</li>
-<li>Must these deploy apart? → cadence, scaling, and isolation answer it.</li>
+<li><p>What belongs together? → the domain’s change structure answers it; name the document that records it.</p></li>
+<li><p>Must these deploy apart? → cadence, scaling, and isolation answer it; name the rate, the load figure, or the failure requirement that forces it.</p></li>
+<li><p><strong>If no document answers the first</strong> → stop: the boundary is unwritten, and the diagram is choosing it. If no number or requirement answers the second → stop: the independence is unrequested, and the topology is choosing it.</p></li>
 </ul>
-<p>If you can’t answer either, the diagram is choosing both.</p>
 <p>Start with the domain, then choose the packaging. The architecture is underneath; the topology is downstream.</p>
 </div>
 </div>
@@ -782,8 +781,8 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>If both must change together</strong> → one meaning owner and a coordinated release; add one transaction boundary only where the row must also agree at every commit.</li>
 <li><strong>If one can change alone</strong> → a published contract: an API if the other side writes, a view if it only reads and can absorb a rename.</li>
-<li><strong>If one ships and the other is silently wrong in meaning</strong> → nobody carried it across, or the window was never scheduled.</li>
-<li><strong>If you can’t answer</strong> → nobody wrote the meaning down; often nobody holds the authority.</li>
+<li><strong>If one ships and the other is silently wrong in meaning</strong> → the boundary is worse than useless; stop and produce the shared-meaning record before either side ships.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the row-meaning record: which side owns the meaning of each column, and who signs when it changes. Until it is on file, nobody wrote the meaning down, and the boundary between the two is the code’s guess.</li>
 </ul>
 </div>
 </div>
@@ -840,9 +839,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Can a caller who knows the domain, but not this implementation, predict the behavior?</p>
 <ul>
-<li><strong>If yes</strong> → the knowledge is visible.</li>
-<li><strong>If no</strong> → a domain decision is buried; surface it.</li>
-<li><strong>If unclear</strong> → you have found knowledge nobody wrote down, which is exactly why it surprises.</li>
+<li><strong>If the default, the ordering, and the rounding each cite a written rule</strong> → the knowledge is visible, and the caller can predict the outcome.</li>
+<li><strong>If a default exists with no rule behind it</strong> → a domain decision is buried; surface it, then cite the rule.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the list of defaults this component applies, each with the written rule that sets it. A default with no rule behind it is the surprise.</li>
 </ul>
 </div>
 </div>
@@ -897,11 +896,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>For each scaling mechanism, name the domain fact it satisfies.</p>
+<p>For each scaling mechanism, name the requirement it serves and the document, contract, or measurement that states it.</p>
 <ul>
-<li><strong>If every component has one</strong> → the complexity is essential and justified.</li>
-<li><strong>If some have none</strong> → remove them; you added the accident.</li>
-<li><strong>If unclear</strong> → the requirement is unwritten; write it before the code, not after.</li>
+<li><strong>If every component maps to a stated requirement</strong> → the complexity is essential and justified.</li>
+<li><strong>If a component maps to none</strong> → remove it; you added the accident.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the capacity figure or the service-level obligation, with its owner named. A mechanism that serves no written requirement is accidental complexity by definition.</li>
 </ul>
 </div>
 </div>
@@ -965,7 +964,7 @@ ul.task-list li input[type="checkbox"] {
 <li>Does the current activity need the answer, or is the answer a separate later act?</li>
 <li>If it needs the answer, can the machine deliver it inside the tolerable window?</li>
 </ul>
-<p>Match the interaction to both. If unclear → the temporal expectation is unwritten, and the technology default is deciding. If a measured limit rules out the synchronous form, the knowledge switches to async in intent — record the limit with its platform and configuration.</p>
+<p>Answer the first from the process document that states which steps are inseparable. Answer the second from a measured latency for that call path, recorded with its platform and configuration. If either answer is missing → stop: write the expectation down before the interaction type is chosen, because until then the technology default is deciding. If the measurement rules out the synchronous form, the intent becomes async — record the figure that forced it.</p>
 </div>
 </div>
 <div class="kg-tags">
@@ -1019,11 +1018,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Would a domain expert use this key to decide “this was already done”?</p>
+<p>Would the domain use this key to decide “this was already done”?</p>
 <ul>
-<li><strong>If yes</strong> → idempotent at the right level.</li>
-<li><strong>If no</strong> → you deduplicate the transport and miss the domain.</li>
-<li><strong>If unclear</strong> → the identity concept is unwritten.</li>
+<li><strong>If the key appears in a written rule or record that names the act</strong> → idempotent at the right level.</li>
+<li><strong>If the key is generated by the transport and names no act</strong> → you deduplicate the transport and miss the domain duplicate.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the identity rule, naming which field makes two requests one act. Until that rule is on file, the key is a message id.</li>
 </ul>
 </div>
 </div>
@@ -1079,9 +1078,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Is the contended thing a domain-scarce resource with a stated rule?</p>
 <ul>
-<li><strong>If yes</strong> → protect the invariant.</li>
-<li><strong>If no</strong> → remove the shared state or confine it; you are racing to protect a fiction.</li>
-<li><strong>If unclear</strong> → the resource and its rule are unwritten.</li>
+<li><strong>If a written rule names the resource and its limit — one seat, one owner, ten licences</strong> → protect the invariant.</li>
+<li><strong>If the contended object appears in no domain document</strong> → remove the shared state or confine it; you are racing to protect a fiction.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the scarcity rule with its owner named. A lock that defends no such rule serialises the workflow for nothing.</li>
 </ul>
 </div>
 </div>
@@ -1141,7 +1140,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="callout-body-container callout-body">
 <p>Who cares that the fact happened, how many, and may they replay?</p>
-<p>The answer sorts the three. If unclear → the domain’s event and command structure is unwritten, and the tool is deciding.</p>
+<p>The answer sorts the three, and it has a home. Name the document or the owner that settles who subscribes, how many times each subscriber performs the work, and whether a subscriber may replay history. If no such document exists → stop: write the domain’s event and command structure, with its owner named, before choosing between the queue, the stream, and the call. Until that document is on file, the tool decides.</p>
 </div>
 </div>
 <div class="kg-tags">
@@ -1196,9 +1195,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Does the domain perform these reversals — a cancellation, a refund, a restock — or would the “compensation” be a cleanup only engineers understand?</p>
 <ul>
-<li><strong>If yes</strong> → applicable; compensations are the domain’s own reverse acts.</li>
-<li><strong>If no</strong> → inapplicable; name the reversals or keep one transaction.</li>
-<li><strong>If unclear</strong> → the undo knowledge is unwritten.</li>
+<li><strong>If a written procedure names each reversal and its owner</strong> → applicable; compensations are the domain’s own reverse acts.</li>
+<li><strong>If no procedure names them</strong> → inapplicable; name the reversals before the saga, or keep one transaction.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the reversal table: each step, the act that undoes it, and the owner of that act. Until it is on file, the saga invents undo actions the business never named.</li>
 </ul>
 </div>
 </div>
@@ -1254,9 +1253,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Does the domain say when two messages describe one act?</p>
 <ul>
-<li><strong>If yes</strong> → effectively-once is achievable on that identity.</li>
-<li><strong>If no</strong> → you have exactly-once for retries and none for reality.</li>
-<li><strong>If unclear</strong> → the identity is unwritten; that is the gap.</li>
+<li><strong>If a written identity rule names the operative field</strong> → effectively-once is achievable on that identity.</li>
+<li><strong>If the key is the message id and no rule names the act</strong> → you have exactly-once for retries and none for reality.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the operative-identity rule, naming the field two genuine duplicates share. Until it is on file, the guarantee covers the transport only.</li>
 </ul>
 </div>
 </div>
@@ -1310,11 +1309,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Does the domain name the intermediate state after a partial failure and what must happen in it?</p>
+<p>Does the domain name the intermediate state after a partial failure, and what must happen in it?</p>
 <ul>
-<li><strong>If yes</strong> → the strategy encodes knowledge.</li>
-<li><strong>If no</strong> → you have left a business outcome to a retry policy.</li>
-<li><strong>If unclear</strong> → the intermediate-state knowledge is unwritten.</li>
+<li><strong>If a written rule names the state and its remedy</strong> → the strategy encodes knowledge.</li>
+<li><strong>If no rule names the state</strong> → you have left a business outcome to a retry policy.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the state list with its remedies: for each step that can fail midway, the named state, its deadline, and who resolves it. Until it is on file, the technical default decides.</li>
 </ul>
 </div>
 </div>
@@ -1369,7 +1368,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="callout-body-container callout-body">
 <p>Which facts must agree at the same instant, in the domain’s own terms?</p>
-<p>That defines the boundary. Pick the pattern to honor it. If unclear → the unit of consistency is unwritten, and the framework is deciding.</p>
+<p>That defines the boundary. Pick the pattern to honor it, and cite the invariant that states it. If no written invariant says which facts agree → stop: the unit of consistency is unwritten, and the framework is deciding. Until that invariant is on file, the boundary is the framework’s.</p>
 </div>
 </div>
 <div class="kg-tags">
@@ -1424,9 +1423,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Does the domain name what must happen when this dependency fails?</p>
 <ul>
-<li><strong>If yes</strong> → the mechanism encodes knowledge.</li>
-<li><strong>If no</strong> → resilience is cosmetic; the outage still decides the outcome.</li>
-<li><strong>If unclear</strong> → the fallback rule is unwritten.</li>
+<li><strong>If a written fallback rule covers this dependency</strong> → the mechanism encodes knowledge.</li>
+<li><strong>If no rule covers it</strong> → resilience is cosmetic; the outage still decides the outcome.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the fallback rule with its owner named: what is served, what is degraded, and what is refused. Until it is on file, the engineering guess is the fallback.</li>
 </ul>
 </div>
 </div>
@@ -1482,9 +1481,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Which domain promise does this timeout defend?</p>
 <ul>
-<li><strong>If a real one</strong> → the threshold encodes knowledge.</li>
-<li><strong>If none</strong> → you have invented a deadline.</li>
-<li><strong>If unclear</strong> → the promise is unwritten; write it before picking the number.</li>
+<li><strong>If a written obligation states the deadline</strong> → the threshold encodes knowledge.</li>
+<li><strong>If no obligation states it</strong> → you have invented a deadline.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the service-level obligation, or the legal or contractual deadline, with its value and owner. Until it is on file, the number is a guess that cuts calls off.</li>
 </ul>
 </div>
 </div>
@@ -1540,9 +1539,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>What staleness does the domain permit for this value, and which event invalidates it?</p>
 <ul>
-<li><strong>If stated</strong> → the TTL encodes knowledge.</li>
-<li><strong>If not</strong> → the number is a guess.</li>
-<li><strong>If unclear</strong> → the freshness tolerance is unwritten.</li>
+<li><strong>If a written tolerance and a named invalidation event cover this value</strong> → the TTL encodes knowledge.</li>
+<li><strong>If neither exists</strong> → the number is a guess.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the freshness tolerance with its owner: for this value, the permitted age and the event that makes it wrong. Until it is on file, the cache asserts a policy the domain never set.</li>
 </ul>
 </div>
 </div>
@@ -1598,9 +1597,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Can the domain’s work and state be split without breaking an invariant?</p>
 <ul>
-<li><strong>If yes</strong> → horizontal.</li>
-<li><strong>If one invariant must stay whole</strong> → vertical, or re-architect the invariant.</li>
-<li><strong>If unclear</strong> → the domain’s decomposition is unknown.</li>
+<li><strong>If the partitioning rule is on file and no invariant crosses the split</strong> → horizontal.</li>
+<li><strong>If a written invariant must stay whole</strong> → vertical, or re-architect the invariant.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the domain’s decomposition: which units partition cleanly and which invariant forbids it. Until it is on file, the topology is a machine-price guess.</li>
 </ul>
 </div>
 </div>
@@ -1656,9 +1655,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Which reads must reflect the latest write, and which may lag?</p>
 <ul>
-<li><strong>If the domain answers</strong> → scale the lagging ones.</li>
-<li><strong>If not</strong> → you are trading correctness for speed blindly.</li>
-<li><strong>If unclear</strong> → the freshness split is unwritten.</li>
+<li><strong>If a written tolerance says which reads may lag</strong> → scale those, and cite it.</li>
+<li><strong>If no tolerance covers the split</strong> → you are trading correctness for speed blindly.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the per-read freshness tolerance, with its owner. Until it is on file, every read is pushed behind a copy on the same guess.</li>
 </ul>
 </div>
 </div>
@@ -1714,9 +1713,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>For each offloaded read, does the domain require the value to be current when read?</p>
 <ul>
-<li><strong>If no</strong> → offload it.</li>
-<li><strong>If yes</strong> → keep it on the source.</li>
-<li><strong>If unclear</strong> → the invariant is unidentified.</li>
+<li><strong>If a written tolerance covers the read</strong> → offload it.</li>
+<li><strong>If an invariant consumes the value</strong> → keep it on the source.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the read-to-invariant map: which reads feed an invariant, and which tolerate lag. An unmapped read is still on the guess.</li>
 </ul>
 </div>
 </div>
@@ -1772,9 +1771,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Is the hot key a real, singular domain entity or an implementation artifact?</p>
 <ul>
-<li><strong>If artifact</strong> → re-key.</li>
-<li><strong>If real</strong> → redesign the invariant or accept the scaling limit honestly.</li>
-<li><strong>If unclear</strong> → the identity is undecided.</li>
+<li><strong>If the key names an entity in the domain documents</strong> → redesign the invariant, or accept the scaling limit honestly.</li>
+<li><strong>If no document names it</strong> → re-key; the heat is accidental.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the key-to-entity record: what the partition key names, and whether the business has that thing. Until it is on record, salting may break the grouping the domain needs.</li>
 </ul>
 </div>
 </div>
@@ -1830,9 +1829,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Does the domain ever need to ask what happened, not just what is?</p>
 <ul>
-<li><strong>If yes</strong> → append the facts.</li>
-<li><strong>If no</strong> → keep current state and scale it.</li>
-<li><strong>If unclear</strong> → the temporal requirement is unwritten.</li>
+<li><strong>If a written requirement names a question about history</strong> → append the facts.</li>
+<li><strong>If no requirement names one</strong> → keep current state and scale it.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the history requirement: the questions the business must be able to answer about past events, and for how long. Until it is on file, the log serves no one.</li>
 </ul>
 </div>
 </div>
@@ -1887,7 +1886,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="callout-body-container callout-body">
 <p>Is the data one fact the domain reads together, or several the domain joins?</p>
-<p>Match the store to that. If unclear → the aggregate boundary is undecided, and the database is choosing it.</p>
+<p>Match the store to that, and cite the rule that fixes the aggregate boundary. If no written rule fixes it → stop: the aggregate boundary is undecided, and the database is choosing it.</p>
 </div>
 </div>
 <div class="kg-tags">
@@ -1942,9 +1941,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Are these changes one fact or several, in the domain’s own terms?</p>
 <ul>
-<li><strong>If one</strong> → atomicity is required.</li>
-<li><strong>If several</strong> → converge.</li>
-<li><strong>If unclear</strong> → the unit of consistency is unwritten; that is the gap, not the choice.</li>
+<li><strong>If a written invariant ties them into one fact</strong> → atomicity is required.</li>
+<li><strong>If the documents name them as separate facts</strong> → converge.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the invariant that states which changes are one unit. Until it is on file, the unit of consistency is unwritten, and that is the gap, not the choice.</li>
 </ul>
 </div>
 </div>
@@ -2000,9 +1999,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Is there a named obligation to reconstruct who changed what, and for how long?</p>
 <ul>
-<li><strong>If yes</strong> → the requirement defines the design.</li>
-<li><strong>If no</strong> → trim it.</li>
-<li><strong>If unclear</strong> → the obligation is unwritten and being guessed.</li>
+<li><strong>If a regulation, contract, or safety case states it</strong> → the requirement defines the design.</li>
+<li><strong>If no obligation names it</strong> → trim it.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the retention obligation with its duration and its source. Until it is on file, the system pays for history nobody is obliged to consult.</li>
 </ul>
 </div>
 </div>
@@ -2058,9 +2057,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <p>Who must keep working during the change, and for how long?</p>
 <ul>
-<li><strong>If the domain answers</strong> → the migration encodes it.</li>
-<li><strong>If not</strong> → you have assumed consumer agility you never verified.</li>
-<li><strong>If unclear</strong> → the consumer knowledge is unwritten.</li>
+<li><strong>If a consumer list and a compatibility window are on file</strong> → the migration encodes it.</li>
+<li><strong>If no list and no window exist</strong> → you have assumed consumer agility you never verified.</li>
+<li><strong>If you can’t answer</strong> → stop. The artifact to produce is the consumer inventory with each consumer’s migration window. Until it is on file, the one-step migration risks a consumer that could not move in time.</li>
 </ul>
 </div>
 </div>
