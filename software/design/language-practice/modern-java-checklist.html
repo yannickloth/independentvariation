@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-11-06">
+<meta name="description" content="Twenty-five numbered substitutions for Java 25, each with the release that provides it, the mechanism it keeps out of your code, and a way to find it in an existing codebase.">
+
+<title>The Modern Java Subset: Checklist – Independent Variation Principle</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-3034dd3597a1d71abd4905a58f07f12b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-e699f359bbe65d1e2ed4f5491c187cce.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-2a597bcb088770cf7477fbb5ef96ddd6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-98038155adf7bade41cd28fe8e96b18a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-2a597bcb088770cf7477fbb5ef96ddd6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../../styles.css">
+<meta property="og:title" content="The Modern Java Subset: Checklist – Independent Variation Principle">
+<meta property="og:description" content="Twenty-five numbered substitutions for Java 25, each with the release that provides it, the mechanism it keeps out of your code, and a way to find it in an existing codebase.">
+<meta property="og:site_name" content="Independent Variation Principle">
+<meta name="twitter:title" content="The Modern Java Subset: Checklist – Independent Variation Principle">
+<meta name="twitter:description" content="Twenty-five numbered substitutions for Java 25, each with the release that provides it, the mechanism it keeps out of your code, and a way to find it in an existing codebase.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar docked nav-fixed no-table-filter quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Independent Variation Principle</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../ivp-software/index.html"> 
+<span class="menu-text">IVP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../../../software/index.html" aria-current="page"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../knowledge-gap-indicators/index.html"> 
+<span class="menu-text">Patterns &amp; Constructs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../software/design/language-practice/index.html">Language Practice</a></li><li class="breadcrumb-item"><a href="../../../software/design/language-practice/modern-java-checklist.html">The Checklist</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/architecture/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architecture</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/architecture/styles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architecture Styles</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/cohesion/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cohesion</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/cohesion/core-conclusions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Core Conclusions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/cohesion/knowledge-embodiment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Knowledge Embodiment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/cohesion/metrics-survey.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metrics Survey</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/cohesion/no-scalar-metric.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Why Cohesion Has No Scalar Metric</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/cohesion/two-metrics-necessary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Why Two Metrics Are Necessary</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/coupling/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Coupling</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/language-practice/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Language Practice</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/language-practice/modern-java.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Modern Java Subset</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/language-practice/modern-java-checklist.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">The Checklist</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Language Comparison</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/scoreboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scoreboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/objective-coupling-scoring-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scoring Model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/scoring-criteria.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Criteria</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/tags.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tag Index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Systems</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C (C23)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/cpp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C++ (C++23)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/cpp11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C++ (C++11)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/cpp98.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C++ (C++98)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/crystal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Crystal (1.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/goose.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Goose (2026.3)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/nim.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nim (2.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/rust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust (1.96 / 2024 edition)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/rust199.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rust (1.99 / 2024 edition)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/systems/zig.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zig (0.16)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/application.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Application</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/abap.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ABAP (7.58)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/ada.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ada (2022 / 2012)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/clojure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clojure (1.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/common-lisp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Common Lisp (ANSI X3.226-1994)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/csharp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C# (13)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/d.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">D (2.112)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/delphi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Delphi (12.3 Athens)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/eiffel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Eiffel (ECMA-367 / ISO/IEC 25436:2006)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/elixir.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Elixir (1.20)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/erlang.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Erlang (OTP 29)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/fsharp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">F# (9)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/gleam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Gleam (1.19)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/gml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GML (2026.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/go.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Go (1.26)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/go127.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Go (1.27)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/groovy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groovy (5.x)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/gsharp05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">G# (0.5.212)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/haskell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Haskell (GHC 9.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java1-4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 1.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 11)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 17)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java21.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 21)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java25.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 25)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java26.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 26)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java27.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 27)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java5.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java6.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 6)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java7.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 7)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/java8.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Java (Java 8)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/kern.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kern (1.1.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/kotlin.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Kotlin (2.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/lua.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lua (5.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/objective-c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Objective-C (2.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/ocaml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OCaml (5.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/prolog.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prolog (SWI 9.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/purescript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PureScript (0.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/python.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Python (3.14)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/python27.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Python (2.7)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/ruby.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ruby (4.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/scala.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scala (3.8 / 3.3 LTS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/smalltalk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Smalltalk (ANSI Smalltalk)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/swift.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Swift (6.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/tcl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tcl (9.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/unison.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unison (M5b)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/vb6.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Basic (6.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/visual-basic-16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Basic 16 (.NET)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/application/xpp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">X++ (10.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/web.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Web</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/cfml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CFML (2025)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/dart.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dart (3.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/dart313.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dart (3.13 / Flutter 3.47)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/es2015.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JavaScript (ES2015)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/es5.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JavaScript (ES5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/javascript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">JavaScript (ES2025)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/php.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PHP (8.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/typescript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">TypeScript (6.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/web/typescript7.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">TypeScript (7.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/data-science.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data and Science</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/aql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AQL (ArangoDB 3.11)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/bigquery.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BigQuery Standard SQL (2026)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/cql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CQL (Apache Cassandra 5.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/cypher.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cypher (Neo4j 5.x / openCypher)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/datalog.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Datalog (Soufflé 2.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/duckdb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DuckDB SQL (2.0.0 LTS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/es-query-dsl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Elasticsearch Query DSL / EQL (9.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/firebird-psql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Firebird PSQL (5.0.4)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/flux.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Flux (v0.200)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/fortran.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fortran (2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/fql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">FQL (Fauna v10)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/gremlin.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Gremlin (Apache TinkerPop 3.7)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Julia (1.12)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/matlab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MATLAB (R2026a)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/mql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MongoDB Aggregation Pipeline (MongoDB 8.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/n1ql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">N1QL (Couchbase 7.6 / SQL++)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/pl-sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PL/SQL (Oracle)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/pl-sql26ai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PL/SQL (Oracle 26ai)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/plpgsql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PL/pgSQL (PostgreSQL 18)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/promql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PromQL (Prometheus 3.15)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">R (4.5)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/redis-lua.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Redis Lua (Redis 8.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/rql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">RQL (RavenDB 7.2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sap-ase.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SAP ASE (ASE 16.1)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SAS (9.4 / Viya)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/snowflake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Snowflake SQL (2026)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sparql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SPARQL (W3C Recommendation 1.1)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/spl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Informix SPL (15.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL (ANSI SQL:2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sql-pl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL PL (Db2 12.1)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sql-psm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQL/PSM (MySQL 9.7)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sqlite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQLite SQL dialect (3.54)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/sqlscript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SQLScript (SAP HANA 2.0 SPS 08)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/teradata-spl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Teradata SPL (Database Engine 20)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/transact-sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transact-SQL (SQL Server)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/transact-sql2022.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transact-SQL (SQL Server 2022)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/data-science/xslt.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">XSLT (3.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/shells-automation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Shells and Automation</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/awk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Awk (POSIX)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/bash.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Bash (5.3)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/c-shell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">C shell (csh 8.2 / tcsh)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/fish.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fish (4.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/ksh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ksh (kSH 93u+)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/perl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Perl (5.42)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/powershell.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PowerShell (7.6)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/sh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sh (POSIX.1-2024)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/shells-automation/zsh.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Zsh (5.9)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/embedded-realtime.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Embedded and Real-Time</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/embedded-realtime/assembly.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assembly (x86-64, System V AMD64 ABI)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/embedded-realtime/ladder-logic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ladder Logic (IEC 61131-3:2013)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/embedded-realtime/spark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SPARK (Pro 25)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/verification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verification and Proof</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/verification/lean-4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lean 4 (4.31)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/verification/rocq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rocq (9.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/legacy-retro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legacy and Retro</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/legacy-retro/cobol.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">COBOL (ISO/IEC 1989:2023)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/legacy-retro/foxpro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual FoxPro (9.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/legacy-retro/turbo-pascal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Turbo Pascal (7.0)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/legacy-retro/vbscript.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">VBScript (6.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/education.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Education</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/education/racket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Racket (8.17)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/education/scheme.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scheme (R7RS)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/education/scratch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scratch (3.0)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/languages/blockchain.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Blockchain</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/languages/blockchain/solidity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Solidity (0.8.x)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../../software/design/verdicts/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verdicts</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/hexagonal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hexagonal</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/onion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Onion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/clean.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clean</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/layered.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Layered</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/vertical-slice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vertical slice</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/solid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SOLID</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../software/design/verdicts/cupid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CUPID</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="3">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-list" id="toc-the-list" class="nav-link active" data-scroll-target="#the-list">The list</a></li>
+  <li><a href="#what-the-table-does-not-contain" id="toc-what-the-table-does-not-contain" class="nav-link" data-scroll-target="#what-the-table-does-not-contain">What the table does not contain</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../software/design/language-practice/index.html">Language Practice</a></li><li class="breadcrumb-item"><a href="../../../software/design/language-practice/modern-java-checklist.html">The Checklist</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">The Modern Java Subset: Checklist</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">engineering</div>
+    <div class="quarto-category">languages</div>
+    <div class="quarto-category">java</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Twenty-five numbered substitutions for Java 25, each with the release that provides it, the mechanism it keeps out of your code, and a way to find it in an existing codebase.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 6, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<style>
+.cl-table table { table-layout: fixed; width: 100%; }
+.cl-table th:nth-child(1) { width: 6.25%; }
+.cl-table th:nth-child(2) { width: 25%; }
+.cl-table th:nth-child(3) { width: 25%; }
+.cl-table th:nth-child(4) { width: 25%; }
+.cl-table th:nth-child(5) { width: 18.75%; }
+.cl-table td { vertical-align: top; overflow-wrap: break-word; }
+.cl-table td:nth-child(1) { text-align: right; }
+</style>
+<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase.</p>
+<p>The mechanism links point at the <a href="../../../software/design/languages/scoring-criteria.html">criteria catalogue</a>, where every mechanism has an anchor. They fall into three classes, and the difference matters:</p>
+<ul>
+<li><strong>A mechanism Java 25 still pays.</strong> The construct keeps that cost out of <em>your</em> code. It does not remove the mechanism from the language, because the old construct is still available to the next team. Java is still charged for it.</li>
+<li><strong>A mechanism Java stopped paying.</strong> <code>T4</code>, <code>K4</code>, and <code>K6</code> are absent from Java 17 and later precisely because these constructs exist. Here the row is how to use a cost the platform already removed.</li>
+<li><strong>No mechanism.</strong> Five rows price nothing the inventory names. <code>double</code> for money, an <code>instanceof</code> cast, an unnamed tuple, a <code>ThreadLocal</code>, and a mutable static are correctness or attention problems. The <a href="../../../software/design/languages/scoring-criteria.html">criteria page</a> says so itself: an agreement the inventory does not name is not priced.</li>
+</ul>
+<section id="the-list" class="level2">
+<h2 class="anchored" data-anchor-id="the-list">The list</h2>
+<div class="cl-table">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Do not write</th>
+<th>Write instead</th>
+<th>Where the old form stays</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a id="item-1"></a>1</td>
+<td>Field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code><br><code>rg 'public void set[A-Z]'</code></td>
+<td>a <code>record</code>, with an adapter where a framework needs a bean</td>
+<td>JPA entities and framework-bound types</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a> <a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a> <a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
+</tr>
+<tr class="even">
+<td><a id="item-2"></a>2</td>
+<td><code>instanceof</code>, then a cast, then accessors<br>review each <code>instanceof</code> followed by a cast</td>
+<td>a record pattern</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br>—<br>since 21</td>
+</tr>
+<tr class="odd">
+<td><a id="item-3"></a>3</td>
+<td>Visitor over a closed hierarchy<br><code>rg 'void accept\('</code></td>
+<td>a <code>sealed interface</code> plus a <code>switch</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, absent since 17</a><br>since 17, exhaustive at 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-4"></a>4</td>
+<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>rg 'Object\[\]'</code>, <code>rg 'Map&lt;String, Object&gt;'</code></td>
+<td>a record</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br>—<br>since 16</td>
+</tr>
+<tr class="odd">
+<td><a id="item-5"></a>5</td>
+<td><code>null</code> returned for absence<br><code>rg 'return null'</code></td>
+<td><code>Optional</code>, a result type, or an empty collection</td>
+<td>a library that returns <code>null</code></td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8</td>
+</tr>
+<tr class="even">
+<td><a id="item-6"></a>6</td>
+<td><code>Optional.get()</code><br><code>rg '\.get\(\)'</code></td>
+<td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8, no-arg <code>orElseThrow</code> at 10</td>
+</tr>
+<tr class="odd">
+<td><a id="item-7"></a>7</td>
+<td><code>double</code> for money<br>review <code>double</code> fields that name money</td>
+<td><code>long</code> minor units, or <code>BigDecimal</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br>—<br>since 1.1</td>
+</tr>
+<tr class="even">
+<td><a id="item-8"></a>8</td>
+<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index<br>review <code>charAt</code> and <code>substring</code> on user text</td>
+<td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t15">T15</a><br>since 1.5</td>
+</tr>
+<tr class="odd">
+<td><a id="item-9"></a>9</td>
+<td><code>throw</code> for an expected failure<br><code>rg 'throw new Illegal'</code></td>
+<td>the result type</td>
+<td>bugs, fatal JVM errors, framework callbacks</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a><br>since 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-10"></a>10</td>
+<td><code>try</code>/<code>catch</code> in the middle of a pipeline<br>review each <code>catch</code> that only wraps or rethrows</td>
+<td><code>map</code>, <code>flatMap</code>, <code>fold</code></td>
+<td>the boundary adapter</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
+</tr>
+<tr class="odd">
+<td><a id="item-11"></a>11</td>
+<td><code>throws</code> on a domain method<br><code>rg 'throws \w+Exception'</code></td>
+<td>the result type</td>
+<td>the edge that accepts only exceptions</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a> <a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-12"></a>12</td>
+<td><code>Optional</code> or <code>null</code> used to report a failure<br>review <code>Optional</code> returns that describe a failure</td>
+<td>the result type</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 17</td>
+</tr>
+<tr class="odd">
+<td><a id="item-13"></a>13</td>
+<td>Class state in field initializers, blocks, and the constructor body<br><code>rg 'static \{'</code>, count non-<code>final</code> fields</td>
+<td>one canonical constructor, plus a compact constructor</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
+</tr>
+<tr class="even">
+<td><a id="item-14"></a>14</td>
+<td>Mutable static field, singleton, global registry<br>review every <code>static</code> field that is not <code>final</code></td>
+<td>a parameter, a constructor argument, or a scoped value</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br>—<br>since —</td>
+</tr>
+<tr class="odd">
+<td><a id="item-15"></a>15</td>
+<td><code>Collections.unmodifiableList(...)</code><br><code>rg 'Collections\.unmodifiable'</code></td>
+<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a><br>since 9, <code>copyOf</code> at 10</td>
+</tr>
+<tr class="even">
+<td><a id="item-16"></a>16</td>
+<td><code>HashMap</code> or <code>HashSet</code> where any order is observed<br><code>rg 'new Hash'</code></td>
+<td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c5">C5</a><br>since 1.4</td>
+</tr>
+<tr class="odd">
+<td><a id="item-17"></a>17</td>
+<td><code>finalize()</code><br><code>rg 'finalize\s*\('</code></td>
+<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#m3">M3</a><br>since 7, <code>Cleaner</code> at 9</td>
+</tr>
+<tr class="even">
+<td><a id="item-18"></a>18</td>
+<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code><br><code>rg 'new Date\('</code>, <code>rg 'new SimpleDateFormat'</code></td>
+<td>a <code>java.time</code> type</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a><br>since 8</td>
+</tr>
+<tr class="odd">
+<td><a id="item-19"></a>19</td>
+<td>Bare <code>int</code> arithmetic where overflow matters<br>review <code>int</code> arithmetic on money, size, counts</td>
+<td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#q4">Q4</a><br>since 8</td>
+</tr>
+<tr class="even">
+<td><a id="item-20"></a>20</td>
+<td>Raw type, or <code>Object</code> plus a cast<br><code>javac -Xlint:rawtypes -Xlint:unchecked</code></td>
+<td>a generic type parameter</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#t7">T7</a><br>since 5</td>
+</tr>
+<tr class="odd">
+<td><a id="item-21"></a>21</td>
+<td><code>new Thread(...)</code>, or a pool created per request<br><code>rg 'new Thread&lt;'</code>, <code>rg 'newFixedThreadPool'</code></td>
+<td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k6">K6, absent since 21</a><br>since 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-22"></a>22</td>
+<td><code>ThreadLocal</code><br><code>rg 'ThreadLocal&lt;'</code></td>
+<td><code>ScopedValue</code></td>
+<td>where the value must be rebound mid-scope, or read by work already queued</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 25</td>
+</tr>
+<tr class="odd">
+<td><a id="item-23"></a>23</td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>rg 'synchronized'</code>, <code>rg '\.wait\(\)'</code></td>
+<td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 5</td>
+</tr>
+<tr class="even">
+<td><a id="item-24"></a>24</td>
+<td><code>Future.get()</code> for a fan-out<br><code>rg 'Future&lt;.*&gt;.*\.get\('</code></td>
+<td>a block-scoped <code>ExecutorService</code></td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k4">K4, absent since 21</a><br>since 19</td>
+</tr>
+<tr class="odd">
+<td><a id="item-25"></a>25</td>
+<td>A <code>sealed</code> type at an extension point<br>review each <code>permits</code> clause</td>
+<td>an open interface</td>
+<td>—</td>
+<td><a href="../../../software/design/language-practice/modern-java.html#where-the-subset-runs-out">Limits</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, the boundary of the fix</a><br>since 17</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="what-the-table-does-not-contain" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-table-does-not-contain">What the table does not contain</h2>
+<p>Primitive types in patterns and <code>StructuredTaskScope</code> are previews in Java 27, so production code cannot use them yet; they are absent on purpose, not by oversight. Everything else that the <a href="../../../software/design/language-practice/modern-java.html">page</a> retires has a row.</p>
+<p>The numbers are stable. A row added later takes the next number, and the anchor <code>#item-N</code> keeps working for every row already cited.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="../../../toc-references.js"></script>
+<script src="../../../glossary-tooltip.js"></script>
+<glossary-tooltips></glossary-tooltips>
+<script src="../../../nav-active.js"></script>
+<script src="../../../nav-tree.js"></script>
+<script src="../../../scoreboard-tables.js?v=f8f617dafa2e"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yannickloth\.github\.io\/independentvariation\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>IVP — Independent Variation Principle</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
