@@ -1587,11 +1587,16 @@ div.csl-indent {
 <td>The return type states that absence is possible. <code>Optional</code> is documented as a return type rather than a field type, and never null itself <span class="citation" data-cites="javaApiOptional25"><a href="#ref-javaApiOptional25" role="doc-biblioref">[15]</a></span>.</td>
 </tr>
 <tr class="even">
+<td><code>Optional.get()</code></td>
+<td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
+<td><code>get()</code> throws when the value is absent, so it restores the unguarded dereference that <code>Optional</code> was introduced to remove.</td>
+</tr>
+<tr class="odd">
 <td><code>double</code> for money</td>
 <td><code>long</code> minor units or <code>BigDecimal</code></td>
 <td>Binary floating point cannot represent 0.10.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index</td>
 <td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
 <td><code>char</code> is a UTF-16 code unit; an emoji is two of them.</td>
@@ -1852,149 +1857,196 @@ div.csl-indent {
 </section>
 <section id="the-checklist" class="level2" data-number="8">
 <h2 data-number="8" class="anchored" data-anchor-id="the-checklist"><span class="header-section-number">8</span> The checklist</h2>
-<p>The sections above explain each substitution. This is the consolidated list. A dash in the last column means no exception: the old form has no legitimate use.</p>
+<p>Every substitution in the four tables above appears here once, in the order of the sections that explain it. The number is for reference. The last column links to the section that gives the reason.</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
 <thead>
 <tr class="header">
+<th style="text-align: right;">#</th>
 <th>Do not write</th>
 <th>Write instead</th>
 <th>Where the old form stays</th>
+<th>Detail</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>finalize()</code></td>
-<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td>raw type, or <code>Object</code> plus a cast</td>
-<td>a generic type parameter</td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code></td>
-<td>a <code>java.time</code> type</td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td><code>Optional.get()</code></td>
-<td><code>orElseThrow()</code> (the no-arg form is Java 10), <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td><code>HashMap</code> or <code>HashSet</code> where any order is observed</td>
-<td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td><code>Collections.unmodifiableList(...)</code></td>
-<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
-<td>—</td>
-</tr>
-<tr class="odd">
+<td style="text-align: right;">1</td>
 <td>field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code></td>
-<td><code>record</code></td>
-<td>—</td>
+<td>a <code>record</code>, with an adapter where a framework needs a bean</td>
+<td>JPA entities and framework-bound types</td>
+<td><a href="#data-shape">Data shape</a>, <a href="#where-the-subset-runs-out">Limits</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: right;">2</td>
 <td><code>instanceof</code>, then a cast, then accessors</td>
 <td>a record pattern</td>
 <td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
 </tr>
 <tr class="odd">
+<td style="text-align: right;">3</td>
 <td>Visitor over a closed hierarchy</td>
 <td><code>sealed interface</code> plus a <code>switch</code></td>
 <td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: right;">4</td>
 <td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields</td>
 <td>a record</td>
 <td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
 </tr>
 <tr class="odd">
-<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index</td>
-<td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td><code>double</code> for money</td>
-<td><code>long</code> minor units, or <code>BigDecimal</code></td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td>bare <code>int</code> arithmetic where overflow matters</td>
-<td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td><code>new Thread(...)</code>, or a pool created per request</td>
-<td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td><code>Future.get()</code> for a fan-out</td>
-<td>a block-scoped <code>ExecutorService</code></td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code></td>
-<td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td>mutable static field, singleton, global registry</td>
-<td>a parameter, a constructor argument, or a scoped value</td>
-<td>—</td>
-</tr>
-<tr class="even">
-<td><code>ThreadLocal</code></td>
-<td><code>ScopedValue</code></td>
-<td>where the value must be rebound mid-scope, or read by work already queued in a pool</td>
-</tr>
-<tr class="odd">
+<td style="text-align: right;">5</td>
 <td><code>null</code> return</td>
 <td><code>Optional</code>, a result type, or an empty collection</td>
 <td>a library that returns <code>null</code></td>
+<td><a href="#data-shape">Data shape</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: right;">6</td>
+<td><code>Optional.get()</code></td>
+<td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">7</td>
+<td><code>double</code> for money</td>
+<td><code>long</code> minor units, or <code>BigDecimal</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">8</td>
+<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index</td>
+<td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
 <td><code>throw</code> for an expected failure</td>
 <td>the result type</td>
 <td>bugs, fatal JVM errors, framework callbacks</td>
-</tr>
-<tr class="odd">
-<td><code>throws</code> on a domain method</td>
-<td>the result type</td>
-<td>the edge that accepts only exceptions</td>
+<td><a href="#errors">Errors</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: right;">10</td>
 <td><code>try</code>/<code>catch</code> in the middle of a pipeline</td>
 <td><code>map</code>, <code>flatMap</code>, <code>fold</code></td>
 <td>the boundary adapter</td>
+<td><a href="#errors">Errors</a></td>
 </tr>
 <tr class="odd">
+<td style="text-align: right;">11</td>
+<td><code>throws</code> on a domain method</td>
+<td>the result type</td>
+<td>the edge that accepts only exceptions</td>
+<td><a href="#errors">Errors</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">12</td>
 <td><code>Optional</code> or <code>null</code> used to report a failure</td>
 <td>the result type</td>
 <td>—</td>
-</tr>
-<tr class="even">
-<td>a mutable bean as the domain model</td>
-<td>a <code>record</code>, with an adapter</td>
-<td>JPA entities and framework-bound types</td>
+<td><a href="#errors">Errors</a></td>
 </tr>
 <tr class="odd">
+<td style="text-align: right;">13</td>
+<td>class state set in field initializers, instance initializer blocks, static blocks, and the constructor body</td>
+<td>one canonical constructor, plus a compact constructor</td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">14</td>
+<td>mutable static field, singleton, global registry</td>
+<td>a parameter, a constructor argument, or a scoped value</td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">15</td>
+<td><code>Collections.unmodifiableList(...)</code></td>
+<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">16</td>
+<td><code>HashMap</code> or <code>HashSet</code> where any order is observed</td>
+<td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">17</td>
+<td><code>finalize()</code></td>
+<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">18</td>
+<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code></td>
+<td>a <code>java.time</code> type</td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">19</td>
+<td>bare <code>int</code> arithmetic where overflow matters</td>
+<td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">20</td>
+<td>raw type, or <code>Object</code> plus a cast</td>
+<td>a generic type parameter</td>
+<td>—</td>
+<td><a href="#state-and-construction">State and construction</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">21</td>
+<td><code>new Thread(...)</code>, or a pool created per request</td>
+<td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">22</td>
+<td><code>ThreadLocal</code></td>
+<td><code>ScopedValue</code></td>
+<td>where the value must be rebound mid-scope, or read by work already queued in a pool</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">23</td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code></td>
+<td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">24</td>
+<td><code>Future.get()</code> for a fan-out</td>
+<td>a block-scoped <code>ExecutorService</code></td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">25</td>
 <td>a <code>sealed</code> type at an extension point</td>
 <td>an open interface</td>
 <td>—</td>
+<td><a href="#where-the-subset-runs-out">Limits</a></td>
 </tr>
 </tbody>
 </table>
-<p>This list leaves out two constructs on purpose: primitive types in patterns and <code>StructuredTaskScope</code> are still previews in Java 27, so production code cannot use them yet. Judge them when they are final.</p>
+<p>A dash in the fourth column means no exception: the old form has no legitimate use here. This list leaves out two constructs on purpose: primitive types in patterns and <code>StructuredTaskScope</code> are still previews in Java 27, so production code cannot use them yet. Judge them when they are final.</p>
 </section>
 <section id="what-it-costs" class="level2" data-number="9">
 <h2 data-number="9" class="anchored" data-anchor-id="what-it-costs"><span class="header-section-number">9</span> What it costs</h2>
