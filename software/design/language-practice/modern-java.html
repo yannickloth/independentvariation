@@ -1774,13 +1774,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="making-it-stick" class="level2" data-number="7">
 <h2 data-number="7" class="anchored" data-anchor-id="making-it-stick"><span class="header-section-number">7</span> Making it stick</h2>
 <p>Prose does not enforce itself. The workable enforcement is a compiler plugin that fails the build.</p>
-<p>Error Prone attaches checks to <code>javac</code>. Each check is selected with <code>-Xep:&lt;Check&gt;:ERROR</code>, configured with <code>-XepOpt:&lt;Key&gt;=&lt;Value&gt;</code>, and <code>-Werror</code> makes any warning fatal. A build plugin supplies the plugin itself and its classpath — <code>net.ltgt.errorprone</code> for Gradle, <code>error-prone-maven-plugin</code> for Maven — so these settings go wherever your build keeps compiler flags:</p>
-<pre class="text"><code>-Xep:NullAway:ERROR
--XepOpt:NullAway:AnnotatedPackages=com.example
--Xep:BanThrow:ERROR
--Xep:BanUnorderedCollection:ERROR
--Xep:BanMutableStatic:ERROR
--Werror</code></pre>
+<p>Error Prone runs as a <code>javac</code> plugin, so the flags are the same whatever builds the project. It needs <code>-XDcompilePolicy=simple</code>, the Error Prone and NullAway jars on the processor path, and one <code>-Xplugin</code> argument that carries both the plugin name and its settings. A check is set with <code>-Xep:&lt;Check&gt;:&lt;Severity&gt;</code> and configured with <code>-XepOpt:&lt;Key&gt;=&lt;Value&gt;</code>. On JDK 16 and later it also needs the <code>--add-exports</code> flags that its installation guide lists, because it reads compiler internals.</p>
+<p>The <code>javac</code> parameters:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">-XDcompilePolicy=simple</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">-processorpath</span> error_prone_core.jar:nullaway.jar:your-checks.jar</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">'-Xplugin:ErrorProne -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=com.example -Xep:BanThrow:ERROR -Xep:BanUnorderedCollection:ERROR -Xep:BanMutableStatic:ERROR'</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">-Werror</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Maven, in <code>maven-compiler-plugin</code>. The same flags go into <code>compilerArgs</code>, and the same jars into <code>annotationProcessorPaths</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">plugin</span>&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">groupId</span>&gt;org.apache.maven.plugins&lt;/<span class="kw">groupId</span>&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">artifactId</span>&gt;maven-compiler-plugin&lt;/<span class="kw">artifactId</span>&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">configuration</span>&gt;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">compilerArgs</span>&gt;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">arg</span>&gt;-XDcompilePolicy=simple&lt;/<span class="kw">arg</span>&gt;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">arg</span>&gt;-Xplugin:ErrorProne -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=com.example -Xep:BanThrow:ERROR&lt;/<span class="kw">arg</span>&gt;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">arg</span>&gt;-Werror&lt;/<span class="kw">arg</span>&gt;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">compilerArgs</span>&gt;</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">annotationProcessorPaths</span>&gt;</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">path</span>&gt;</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">groupId</span>&gt;com.google.errorprone&lt;/<span class="kw">groupId</span>&gt;</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">artifactId</span>&gt;error_prone_core&lt;/<span class="kw">artifactId</span>&gt;</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">version</span>&gt;${error-prone.version}&lt;/<span class="kw">version</span>&gt;</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">path</span>&gt;</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">path</span>&gt;</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">groupId</span>&gt;com.uber.nullaway&lt;/<span class="kw">groupId</span>&gt;</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">artifactId</span>&gt;nullaway&lt;/<span class="kw">artifactId</span>&gt;</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">version</span>&gt;${nullaway.version}&lt;/<span class="kw">version</span>&gt;</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">path</span>&gt;</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>      <span class="co">&lt;!-- your own checks join here --&gt;</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">annotationProcessorPaths</span>&gt;</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">configuration</span>&gt;</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">plugin</span>&gt;</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>with the two versions pinned in <code>&lt;properties&gt;</code>.</p>
+<p>Gradle, with the <code>net.ltgt.errorprone</code> plugin, which writes the plugin argument for you:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode groovy code-with-copy"><code class="sourceCode groovy"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plugins <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  id <span class="st">'net.ltgt.errorprone'</span> version <span class="st">'4.1.0'</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>dependencies <span class="op">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  errorprone <span class="st">"com.google.errorprone:error_prone_core:</span><span class="ss">${</span>errorProneVersion<span class="ss">}</span><span class="st">"</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  errorprone <span class="st">"com.uber.nullaway:nullaway:</span><span class="ss">${</span>nullawayVersion<span class="ss">}</span><span class="st">"</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>tasks<span class="op">.</span><span class="fu">withType</span><span class="op">(</span>JavaCompile<span class="op">).</span><span class="fu">configureEach</span> <span class="op">{</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  options<span class="op">.</span><span class="fu">errorprone</span> <span class="op">{</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">error</span><span class="op">(</span><span class="st">'NullAway'</span><span class="op">)</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">error</span><span class="op">(</span><span class="st">'BanThrow'</span><span class="op">)</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">error</span><span class="op">(</span><span class="st">'BanUnorderedCollection'</span><span class="op">)</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">error</span><span class="op">(</span><span class="st">'BanMutableStatic'</span><span class="op">)</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">option</span><span class="op">(</span><span class="st">'NullAway:AnnotatedPackages'</span><span class="op">,</span> <span class="st">'com.example'</span><span class="op">)</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  options<span class="op">.</span>compilerArgs <span class="op">+=</span> <span class="op">[</span><span class="st">'-Werror'</span><span class="op">]</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Three tools, one set of checks. The build tool supplies only the classpath and the argument quoting.</p>
 <p>NullAway is a published check that reports a possible <code>null</code> dereference. The three <code>Ban*</code> checks are yours to write: each is a small <code>BugChecker</code>, a class that inspects the compiler’s syntax tree and reports a match.</p>
 <p>This catches null returns, mutable statics, unordered collections, and a <code>throw</code> outside a whitelist. It does not catch aliasing (two references to the same mutable object), and it cannot see Kotlin, generated members, or reflective writes. NullAway also treats unannotated third-party code as unknown, so library nulls pass through. The plugin is a check that only gets stricter over time; it is not a proof.</p>
 </section>
