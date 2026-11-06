@@ -476,12 +476,6 @@ div.csl-indent {
  <span class="menu-text">The Modern Java Subset</span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../../software/design/language-practice/modern-java-checklist.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">The Checklist</span></a>
-  </div>
-</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -1917,8 +1911,210 @@ div.csl-indent {
 </section>
 <section id="the-checklist" class="level2" data-number="10">
 <h2 data-number="10" class="anchored" data-anchor-id="the-checklist"><span class="header-section-number">10</span> The checklist</h2>
-<p>The 25 substitutions are collected on their own page, numbered, each with the release that provides it, the mechanism it keeps out of your code, and a way to find it in an existing codebase:</p>
-<p><a href="../../../software/design/language-practice/modern-java-checklist.html">The checklist</a></p>
+<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section above that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase.</p>
+<style>
+.cl-table table { table-layout: fixed; width: 100%; }
+.cl-table th:nth-child(1) { width: 6.25%; }
+.cl-table th:nth-child(2) { width: 25%; }
+.cl-table th:nth-child(3) { width: 25%; }
+.cl-table th:nth-child(4) { width: 25%; }
+.cl-table th:nth-child(5) { width: 18.75%; }
+.cl-table td { vertical-align: top; overflow-wrap: break-word; }
+.cl-table td:nth-child(1) { text-align: right; }
+</style>
+<div class="cl-table table-filter">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Do not write</th>
+<th>Write instead</th>
+<th>Where the old form stays</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a id="item-1"></a>1</td>
+<td>Field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code><br><code>rg 'public void set[A-Z]'</code></td>
+<td>a <code>record</code>, with an adapter where a framework needs a bean</td>
+<td>JPA entities and framework-bound types</td>
+<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a> <a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a> <a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
+</tr>
+<tr class="even">
+<td><a id="item-2"></a>2</td>
+<td><code>instanceof</code>, then a cast, then accessors<br>review each <code>instanceof</code> followed by a cast</td>
+<td>a record pattern</td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a><br>—<br>since 21</td>
+</tr>
+<tr class="odd">
+<td><a id="item-3"></a>3</td>
+<td>Visitor over a closed hierarchy<br><code>rg 'void accept\('</code></td>
+<td>a <code>sealed interface</code> plus a <code>switch</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, absent since 17</a><br>since 17, exhaustive at 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-4"></a>4</td>
+<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>rg 'Object\[\]'</code>, <code>rg 'Map&lt;String, Object&gt;'</code></td>
+<td>a record</td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a><br>—<br>since 16</td>
+</tr>
+<tr class="odd">
+<td><a id="item-5"></a>5</td>
+<td><code>null</code> returned for absence<br><code>rg 'return null'</code></td>
+<td><code>Optional</code>, a result type, or an empty collection</td>
+<td>a library that returns <code>null</code></td>
+<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8</td>
+</tr>
+<tr class="even">
+<td><a id="item-6"></a>6</td>
+<td><code>Optional.get()</code><br><code>rg '\.get\(\)'</code></td>
+<td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8, no-arg <code>orElseThrow</code> at 10</td>
+</tr>
+<tr class="odd">
+<td><a id="item-7"></a>7</td>
+<td><code>double</code> for money<br>review <code>double</code> fields that name money</td>
+<td><code>long</code> minor units, or <code>BigDecimal</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a><br>—<br>since 1.1</td>
+</tr>
+<tr class="even">
+<td><a id="item-8"></a>8</td>
+<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index<br>review <code>charAt</code> and <code>substring</code> on user text</td>
+<td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t15">T15</a><br>since 1.5</td>
+</tr>
+<tr class="odd">
+<td><a id="item-9"></a>9</td>
+<td><code>throw</code> for an expected failure<br><code>rg 'throw new Illegal'</code></td>
+<td>the result type</td>
+<td>bugs, fatal JVM errors, framework callbacks</td>
+<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a><br>since 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-10"></a>10</td>
+<td><code>try</code>/<code>catch</code> in the middle of a pipeline<br>review each <code>catch</code> that only wraps or rethrows</td>
+<td><code>map</code>, <code>flatMap</code>, <code>fold</code></td>
+<td>the boundary adapter</td>
+<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
+</tr>
+<tr class="odd">
+<td><a id="item-11"></a>11</td>
+<td><code>throws</code> on a domain method<br><code>rg 'throws \w+Exception'</code></td>
+<td>the result type</td>
+<td>the edge that accepts only exceptions</td>
+<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a> <a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-12"></a>12</td>
+<td><code>Optional</code> or <code>null</code> used to report a failure<br>review <code>Optional</code> returns that describe a failure</td>
+<td>the result type</td>
+<td>—</td>
+<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 17</td>
+</tr>
+<tr class="odd">
+<td><a id="item-13"></a>13</td>
+<td>Class state in field initializers, blocks, and the constructor body<br><code>rg 'static \{'</code>, count non-<code>final</code> fields</td>
+<td>one canonical constructor, plus a compact constructor</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
+</tr>
+<tr class="even">
+<td><a id="item-14"></a>14</td>
+<td>Mutable static field, singleton, global registry<br>review every <code>static</code> field that is not <code>final</code></td>
+<td>a parameter, a constructor argument, or a scoped value</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br>—<br>since —</td>
+</tr>
+<tr class="odd">
+<td><a id="item-15"></a>15</td>
+<td><code>Collections.unmodifiableList(...)</code><br><code>rg 'Collections\.unmodifiable'</code></td>
+<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a><br>since 9, <code>copyOf</code> at 10</td>
+</tr>
+<tr class="even">
+<td><a id="item-16"></a>16</td>
+<td><code>HashMap</code> or <code>HashSet</code> where any order is observed<br><code>rg 'new Hash'</code></td>
+<td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c5">C5</a><br>since 1.4</td>
+</tr>
+<tr class="odd">
+<td><a id="item-17"></a>17</td>
+<td><code>finalize()</code><br><code>rg 'finalize\s*\('</code></td>
+<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#m3">M3</a><br>since 7, <code>Cleaner</code> at 9</td>
+</tr>
+<tr class="even">
+<td><a id="item-18"></a>18</td>
+<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code><br><code>rg 'new Date\('</code>, <code>rg 'new SimpleDateFormat'</code></td>
+<td>a <code>java.time</code> type</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a><br>since 8</td>
+</tr>
+<tr class="odd">
+<td><a id="item-19"></a>19</td>
+<td>Bare <code>int</code> arithmetic where overflow matters<br>review <code>int</code> arithmetic on money, size, counts</td>
+<td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#q4">Q4</a><br>since 8</td>
+</tr>
+<tr class="even">
+<td><a id="item-20"></a>20</td>
+<td>Raw type, or <code>Object</code> plus a cast<br><code>javac -Xlint:rawtypes -Xlint:unchecked</code></td>
+<td>a generic type parameter</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#t7">T7</a><br>since 5</td>
+</tr>
+<tr class="odd">
+<td><a id="item-21"></a>21</td>
+<td><code>new Thread(...)</code>, or a pool created per request<br><code>rg 'new Thread&lt;'</code>, <code>rg 'newFixedThreadPool'</code></td>
+<td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k6">K6, absent since 21</a><br>since 21</td>
+</tr>
+<tr class="even">
+<td><a id="item-22"></a>22</td>
+<td><code>ThreadLocal</code><br><code>rg 'ThreadLocal&lt;'</code></td>
+<td><code>ScopedValue</code></td>
+<td>where the value must be rebound mid-scope, or read by work already queued</td>
+<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 25</td>
+</tr>
+<tr class="odd">
+<td><a id="item-23"></a>23</td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>rg 'synchronized'</code>, <code>rg '\.wait\(\)'</code></td>
+<td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 5</td>
+</tr>
+<tr class="even">
+<td><a id="item-24"></a>24</td>
+<td><code>Future.get()</code> for a fan-out<br><code>rg 'Future&lt;.*&gt;.*\.get\('</code></td>
+<td>a block-scoped <code>ExecutorService</code></td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k4">K4, absent since 21</a><br>since 19</td>
+</tr>
+<tr class="odd">
+<td><a id="item-25"></a>25</td>
+<td>A <code>sealed</code> type at an extension point<br>review each <code>permits</code> clause</td>
+<td>an open interface</td>
+<td>—</td>
+<td><a href="#where-the-subset-runs-out">Limits</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, the boundary of the fix</a><br>since 17</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A dash in the fourth column means no exception: the old form has no legitimate use here. The mechanism links point at the <a href="../../../software/design/languages/scoring-criteria.html">criteria catalogue</a> and fall into three classes. Sixteen name a mechanism Java 25 still pays, so the construct keeps that cost out of your code but not out of the language. Four name a mechanism the platform removed at 17 or 21 — <code>T4</code>, <code>K4</code>, <code>K6</code> — where the row is how to use a cost already gone. Five name nothing the inventory prices: <code>double</code> for money, an <code>instanceof</code> cast, an unnamed tuple, a <code>ThreadLocal</code>, and a mutable static are correctness or attention problems, and the <a href="../../../software/design/languages/scoring-criteria.html">criteria page</a> says an agreement the inventory does not name is not priced.</p>
+<p>Two constructs are absent on purpose. Primitive types in patterns and <code>StructuredTaskScope</code> are still previews in Java 27, so production code cannot use them yet. Judge them when they are final.</p>
+<p>The numbers are stable. A row added later takes the next number, and the anchor <code>#item-N</code> keeps working for every row already cited.</p>
 </section>
 <section id="what-it-costs" class="level2" data-number="11">
 <h2 data-number="11" class="anchored" data-anchor-id="what-it-costs"><span class="header-section-number">11</span> What it costs</h2>
