@@ -5,6 +5,10 @@
 // already on the page, which keeps the page readable without JavaScript and
 // indexable by search engines.
 //
+// A page opts out with `body-classes: no-table-filter` in its front matter. A
+// prose page carries a few small tables that need no filter, and the control
+// costs more attention than it saves there.
+//
 // Both features are derived from the rendered table itself:
 //   - a table is a RANKING when its first body cell parses as a rank, i.e. the
 //     rows are numbered 1..n in the rendered order;
@@ -15,6 +19,8 @@
 // Nothing is hand-written per table, so a new table on the page is covered.
 
 (() => {
+  if (document.body.classList.contains("no-table-filter")) return;
+
   const tables = Array.from(document.querySelectorAll("table"));
 
   const headRow = (t) => (t.tHead && t.tHead.rows[0]) || t.rows[0];
