@@ -1911,7 +1911,7 @@ div.csl-indent {
 </section>
 <section id="the-checklist" class="level2" data-number="10">
 <h2 data-number="10" class="anchored" data-anchor-id="the-checklist"><span class="header-section-number">10</span> The checklist</h2>
-<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section above that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase. <code>rg</code> is ripgrep, and <code>grep -rn</code> with the same pattern does the same job; where a regex cannot find the shape, the line says what to review instead.</p>
+<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section above that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase: run <code>grep -rE '&lt;pattern&gt;' .</code> from the project root. Where a pattern cannot find the shape, the line says what to review instead.</p>
 <style>
 .cl-table table { table-layout: fixed; width: 100%; }
 .cl-table th:nth-child(1) { width: 6.25%; }
@@ -1936,7 +1936,7 @@ div.csl-indent {
 <tbody>
 <tr class="odd">
 <td><a id="item-1"></a>1</td>
-<td>Field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code><br><code>rg 'public void set[A-Z]'</code></td>
+<td>Field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code><br><code>grep -rE 'public void set[A-Z]'</code></td>
 <td>a <code>record</code>, with an adapter where a framework needs a bean</td>
 <td>JPA entities and framework-bound types</td>
 <td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a> <a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a> <a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
@@ -1950,21 +1950,21 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-3"></a>3</td>
-<td>Visitor over a closed hierarchy<br><code>rg 'void accept\('</code></td>
+<td>Visitor over a closed hierarchy<br><code>grep -rE 'void accept\('</code></td>
 <td>a <code>sealed interface</code> plus a <code>switch</code></td>
 <td>—</td>
 <td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, absent since 17</a><br>since 17, exhaustive at 21</td>
 </tr>
 <tr class="even">
 <td><a id="item-4"></a>4</td>
-<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>rg 'Object\[\]'</code>, <code>rg 'Map&lt;String,\s*Object&gt;'</code></td>
+<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>grep -rE 'Object\[\]'</code>, <code>grep -rE 'Map&lt;String, *Object&gt;'</code></td>
 <td>a record</td>
 <td>—</td>
 <td><a href="#data-shape">Data shape</a><br>—<br>since 16</td>
 </tr>
 <tr class="odd">
 <td><a id="item-5"></a>5</td>
-<td><code>null</code> returned for absence<br><code>rg 'return null'</code></td>
+<td><code>null</code> returned for absence<br><code>grep -rE 'return null'</code></td>
 <td><code>Optional</code>, a result type, or an empty collection</td>
 <td>a library that returns <code>null</code></td>
 <td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8</td>
@@ -1992,7 +1992,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-9"></a>9</td>
-<td><code>throw</code> for an expected failure<br><code>rg 'throw new Illegal'</code></td>
+<td><code>throw</code> for an expected failure<br><code>grep -rE 'throw new Illegal'</code></td>
 <td>the result type</td>
 <td>bugs, fatal JVM errors, framework callbacks</td>
 <td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a><br>since 21</td>
@@ -2006,7 +2006,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-11"></a>11</td>
-<td><code>throws</code> on a domain method<br><code>rg 'throws .*Exception'</code></td>
+<td><code>throws</code> on a domain method<br><code>grep -rE 'throws .*Exception'</code></td>
 <td>the result type</td>
 <td>the edge that accepts only exceptions</td>
 <td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a> <a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
@@ -2020,7 +2020,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-13"></a>13</td>
-<td>Class state in field initializers, blocks, and the constructor body<br><code>rg 'static \{'</code>, count non-<code>final</code> fields</td>
+<td>Class state in field initializers, blocks, and the constructor body<br><code>grep -rE 'static [{]'</code>, count non-<code>final</code> fields</td>
 <td>one canonical constructor, plus a compact constructor</td>
 <td>—</td>
 <td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
@@ -2034,28 +2034,28 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-15"></a>15</td>
-<td><code>Collections.unmodifiableList(...)</code><br><code>rg 'Collections\.unmodifiable'</code></td>
+<td><code>Collections.unmodifiableList(...)</code><br><code>grep -rE 'Collections\.unmodifiable'</code></td>
 <td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
 <td>—</td>
 <td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a><br>since 9, <code>copyOf</code> at 10</td>
 </tr>
 <tr class="even">
 <td><a id="item-16"></a>16</td>
-<td><code>HashMap</code> or <code>HashSet</code> where any order is observed<br><code>rg 'new Hash'</code></td>
+<td><code>HashMap</code> or <code>HashSet</code> where any order is observed<br><code>grep -rE 'new Hash'</code></td>
 <td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
 <td>—</td>
 <td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c5">C5</a><br>since 1.4</td>
 </tr>
 <tr class="odd">
 <td><a id="item-17"></a>17</td>
-<td><code>finalize()</code><br><code>rg 'finalize\s*\('</code></td>
+<td><code>finalize()</code><br><code>grep -rE 'finalize *\('</code></td>
 <td><code>try</code>-with-resources, or <code>Cleaner</code></td>
 <td>—</td>
 <td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#m3">M3</a><br>since 7, <code>Cleaner</code> at 9</td>
 </tr>
 <tr class="even">
 <td><a id="item-18"></a>18</td>
-<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code><br><code>rg 'new Date\('</code>, <code>rg 'new SimpleDateFormat'</code></td>
+<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code><br><code>grep -rE 'new Date\('</code>, <code>grep -rE 'new SimpleDateFormat'</code></td>
 <td>a <code>java.time</code> type</td>
 <td>—</td>
 <td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a><br>since 8</td>
@@ -2076,21 +2076,21 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td><a id="item-21"></a>21</td>
-<td><code>new Thread(...)</code>, or a pool created per request<br><code>rg 'new Thread\('</code>, <code>rg 'newFixedThreadPool'</code></td>
+<td><code>new Thread(...)</code>, or a pool created per request<br><code>grep -rE 'new Thread\('</code>, <code>grep -rE 'newFixedThreadPool'</code></td>
 <td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
 <td>—</td>
 <td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k6">K6, absent since 21</a><br>since 21</td>
 </tr>
 <tr class="even">
 <td><a id="item-22"></a>22</td>
-<td><code>ThreadLocal</code><br><code>rg 'ThreadLocal&lt;'</code></td>
+<td><code>ThreadLocal</code><br><code>grep -rE 'ThreadLocal&lt;'</code></td>
 <td><code>ScopedValue</code></td>
 <td>where the value must be rebound mid-scope, or read by work already queued</td>
 <td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 25</td>
 </tr>
 <tr class="odd">
 <td><a id="item-23"></a>23</td>
-<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>rg 'synchronized'</code>, <code>rg '\bwait\('</code></td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>grep -rE 'synchronized'</code>, <code>grep -rE 'wait\('</code></td>
 <td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
 <td>—</td>
 <td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 5</td>
