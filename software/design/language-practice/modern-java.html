@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="dcterms.date" content="2026-11-05">
-<meta name="description" content="Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. A table of what to stop writing, what to write instead, and the five places where the subset runs out.">
+<meta name="description" content="Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. Twenty-five numbered substitutions, what to write instead, and the five places where the subset runs out.">
 
 <title>The Modern Java Subset: What to Retire, What to Write Instead – Independent Variation Principle</title>
 <style>
@@ -138,10 +138,10 @@ div.csl-indent {
 
 <link rel="stylesheet" href="../../../styles.css">
 <meta property="og:title" content="The Modern Java Subset: What to Retire, What to Write Instead – Independent Variation Principle">
-<meta property="og:description" content="Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. A table of what to stop writing, what to write instead, and the five places where the subset runs out.">
+<meta property="og:description" content="Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. Twenty-five numbered substitutions, what to write instead, and the five places where the subset runs out.">
 <meta property="og:site_name" content="Independent Variation Principle">
 <meta name="twitter:title" content="The Modern Java Subset: What to Retire, What to Write Instead – Independent Variation Principle">
-<meta name="twitter:description" content="Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. A table of what to stop writing, what to write instead, and the five places where the subset runs out.">
+<meta name="twitter:description" content="Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. Twenty-five numbered substitutions, what to write instead, and the five places where the subset runs out.">
 <meta name="twitter:card" content="summary">
 </head>
 
@@ -1442,11 +1442,10 @@ div.csl-indent {
   <li><a href="#state-and-construction" id="toc-state-and-construction" class="nav-link" data-scroll-target="#state-and-construction"><span class="header-section-number">4</span> State and construction</a></li>
   <li><a href="#concurrency" id="toc-concurrency" class="nav-link" data-scroll-target="#concurrency"><span class="header-section-number">5</span> Concurrency</a></li>
   <li><a href="#one-module-both-shapes" id="toc-one-module-both-shapes" class="nav-link" data-scroll-target="#one-module-both-shapes"><span class="header-section-number">6</span> One module, both shapes</a></li>
-  <li><a href="#migrating-in-order" id="toc-migrating-in-order" class="nav-link" data-scroll-target="#migrating-in-order"><span class="header-section-number">7</span> Migrating in order</a></li>
-  <li><a href="#where-the-subset-runs-out" id="toc-where-the-subset-runs-out" class="nav-link" data-scroll-target="#where-the-subset-runs-out"><span class="header-section-number">8</span> Where the subset runs out</a></li>
+  <li><a href="#where-the-subset-runs-out" id="toc-where-the-subset-runs-out" class="nav-link" data-scroll-target="#where-the-subset-runs-out"><span class="header-section-number">7</span> Where the subset runs out</a></li>
+  <li><a href="#the-checklist" id="toc-the-checklist" class="nav-link" data-scroll-target="#the-checklist"><span class="header-section-number">8</span> The checklist</a></li>
   <li><a href="#making-it-stick" id="toc-making-it-stick" class="nav-link" data-scroll-target="#making-it-stick"><span class="header-section-number">9</span> Making it stick</a></li>
-  <li><a href="#the-checklist" id="toc-the-checklist" class="nav-link" data-scroll-target="#the-checklist"><span class="header-section-number">10</span> The checklist</a></li>
-  <li><a href="#what-it-costs" id="toc-what-it-costs" class="nav-link" data-scroll-target="#what-it-costs"><span class="header-section-number">11</span> What it costs</a></li>
+  <li><a href="#migrating-in-order-and-what-it-costs" id="toc-migrating-in-order-and-what-it-costs" class="nav-link" data-scroll-target="#migrating-in-order-and-what-it-costs"><span class="header-section-number">10</span> Migrating in order, and what it costs</a></li>
   </ul>
 </nav>
     </div>
@@ -1466,7 +1465,7 @@ div.csl-indent {
 
 <div>
   <div class="description">
-    Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. A table of what to stop writing, what to write instead, and the five places where the subset runs out.
+    Records, sealed types, and pattern matching replace much of the boilerplate vocabulary of Java 8. Twenty-five numbered substitutions, what to write instead, and the five places where the subset runs out.
   </div>
 </div>
 
@@ -1491,9 +1490,34 @@ div.csl-indent {
 
 <p>Java now contains two languages. One is the Java most codebases still look like: mutable beans, <code>null</code> returns, checked exceptions that do not compose, <code>synchronized</code> blocks, and class hierarchies used for code reuse. The other arrived between Java 16 and Java 25. It expresses everything the first one expresses, and it leaves less for a reader to reconstruct.</p>
 <p>This page is the substitution table. It names the construct to retire, the construct that supersedes it, and the reason the replacement is better. It also names where the replacement stops, because a guideline that claims full coverage leaves the reader to find the gaps in production.</p>
+<p><strong>If you read nothing else.</strong> Three substitutions carry most of the value:</p>
+<ul>
+<li><strong>Records and sealed types first.</strong> They replace the bean, the <code>Visitor</code>, and every <code>instanceof</code> cast, and they are local and cheap to adopt.</li>
+<li><strong>A result type where a failure crosses a boundary.</strong> Keep exceptions for bugs, for fatal JVM errors, and for frameworks that accept nothing else.</li>
+<li><strong>Virtual threads and scoped values</strong> for blocking work and request context, once the data shapes are settled.</li>
+</ul>
+<p>Some rows name a mechanism code such as <code>T10</code> or <code>C5</code>. Those codes come from a 99-entry inventory that prices what a language forces on the code, and each one links to its entry in the <a href="../../../software/design/languages/scoring-criteria.html">criteria catalogue</a>.</p>
 <p><strong>Target: Java 25.</strong> It is the current long-term-support release, and every claim below was checked against the JDK 25 specification, the JDK 25 API documentation, and the Java Enhancement Proposals as of November 2026. Java 26 and Java 27 add no newly finalized language construct; both spend their releases on the runtime, and the <a href="../../../software/design/languages/application/java27.html">Java 27 page</a> records why. Two constructs useful to this subset are still previews in Java 27 — features the compiler accepts only behind the <code>--enable-preview</code> flag, and which may still change — so they are marked below rather than recommended <span class="citation" data-cites="jep532 jep533"><a href="#ref-jep532" role="doc-biblioref">[1]</a>, <a href="#ref-jep533" role="doc-biblioref">[2]</a></span>.</p>
+<style>
+.doc-table table { table-layout: fixed; width: 100%; }
+.doc-table th, .doc-table td { vertical-align: top; overflow-wrap: break-word; }
+.doc-table.cols-3 th:nth-child(1) { width: 12%; }
+.doc-table.cols-3 th:nth-child(2) { width: 58%; }
+.doc-table.cols-3 th:nth-child(3) { width: 30%; }
+.doc-table.cols-4 th:nth-child(1) { width: 28%; }
+.doc-table.cols-4 th:nth-child(2) { width: 28%; }
+.doc-table.cols-4 th:nth-child(3) { width: 30%; }
+.doc-table.cols-4 th:nth-child(4) { width: 14%; }
+.doc-table.cols-5 th:nth-child(1) { width: 6.25%; }
+.doc-table.cols-5 th:nth-child(2) { width: 28%; }
+.doc-table.cols-5 th:nth-child(3) { width: 28%; }
+.doc-table.cols-5 th:nth-child(4) { width: 22%; }
+.doc-table.cols-5 th:nth-child(5) { width: 15.75%; }
+.doc-table.cols-5 td:nth-child(1) { text-align: right; }
+</style>
 <section id="what-changed-and-when" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="what-changed-and-when"><span class="header-section-number">1</span> What changed, and when</h2>
+<div class="doc-table cols-3">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 23%">
@@ -1545,66 +1569,73 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
+</div>
 <p>Three constructs do most of the work in this list: records, sealed types, and pattern matching. Records supply the data, sealed types close the set of cases, and a pattern <code>switch</code> makes the compiler check that every case is handled. None of the three does it alone.</p>
 </section>
 <section id="data-shape" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="data-shape"><span class="header-section-number">2</span> Data shape</h2>
+<div class="doc-table cols-4">
 <table class="caption-top table">
-<colgroup>
-<col style="width: 28%">
-<col style="width: 53%">
-<col style="width: 17%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Retire</th>
 <th>Write instead</th>
 <th>Why</th>
+<th>Since · mechanism</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>class with fields, getters, setters, <code>equals</code>, <code>hashCode</code>, <code>toString</code></td>
+<td>class with fields, getters, setters, <code>equals</code>, <code>hashCode</code>, <code>toString</code><br><code>grep -rE 'public void set[A-Z]'</code></td>
 <td><code>record</code></td>
 <td>The data and its accessors are declared once. No setter means no write path to trace.</td>
+<td>16<br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a> <a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a> <a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a></td>
 </tr>
 <tr class="even">
-<td><code>class</code> hierarchy plus a Visitor</td>
+<td><code>class</code> hierarchy plus a <code>Visitor</code><br><code>grep -rE 'void accept\('</code></td>
 <td><code>sealed interface</code> plus <code>record</code> cases plus <code>switch</code></td>
 <td>The compiler checks that every case is handled, and a new case breaks every exhaustive switch that does not handle it.</td>
+<td>17, exhaustive at 21<br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4</a>, removed at 17</td>
 </tr>
 <tr class="odd">
-<td><code>instanceof</code>, cast, then accessors</td>
+<td><code>instanceof</code>, cast, then accessors<br>review each <code>instanceof</code> followed by a cast</td>
 <td>record pattern</td>
 <td>The type test and the binding are one construct, so there is no separate cast to keep in step.</td>
+<td>21<br>—</td>
 </tr>
 <tr class="even">
-<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields</td>
+<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>grep -rE 'Object\[\]'</code>, <code>grep -rE 'Map&lt;String, *Object&gt;'</code></td>
 <td>a record</td>
 <td>The shape gets a name and a type.</td>
+<td>16<br>—</td>
 </tr>
 <tr class="odd">
-<td><code>null</code> meaning “absent”</td>
+<td><code>null</code> meaning “absent”<br><code>grep -rE 'return null'</code></td>
 <td><code>Optional</code> on returns, empty collections for collections</td>
 <td>The return type states that absence is possible. <code>Optional</code> is documented as a return type rather than a field type, and never null itself <span class="citation" data-cites="javaApiOptional25"><a href="#ref-javaApiOptional25" role="doc-biblioref">[15]</a></span>.</td>
+<td>8<br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a></td>
 </tr>
 <tr class="even">
-<td><code>Optional.get()</code></td>
+<td><code>Optional.get()</code><br>review each <code>.get()</code> on an <code>Optional</code></td>
 <td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
 <td><code>get()</code> throws when the value is absent, so it restores the unguarded dereference that <code>Optional</code> was introduced to remove.</td>
+<td>8, no-arg <code>orElseThrow</code> at 10<br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a></td>
 </tr>
 <tr class="odd">
-<td><code>double</code> for money</td>
+<td><code>double</code> for money<br>review <code>double</code> fields that name money</td>
 <td><code>long</code> minor units or <code>BigDecimal</code></td>
 <td>Binary floating point cannot represent 0.10.</td>
+<td>1.1<br>—</td>
 </tr>
 <tr class="even">
-<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index</td>
+<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index<br>review <code>charAt</code> and <code>substring</code> on user text</td>
 <td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
 <td><code>char</code> is a UTF-16 code unit; an emoji is two of them.</td>
+<td>1.5<br><a href="../../../software/design/languages/scoring-criteria.html#t15">T15</a></td>
 </tr>
 </tbody>
 </table>
+</div>
 <p>A <code>sealed</code> interface declares in its <code>permits</code> clause which types may implement it, and no other type can <span class="citation" data-cites="jep409"><a href="#ref-jep409" role="doc-biblioref">[6]</a></span>. Since Java 14 a <code>switch</code> can also be an expression that yields a value, and an arrow arm does not fall through <span class="citation" data-cites="jep361"><a href="#ref-jep361" role="doc-biblioref">[16]</a></span>. Since Java 21 a case label can destructure a record: the pattern names the type and binds each component in header order <span class="citation" data-cites="jep440"><a href="#ref-jep440" role="doc-biblioref">[7]</a></span>. Together those three turn a closed set of cases into a type whose dispatch the compiler checks:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// one file, held in an implicit class (Java 25)</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">sealed</span> <span class="kw">interface</span> <span class="bu">Shape</span> <span class="kw">permits</span> Circle<span class="op">,</span> Square<span class="op">,</span> <span class="bu">Rectangle</span> <span class="op">{}</span></span>
@@ -1626,42 +1657,44 @@ div.csl-indent {
 </section>
 <section id="errors" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="errors"><span class="header-section-number">3</span> Errors</h2>
+<div class="doc-table cols-4">
 <table class="caption-top table">
-<colgroup>
-<col style="width: 28%">
-<col style="width: 53%">
-<col style="width: 17%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Retire</th>
 <th>Write instead</th>
 <th>Why</th>
+<th>Since · mechanism</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>throw new RuntimeException</code> for an expected failure</td>
+<td><code>throw new RuntimeException</code> for an expected failure<br><code>grep -rE 'throw new Illegal'</code></td>
 <td>a sealed <code>Result&lt;T, E&gt;</code> returned from the method</td>
 <td>The failure is in the signature, and the interface carries no accessor, so reaching the value takes a pattern match or a deliberate cast.</td>
+<td>21<br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a></td>
 </tr>
 <tr class="even">
-<td><code>try</code>/<code>catch</code> in the middle of a pipeline</td>
+<td><code>try</code>/<code>catch</code> in the middle of a pipeline<br>review each <code>catch</code> that only wraps or rethrows</td>
 <td><code>map</code>, <code>flatMap</code>, <code>fold</code> on the result</td>
 <td>The failure travels through the expression instead of interrupting it.</td>
+<td>21<br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a></td>
 </tr>
 <tr class="odd">
-<td><code>throws</code> on domain methods</td>
+<td><code>throws</code> on domain methods<br><code>grep -rE 'throws .*Exception'</code></td>
 <td>the same result type at the domain boundary</td>
 <td>Checked exceptions do not compose through streams or lambdas; a value does.</td>
+<td>21<br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a> <a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a></td>
 </tr>
 <tr class="even">
-<td><code>null</code> or <code>Optional</code> for a failure</td>
+<td><code>null</code> or <code>Optional</code> for a failure<br>review <code>Optional</code> returns that describe a failure</td>
 <td>the result type</td>
 <td>Absence and failure are different facts and deserve different types.</td>
+<td>17<br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a></td>
 </tr>
 </tbody>
 </table>
+</div>
 <p><code>map</code> transforms a success and passes an error through. <code>flatMap</code> chains a step that can itself fail. <code>fold</code> takes one handler per branch and returns a single value.</p>
 <p>The shape is small, and the same two constructs carry it: records for the cases, a sealed interface for the closed set <span class="citation" data-cites="jep395 jep409"><a href="#ref-jep395" role="doc-biblioref">[4]</a>, <a href="#ref-jep409" role="doc-biblioref">[6]</a></span>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">sealed</span> <span class="kw">interface</span> <span class="bu">Result</span><span class="op">&lt;</span>T<span class="op">,</span> E<span class="op">&gt;</span> <span class="kw">permits</span> Ok<span class="op">,</span> Err <span class="op">{}</span></span>
@@ -1689,102 +1722,110 @@ div.csl-indent {
 <section id="state-and-construction" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="state-and-construction"><span class="header-section-number">4</span> State and construction</h2>
 <p>A record has one <strong>canonical constructor</strong>, whose parameters are the components in the record header, and an optional <strong>compact constructor</strong>, which is a body-only form written without a parameter list that validates the components before the fields are set.</p>
+<div class="doc-table cols-4">
 <table class="caption-top table">
-<colgroup>
-<col style="width: 28%">
-<col style="width: 53%">
-<col style="width: 17%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Retire</th>
 <th>Write instead</th>
 <th>Why</th>
+<th>Since · mechanism</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>class state set in field initializers, instance initializer blocks, static blocks, and the constructor body</td>
+<td>class state set in field initializers, instance initializer blocks, static blocks, and the constructor body<br><code>grep -rE 'static [{]'</code>, count non-<code>final</code> fields</td>
 <td>one canonical constructor, plus a compact constructor for validation</td>
 <td>A record establishes its instance state in one place; static state still initializes at first touch (<span class="citation" data-cites="javaJLS25"><a href="#ref-javaJLS25" role="doc-biblioref">[17]</a></span>, §12.4.2).</td>
+<td>16<br><a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a></td>
 </tr>
 <tr class="even">
-<td>mutable static field, singleton, global registry</td>
+<td>mutable static field, singleton, global registry<br>review every <code>static</code> field that is not <code>final</code></td>
 <td>a parameter, a constructor argument, or a scoped value</td>
 <td>Global state is a hidden parameter on every call.</td>
+<td>—<br>—</td>
 </tr>
 <tr class="odd">
-<td><code>Collections.unmodifiableList(...)</code></td>
-<td><code>List.copyOf(...)</code>, <code>List.of(...)</code> <span class="citation" data-cites="jep269"><a href="#ref-jep269" role="doc-biblioref">[3]</a></span></td>
+<td><code>Collections.unmodifiableList(...)</code><br><code>grep -rE 'Collections\.unmodifiable'</code></td>
+<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
 <td>The copy is a snapshot: nothing holding the original collection can change it.</td>
+<td>9, <code>copyOf</code> at 10<br><a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a></td>
 </tr>
 <tr class="even">
-<td><code>HashMap</code> or <code>HashSet</code> where output order matters</td>
+<td><code>HashMap</code> or <code>HashSet</code> where output order matters<br><code>grep -rE 'new Hash'</code></td>
 <td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
 <td><code>HashMap</code> guarantees no iteration order, and <code>Map.of</code> may iterate differently between runs (<span class="citation" data-cites="javaApiMap25"><a href="#ref-javaApiMap25" role="doc-biblioref">[19]</a></span>).</td>
+<td>1.4<br><a href="../../../software/design/languages/scoring-criteria.html#c5">C5</a></td>
 </tr>
 <tr class="odd">
-<td><code>finalize()</code></td>
-<td><code>try</code>-with-resources, or <code>Cleaner</code> <span class="citation" data-cites="javaApiCleaner25"><a href="#ref-javaApiCleaner25" role="doc-biblioref">[20]</a></span></td>
+<td><code>finalize()</code><br><code>grep -rE 'finalize *\('</code></td>
+<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
 <td>A finalizer runs at an unknown time, on an unknown thread. <code>Cleaner</code> registers a cleanup action to run after the object becomes unreachable.</td>
+<td>7, <code>Cleaner</code> at 9<br><a href="../../../software/design/languages/scoring-criteria.html#m3">M3</a></td>
 </tr>
 <tr class="even">
-<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code></td>
+<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code><br><code>grep -rE 'new Date\('</code>, <code>grep -rE 'new SimpleDateFormat'</code></td>
 <td><code>java.time</code> types</td>
 <td>The old classes are mutable, and <code>SimpleDateFormat</code> is not thread-safe.</td>
+<td>8<br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a></td>
 </tr>
 <tr class="odd">
-<td>bare <code>int</code> arithmetic where overflow matters</td>
+<td>bare <code>int</code> arithmetic where overflow matters<br>review <code>int</code> arithmetic on money, size, counts</td>
 <td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
 <td>Integer overflow is silent and specified (<span class="citation" data-cites="javaJLS25"><a href="#ref-javaJLS25" role="doc-biblioref">[17]</a></span>, §15.18.2).</td>
+<td>8<br><a href="../../../software/design/languages/scoring-criteria.html#q4">Q4</a></td>
 </tr>
 <tr class="even">
-<td>raw type, or <code>Object</code> plus a cast</td>
+<td>raw type, or <code>Object</code> plus a cast<br><code>javac -Xlint:rawtypes -Xlint:unchecked</code></td>
 <td>a generic type parameter</td>
 <td>A raw type removes the check the compiler would otherwise give you.</td>
+<td>5<br><a href="../../../software/design/languages/scoring-criteria.html#t7">T7</a></td>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="concurrency" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">5</span> Concurrency</h2>
 <p>A <em>virtual thread</em> is a thread the JVM schedules. It is cheap enough that blocking is acceptable <span class="citation" data-cites="jep444"><a href="#ref-jep444" role="doc-biblioref">[9]</a></span>. A virtual thread is <em>pinned</em> when it is stuck to its operating-system thread, and a pinned thread loses that advantage.</p>
+<div class="doc-table cols-4">
 <table class="caption-top table">
-<colgroup>
-<col style="width: 28%">
-<col style="width: 53%">
-<col style="width: 17%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Retire</th>
 <th>Write instead</th>
 <th>Why</th>
+<th>Since · mechanism</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>new Thread(...)</code>, fixed thread pools per request</td>
+<td><code>new Thread(...)</code>, fixed thread pools per request<br><code>grep -rE 'new Thread\('</code>, <code>grep -rE 'newFixedThreadPool'</code></td>
 <td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
 <td>A blocking task costs a fraction of an operating-system thread, so the blocking style scales.</td>
+<td>21<br><a href="../../../software/design/languages/scoring-criteria.html#k6">K6</a>, removed at 21</td>
 </tr>
 <tr class="even">
-<td><code>ThreadLocal</code></td>
+<td><code>ThreadLocal</code><br><code>grep -rE 'ThreadLocal&lt;'</code></td>
 <td><code>ScopedValue</code> (finalized in 25) <span class="citation" data-cites="jep506"><a href="#ref-jep506" role="doc-biblioref">[12]</a></span></td>
-<td>The value is bound to a scope and released at its end, and propagation to child threads is explicit. A scoped value cannot change while its scope runs, and work already queued in a pool does not see it; keep <code>ThreadLocal</code> there <span class="citation" data-cites="javaApiScopedValue25"><a href="#ref-javaApiScopedValue25" role="doc-biblioref">[21]</a></span>.</td>
+<td>The value is bound to a scope and released at its end, and propagation to child threads is explicit. A scoped value cannot change while its scope runs, and work already queued in a pool does not see it; keep <code>ThreadLocal</code> there <span class="citation" data-cites="javaApiScopedValue25"><a href="#ref-javaApiScopedValue25" role="doc-biblioref">[20]</a></span>.</td>
+<td>25<br>—</td>
 </tr>
 <tr class="odd">
-<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code></td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>grep -rE 'synchronized'</code>, <code>grep -rE 'wait\('</code></td>
 <td><code>ReentrantLock</code> plus <code>Condition</code>; better, immutable state and a queue between threads</td>
-<td>Since JDK 24 a <code>synchronized</code> block no longer pins a virtual thread. It still cannot tell you that you forgot the lock. A native frame on the stack still pins the virtual thread <span class="citation" data-cites="jep491"><a href="#ref-jep491" role="doc-biblioref">[22]</a></span>.</td>
+<td>Since JDK 24 a <code>synchronized</code> block no longer pins a virtual thread. It still cannot tell you that you forgot the lock. A native frame on the stack still pins the virtual thread <span class="citation" data-cites="jep491"><a href="#ref-jep491" role="doc-biblioref">[21]</a></span>.</td>
+<td>5<br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a></td>
 </tr>
 <tr class="even">
-<td><code>Future.get()</code> for a fan-out</td>
+<td><code>Future.get()</code> for a fan-out<br>review each <code>.get()</code> on a <code>Future</code></td>
 <td>a block-scoped <code>ExecutorService</code> in <code>try</code>-with-resources</td>
-<td><code>ExecutorService</code> is <code>AutoCloseable</code> since Java 19, so <code>close()</code> waits for every task and the block joins the work it launched <span class="citation" data-cites="javaApiExecutorService25"><a href="#ref-javaApiExecutorService25" role="doc-biblioref">[23]</a></span>.</td>
+<td><code>ExecutorService</code> is <code>AutoCloseable</code> since Java 19, so <code>close()</code> waits for every task and the block joins the work it launched <span class="citation" data-cites="javaApiExecutorService25"><a href="#ref-javaApiExecutorService25" role="doc-biblioref">[22]</a></span>.</td>
+<td>19<br><a href="../../../software/design/languages/scoring-criteria.html#k4">K4</a>, removed at 21</td>
 </tr>
 </tbody>
 </table>
+</div>
 <p>Ship the block-scoped <code>ExecutorService</code> for fan-out. <code>StructuredTaskScope</code> is a preview API that groups subtasks so that none outlives its block; it is the seventh preview in Java 27 <span class="citation" data-cites="jep533"><a href="#ref-jep533" role="doc-biblioref">[2]</a></span>, and a preview needs <code>--enable-preview</code>, so the class files do not load on a stock runtime. The <code>ExecutorService</code> block is the supported version of the same idea, and it is blunter: it waits for every task and reports no single subtask’s failure.</p>
 </section>
 <section id="one-module-both-shapes" class="level2" data-number="6">
@@ -1827,34 +1868,219 @@ div.csl-indent {
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>One return type carries every outcome, the compiler checks that no case is missing, adding <code>Cancelled</code> to <code>permits</code> stops every exhaustive <code>switch</code> until it is handled, and the ordered map makes the seat listing stable between runs. What the module gives up is visible in the same few lines: <code>Seat</code> no longer mutates, so the caller cannot mark a seat taken and must route through the service.</p>
 </section>
-<section id="migrating-in-order" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="migrating-in-order"><span class="header-section-number">7</span> Migrating in order</h2>
-<p>The items do not have the same cost to adopt, and the cheap ones unlock the expensive ones. This order respects that.</p>
-<ol type="1">
-<li><strong>Records first.</strong> They are local, mechanical, and they turn a bean into a value. They also make the other steps smaller, because every later substitution operates on fewer mutable fields.</li>
-<li><strong>Sealed types and patterns next.</strong> One closed hierarchy per domain concept, each case a record. This is where <code>switch</code> becomes exhaustive, and where the <code>Visitor</code> disappears.</li>
-<li><strong>Then errors.</strong> A result type touches every signature in the chain, so it is the first substitution that crosses module boundaries. Do it after records, when the cases are already records and the failure set is already a closed hierarchy.</li>
-<li><strong>Then concurrency.</strong> Virtual threads and scoped values change how work is scheduled, not how data is shaped. Doing them last keeps one moving part at a time.</li>
-<li><strong>Framework boundaries last, or never.</strong> Adapters at the JPA and JSON edge are the most boring code in the system, and they are the least urgent.</li>
-</ol>
-<p><strong>A cost tag matters more than an order.</strong> Three items are local: <code>Optional.get()</code>, <code>Date</code> to <code>java.time</code>, and a raw type to a generic. Most are module-wide. Two are codebase-wide, because they change every signature in a chain: the result type, and <code>ScopedValue</code> for context that crosses layers. Budget accordingly.</p>
-</section>
-<section id="where-the-subset-runs-out" class="level2" data-number="8">
-<h2 data-number="8" class="anchored" data-anchor-id="where-the-subset-runs-out"><span class="header-section-number">8</span> Where the subset runs out</h2>
+<section id="where-the-subset-runs-out" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="where-the-subset-runs-out"><span class="header-section-number">7</span> Where the subset runs out</h2>
 <p>Five needs fall outside the subset. Each one needs a named exception to the rule, not a silent one.</p>
 <ol type="1">
 <li><strong>Hot loops and large buffers.</strong> The data-shape table turns every tuple into a record. In a per-element loop that is an allocation and an indirection per element, so primitive arrays and local mutation stay.</li>
 <li><strong>Designed extension points.</strong> <code>sealed</code> is closed by definition, so plugins and service providers keep open interfaces.</li>
-<li><strong>Framework-mandated beans.</strong> A JPA entity — a class that the persistence provider maps to a table <span class="citation" data-cites="jakartaPersistence31"><a href="#ref-jakartaPersistence31" role="doc-biblioref">[24]</a></span> — needs a non-final class that the provider can instantiate empty and populate afterwards. A record is final and sets all its state in the canonical constructor. Put an adapter at the edge and keep the domain in records. Jackson, the JSON library, reads records natively from 2.12 <span class="citation" data-cites="jackson212"><a href="#ref-jackson212" role="doc-biblioref">[25]</a></span>, without the no-argument constructor and setters that an ordinary class needs.</li>
+<li><strong>Framework-mandated beans.</strong> A JPA entity — a class that the persistence provider maps to a table <span class="citation" data-cites="jakartaPersistence31"><a href="#ref-jakartaPersistence31" role="doc-biblioref">[23]</a></span> — needs a non-final class that the provider can instantiate empty and populate afterwards. A record is final and sets all its state in the canonical constructor. Put an adapter at the edge and keep the domain in records. Jackson, the JSON library, reads records natively from 2.12 <span class="citation" data-cites="jackson212"><a href="#ref-jackson212" role="doc-biblioref">[24]</a></span>, without the no-argument constructor and setters that an ordinary class needs.</li>
 <li><strong>Foreign and legacy APIs.</strong> JDBC and servlet containers return <code>null</code> and throw checked exceptions the domain cannot compose — <code>SQLException</code>, <code>ServletException</code>. Convert at the boundary; do not pretend the boundary is clean.</li>
 <li><strong>Bugs and fatal errors.</strong> Throw <code>NullPointerException</code>, <code>OutOfMemoryError</code>, and failed assertions: they are bugs, not domain failures.</li>
 </ol>
 </section>
+<section id="the-checklist" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="the-checklist"><span class="header-section-number">8</span> The checklist</h2>
+<p>The 25 substitutions, numbered so a team can cite them. Each row links to the section that explains it; that section carries the release, the mechanism, and a detector for an existing codebase.</p>
+<div class="doc-table cols-5 table-filter">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">#</th>
+<th>Do not write</th>
+<th>Write instead</th>
+<th>Where the old form stays</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-1"></a>1</td>
+<td>field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code></td>
+<td>a <code>record</code></td>
+<td>JPA entities and framework-bound types</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-2"></a>2</td>
+<td><code>instanceof</code>, then a cast, then accessors</td>
+<td>a record pattern</td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-3"></a>3</td>
+<td>Visitor over a closed hierarchy</td>
+<td><code>sealed interface</code> plus a <code>switch</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-4"></a>4</td>
+<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields</td>
+<td>a record</td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-5"></a>5</td>
+<td><code>null</code> return</td>
+<td><code>Optional</code>, a result type, or an empty collection</td>
+<td>a library that returns <code>null</code></td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-6"></a>6</td>
+<td><code>Optional.get()</code></td>
+<td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-7"></a>7</td>
+<td><code>double</code> for money</td>
+<td><code>long</code> minor units, or <code>BigDecimal</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-8"></a>8</td>
+<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index</td>
+<td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
+<td>—</td>
+<td><a href="#data-shape">Data shape</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-9"></a>9</td>
+<td><code>throw</code> for an expected failure</td>
+<td>the result type</td>
+<td>bugs, fatal JVM errors, framework callbacks</td>
+<td><a href="#errors">Errors</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-10"></a>10</td>
+<td><code>try</code>/<code>catch</code> in the middle of a pipeline</td>
+<td><code>map</code>, <code>flatMap</code>, <code>fold</code></td>
+<td>the boundary adapter</td>
+<td><a href="#errors">Errors</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-11"></a>11</td>
+<td><code>throws</code> on a domain method</td>
+<td>the result type</td>
+<td>the edge that accepts only exceptions</td>
+<td><a href="#errors">Errors</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-12"></a>12</td>
+<td><code>Optional</code> or <code>null</code> used to report a failure</td>
+<td>the result type</td>
+<td>—</td>
+<td><a href="#errors">Errors</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-13"></a>13</td>
+<td>class state set in four places</td>
+<td>one canonical constructor, plus a compact constructor</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-14"></a>14</td>
+<td>mutable static field, singleton, global registry</td>
+<td>a parameter, a constructor argument, or a scoped value</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-15"></a>15</td>
+<td><code>Collections.unmodifiableList(...)</code></td>
+<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-16"></a>16</td>
+<td><code>HashMap</code> or <code>HashSet</code> where any order is observed</td>
+<td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-17"></a>17</td>
+<td><code>finalize()</code></td>
+<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-18"></a>18</td>
+<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code></td>
+<td>a <code>java.time</code> type</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-19"></a>19</td>
+<td>bare <code>int</code> arithmetic where overflow matters</td>
+<td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-20"></a>20</td>
+<td>raw type, or <code>Object</code> plus a cast</td>
+<td>a generic type parameter</td>
+<td>—</td>
+<td><a href="#state-and-construction">State</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-21"></a>21</td>
+<td><code>new Thread(...)</code>, or a pool created per request</td>
+<td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-22"></a>22</td>
+<td><code>ThreadLocal</code></td>
+<td><code>ScopedValue</code></td>
+<td>where the value must be rebound mid-scope, or read by work already queued in a pool</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-23"></a>23</td>
+<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code></td>
+<td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><a id="item-24"></a>24</td>
+<td><code>Future.get()</code> for a fan-out</td>
+<td>a block-scoped <code>ExecutorService</code></td>
+<td>—</td>
+<td><a href="#concurrency">Concurrency</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><a id="item-25"></a>25</td>
+<td>a <code>sealed</code> type at an extension point</td>
+<td>an open interface</td>
+<td>—</td>
+<td><a href="#where-the-subset-runs-out">Limits</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A dash in the fourth column means no exception: the old form has no legitimate use there. The mechanism column of the four tables falls into three classes. 16 rows name a mechanism Java 25 still pays, so the construct keeps that cost out of your code but not out of the language. 3 name a mechanism the platform removed at 17 or 21 — <code>T4</code>, <code>K4</code>, <code>K6</code> — where the row is how to use a cost already gone. 5 name nothing the inventory prices: <code>double</code> for money, an <code>instanceof</code> cast, an unnamed tuple, a <code>ThreadLocal</code>, and a mutable static are correctness or attention problems.</p>
+<p>Two constructs are absent on purpose. Primitive types in patterns and <code>StructuredTaskScope</code> are still previews in Java 27, so production code cannot use them yet. Judge them when they are final.</p>
+<p>The numbers are stable. A row added later takes the next number, and the anchor <code>#item-N</code> keeps working for every row already cited.</p>
+</section>
 <section id="making-it-stick" class="level2" data-number="9">
 <h2 data-number="9" class="anchored" data-anchor-id="making-it-stick"><span class="header-section-number">9</span> Making it stick</h2>
 <p>Prose does not enforce itself. The workable enforcement is a compiler plugin that fails the build.</p>
-<p>Error Prone runs as a <code>javac</code> plugin <span class="citation" data-cites="errorProneInstall"><a href="#ref-errorProneInstall" role="doc-biblioref">[26]</a></span>, so the flags are the same whatever builds the project. It needs <code>-XDcompilePolicy=simple</code>, the Error Prone and NullAway jars on the processor path, and one <code>-Xplugin</code> argument that carries both the plugin name and its settings. A check is set with <code>-Xep:&lt;Check&gt;:&lt;Severity&gt;</code> and configured with <code>-XepOpt:&lt;Key&gt;=&lt;Value&gt;</code>. On JDK 16 and later it also needs the <code>--add-exports</code> flags that its installation guide lists, because it reads compiler internals.</p>
-<p>The <code>javac</code> parameters <span class="citation" data-cites="javacMan25"><a href="#ref-javacMan25" role="doc-biblioref">[27]</a></span>:</p>
+<p>Error Prone runs as a <code>javac</code> plugin <span class="citation" data-cites="errorProneInstall"><a href="#ref-errorProneInstall" role="doc-biblioref">[25]</a></span>, so the flags are the same whatever builds the project. It needs <code>-XDcompilePolicy=simple</code>, the Error Prone and NullAway jars on the processor path, and one <code>-Xplugin</code> argument that carries both the plugin name and its settings. A check is set with <code>-Xep:&lt;Check&gt;:&lt;Severity&gt;</code> and configured with <code>-XepOpt:&lt;Key&gt;=&lt;Value&gt;</code>. On JDK 16 and later it also needs the <code>--add-exports</code> flags that its installation guide lists, because it reads compiler internals.</p>
+<p>The <code>javac</code> parameters <span class="citation" data-cites="javacMan25"><a href="#ref-javacMan25" role="doc-biblioref">[26]</a></span>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">-XDcompilePolicy=simple</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">-processorpath</span> error_prone_core.jar:nullaway.jar:your-checks.jar</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">'-Xplugin:ErrorProne -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=com.example -Xep:BanThrow:ERROR -Xep:BanUnorderedCollection:ERROR -Xep:BanMutableStatic:ERROR'</span></span>
@@ -1906,219 +2132,21 @@ div.csl-indent {
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  options<span class="op">.</span>compilerArgs <span class="op">+=</span> <span class="op">[</span><span class="st">'-Werror'</span><span class="op">]</span></span>
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Three tools, one set of checks. The build tool supplies only the classpath and the argument quoting.</p>
-<p>NullAway is a published check that reports a possible <code>null</code> dereference <span class="citation" data-cites="nullawayDocs"><a href="#ref-nullawayDocs" role="doc-biblioref">[28]</a></span>, and it reads JSpecify annotations <span class="citation" data-cites="jspecify"><a href="#ref-jspecify" role="doc-biblioref">[29]</a></span>. The three <code>Ban*</code> checks are yours to write: each is a small <code>BugChecker</code>, a class that inspects the compiler’s syntax tree and reports a match.</p>
+<p>NullAway is a published check that reports a possible <code>null</code> dereference <span class="citation" data-cites="nullawayDocs"><a href="#ref-nullawayDocs" role="doc-biblioref">[27]</a></span>, and it reads JSpecify annotations <span class="citation" data-cites="jspecify"><a href="#ref-jspecify" role="doc-biblioref">[28]</a></span>. The three <code>Ban*</code> checks are yours to write: each is a small <code>BugChecker</code>, a class that inspects the compiler’s syntax tree and reports a match.</p>
 <p>This catches null returns, mutable statics, unordered collections, and a <code>throw</code> outside a whitelist. It does not catch aliasing (two references to the same mutable object), and it cannot see Kotlin, generated members, or reflective writes. NullAway also treats unannotated third-party code as unknown, so library nulls pass through. The plugin is a check that only gets stricter over time; it is not a proof.</p>
 </section>
-<section id="the-checklist" class="level2" data-number="10">
-<h2 data-number="10" class="anchored" data-anchor-id="the-checklist"><span class="header-section-number">10</span> The checklist</h2>
-<p>Twenty-five substitutions, numbered so a team can cite them. The last column gives the section above that explains the item, the mechanism it keeps out of your code, and the release that provides it. The line under each construct is a detector for an existing codebase: run <code>grep -rE '&lt;pattern&gt;' .</code> from the project root. Where a pattern cannot find the shape, the line says what to review instead.</p>
-<style>
-.cl-table table { table-layout: fixed; width: 100%; }
-.cl-table th:nth-child(1) { width: 6.25%; }
-.cl-table th:nth-child(2) { width: 25%; }
-.cl-table th:nth-child(3) { width: 25%; }
-.cl-table th:nth-child(4) { width: 25%; }
-.cl-table th:nth-child(5) { width: 18.75%; }
-.cl-table td { vertical-align: top; overflow-wrap: break-word; }
-.cl-table td:nth-child(1) { text-align: right; }
-</style>
-<div class="cl-table table-filter">
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>#</th>
-<th>Do not write</th>
-<th>Write instead</th>
-<th>Where the old form stays</th>
-<th>Detail</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><a id="item-1"></a>1</td>
-<td>Field, getter, setter, <code>equals</code>, <code>hashCode</code>, <code>toString</code><br><code>grep -rE 'public void set[A-Z]'</code></td>
-<td>a <code>record</code>, with an adapter where a framework needs a bean</td>
-<td>JPA entities and framework-bound types</td>
-<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a> <a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a> <a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
-</tr>
-<tr class="even">
-<td><a id="item-2"></a>2</td>
-<td><code>instanceof</code>, then a cast, then accessors<br>review each <code>instanceof</code> followed by a cast</td>
-<td>a record pattern</td>
-<td>—</td>
-<td><a href="#data-shape">Data shape</a><br>—<br>since 21</td>
-</tr>
-<tr class="odd">
-<td><a id="item-3"></a>3</td>
-<td>Visitor over a closed hierarchy<br><code>grep -rE 'void accept\('</code></td>
-<td>a <code>sealed interface</code> plus a <code>switch</code></td>
-<td>—</td>
-<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, absent since 17</a><br>since 17, exhaustive at 21</td>
-</tr>
-<tr class="even">
-<td><a id="item-4"></a>4</td>
-<td><code>Object[]</code>, <code>Map&lt;String, Object&gt;</code>, parallel fields<br><code>grep -rE 'Object\[\]'</code>, <code>grep -rE 'Map&lt;String, *Object&gt;'</code></td>
-<td>a record</td>
-<td>—</td>
-<td><a href="#data-shape">Data shape</a><br>—<br>since 16</td>
-</tr>
-<tr class="odd">
-<td><a id="item-5"></a>5</td>
-<td><code>null</code> returned for absence<br><code>grep -rE 'return null'</code></td>
-<td><code>Optional</code>, a result type, or an empty collection</td>
-<td>a library that returns <code>null</code></td>
-<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8</td>
-</tr>
-<tr class="even">
-<td><a id="item-6"></a>6</td>
-<td><code>Optional.get()</code><br>review each <code>.get()</code> on an <code>Optional</code></td>
-<td><code>orElseThrow()</code>, <code>orElse</code>, <code>map</code>, <code>flatMap</code></td>
-<td>—</td>
-<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t10">T10</a><br>since 8, no-arg <code>orElseThrow</code> at 10</td>
-</tr>
-<tr class="odd">
-<td><a id="item-7"></a>7</td>
-<td><code>double</code> for money<br>review <code>double</code> fields that name money</td>
-<td><code>long</code> minor units, or <code>BigDecimal</code></td>
-<td>—</td>
-<td><a href="#data-shape">Data shape</a><br>—<br>since 1.1</td>
-</tr>
-<tr class="even">
-<td><a id="item-8"></a>8</td>
-<td><code>char</code>, <code>String.length()</code>, <code>substring</code> by index<br>review <code>charAt</code> and <code>substring</code> on user text</td>
-<td><code>codePointAt</code>, <code>codePoints()</code>, <code>offsetByCodePoints</code></td>
-<td>—</td>
-<td><a href="#data-shape">Data shape</a><br><a href="../../../software/design/languages/scoring-criteria.html#t15">T15</a><br>since 1.5</td>
-</tr>
-<tr class="odd">
-<td><a id="item-9"></a>9</td>
-<td><code>throw</code> for an expected failure<br><code>grep -rE 'throw new Illegal'</code></td>
-<td>the result type</td>
-<td>bugs, fatal JVM errors, framework callbacks</td>
-<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a><br>since 21</td>
-</tr>
-<tr class="even">
-<td><a id="item-10"></a>10</td>
-<td><code>try</code>/<code>catch</code> in the middle of a pipeline<br>review each <code>catch</code> that only wraps or rethrows</td>
-<td><code>map</code>, <code>flatMap</code>, <code>fold</code></td>
-<td>the boundary adapter</td>
-<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
-</tr>
-<tr class="odd">
-<td><a id="item-11"></a>11</td>
-<td><code>throws</code> on a domain method<br><code>grep -rE 'throws .*Exception'</code></td>
-<td>the result type</td>
-<td>the edge that accepts only exceptions</td>
-<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er2">Er2</a> <a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 21</td>
-</tr>
-<tr class="even">
-<td><a id="item-12"></a>12</td>
-<td><code>Optional</code> or <code>null</code> used to report a failure<br>review <code>Optional</code> returns that describe a failure</td>
-<td>the result type</td>
-<td>—</td>
-<td><a href="#errors">Errors</a><br><a href="../../../software/design/languages/scoring-criteria.html#er4">Er4</a><br>since 17</td>
-</tr>
-<tr class="odd">
-<td><a id="item-13"></a>13</td>
-<td>Class state in field initializers, blocks, and the constructor body<br><code>grep -rE 'static [{]'</code>, count non-<code>final</code> fields</td>
-<td>one canonical constructor, plus a compact constructor</td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c8">C8</a><br>since 16</td>
-</tr>
-<tr class="even">
-<td><a id="item-14"></a>14</td>
-<td>Mutable static field, singleton, global registry<br>review every <code>static</code> field that is not <code>final</code></td>
-<td>a parameter, a constructor argument, or a scoped value</td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br>—<br>since —</td>
-</tr>
-<tr class="odd">
-<td><a id="item-15"></a>15</td>
-<td><code>Collections.unmodifiableList(...)</code><br><code>grep -rE 'Collections\.unmodifiable'</code></td>
-<td><code>List.copyOf(...)</code>, <code>List.of(...)</code></td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c6">C6</a><br>since 9, <code>copyOf</code> at 10</td>
-</tr>
-<tr class="even">
-<td><a id="item-16"></a>16</td>
-<td><code>HashMap</code> or <code>HashSet</code> where any order is observed<br><code>grep -rE 'new Hash'</code></td>
-<td><code>LinkedHashMap</code>, <code>EnumMap</code>, <code>TreeMap</code>, <code>List</code></td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c5">C5</a><br>since 1.4</td>
-</tr>
-<tr class="odd">
-<td><a id="item-17"></a>17</td>
-<td><code>finalize()</code><br><code>grep -rE 'finalize *\('</code></td>
-<td><code>try</code>-with-resources, or <code>Cleaner</code></td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#m3">M3</a><br>since 7, <code>Cleaner</code> at 9</td>
-</tr>
-<tr class="even">
-<td><a id="item-18"></a>18</td>
-<td><code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code><br><code>grep -rE 'new Date\('</code>, <code>grep -rE 'new SimpleDateFormat'</code></td>
-<td>a <code>java.time</code> type</td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#c2">C2</a><br>since 8</td>
-</tr>
-<tr class="odd">
-<td><a id="item-19"></a>19</td>
-<td>Bare <code>int</code> arithmetic where overflow matters<br>review <code>int</code> arithmetic on money, size, counts</td>
-<td><code>Math.addExact</code>, <code>Math.multiplyExact</code>, <code>long</code></td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#q4">Q4</a><br>since 8</td>
-</tr>
-<tr class="even">
-<td><a id="item-20"></a>20</td>
-<td>Raw type, or <code>Object</code> plus a cast<br><code>javac -Xlint:rawtypes -Xlint:unchecked</code></td>
-<td>a generic type parameter</td>
-<td>—</td>
-<td><a href="#state-and-construction">State</a><br><a href="../../../software/design/languages/scoring-criteria.html#t7">T7</a><br>since 5</td>
-</tr>
-<tr class="odd">
-<td><a id="item-21"></a>21</td>
-<td><code>new Thread(...)</code>, or a pool created per request<br><code>grep -rE 'new Thread\('</code>, <code>grep -rE 'newFixedThreadPool'</code></td>
-<td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td>
-<td>—</td>
-<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k6">K6, absent since 21</a><br>since 21</td>
-</tr>
-<tr class="even">
-<td><a id="item-22"></a>22</td>
-<td><code>ThreadLocal</code><br><code>grep -rE 'ThreadLocal&lt;'</code></td>
-<td><code>ScopedValue</code></td>
-<td>where the value must be rebound mid-scope, or read by work already queued</td>
-<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 25</td>
-</tr>
-<tr class="odd">
-<td><a id="item-23"></a>23</td>
-<td><code>synchronized</code> plus <code>wait</code>/<code>notify</code><br><code>grep -rE 'synchronized'</code>, <code>grep -rE 'wait\('</code></td>
-<td><code>ReentrantLock</code> plus <code>Condition</code>, or immutable state</td>
-<td>—</td>
-<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k3">K3</a><br>since 5</td>
-</tr>
-<tr class="even">
-<td><a id="item-24"></a>24</td>
-<td><code>Future.get()</code> for a fan-out<br>review each <code>.get()</code> on a <code>Future</code></td>
-<td>a block-scoped <code>ExecutorService</code></td>
-<td>—</td>
-<td><a href="#concurrency">Concurrency</a><br><a href="../../../software/design/languages/scoring-criteria.html#k4">K4, absent since 21</a><br>since 19</td>
-</tr>
-<tr class="odd">
-<td><a id="item-25"></a>25</td>
-<td>A <code>sealed</code> type at an extension point<br>review each <code>permits</code> clause</td>
-<td>an open interface</td>
-<td>—</td>
-<td><a href="#where-the-subset-runs-out">Limits</a><br><a href="../../../software/design/languages/scoring-criteria.html#t4">T4, the boundary of the fix</a><br>since 17</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>A dash in the fourth column means no exception: the old form has no legitimate use here. The mechanism links point at the <a href="../../../software/design/languages/scoring-criteria.html">criteria catalogue</a> and fall into three classes. Sixteen name a mechanism Java 25 still pays, so the construct keeps that cost out of your code but not out of the language. Four name a mechanism the platform removed at 17 or 21 — <code>T4</code>, <code>K4</code>, <code>K6</code> — where the row is how to use a cost already gone. Five name nothing the inventory prices: <code>double</code> for money, an <code>instanceof</code> cast, an unnamed tuple, a <code>ThreadLocal</code>, and a mutable static are correctness or attention problems, and the <a href="../../../software/design/languages/scoring-criteria.html">criteria page</a> says an agreement the inventory does not name is not priced.</p>
-<p>Two constructs are absent on purpose. Primitive types in patterns and <code>StructuredTaskScope</code> are still previews in Java 27, so production code cannot use them yet. Judge them when they are final.</p>
-<p>The numbers are stable. A row added later takes the next number, and the anchor <code>#item-N</code> keeps working for every row already cited.</p>
-</section>
-<section id="what-it-costs" class="level2" data-number="11">
-<h2 data-number="11" class="anchored" data-anchor-id="what-it-costs"><span class="header-section-number">11</span> What it costs</h2>
-<p>The subset carries four costs the tables above do not show:</p>
+<section id="migrating-in-order-and-what-it-costs" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="migrating-in-order-and-what-it-costs"><span class="header-section-number">10</span> Migrating in order, and what it costs</h2>
+<p>The substitutions are not equally cheap, and the cheap ones unlock the expensive ones.</p>
+<ol type="1">
+<li><strong>Records first.</strong> They are local, mechanical, and they turn a bean into a value. They also make the other steps smaller, because every later substitution operates on fewer mutable fields.</li>
+<li><strong>Sealed types and patterns next.</strong> One closed hierarchy per domain concept, each case a record. This is where <code>switch</code> becomes exhaustive, and where the <code>Visitor</code> disappears.</li>
+<li><strong>Then errors.</strong> A result type touches every signature in the chain, so it is the first substitution that crosses module boundaries. Do it after records, when the cases are already records and the failure set is already a closed hierarchy.</li>
+<li><strong>Then concurrency.</strong> Virtual threads and scoped values change how work is scheduled, not how data is shaped. Doing them last keeps one moving part at a time.</li>
+<li><strong>Framework boundaries last, or never.</strong> Adapters at the JPA and JSON edge are the most boring code in the system, and they are the least urgent.</li>
+</ol>
+<p>Three items are local: <code>Optional.get()</code>, <code>Date</code> to <code>java.time</code>, and a raw type to a generic. Most are module-wide. Two are codebase-wide, because they change every signature in a chain: the result type, and <code>ScopedValue</code> for context that crosses layers. Budget accordingly.</p>
+<p>The subset also carries four costs the tables do not show:</p>
 <ul>
 <li><strong>A larger language.</strong> Records, sealed types, patterns, virtual threads, and modules add more syntax than Java 8 had. The subset narrows what you write; it does not narrow what you must read in other people’s code.</li>
 <li><strong>Two shapes for errors.</strong> During migration the codebase carries both exceptions and results. That is worse than either one alone, which is why migration should move one module at a time.</li>
@@ -2189,35 +2217,32 @@ div.csl-indent {
 <div id="ref-javaApiMap25" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[19] </div><div class="csl-right-inline">Oracle Corporation, <span>“Interface java.util.map.”</span> Java SE 25 and JDK 25 API Specification, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html</a></div>
 </div>
-<div id="ref-javaApiCleaner25" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[20] </div><div class="csl-right-inline">Oracle Corporation, <span>“Class java.lang.ref.cleaner.”</span> Java SE 25 and JDK 25 API Specification, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ref/Cleaner.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ref/Cleaner.html</a></div>
-</div>
 <div id="ref-javaApiScopedValue25" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[21] </div><div class="csl-right-inline">Oracle Corporation, <span>“Class java.lang.ScopedValue.”</span> Java SE 25 and JDK 25 API Specification, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ScopedValue.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ScopedValue.html</a></div>
+<div class="csl-left-margin">[20] </div><div class="csl-right-inline">Oracle Corporation, <span>“Class java.lang.ScopedValue.”</span> Java SE 25 and JDK 25 API Specification, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ScopedValue.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ScopedValue.html</a></div>
 </div>
 <div id="ref-jep491" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[22] </div><div class="csl-right-inline">OpenJDK, <span>“JEP 491: Synchronize virtual threads without pinning.”</span> Java Enhancement Proposal, JDK 24, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://openjdk.org/jeps/491">https://openjdk.org/jeps/491</a></div>
+<div class="csl-left-margin">[21] </div><div class="csl-right-inline">OpenJDK, <span>“JEP 491: Synchronize virtual threads without pinning.”</span> Java Enhancement Proposal, JDK 24, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://openjdk.org/jeps/491">https://openjdk.org/jeps/491</a></div>
 </div>
 <div id="ref-javaApiExecutorService25" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[23] </div><div class="csl-right-inline">Oracle Corporation, <span>“Interface java.util.concurrent.ExecutorService.”</span> Java SE 25 and JDK 25 API Specification, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html</a></div>
+<div class="csl-left-margin">[22] </div><div class="csl-right-inline">Oracle Corporation, <span>“Interface java.util.concurrent.ExecutorService.”</span> Java SE 25 and JDK 25 API Specification, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html</a></div>
 </div>
 <div id="ref-jakartaPersistence31" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[24] </div><div class="csl-right-inline">Jakarta Persistence Working Group, <span>“Jakarta persistence 3.1 specification.”</span> Eclipse Foundation, 2024. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html">https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html</a></div>
+<div class="csl-left-margin">[23] </div><div class="csl-right-inline">Jakarta Persistence Working Group, <span>“Jakarta persistence 3.1 specification.”</span> Eclipse Foundation, 2024. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html">https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html</a></div>
 </div>
 <div id="ref-jackson212" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[25] </div><div class="csl-right-inline">FasterXML, <span>“Jackson release 2.12.”</span> Project release notes, 2020. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.12">https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.12</a></div>
+<div class="csl-left-margin">[24] </div><div class="csl-right-inline">FasterXML, <span>“Jackson release 2.12.”</span> Project release notes, 2020. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.12">https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.12</a></div>
 </div>
 <div id="ref-errorProneInstall" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[26] </div><div class="csl-right-inline">Google, <span>“Error prone: installation.”</span> Error Prone documentation, 2026. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://errorprone.info/docs/installation">https://errorprone.info/docs/installation</a></div>
+<div class="csl-left-margin">[25] </div><div class="csl-right-inline">Google, <span>“Error prone: installation.”</span> Error Prone documentation, 2026. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://errorprone.info/docs/installation">https://errorprone.info/docs/installation</a></div>
 </div>
 <div id="ref-javacMan25" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[27] </div><div class="csl-right-inline">Oracle Corporation, <span>“The javac command.”</span> Java SE 25 Tools Reference, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html">https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html</a></div>
+<div class="csl-left-margin">[26] </div><div class="csl-right-inline">Oracle Corporation, <span>“The javac command.”</span> Java SE 25 Tools Reference, 2025. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html">https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html</a></div>
 </div>
 <div id="ref-nullawayDocs" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[28] </div><div class="csl-right-inline">Uber Technologies, <span>“NullAway: A tool to help eliminate NullPointerExceptions.”</span> Project documentation, 2026. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://github.com/uber/NullAway">https://github.com/uber/NullAway</a></div>
+<div class="csl-left-margin">[27] </div><div class="csl-right-inline">Uber Technologies, <span>“NullAway: A tool to help eliminate NullPointerExceptions.”</span> Project documentation, 2026. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://github.com/uber/NullAway">https://github.com/uber/NullAway</a></div>
 </div>
 <div id="ref-jspecify" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[29] </div><div class="csl-right-inline">JSpecify Contributors, <span>“JSpecify: Standard annotations for nullness.”</span> Project documentation, 2026. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://jspecify.dev/">https://jspecify.dev/</a></div>
+<div class="csl-left-margin">[28] </div><div class="csl-right-inline">JSpecify Contributors, <span>“JSpecify: Standard annotations for nullness.”</span> Project documentation, 2026. Accessed: Nov. 06, 2026. [Online]. Available: <a href="https://jspecify.dev/">https://jspecify.dev/</a></div>
 </div>
 </div></section></div></main> <!-- /main -->
 <script src="../../../toc-references.js"></script>
