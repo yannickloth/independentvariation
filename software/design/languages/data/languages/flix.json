@@ -14,7 +14,7 @@
   "displayOrder": 1,
   "presenceOrder": 1,
   "presenceList": {
-    "core": "C5, K3, T6, T8, T10, T14, M2, M3, M4, Er2, Er5, P1, P2",
+    "core": "C5, K3, T8, T10, T14, M2, M3, M4, Er2",
     "meta": "R2, R3, V1, Ec3, L1",
     "readiness": "Y5, Y10, Y13, Y17"
   },
@@ -39,7 +39,7 @@
     "T3": false,
     "T4": false,
     "T5": false,
-    "T6": true,
+    "T6": false,
     "T7": false,
     "T8": true,
     "T9": false,
@@ -68,15 +68,15 @@
     "Er2": true,
     "Er3": false,
     "Er4": false,
-    "Er5": true,
+    "Er5": false,
     "K1": false,
     "K2": false,
     "K3": true,
     "K4": false,
     "K5": false,
     "K6": false,
-    "P1": true,
-    "P2": true,
+    "P1": false,
+    "P2": false,
     "P3": false,
     "P4": false,
     "R1": false,
@@ -157,9 +157,9 @@
         "mechanism": "T8"
       },
       {
-        "kind": "caution",
-        "text": "**Flat namespace**: All declarations share one name space; a new module can collide with an unrelated one through a shared identifier",
-        "mechanism": "T6"
+        "kind": "enabling",
+        "text": "**Module-scoped namespaces**: Each file is a module with its own name space; declarations in one module do not collide with identically named declarations in another, and `use` imports are explicit",
+        "mechanism": null
       },
       {
         "kind": "enabling",
@@ -258,9 +258,9 @@
         "mechanism": null
       },
       {
-        "kind": "caution",
-        "text": "**A fault in a region-scoped task has no declared survivable unit**: An uncaught exception in a `spawn @ rc` task takes the thread with it, and the region exits — no published supervision structure contains the fault",
-        "mechanism": "Er5"
+        "kind": "enabling",
+        "text": "**JVM thread death contains the fault**: An uncaught exception in a `spawn @ rc` task terminates the thread and the enclosing region, but the process survives — the JVM's thread-death semantics provide a declared survivable unit",
+        "mechanism": null
       }
     ],
     "concurrency": [
@@ -292,14 +292,9 @@
     ],
     "platform": [
       {
-        "kind": "cost",
-        "text": "**Platform lock-in to the JVM**: The program compiles to JVM bytecode and can only run on a JVM implementation. The deployment unit is the bytecode artifact, which is coupled to the JVM's class file format, memory model, and release cycle",
-        "mechanism": "P1"
-      },
-      {
-        "kind": "cost",
-        "text": "**Single dominant implementation**: The JVM ecosystem is dominated by OpenJDK/Oracle, even though other implementations (Eclipse Temurin, Azul, GraalVM) exist. The toolchain, library set, and release schedule of one vendor become the program's agreed reality",
-        "mechanism": "P2"
+        "kind": "enabling",
+        "text": "**JVM portability**: The program compiles to JVM bytecode and runs on any JVM implementation — OpenJDK, GraalVM, Eclipse Temurin, Azul — with no single vendor lock-in",
+        "mechanism": null
       },
       {
         "kind": "enabling",
@@ -537,7 +532,7 @@
     "**Flix is not a systems language**: It assumes a host VM and a collector — the benefit is cross-platform portability and a rich standard library, the cost is a language boundary that cannot be crossed from C or embedded targets",
     "**The compiler is written in Flix**: Self-hosting ensures language design and implementation stay aligned, but bootstrap requires a pre-compiled compiler binary"
   ],
-  "verdict": "Flix removes several classes of coupling in its own constructs: immutable values by default, algebraic data types with exhaustiveness, effect tracking in the type system so side effects are visible in signatures, region-based mutation that confines mutable state, and structured concurrency via regions. Core coupling stays moderate because there is no null-safety (any reference may be absent), the namespace is flat, synchronization is manual with no compile-time race detection, and the JVM's garbage collector and lack of RAII impose memory coupling. The ecosystem dimension is the stronger cost: Flix's package pool is small relative to JVM peers, and governance rests on academic research without a declared corporate steward. The language's standout feature — effect-oriented programming with user-defined effects and handlers — reduces effect coupling at the call site but increases the learning burden for practitioners.",
+  "verdict": "Flix removes several classes of coupling in its own constructs: immutable values by default, algebraic data types with exhaustiveness, effect tracking in the type system so side effects are visible in signatures, region-based mutation that confines mutable state, and structured concurrency via regions. Core coupling stays moderate because there is no null-safety (any reference may be absent), operators are resolved by trait lookup, synchronization is manual with no compile-time race detection, and the JVM's garbage collector and lack of RAII impose memory coupling. The ecosystem dimension is the stronger cost: Flix's package pool is small relative to JVM peers, and governance rests on academic research without a published conformance suite. The language's standout feature — effect-oriented programming with user-defined effects and handlers — reduces effect coupling at the call site but increases the learning burden for practitioners.",
   "verdictExtra": [],
   "presenceListAuthored": true,
   "profile": {
