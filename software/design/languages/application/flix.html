@@ -992,6 +992,12 @@ div.csl-indent {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../../../../software/design/languages/data-science/j.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">J (J9.7)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../../../../software/design/languages/data-science/julia.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Julia (1.12)</span></a>
   </div>
@@ -1479,7 +1485,7 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses Flix v0.79.0 in five parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; <strong>engineering readiness</strong> — whether the artifact can be reproduced, verified, observed, worked in quickly, connected to other languages, and governed openly; the <strong>profile</strong> — the unscored facts a score cannot express; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind every score. A ✅ bullet marks a construct that helps. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 72.9/100</strong> · <strong>Ecosystem coupling 80.1/100</strong> · <strong>Engineering readiness 83.6/100</strong></p>
+<p><strong>Core coupling 72.9/100</strong> · <strong>Ecosystem coupling 85.9/100</strong> · <strong>Engineering readiness 83.6/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
@@ -1522,7 +1528,7 @@ div.csl-indent {
 <ul>
 <li>❌ <strong>Exceptions are unchecked</strong>: A JVM exception propagates without declaration, so a function’s failure set is not visible in its signature (Er2)</li>
 <li>✅ <strong><code>Result</code> provides a composable error path</strong>: <code>Result[s, e]</code> carries success or failure as an ordinary value, and <code>flatMap</code>/<code>map</code> compose error handling through expressions</li>
-<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> separates the recovery path</strong>: Recovery code sits in a dedicated form beside the normal path, and the compiler enforces that checked exceptions are handled</li>
+<li>✅ <strong><code>try</code>/<code>catch</code>/<code>finally</code> separates the recovery path</strong>: Recovery code sits in a dedicated form beside the normal path; the <code>try</code> expression returns a value or a default, so the failure path is explicit in the type</li>
 <li>⚠️ <strong>A fault in a region-scoped task has no declared survivable unit</strong>: An uncaught exception in a <code>spawn @ rc</code> task takes the thread with it, and the region exits — no published supervision structure contains the fault (Er5)</li>
 </ul>
 </section>
@@ -1548,11 +1554,11 @@ div.csl-indent {
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>Effect tracking is the primary trade-off</strong>: Effects in types add precision to function signatures but increase the learning curve and require practitioners to reason about effect composition alongside data types</li>
-<li><strong>Region-based mutation is a novel construct for JVM languages</strong>: It enables pure functions that use mutable state internally, but requires understanding region scoping rules that are unfamiliar to Java developers</li>
-<li><strong>A hosted language inherits its host’s trade-offs</strong>: JVM start-up, garbage collection, and JIT warm-up come from the platform choice, not from Flix’s own constructs</li>
-<li><strong>The ecosystem is small but growing</strong>: 97+ contributors and academic funding ensure continuity, but the library pool is a fraction of Java’s, so more code is written than found</li>
-<li><strong>Flix is not a systems language</strong>: It assumes a host VM and a collector, which is a scope boundary rather than a defect</li>
+<li><strong>Effect tracking is the primary trade-off</strong>: Effects in types add precision to function signatures and enable compile-time safety guarantees, but the type-level effect annotation adds boilerplate that every caller must read</li>
+<li><strong>Region-based mutation is a novel construct for JVM languages</strong>: It enables pure functions that use mutable state internally, but the region syntax is not available in the Java ecosystem, so Flix code cannot be incrementally adopted alongside Java</li>
+<li><strong>The whole-program optimizing compiler is a benefit bought with the JVM</strong>: Monomorphization, closure elimination, and inlining deliver tight bytecode, but they produce large class files and the generated bytecode can be hard to debug with traditional JVM profilers</li>
+<li><strong>The ecosystem is small but growing</strong>: 97+ contributors and academic funding ensure continuity, but the package manager is its own (not Maven or Gradle), so Flix code must maintain its own dependencies even when it calls Java libraries</li>
+<li><strong>Flix is not a systems language</strong>: It assumes a host VM and a collector — the benefit is cross-platform portability and a rich standard library, the cost is a language boundary that cannot be crossed from C or embedded targets</li>
 <li><strong>The compiler is written in Flix</strong>: Self-hosting ensures language design and implementation stay aligned, but bootstrap requires a pre-compiled compiler binary</li>
 </ul>
 </section>
@@ -1575,7 +1581,7 @@ div.csl-indent {
 <li>❌ <strong>Small ecosystem relative to JVM peers</strong>: The number of Flix-specific packages and community examples is a fraction of those available for Java, Kotlin, or Scala (Ec3)</li>
 <li>✅ <strong>The whole JVM library base is reachable</strong>: Maven dependencies resolve through the same resolver, so Java libraries are used directly without a foreign bridge</li>
 <li>✅ <strong>Unified toolchain</strong>: The compiler is the language server, REPL, build tool, and test runner — no separate indexer to install and keep in sync, so the editor and compiler can never disagree</li>
-<li>✅ <strong>The class file carries a published promise</strong>: Flix reaches consumers as JVM bytecode, which is defined by the JVM specification and backward compatible across releases (Ec8)</li>
+<li>✅ <strong>The class file carries a published promise</strong>: Flix reaches consumers as JVM bytecode, which is defined by the JVM specification and backward compatible across releases</li>
 <li>✅ <strong>The package manager and compiler are written in Flix</strong>: The compiler bootstraps from source, and the language itself is the implementation</li>
 </ul>
 </section>
@@ -1696,7 +1702,7 @@ div.csl-indent {
 <section id="supply-chain" class="level4" data-number="1.3.2">
 <h4 data-number="1.3.2" class="anchored" data-anchor-id="supply-chain"><span class="header-section-number">1.3.2</span> Supply chain</h4>
 <ul>
-<li>⚠️ Maven Central is one flat namespace for the JARs the dependency resolver fetches, and transitive resolution inherits the same flat dependency chain.</li>
+<li>⚠️ Maven Central is the primary registry for JVM dependencies, and transitive resolution inherits the same flat dependency chain.</li>
 </ul>
 </section>
 <section id="observability" class="level4" data-number="1.3.3">
@@ -1720,7 +1726,7 @@ div.csl-indent {
 <section id="governance" class="level4" data-number="1.3.6">
 <h4 data-number="1.3.6" class="anchored" data-anchor-id="governance"><span class="header-section-number">1.3.6</span> Governance</h4>
 <ul>
-<li>❌ <strong>Governance rests on academic research and open-source contributors</strong>: The language is developed at Aarhus University with community contributions and research funding, but no corporate steward is declared as the sole decision-maker (Y17)</li>
+<li>⚠️ <strong>No published conformance suite or versioned release cadence</strong>: The language follows the JVM’s release schedule, and correctness is what the dominant implementation decides — no formal conformance test suite exists for the language specification itself (Y17)</li>
 </ul>
 </section>
 </section>
@@ -1802,8 +1808,8 @@ div.csl-indent {
 <td><code>T4</code></td>
 <td>no sum types</td>
 <td>language</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: right;">−4</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1899,7 +1905,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−8.0 (−28)</strong></td>
+<td style="text-align: right;"><strong>−6.9 (−24)</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Construction</strong></td>
@@ -2114,16 +2120,16 @@ div.csl-indent {
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
 <td>runtime</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="even">
 <td></td>
 <td><code>K4</code></td>
 <td>no structured concurrency</td>
 <td>language</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: right;">−4</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -2147,7 +2153,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−1.1 (−4)</strong></td>
+<td style="text-align: right;"><strong>−2.3 (−8)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Platform</strong></td>
@@ -2340,8 +2346,8 @@ div.csl-indent {
 <td><code>V3</code></td>
 <td>discontinued</td>
 <td>context</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: right;">−15</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -2373,7 +2379,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−9.0 (−23)</strong></td>
+<td style="text-align: right;"><strong>−3.1 (−8)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
@@ -2545,7 +2551,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Ecosystem coupling score: 80.1/100</strong> — 51 of the 256 inventory points are present, so the axis cost is 100 × 51 ÷ 256 = 19.9 and the score is 100 − 19.9. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Ecosystem coupling score: 85.9/100</strong> — 36 of the 256 inventory points are present, so the axis cost is 100 × 36 ÷ 256 = 14.1 and the score is 100 − 14.1. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="engineering-readiness-dimensions" class="level4" data-number="1.5.3">
 <h4 data-number="1.5.3" class="anchored" data-anchor-id="engineering-readiness-dimensions"><span class="header-section-number">1.5.3</span> Engineering readiness Dimensions</h4>
@@ -2772,7 +2778,7 @@ div.csl-indent {
 </tbody>
 </table>
 <p><strong>Engineering readiness score: 83.6/100</strong> — 28 of the 171 inventory points are present, so the axis cost is 100 × 28 ÷ 171 = 16.4 and the score is 100 − 16.4. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
-<p><strong>Verdict:</strong> Flix removes several classes of coupling in its own constructs: immutable values by default, algebraic data types with exhaustiveness, effect tracking in the type system so side effects are visible in signatures, region-based mutation that confines mutable state, and structured concurrency via regions. Core coupling stays moderate because there is no null-safety (any reference may be absent), the namespace is flat, and the JVM’s garbage collector and lack of RAII impose memory coupling. The ecosystem dimension is the stronger cost: Flix’s package pool is small relative to JVM peers, governance rests on academic research without a declared corporate steward, and the platform lock-in to the JVM constrains deployment. The language’s standout feature — effect-oriented programming with user-defined effects and handlers — reduces effect coupling at the call site but increases the learning burden for practitioners.</p>
+<p><strong>Verdict:</strong> Flix removes several classes of coupling in its own constructs: immutable values by default, algebraic data types with exhaustiveness, effect tracking in the type system so side effects are visible in signatures, region-based mutation that confines mutable state, and structured concurrency via regions. Core coupling stays moderate because there is no null-safety (any reference may be absent), the namespace is flat, synchronization is manual with no compile-time race detection, and the JVM’s garbage collector and lack of RAII impose memory coupling. The ecosystem dimension is the stronger cost: Flix’s package pool is small relative to JVM peers, and governance rests on academic research without a declared corporate steward. The language’s standout feature — effect-oriented programming with user-defined effects and handlers — reduces effect coupling at the call site but increases the learning burden for practitioners.</p>
 <!-- formal-development -->
 <hr>
 <p><strong>The formal development.</strong> The definitions, theorems, and proofs behind this page are published in:</p>
