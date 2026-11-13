@@ -90,3 +90,21 @@
     if (li !== activeRoot) li.style.display = 'none';
   }
 })();
+
+// ---- Fallback: update total-languages spans from generated data ----
+// The Python generator replaces {TOTAL} at build time. If that step was
+// skipped, this fetches the language index and patches any spans that
+// still carry the placeholder default. Runs on every page, independent of
+// the navigation IIFE above (which returns early on pages without a sidebar).
+(() => {
+  fetch('/software/design/languages/data/languages.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data) return;
+      const count = Array.isArray(data) ? data.length : Object.keys(data).length;
+      document.querySelectorAll('.total-languages').forEach(el => {
+        el.textContent = String(count);
+      });
+    })
+    .catch(() => { /* generator didn't run — keep the default */ });
+})();
