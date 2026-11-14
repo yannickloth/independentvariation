@@ -1491,7 +1491,7 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses Groovy in five parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; <strong>engineering readiness</strong> — whether the artifact can be reproduced, verified, observed, worked in quickly, connected to other languages, and governed openly; the <strong>profile</strong> — the unscored facts a score cannot express; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind every score. A ✅ bullet marks a construct that helps. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 64.9/100</strong> · <strong>Ecosystem coupling 86.3/100</strong> · <strong>Engineering readiness 79.5/100</strong></p>
+<p><strong>Core coupling 62.6/100</strong> · <strong>Ecosystem coupling 80.1/100</strong> · <strong>Engineering readiness 79.5/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
@@ -1547,6 +1547,7 @@ div.csl-indent {
 <li>✅ <strong><code>@Synchronized</code> puts the monitor on the declaration</strong>: The annotation transformation wraps a method in the object’s monitor, so the lock is stated beside the method</li>
 <li>✅ <strong>GPars adds dataflow, actors, and parallel collections</strong>: The abstractions are a library over the JDK, so a concurrent design is not limited to threads and locks</li>
 <li>⚠️ <strong>Shared mutable state is the default</strong>: A field is reachable by every thread, and the compiler checks no access pattern (K2)</li>
+<li>❌ <strong>Manual synchronisation, no race detection</strong>: <code>synchronized</code> and the JDK’s locks state the discipline, and neither the language nor the runtime proves it or reports a race (K3)</li>
 <li>❌ <strong>No structured concurrency in the language</strong>: A task tree, a scope, and a join are the JDK executor’s responsibility, and Groovy adds no scope construct of its own (K4)</li>
 </ul>
 </section>
@@ -1565,10 +1566,8 @@ div.csl-indent {
 <ul>
 <li><strong>Dynamic or static compilation is a per-file choice</strong>: <code>@CompileStatic</code> buys speed and checks at the cost of the metaprogramming forms it cannot compile</li>
 <li><strong>DSL-friendly syntax trades precision for brevity</strong>: Optional parentheses and dots make a DSL read well and a fragment ambiguous</li>
-<li><strong><code>def</code> is a productivity trade</strong>: Less typing now, a later failure at run time</li>
-<li><strong><code>ExpandoMetaClass</code> is a deliberate escape hatch</strong>: It is a scope and architecture decision, and its hidden reach is the price of the flexibility</li>
 <li><strong>Java source compatibility is a target</strong>: Most valid Java remains valid Groovy, which constrains the syntax as much as it helps</li>
-<li><strong>There is no fixed release cadence</strong>: The release schedule is the project’s own decision</li>
+<li><strong>Releases follow the project’s own clock</strong>: No vendor schedule gates a fix or a breaking change; the price is that no external cadence tells a team when to plan an upgrade</li>
 </ul>
 </section>
 </section>
@@ -1624,7 +1623,7 @@ div.csl-indent {
 <li>✅ <strong>Typing is optional</strong>: A script can start with <code>def</code> and add <code>@CompileStatic</code> later</li>
 <li>✅ <strong>The closure and builder idioms read like the domain</strong>: <code>each</code>, <code>collect</code>, and the builder pattern remove loop and assembly boilerplate</li>
 <li>⚠️ <strong>The dynamic model is a large corner</strong>: The metaclass protocol, method-missing dispatch, <code>ExpandoMetaClass</code>, and the differences of <code>@CompileStatic</code> from Java must each be learned</li>
-<li>⚠️ <strong>Two compilation modes are two languages</strong>: Code that compiles under <code>@CompileStatic</code> is a subset of dynamic Groovy, so a developer must know which rules apply where</li>
+<li>❌ <strong>Two compilation modes are two languages</strong>: Code that compiles under <code>@CompileStatic</code> is a subset of dynamic Groovy, so a developer must know which rules apply where (L2)</li>
 </ul>
 </section>
 <section id="syntax" class="level4" data-number="1.2.6">
@@ -1645,7 +1644,7 @@ div.csl-indent {
 <li>✅ <strong>JUnit works directly</strong>: A plain JUnit test class is a Groovy class</li>
 <li>✅ <strong><code>assert</code> prints the intermediate values</strong>: A power assertion reports each subexpression of a failed assertion, which localises the failure without a debugger</li>
 <li>✅ <strong>Metaprogramming builds test doubles</strong>: <code>ExpandoMetaClass</code> and map coercion can stub a method without a mocking library</li>
-<li>⚠️ <strong>A dynamic failure appears only when the test runs the line</strong>: For a <code>def</code> call path the test is the first check</li>
+<li>❌ <strong>A dynamic failure appears only when the test runs the line</strong>: For a <code>def</code> call path the test is the first check (G3)</li>
 <li>⚠️ <strong><code>@CompileStatic</code> changes what a test can patch</strong>: A statically compiled class does not consult the metaclass, so a stub installed that way has no effect</li>
 </ul>
 </section>
@@ -1655,7 +1654,7 @@ div.csl-indent {
 <li>✅ <strong>Memory safety is the JVM’s responsibility</strong>: A buffer overflow or a use-after-free is not expressible in Groovy code</li>
 <li>✅ <strong>The JDK security stack is available</strong>: TLS, the cryptography providers, and the access-control APIs are directly usable</li>
 <li>⚠️ <strong>Metaprogramming can cause type confusion</strong>: <code>ExpandoMetaClass</code>, <code>methodMissing</code>, and <code>invokeMethod</code> change dispatch at runtime, so a call may reach code the source does not name</li>
-<li>⚠️ <strong>Script execution is a code-execution surface</strong>: <code>GroovyShell</code>, <code>Eval</code>, and <code>evaluate</code> run arbitrary text, so untrusted input must never reach them</li>
+<li>❌ <strong>Script execution is a code-execution surface</strong>: <code>GroovyShell</code>, <code>Eval</code>, and <code>evaluate</code> run arbitrary text, so untrusted input must never reach them (Q3)</li>
 <li>⚠️ <strong>An AST transformation executes at compile time</strong>: A build-time transformation runs code in the build, which is a supply-chain surface</li>
 <li>⚠️ <strong><code>@Grab</code> pulls code into the build</strong>: The resolved artifact is loaded onto the script’s class path from a remote repository</li>
 <li>❌ Inherits the JVM rule: integer wraparound (the <code>int</code>/<code>long</code> path) (Q4)</li>
@@ -1779,7 +1778,7 @@ div.csl-indent {
 <h4 data-number="1.4.3" class="anchored" data-anchor-id="safety-certification"><span class="header-section-number">1.4.3</span> Safety certification</h4>
 <p><em>What this axis asks: is there a certified or standards-qualified path to a safety-critical system?</em></p>
 <ul>
-<li>⚠️ No certified or standards-qualified path for safety-critical systems.</li>
+<li>❌ No certified or standards-qualified path for safety-critical systems.</li>
 </ul>
 </section>
 </section>
@@ -2148,8 +2147,8 @@ div.csl-indent {
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
 <td>runtime</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -2181,7 +2180,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−3.4 (−12)</strong></td>
+<td style="text-align: right;"><strong>−5.7 (−20)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Platform</strong></td>
@@ -2225,7 +2224,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Core coupling score: 64.9/100</strong> — 123 of the 350 inventory points are present, so the axis cost is 100 × 123 ÷ 350 = 35.1 and the score is 100 − 35.1. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Core coupling score: 62.6/100</strong> — 131 of the 350 inventory points are present, so the axis cost is 100 × 131 ÷ 350 = 37.4 and the score is 100 − 37.4. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="ecosystem-coupling-dimensions" class="level4" data-number="1.5.2">
 <h4 data-number="1.5.2" class="anchored" data-anchor-id="ecosystem-coupling-dimensions"><span class="header-section-number">1.5.2</span> Ecosystem coupling Dimensions</h4>
@@ -2446,8 +2445,8 @@ div.csl-indent {
 <td><code>L2</code></td>
 <td>large surface/multi-paradigm</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -2463,7 +2462,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>−1.6 (−4)</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Syntax</strong></td>
@@ -2518,8 +2517,8 @@ div.csl-indent {
 <td><code>G3</code></td>
 <td>runtime-only errors</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -2535,7 +2534,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>−1.6 (−4)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
@@ -2558,8 +2557,8 @@ div.csl-indent {
 <td><code>Q3</code></td>
 <td>known vulnerability/injection</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -2575,11 +2574,11 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−5.9 (−15)</strong></td>
+<td style="text-align: right;"><strong>−9.0 (−23)</strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Ecosystem coupling score: 86.3/100</strong> — 35 of the 256 inventory points are present, so the axis cost is 100 × 35 ÷ 256 = 13.7 and the score is 100 − 13.7. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Ecosystem coupling score: 80.1/100</strong> — 51 of the 256 inventory points are present, so the axis cost is 100 × 51 ÷ 256 = 19.9 and the score is 100 − 19.9. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="engineering-readiness-dimensions" class="level4" data-number="1.5.3">
 <h4 data-number="1.5.3" class="anchored" data-anchor-id="engineering-readiness-dimensions"><span class="header-section-number">1.5.3</span> Engineering readiness Dimensions</h4>

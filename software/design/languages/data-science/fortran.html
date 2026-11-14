@@ -1488,7 +1488,7 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses Fortran in five parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; <strong>engineering readiness</strong> — whether the artifact can be reproduced, verified, observed, worked in quickly, connected to other languages, and governed openly; the <strong>profile</strong> — the unscored facts a score cannot express; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind every score. A ✅ bullet marks a construct that helps. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 51.7/100</strong> · <strong>Ecosystem coupling 75.8/100</strong> · <strong>Engineering readiness 52.0/100</strong></p>
+<p><strong>Core coupling 49.4/100</strong> · <strong>Ecosystem coupling 71.1/100</strong> · <strong>Engineering readiness 52.0/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
@@ -1498,6 +1498,7 @@ div.csl-indent {
 <li>❌ <strong>There are no sum types</strong>: An alternative is encoded as an integer tag beside the payload fields, and <code>select case</code> or <code>select type</code> must decode it, so nothing checks that the right branch was taken (T4)</li>
 <li>⚠️ <strong>There are no generics, and a generic interface overloads a name instead</strong>: An <code>interface</code> block binds one name to several specific procedures and the compiler resolves the call by argument type, which is overloading without a type parameter (T5)</li>
 <li>⚠️ <strong>Operator and assignment overloading is expressible</strong>: <code>interface operator(+)</code> and <code>interface assignment(=)</code> redefine <code>+</code> and <code>=</code> for a derived type, so the work behind an operator is invisible at the call site (T8)</li>
+<li>❌ <strong>A procedure’s effects are carried by no declaration</strong>: <code>pure</code> declares an empty effect set and nothing declares a partial one — which files a procedure reads, which globals it writes, whether a call can halt the program — so a caller learns them from the body or from tests (T12)</li>
 <li>✅ <strong>A module is a namespace with a selective import</strong>: <code>use mymodule, only: a, b</code> brings in two names and nothing else, so no flat global namespace is imposed</li>
 <li>✅ <strong><code>class(t)</code> and <code>select type</code> give checked run-time polymorphism</strong>: A polymorphic dummy argument dispatches on the dynamic type of the actual argument, and <code>select type</code> narrows it in a checked branch</li>
 </ul>
@@ -1545,7 +1546,7 @@ div.csl-indent {
 <h4 data-number="1.1.5" class="anchored" data-anchor-id="concurrency"><span class="header-section-number">1.1.5</span> Concurrency</h4>
 <ul>
 <li>❌ <strong>Coarray images share memory by default</strong>: A coarray declared with <code>codimension</code> is written by one image and read by another, and nothing in the language prevents the race (K2)</li>
-<li>⚠️ <strong>Synchronisation is manual</strong>: <code>sync all</code>, <code>sync images</code>, <code>event post</code>/<code>event wait</code>, and <code>lock</code>/<code>unlock</code> are image control statements the program must place at the right point</li>
+<li>❌ <strong>Synchronisation is manual</strong>: <code>sync all</code>, <code>sync images</code>, <code>event post</code>/<code>event wait</code>, and <code>lock</code>/<code>unlock</code> are image control statements the program must place at the right point (K3)</li>
 <li>✅ <strong><code>do concurrent</code> states an independent loop</strong>: The construct asserts that the iterations have no interdependencies, and Fortran 2018 adds <code>local</code>, <code>local_init</code>, and <code>shared</code> locality specifications, so the compiler may parallelise it</li>
 <li>✅ <strong><code>atomic</code> and <code>critical</code> give a defined atomic access</strong>: <code>atomic define</code>/<code>atomic_ref</code> and a <code>critical</code> construct express one update that must not interleave</li>
 <li>⚠️ <strong>The practical parallel model sits outside the language</strong>: Coarray support varies across compilers, so most high-performance code uses OpenMP directives or MPI calls</li>
@@ -1565,12 +1566,10 @@ div.csl-indent {
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong><code>implicit none</code> is the modern practice, not the standard default</strong>: A project chooses to require it, and the language permits implicit typing for the old source</li>
-<li><strong>Column-major order is a deliberate numerical choice</strong>: Array expressions follow Fortran’s storage order, which is what the linear-algebra kernels are written for</li>
+<li><strong>Column-major order is a deliberate numerical choice</strong>: Array expressions follow Fortran’s storage order, which is what the linear-algebra kernels are written for; the price is that a reader from a row-major language sees a transpose where the source shows none</li>
 <li><strong>The aliasing rules are what the optimiser needs</strong>: The standard’s restrictions let the compiler vectorise a loop, which costs flexibility and buys speed</li>
-<li><strong><code>goto</code> remains for compatibility</strong>: It is retained so that decades of code keeps compiling, and a new program need not use it</li>
+<li><strong><code>goto</code> remains for compatibility</strong>: It is retained so that decades of code keeps compiling; the price is that the unstructured form stays in the language, so a new program can still reach it</li>
 <li><strong>Whole-array syntax exists so the compiler chooses the loop nest</strong>: The programmer gives up per-loop control in exchange for vectorisation</li>
-<li><strong>The legacy corpus is working, tested numerical code</strong>: The aging ecosystem holds decades of validated physics and linear-algebra routines</li>
 </ul>
 </section>
 </section>
@@ -1589,7 +1588,7 @@ div.csl-indent {
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
-<li>❌ <strong>There is no standard package manager for the language</strong>: Dependencies are resolved by a language-agnostic manager such as Spack or Conda or by the system manager, and the <code>fpm</code> package manager is young and small (Ec3)</li>
+<li>❌ <strong><code>fpm</code> is young and the standard route is a language-agnostic manager</strong>: Dependencies resolve through Spack, Conda, or the system manager, and the Fortran-specific <code>fpm</code> covers a small corner of the ecosystem (Ec3)</li>
 <li>✅ <strong>The numerical libraries are mature and standard</strong>: BLAS, LAPACK, and the vendor-tuned kernels (MKL, ESSL) are callable from Fortran directly</li>
 <li>✅ <strong>A compiler is available on every system</strong>: A Fortran compiler is installed on every HPC cluster and is packaged for every common Linux distribution</li>
 <li>✅ <strong>Interoperation with the C and Python ecosystems is standard</strong>: <code>iso_c_binding</code> and the Python wrapper generators make a Fortran kernel callable from a Python array library</li>
@@ -1603,7 +1602,7 @@ div.csl-indent {
 <li>✅ <strong>The standard is backward compatible</strong>: Fortran 90 source mostly compiles with a Fortran 2023 compiler, and only a small set of features has been deleted</li>
 <li>✅ <strong>The compilers retain the deleted features as extensions</strong>: <code>arithmetic IF</code> and <code>PAUSE</code>, both removed by the standard, are still accepted by the common compilers</li>
 <li>✅ <strong>The intrinsic modules extend the language without editing it</strong>: <code>iso_c_binding</code>, <code>iso_fortran_env</code>, and the parallel features were added as modules and new syntax rather than as changes to existing syntax</li>
-<li>⚠️ <strong>A revision takes about a decade</strong>: The editions are 2003, 2008, 2018, and 2023, so a needed feature waits years for the standard and lives as a compiler extension until then</li>
+<li>❌ <strong>Revisions come on a multi-year cycle</strong>: The editions are 2003, 2008, 2018, and 2023, so a needed feature waits years for the standard and lives as a compiler extension until then (V4)</li>
 <li>⚠️ <strong>One program can hold several standards</strong>: A single codebase can mix a Fortran 77 <code>common</code> block with a Fortran 2008 module, so the version in use is a property of the file</li>
 <li>⚠️ <strong>An extension can become load-bearing</strong>: A program that depends on a vendor directive cannot be moved to another compiler without an edit</li>
 <li>❌ <strong>Build variants multiply</strong>: the compilers ship a documented preprocessor (-cpp, #define), and guarded source selects which statements compile (V7)</li>
@@ -1646,15 +1645,14 @@ div.csl-indent {
 <li>✅ <strong><code>error stop</code> gives a test program a defined failure status</strong>: A failing check stops the program with a non-zero status that a harness can read</li>
 <li>✅ <strong>Run-time checks can be compiled in</strong>: <code>-fcheck=all</code> (gfortran) and <code>-check all</code> (ifx) raise on an out-of-bounds subscript, an unassociated pointer, and a shape mismatch</li>
 <li>✅ <strong>The numerical libraries ship their own test suites</strong>: LAPACK and BLAS carry a published suite that exercises each routine, which is the numerical community’s model</li>
-<li>❌ <strong>There is no test framework in the language</strong>: A test is a program that runs and compares, and a runner such as <code>pFUnit</code> or <code>test-drive</code> is a third-party library</li>
-<li>⚠️ <strong>There is no assertion intrinsic</strong>: A check is an explicit <code>if (cond) error stop</code>, so its presence is a written decision</li>
+<li>❌ <strong>There is no test framework in the language</strong>: A test is a program that runs and compares, and a runner such as <code>pFUnit</code> or <code>test-drive</code> is a third-party library (G1)</li>
+<li>⚠️ <strong>There is no assertion intrinsic</strong>: A check is an explicit <code>if (cond) error stop</code>, so its presence is a written decision (G1)</li>
 <li>⚠️ <strong>The result depends on the flags and the hardware</strong>: The summation order, <code>-ffast-math</code>, and the fused multiply-add change the last bits, so a test must fix the build and compare with a tolerance</li>
 </ul>
 </section>
 <section id="security" class="level4" data-number="1.2.8">
 <h4 data-number="1.2.8" class="anchored" data-anchor-id="security"><span class="header-section-number">1.2.8</span> Security</h4>
 <ul>
-<li>❌ <strong>Memory safety depends on a checked build</strong>: an out-of-bounds subscript, an unassociated pointer, and a mismatch between an actual and a dummy argument are found only when the compiler is asked to check them, and the standard requires no run-time check</li>
 <li>✅ <strong>There is no dynamic evaluation of source text</strong>: The language has no <code>eval</code>, no reflective call by name, and no string-to-code path, so a value cannot become code</li>
 <li>✅ <strong><code>intent(in)</code> prevents a write through the callee</strong>: The compiler refuses an assignment to an <code>intent(in)</code> dummy argument, so the read-only direction is enforced</li>
 <li>⚠️ <strong>The C interface hands safety to the neighbour</strong>: <code>c_ptr</code> and <code>type(c_funptr)</code> are raw addresses, and the guarantees of the C code on the other side become part of the program</li>
@@ -1761,7 +1759,7 @@ div.csl-indent {
 <h4 data-number="1.4.3" class="anchored" data-anchor-id="safety-certification"><span class="header-section-number">1.4.3</span> Safety certification</h4>
 <p><em>What this axis asks: is there a certified or standards-qualified path to a safety-critical system?</em></p>
 <ul>
-<li>⚠️ No certified or standards-qualified path for safety-critical systems.</li>
+<li>❌ No certified or standards-qualified path for safety-critical systems.</li>
 </ul>
 </section>
 </section>
@@ -2130,8 +2128,8 @@ div.csl-indent {
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
 <td>runtime</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -2163,7 +2161,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−2.3 (−8)</strong></td>
+<td style="text-align: right;"><strong>−4.6 (−16)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Platform</strong></td>
@@ -2207,7 +2205,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Core coupling score: 51.7/100</strong> — 169 of the 350 inventory points are present, so the axis cost is 100 × 169 ÷ 350 = 48.3 and the score is 100 − 48.3. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Core coupling score: 49.4/100</strong> — 177 of the 350 inventory points are present, so the axis cost is 100 × 177 ÷ 350 = 50.6 and the score is 100 − 50.6. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="ecosystem-coupling-dimensions" class="level4" data-number="1.5.2">
 <h4 data-number="1.5.2" class="anchored" data-anchor-id="ecosystem-coupling-dimensions"><span class="header-section-number">1.5.2</span> Ecosystem coupling Dimensions</h4>
@@ -2364,8 +2362,8 @@ div.csl-indent {
 <td><code>V4</code></td>
 <td>glacial standards</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -2389,7 +2387,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−3.1 (−8)</strong></td>
+<td style="text-align: right;"><strong>−4.7 (−12)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
@@ -2484,8 +2482,8 @@ div.csl-indent {
 <td><code>G1</code></td>
 <td>weak tooling</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -2517,7 +2515,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>−3.1 (−8)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Security</strong></td>
@@ -2561,7 +2559,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Ecosystem coupling score: 75.8/100</strong> — 62 of the 256 inventory points are present, so the axis cost is 100 × 62 ÷ 256 = 24.2 and the score is 100 − 24.2. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Ecosystem coupling score: 71.1/100</strong> — 74 of the 256 inventory points are present, so the axis cost is 100 × 74 ÷ 256 = 28.9 and the score is 100 − 28.9. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="engineering-readiness-dimensions" class="level4" data-number="1.5.3">
 <h4 data-number="1.5.3" class="anchored" data-anchor-id="engineering-readiness-dimensions"><span class="header-section-number">1.5.3</span> Engineering readiness Dimensions</h4>

@@ -14,8 +14,8 @@
   "displayOrder": 58,
   "presenceOrder": 58,
   "presenceList": {
-    "core": "T2, T4, T5, T8, T12, T14, C1, C2, C4, C6, C7, M1, M3, M4, M5, M6, Er6, Er1, Er3, Er4, Er5, K2, P4",
-    "meta": "Ec3, V7, L1, S1, Q1, Q4",
+    "core": "T2, T4, T5, T8, T12, T14, C1, C2, C4, C6, C7, M1, M3, M4, M5, M6, Er6, Er1, Er3, Er4, Er5, K2, K3, P4",
+    "meta": "Ec3, V7, V4, L1, S1, G1, Q1, Q4",
     "readiness": "Y1, Y2, Y3, Y5, Y6, Y13, Y14, Y15, Y16"
   },
   "matrixOrder": 20,
@@ -67,7 +67,7 @@
     "Er5": true,
     "K1": false,
     "K2": true,
-    "K3": false,
+    "K3": true,
     "K4": false,
     "K5": false,
     "K6": false,
@@ -90,7 +90,7 @@
     "V1": false,
     "V2": false,
     "V3": false,
-    "V4": false,
+    "V4": true,
     "V5": false,
     "V7": true,
     "D1": false,
@@ -101,7 +101,7 @@
     "S1": true,
     "S2": false,
     "S3": false,
-    "G1": false,
+    "G1": true,
     "G2": false,
     "G3": false,
     "G4": false,
@@ -153,6 +153,11 @@
         "kind": "caution",
         "text": "**Operator and assignment overloading is expressible**: `interface operator(+)` and `interface assignment(=)` redefine `+` and `=` for a derived type, so the work behind an operator is invisible at the call site",
         "mechanism": "T8"
+      },
+      {
+        "kind": "cost",
+        "text": "**A procedure's effects are carried by no declaration**: `pure` declares an empty effect set and nothing declares a partial one — which files a procedure reads, which globals it writes, whether a call can halt the program — so a caller learns them from the body or from tests",
+        "mechanism": "T12"
       },
       {
         "kind": "enabling",
@@ -298,9 +303,9 @@
         "mechanism": "K2"
       },
       {
-        "kind": "caution",
+        "kind": "cost",
         "text": "**Synchronisation is manual**: `sync all`, `sync images`, `event post`/`event wait`, and `lock`/`unlock` are image control statements the program must place at the right point",
-        "mechanism": null
+        "mechanism": "K3"
       },
       {
         "kind": "enabling",
@@ -380,7 +385,7 @@
     "ecosystem": [
       {
         "kind": "cost",
-        "text": "**There is no standard package manager for the language**: Dependencies are resolved by a language-agnostic manager such as Spack or Conda or by the system manager, and the `fpm` package manager is young and small",
+        "text": "**`fpm` is young and the standard route is a language-agnostic manager**: Dependencies resolve through Spack, Conda, or the system manager, and the Fortran-specific `fpm` covers a small corner of the ecosystem",
         "mechanism": "Ec3"
       },
       {
@@ -426,9 +431,9 @@
         "mechanism": null
       },
       {
-        "kind": "caution",
-        "text": "**A revision takes about a decade**: The editions are 2003, 2008, 2018, and 2023, so a needed feature waits years for the standard and lives as a compiler extension until then",
-        "mechanism": null
+        "kind": "cost",
+        "text": "**Revisions come on a multi-year cycle**: The editions are 2003, 2008, 2018, and 2023, so a needed feature waits years for the standard and lives as a compiler extension until then",
+        "mechanism": "V4"
       },
       {
         "kind": "caution",
@@ -551,12 +556,12 @@
       {
         "kind": "cost",
         "text": "**There is no test framework in the language**: A test is a program that runs and compares, and a runner such as `pFUnit` or `test-drive` is a third-party library",
-        "mechanism": null
+        "mechanism": "G1"
       },
       {
         "kind": "caution",
         "text": "**There is no assertion intrinsic**: A check is an explicit `if (cond) error stop`, so its presence is a written decision",
-        "mechanism": null
+        "mechanism": "G1"
       },
       {
         "kind": "caution",
@@ -565,11 +570,6 @@
       }
     ],
     "security": [
-      {
-        "kind": "cost",
-        "text": "**Memory safety depends on a checked build**: an out-of-bounds subscript, an unassociated pointer, and a mismatch between an actual and a dummy argument are found only when the compiler is asked to check them, and the standard requires no run-time check",
-        "mechanism": null
-      },
       {
         "kind": "enabling",
         "text": "**There is no dynamic evaluation of source text**: The language has no `eval`, no reflective call by name, and no string-to-code path, so a value cannot become code",
@@ -690,12 +690,10 @@
     ]
   },
   "tradeoffs": [
-    "**`implicit none` is the modern practice, not the standard default**: A project chooses to require it, and the language permits implicit typing for the old source",
-    "**Column-major order is a deliberate numerical choice**: Array expressions follow Fortran's storage order, which is what the linear-algebra kernels are written for",
+    "**Column-major order is a deliberate numerical choice**: Array expressions follow Fortran's storage order, which is what the linear-algebra kernels are written for; the price is that a reader from a row-major language sees a transpose where the source shows none",
     "**The aliasing rules are what the optimiser needs**: The standard's restrictions let the compiler vectorise a loop, which costs flexibility and buys speed",
-    "**`goto` remains for compatibility**: It is retained so that decades of code keeps compiling, and a new program need not use it",
-    "**Whole-array syntax exists so the compiler chooses the loop nest**: The programmer gives up per-loop control in exchange for vectorisation",
-    "**The legacy corpus is working, tested numerical code**: The aging ecosystem holds decades of validated physics and linear-algebra routines"
+    "**`goto` remains for compatibility**: It is retained so that decades of code keeps compiling; the price is that the unstructured form stays in the language, so a new program can still reach it",
+    "**Whole-array syntax exists so the compiler chooses the loop nest**: The programmer gives up per-loop control in exchange for vectorisation"
   ],
   "verdict": "Fortran's design produces a low core score, because the constructs that make the numerical work fast are the constructs that couple. Array expressions and `pure` procedures are real separations, and a module with a `submodule` separates an interface from its implementation. But implicit typing hides a misspelled variable, `common` blocks and module variables are global mutable state, a `pointer` is freed by hand with no owner, and an error is a code the caller may ignore. Main strengths: the fit to numerical computing is exact, array performance rivals C, and one standard source runs on every major compiler. Main weaknesses: the ecosystem is small and aging, the revision cycle is slow, and the syntax of a legacy file depends on column positions.",
   "verdictExtra": [],
@@ -710,7 +708,7 @@
       "text": "Sparse training data: models write it unreliably [@joel2025lowresource]."
     },
     "safety": {
-      "kind": "caution",
+      "kind": "cost",
       "text": "No certified or standards-qualified path for safety-critical systems."
     }
   },

@@ -15,8 +15,8 @@
   "displayOrder": 55,
   "presenceOrder": 55,
   "presenceList": {
-    "core": "T1, T3, T7, T8, T12, T14, C2, C5, C6, M2, M3, M4, Er2, K2, K4, P2, T15, C8",
-    "meta": "R2, R3, D3, Q4",
+    "core": "T1, T3, T7, T8, T12, T14, C2, C5, C6, M2, M3, M4, Er2, K2, K3, K4, P2, T15, C8",
+    "meta": "R2, R3, D3, L2, G3, Q3, Q4",
     "readiness": "Y1, Y2, Y10, Y17"
   },
   "matrixOrder": 22,
@@ -74,7 +74,7 @@
     "Er5": false,
     "K1": false,
     "K2": true,
-    "K3": false,
+    "K3": true,
     "K4": true,
     "K5": false,
     "K6": false,
@@ -103,18 +103,18 @@
     "D1": false,
     "D3": true,
     "L1": false,
-    "L2": false,
+    "L2": true,
     "L3": false,
     "S1": false,
     "S2": false,
     "S3": false,
     "G1": false,
     "G2": false,
-    "G3": false,
+    "G3": true,
     "G4": false,
     "Q1": false,
     "Q2": false,
-    "Q3": false,
+    "Q3": true,
     "Y1": true,
     "Y2": true,
     "Y3": false,
@@ -301,6 +301,11 @@
       },
       {
         "kind": "cost",
+        "text": "**Manual synchronisation, no race detection**: `synchronized` and the JDK's locks state the discipline, and neither the language nor the runtime proves it or reports a race",
+        "mechanism": "K3"
+      },
+      {
+        "kind": "cost",
         "text": "**No structured concurrency in the language**: A task tree, a scope, and a join are the JDK executor's responsibility, and Groovy adds no scope construct of its own",
         "mechanism": "K4"
       }
@@ -477,9 +482,9 @@
         "mechanism": null
       },
       {
-        "kind": "caution",
+        "kind": "cost",
         "text": "**Two compilation modes are two languages**: Code that compiles under `@CompileStatic` is a subset of dynamic Groovy, so a developer must know which rules apply where",
-        "mechanism": null
+        "mechanism": "L2"
       }
     ],
     "syntax": [
@@ -536,9 +541,9 @@
         "mechanism": null
       },
       {
-        "kind": "caution",
+        "kind": "cost",
         "text": "**A dynamic failure appears only when the test runs the line**: For a `def` call path the test is the first check",
-        "mechanism": null
+        "mechanism": "G3"
       },
       {
         "kind": "caution",
@@ -563,9 +568,9 @@
         "mechanism": null
       },
       {
-        "kind": "caution",
+        "kind": "cost",
         "text": "**Script execution is a code-execution surface**: `GroovyShell`, `Eval`, and `evaluate` run arbitrary text, so untrusted input must never reach them",
-        "mechanism": null
+        "mechanism": "Q3"
       },
       {
         "kind": "caution",
@@ -649,10 +654,8 @@
   "tradeoffs": [
     "**Dynamic or static compilation is a per-file choice**: `@CompileStatic` buys speed and checks at the cost of the metaprogramming forms it cannot compile",
     "**DSL-friendly syntax trades precision for brevity**: Optional parentheses and dots make a DSL read well and a fragment ambiguous",
-    "**`def` is a productivity trade**: Less typing now, a later failure at run time",
-    "**`ExpandoMetaClass` is a deliberate escape hatch**: It is a scope and architecture decision, and its hidden reach is the price of the flexibility",
     "**Java source compatibility is a target**: Most valid Java remains valid Groovy, which constrains the syntax as much as it helps",
-    "**There is no fixed release cadence**: The release schedule is the project's own decision"
+    "**Releases follow the project's own clock**: No vendor schedule gates a fix or a breaking change; the price is that no external cadence tells a team when to plan an upgrade"
   ],
   "verdict": "Groovy's design yields moderate core coupling, and a platform cost driven by the JVM and its dynamic dispatch rather than by the syntax. `@CompileStatic` and `@TypeChecked` convert the dynamic default into a checked and fast one, traits compose behaviour without inheritance, and safe navigation puts the absence test at the point of use. Main strengths: the whole Java ecosystem is reachable, Gradle and Jenkins Pipeline give the language a mainstream host, and Spock makes testing first-class. Main weaknesses: `def` defers failure to run time, the JVM is the only target, exceptions are unchecked, the metaclass protocol can change dispatch invisibly, and no structured concurrency exists in the language.",
   "verdictExtra": [],
@@ -667,7 +670,7 @@
       "text": "Sparse training data: models write it unreliably [@joel2025lowresource]."
     },
     "safety": {
-      "kind": "caution",
+      "kind": "cost",
       "text": "No certified or standards-qualified path for safety-critical systems."
     }
   },

@@ -14,7 +14,7 @@
   "displayOrder": 62,
   "presenceOrder": 62,
   "presenceList": {
-    "core": "T1, T3, T4, T5, T10, T12, T14, C1, C2, C6, M2, M3, M4, Er2, Er3, K1, K2, K4, C8",
+    "core": "T1, T3, T4, T5, T10, T12, T14, C1, C2, C6, M2, M3, M4, Er2, Er3, K1, K2, K3, K4, C8",
     "meta": "R1, Ec6, Ec7, G3, Q2, Q3",
     "readiness": "Y1, Y4, Y14"
   },
@@ -77,7 +77,7 @@
     "Er5": false,
     "K1": true,
     "K2": true,
-    "K3": false,
+    "K3": true,
     "K4": true,
     "K5": false,
     "K6": false,
@@ -198,11 +198,6 @@
       },
       {
         "kind": "cost",
-        "text": "**No validation enforcement**: Constructor invariants not checked",
-        "mechanism": null
-      },
-      {
-        "kind": "cost",
         "text": "**Monkey patching**: Can modify any class anywhere, global coupling",
         "mechanism": null
       },
@@ -275,7 +270,7 @@
       {
         "kind": "cost",
         "text": "**Global VM Lock (GVL)**: Like Python's GIL, couples threads to single core",
-        "mechanism": null
+        "mechanism": "K1"
       },
       {
         "kind": "enabling",
@@ -294,8 +289,13 @@
       },
       {
         "kind": "cost",
-        "text": "**Shared mutable state**: No protection, race conditions easy",
-        "mechanism": null
+        "text": "**Shared mutable state**: No protection, every field reachable from every thread",
+        "mechanism": "K2"
+      },
+      {
+        "kind": "cost",
+        "text": "**Manual synchronisation, no race detection**: Locks are library calls, and the language reports no data race",
+        "mechanism": "K3"
       }
     ],
     "platform": [
@@ -551,7 +551,7 @@
       },
       {
         "kind": "caution",
-        "text": "RubyGems publishes no advisory feed; bundler-audit and the GitHub database fill the gap.",
+        "text": "Advisory coverage is external: RubyGems publishes no first-party advisory feed, and OSV and the GitHub Advisory Database cover the gap",
         "mechanism": null
       }
     ],
@@ -605,10 +605,9 @@
     ]
   },
   "tradeoffs": [
-    "**Programmer happiness is the design goal**: Ruby favours expressive code over enforcement, a deliberate trade of static guarantees for code that reads like prose",
     "**Parentheses are optional**: The grammar treats a method call and a local variable alike, a readability choice whose cost is ambiguity in dense expressions",
     "**Everything is an object**: Numbers, strings, and classes all respond to methods, a uniform model that removes special-case rules and adds method lookup to every value",
-    "**Visibility is cooperative**: `private` and `protected` can be bypassed with `send`, so encapsulation is a convention the language does not enforce — a deliberate openness rather than a dependency"
+    "**Visibility is cooperative**: `private` marks the intent, and `send` can still reach past it — a deliberate openness in the object protocol rather than a dependency between components"
   ],
   "verdict": "Ruby prioritizes developer happiness over low coupling by language design. Pattern matching (3.0+) and Data.define (3.2+) add structured data handling. YJIT transforms performance. Main strength: readable, expressive syntax makes intent clear. Main weakness: all coupling detection deferred to runtime, metaprogramming creates invisible dependencies, GVL persists.",
   "verdictExtra": [],
@@ -623,7 +622,7 @@
       "text": "A large training corpus and strong code-generation results: models write this language well [@joel2025lowresource; @effibenchx2025]."
     },
     "safety": {
-      "kind": "caution",
+      "kind": "cost",
       "text": "No certified or standards-qualified path for safety-critical systems."
     }
   },

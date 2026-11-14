@@ -1456,7 +1456,7 @@ div.csl-indent {
 <p><strong>Snapshot</strong> Smalltalk (ANSI) — released 1998 · <strong>lifecycle</strong> frozen (the ANSI standard has not been revised)</p>
 <p><strong>Family</strong> Smalltalk — shelf: Application</p>
 <p><em>The language’s main business is building general application software, with a managed runtime or a rich standard library. A shelf groups; it does not classify — the tags below carry every use, paradigm, and platform of this snapshot.</em></p>
-<p><strong>Trajectory</strong> Smalltalk-72 (1972 — first version) · <a href="../../../../software/design/languages/application/smalltalk.html">ANSI (1998 — ANSI X3.334-1998)</a></p>
+<p><strong>Trajectory</strong> Smalltalk-72 (1972 — first version) · <a href="../../../../software/design/languages/application/smalltalk.html">ANSI (1998 — ANSI INCITS 319-1998)</a></p>
 <p><strong>Tags</strong></p>
 <p><strong>Use</strong> — Application, Desktop</p>
 <p><strong>Paradigm</strong> — Object-oriented, Imperative</p>
@@ -1484,7 +1484,7 @@ div.csl-indent {
 <section id="assessment" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="assessment"><span class="header-section-number">1</span> Assessment</h2>
 <p>This page assesses Smalltalk in five parts: <strong>core coupling</strong> — what the language’s own constructs force; <strong>ecosystem coupling</strong> — what the surrounding platform, tooling, and community cost; <strong>engineering readiness</strong> — whether the artifact can be reproduced, verified, observed, worked in quickly, connected to other languages, and governed openly; the <strong>profile</strong> — the unscored facts a score cannot express; and the <strong>scoring detail</strong> — the mechanism marks and the arithmetic behind every score. A ✅ bullet marks a construct that helps. A ⚠️ or ❌ bullet marks a cost; the scoring model does not price every cost named here.</p>
-<p><strong>Core coupling 53.7/100</strong> · <strong>Ecosystem coupling 89.1/100</strong> · <strong>Engineering readiness 56.7/100</strong></p>
+<p><strong>Core coupling 49.1/100</strong> · <strong>Ecosystem coupling 82.8/100</strong> · <strong>Engineering readiness 56.7/100</strong></p>
 <section id="core-coupling" class="level3" data-number="1.1">
 <h3 data-number="1.1" class="anchored" data-anchor-id="core-coupling"><span class="header-section-number">1.1</span> Core coupling</h3>
 <section id="type" class="level4" data-number="1.1.1">
@@ -1495,6 +1495,9 @@ div.csl-indent {
 <li>❌ <strong>No sum types and no generics</strong>: An alternative is a class hierarchy or a <code>Symbol</code> and a collection holds <code>Object</code>s, so both the branch and the element type are conventions (T4, T5)</li>
 <li>❌ <strong>No namespaces</strong>: A class is entered in the one global system dictionary, so a class name collision is a system-wide event (T6)</li>
 <li>❌ <strong><code>nil</code> is an object, not an absent type</strong>: A send to <code>nil</code> raises <code>MessageNotUnderstood</code> rather than failing a static check (T10)</li>
+<li>❌ <strong>No module boundary hides a name</strong>: Every class is global in the one system dictionary and any code can reach it, so an internal change can break an unrelated caller (T11)</li>
+<li>❌ <strong>A method’s effects are carried by no declaration</strong>: What a message reads, sends, or mutates is stated nowhere at the signature, so a caller learns it from the body (T12)</li>
+<li>❌ <strong>The foreign interface is unchecked</strong>: A foreign function call passes arguments and returns a value with no check that the two sides agree on order, layout, or ownership (T14)</li>
 <li>✅ <strong>Message passing separates a request from its implementation</strong>: A send names a selector, and the receiver chooses the method that runs</li>
 </ul>
 </section>
@@ -1543,8 +1546,10 @@ div.csl-indent {
 <li>✅ <strong><code>Process</code> and <code>Semaphore</code> are part of the class library</strong>: A scheduler multiplexes processes, and a semaphore is the synchronisation primitive</li>
 <li>✅ <strong><code>Monitor</code> and <code>SharedQueue</code> are in the class library</strong>: The common coordination patterns ship with the environment</li>
 <li>✅ <strong><code>Delay</code> suspends a process for a stated time</strong>: The scheduler resumes it, so a timed wait is a library call rather than a system call</li>
-<li>⚠️ <strong>Every object is reachable from every process</strong>: The class library supplies the synchronisation primitives, and the discipline that keeps two processes apart from one shared object is the programmer’s</li>
+<li>❌ <strong>Every object is reachable from every process</strong>: Nothing marks an object as private to one process, so shared mutable state is the default (K2)</li>
+<li>❌ <strong>The synchronisation discipline is the programmer’s</strong>: The class library supplies the primitives, and the language neither proves the discipline nor reports a race (K3)</li>
 <li>⚠️ <strong>The classic virtual machine decides when a process runs</strong>: Priority decides which process resumes, and the switch points belong to the interpreter, so a process at the same priority can hold the CPU through a tight loop</li>
+<li>❌ <strong>No structured concurrency</strong>: No construct scopes a process’s lifetime to a block, so nothing guarantees a spawned process has finished when the block ends (K4)</li>
 </ul>
 </section>
 <section id="platform" class="level4" data-number="1.1.6">
@@ -1561,12 +1566,9 @@ div.csl-indent {
 <section id="trade-offs-not-coupling" class="level4" data-number="1.1.7">
 <h4 data-number="1.1.7" class="anchored" data-anchor-id="trade-offs-not-coupling"><span class="header-section-number">1.1.7</span> Trade-offs (not coupling)</h4>
 <ul>
-<li><strong>The image is a deliberate development model</strong>: A running system is editable and the image is the artifact, which is the point of the environment</li>
-<li><strong>Live coding is a workflow choice</strong>: A change is compiled into the running system; the compiler is the mechanism, and the workflow is the choice</li>
-<li><strong>Open classes are deliberate flexibility</strong>: A method can be added to any class, and the global reach of that change is the price</li>
-<li><strong>The absent static typing is a design choice</strong>: No annotation is required, so the discipline is the programmer’s</li>
-<li><strong>Everything is an object by design</strong>: Classes, blocks, and <code>nil</code> are objects, and the uniformity is the language’s identity</li>
-<li><strong>Niche adoption is an outcome</strong>: The language predates and influenced the mainstream object-oriented languages</li>
+<li><strong>The image is a deliberate development model</strong>: A running system is editable and the image carries the state; the price is that the artifact is a binary snapshot, so a diff between two images is not a diff between two programs</li>
+<li><strong>Live coding is a workflow choice</strong>: A change is compiled into the running system with no restart; the price is that no clean boundary separates the program under test from the program being edited</li>
+<li><strong>Everything is an object by design</strong>: Classes, blocks, and <code>nil</code> are objects, and the uniformity removes special-case rules; the price is that no value sits outside the message protocol, so a fast primitive path is the virtual machine’s business, not the source’s</li>
 </ul>
 </section>
 </section>
@@ -1579,13 +1581,14 @@ div.csl-indent {
 <li>✅ <strong>The virtual machine is the optimisation boundary</strong>: The runtime optimises a method, so no source-level tuning is needed to reach the native path</li>
 <li>✅ <strong>In-line caches make a polymorphic send cheap</strong>: A send site caches the receiver’s class and its method, so a repeated send costs one lookup</li>
 <li>⚠️ <strong>Steady-state speed is below a statically compiled language</strong>: A dynamic send is a polymorphic call site, so a numeric inner loop is slower than in Ada or C</li>
-<li>⚠️ <strong>Warm-up precedes peak speed</strong>: The interpreter runs a method until the runtime decides to compile it</li>
+<li>❌ <strong>Warm-up precedes peak speed</strong>: The interpreter runs a method until the runtime decides to compile it (R3)</li>
 </ul>
 </section>
 <section id="ecosystem" class="level4" data-number="1.2.2">
 <h4 data-number="1.2.2" class="anchored" data-anchor-id="ecosystem"><span class="header-section-number">1.2.2</span> Ecosystem</h4>
 <ul>
 <li>❌ <strong>The ecosystem is small and centred on a few communities</strong>: Pharo and Squeak carry most of the active library work, and commercial Smalltalk is a niche (Ec3)</li>
+<li>❌ <strong>Tools bind to a dialect</strong>: Monticello, Metacello, and the development environments are dialect packages, so no single toolchain covers the language and a team’s tooling binds to one dialect (Ec2)</li>
 <li>✅ <strong>Pharo and Squeak are active open-source communities</strong>: Each ships a maintained image with tools, a package manager, and libraries</li>
 <li>✅ <strong>The commercial implementations are long-lived</strong>: VisualWorks, VA Smalltalk, and GemStone/S have decades of use</li>
 <li>✅ <strong><code>Metacello</code> and <code>Monticello</code> give package management and versioning</strong>: A package is loaded from a repository with a version map</li>
@@ -1602,6 +1605,7 @@ div.csl-indent {
 <li>⚠️ <strong>Later work is dialect-specific</strong>: Each community extends the class library and the tools on its own, so the dialects diverge</li>
 <li>⚠️ <strong>A dialect fork is the usual form of a break</strong>: Squeak and Pharo diverged from a shared image, so a program may target one community only</li>
 <li>⚠️ <strong>The image carries its own history</strong>: An old image can hold classes and methods that the source no longer describes, so a migration needs care</li>
+<li>❌ <strong>The standard is frozen</strong>: The 1998 definition has no revision path, so a missing feature or a defect in the standard is permanent (V2)</li>
 </ul>
 </section>
 <section id="domain" class="level4" data-number="1.2.4">
@@ -1726,6 +1730,7 @@ div.csl-indent {
 <ul>
 <li>✅ ANSI X3J20 published the Smalltalk standard in 1998. (Y12)</li>
 <li>✅ The Squeak and Pharo environments are public source. (Y19)</li>
+<li>❌ <strong>Correctness is what the dialect does</strong>: No conformance suite tests a dialect against the standard, so each implementation’s behaviour defines its own corners of the language (Y17)</li>
 </ul>
 </section>
 </section>
@@ -1750,7 +1755,7 @@ div.csl-indent {
 <h4 data-number="1.4.3" class="anchored" data-anchor-id="safety-certification"><span class="header-section-number">1.4.3</span> Safety certification</h4>
 <p><em>What this axis asks: is there a certified or standards-qualified path to a safety-critical system?</em></p>
 <ul>
-<li>⚠️ No certified or standards-qualified path for safety-critical systems.</li>
+<li>❌ No certified or standards-qualified path for safety-critical systems.</li>
 </ul>
 </section>
 </section>
@@ -2111,16 +2116,16 @@ div.csl-indent {
 <td><code>K2</code></td>
 <td>shared mutable state default</td>
 <td>language</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td><code>K3</code></td>
 <td>manual sync no race detection</td>
 <td>runtime</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -2152,7 +2157,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−1.1 (−4)</strong></td>
+<td style="text-align: right;"><strong>−5.7 (−20)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Platform</strong></td>
@@ -2196,7 +2201,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Core coupling score: 53.7/100</strong> — 162 of the 350 inventory points are present, so the axis cost is 100 × 162 ÷ 350 = 46.3 and the score is 100 − 46.3. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Core coupling score: 49.1/100</strong> — 178 of the 350 inventory points are present, so the axis cost is 100 × 178 ÷ 350 = 50.9 and the score is 100 − 50.9. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="ecosystem-coupling-dimensions" class="level4" data-number="1.5.2">
 <h4 data-number="1.5.2" class="anchored" data-anchor-id="ecosystem-coupling-dimensions"><span class="header-section-number">1.5.2</span> Ecosystem coupling Dimensions</h4>
@@ -2233,8 +2238,8 @@ div.csl-indent {
 <td><code>R3</code></td>
 <td>JIT warmup</td>
 <td>runtime</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
 </tr>
 <tr class="even">
 <td><strong>Performance cost</strong></td>
@@ -2242,7 +2247,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>−1.6 (−4)</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Ecosystem</strong></td>
@@ -2257,8 +2262,8 @@ div.csl-indent {
 <td><code>Ec2</code></td>
 <td>fragmented tooling</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−8</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -2322,7 +2327,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>−3.1 (−8)</strong></td>
+<td style="text-align: right;"><strong>−6.2 (−16)</strong></td>
 </tr>
 <tr class="odd">
 <td><strong>Evolution</strong></td>
@@ -2337,8 +2342,8 @@ div.csl-indent {
 <td><code>V2</code></td>
 <td>frozen</td>
 <td>context</td>
-<td style="text-align: center;">—</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: right;">−4</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -2378,7 +2383,7 @@ div.csl-indent {
 <td></td>
 <td></td>
 <td style="text-align: center;"></td>
-<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>−1.6 (−4)</strong></td>
 </tr>
 <tr class="even">
 <td><strong>Domain</strong></td>
@@ -2550,7 +2555,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p><strong>Ecosystem coupling score: 89.1/100</strong> — 28 of the 256 inventory points are present, so the axis cost is 100 × 28 ÷ 256 = 10.9 and the score is 100 − 10.9. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
+<p><strong>Ecosystem coupling score: 82.8/100</strong> — 44 of the 256 inventory points are present, so the axis cost is 100 × 44 ÷ 256 = 17.2 and the score is 100 − 17.2. Each dimension’s cost above is its share of the same denominator, and the raw weight sum follows in parentheses.</p>
 </section>
 <section id="engineering-readiness-dimensions" class="level4" data-number="1.5.3">
 <h4 data-number="1.5.3" class="anchored" data-anchor-id="engineering-readiness-dimensions"><span class="header-section-number">1.5.3</span> Engineering readiness Dimensions</h4>
